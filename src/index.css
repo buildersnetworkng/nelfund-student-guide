@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+  :focus-visible {
+    outline: 2px solid #C89B3C;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-3xl px-4 sm:px-6;
+  }
+
+  .card {
+    @apply bg-white rounded-xl2 shadow-card border border-forest-100/70 p-5;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-forest-700 px-5 py-3 text-sm font-semibold text-paper transition-colors hover:bg-forest-900 active:bg-forest-900;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-forest-700 bg-transparent px-5 py-3 text-sm font-semibold text-forest-700 transition-colors hover:bg-forest-50;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-forest-500;
+  }
+
+  .stamp {
+    @apply inline-flex items-center gap-1.5 rounded-md border-[1.5px] px-2.5 py-1 text-[11px] font-mono font-medium uppercase tracking-wide;
+    transform: rotate(-1.5deg);
+  }
+  .stamp-verified {
+    @apply stamp border-teal-500 text-teal-700 bg-teal-500/5;
+  }
+  .stamp-may-change {
+    @apply stamp border-amber-500 text-amber-500 bg-amber-100/70;
+  }
+  .stamp-guidance {
+    @apply stamp border-gold-500 text-gold-700 bg-gold-500/5;
+  }
+  .stamp-unverified {
+    @apply stamp border-rust-500 text-rust-500 bg-rust-100;
+  }
+
+  .reduce-motion-safe {
+    @media (prefers-reduced-motion: reduce) {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
