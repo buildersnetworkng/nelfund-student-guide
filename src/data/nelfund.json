@@ -1,0 +1,132 @@
+[
+  {
+    "id": "nf-what-is",
+    "title": "What is NELFUND?",
+    "content": "NELFUND is the Nigerian Education Loan Fund. It provides student financing for eligible tertiary students in Nigeria, covering institutional charges and/or upkeep. NELFUND is a loan, not a scholarship or a grant — it must be repaid.",
+    "category": "Getting Started",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-11",
+    "related_video_ids": [
+      "vid-general-overview"
+    ],
+    "related_guide_ids": [
+      "guide-how-to-apply"
+    ],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-loan-not-scholarship",
+    "title": "NELFUND is a loan, not free money",
+    "content": "Funding from NELFUND is a loan with real repayment obligations. Students should not treat it as a scholarship or as free government money. Understanding this before applying helps you plan how you will repay it later.",
+    "category": "Getting Started",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-11",
+    "related_video_ids": [
+      "vid-general-overview"
+    ],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-components",
+    "title": "What NELFUND funding can cover",
+    "content": "NELFUND funding can include two components: institutional charges (school fees and related charges) and student upkeep (a monthly living allowance). The institutional-charges component is paid directly to the institution, not to the student.",
+    "category": "Getting Started",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-11",
+    "related_video_ids": [
+      "vid-school-fees-explainer"
+    ],
+    "related_guide_ids": [
+      "guide-how-to-apply"
+    ],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-upkeep-amount",
+    "title": "How much is the upkeep allowance?",
+    "content": "The currently confirmed upkeep amount is ₦20,000 per month. Figures you may see elsewhere (including ₦25,000) should not be treated as current unless an official NELFUND source confirms a change. Always check the official portal before budgeting around a specific figure.",
+    "category": "Upkeep",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-11",
+    "related_video_ids": [
+      "vid-upkeep-explainer"
+    ],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-repayment-start",
+    "title": "When does repayment begin?",
+    "content": "Current terms indicate that repayment begins two years after completion of NYSC for students who participate in NYSC. Treat this as general guidance on how the structure normally works, and confirm your personal repayment start date through official channels once it is generated for your account.",
+    "category": "Repayment",
+    "verification_status": "may_change",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-11",
+    "related_video_ids": [
+      "vid-repayment-explainer"
+    ],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-repayment-mechanism",
+    "title": "How repayment works",
+    "content": "Repayment terms include deductions from salary where applicable, once a graduate is in formal employment. NELFUND is a real financial obligation, and the repayment structure is designed to recover the loan over time rather than all at once.",
+    "category": "Repayment",
+    "verification_status": "may_change",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-11",
+    "related_video_ids": [
+      "vid-repayment-explainer"
+    ],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-gsi",
+    "title": "What is GSI?",
+    "content": "GSI stands for Global Standing Instruction, a mechanism NELFUND can use for loan recovery. It is generally linked to a borrower's bank accounts to support repayment. Treat the exact mechanics as general guidance and confirm specifics through official NELFUND documentation.",
+    "category": "GSI",
+    "verification_status": "may_change",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-11",
+    "related_video_ids": [
+      "vid-repayment-explainer"
+    ],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-oou-vs-nelfund",
+    "title": "NELFUND-wide rules vs OOU-specific procedures",
+    "content": "NELFUND sets the general loan rules that apply nationwide. OOU, as your institution, handles its own layer on top of that: how your records are verified, how your school-fee data is submitted, how refunds are processed, and how registration is confirmed. A procedure you hear about from a student at another university will not necessarily apply at OOU — always confirm OOU-specific steps through the OOU student portal or official OOU communication.",
+    "category": "OOU Verification",
+    "verification_status": "guidance",
+    "scope": "institution-specific",
+    "source_id": "oou-website",
+    "last_verified": "2026-08-11",
+    "related_video_ids": [],
+    "related_guide_ids": [],
+    "institution_id": "oou",
+    "institution_tips": []
+  }
+]
