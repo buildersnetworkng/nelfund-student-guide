@@ -1,0 +1,68 @@
+[
+  {
+    "id": "r-citizen",
+    "label": "I am a Nigerian citizen",
+    "helper": "NELFUND is a Nigerian government student loan programme.",
+    "institution_id": null
+  },
+  {
+    "id": "r-nin",
+    "label": "I have my NIN (National Identification Number)",
+    "helper": "You'll need this for identity verification. Get it from NIMC if you don't have one.",
+    "institution_id": null
+  },
+  {
+    "id": "r-jamb",
+    "label": "I have my JAMB registration number",
+    "helper": "Used to match your admission and examination record.",
+    "institution_id": null
+  },
+  {
+    "id": "r-admission",
+    "label": "I have my admission information ready",
+    "helper": "Admission letter or confirmation details from your institution.",
+    "institution_id": null
+  },
+  {
+    "id": "r-matric",
+    "label": "I have my matriculation/student number",
+    "helper": "Check your institution's student portal or ID card if unsure.",
+    "institution_id": null
+  },
+  {
+    "id": "r-bank",
+    "label": "I have a valid personal bank account",
+    "helper": "Ideally one opened in your own full legal name.",
+    "institution_id": null
+  },
+  {
+    "id": "r-bvn",
+    "label": "I have my BVN (Bank Verification Number)",
+    "helper": "Linked to the bank account you plan to use.",
+    "institution_id": null
+  },
+  {
+    "id": "r-name-match",
+    "label": "My name matches across NIN, JAMB, bank, and school records",
+    "helper": "Even small spelling differences can cause verification issues.",
+    "institution_id": null
+  },
+  {
+    "id": "r-institution-record",
+    "label": "My institution/student record is available for verification",
+    "helper": "Meaning your institution has your registration data on file and, ideally, submitted it to NELFUND.",
+    "institution_id": null
+  },
+  {
+    "id": "r-oou-upload-check",
+    "label": "I have confirmed with OOU whether my student record has been uploaded to NELFUND",
+    "helper": "OOU submits student records to NELFUND in its own process — checking ahead can save you a failed verification attempt.",
+    "institution_id": "oou"
+  },
+  {
+    "id": "r-oou-matric-format",
+    "label": "My OOU matriculation number matches my OOU student portal exactly",
+    "helper": "Copy it directly from the OOU student portal rather than typing from memory, to avoid a mismatch.",
+    "institution_id": "oou"
+  }
+]

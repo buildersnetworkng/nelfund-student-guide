@@ -1,0 +1,42 @@
+[
+  {
+    "id": "nelfund-website",
+    "label": "NELFUND official website",
+    "url": "https://nelf.gov.ng/",
+    "official": true,
+    "scope": "nelfund-wide",
+    "institution_id": null
+  },
+  {
+    "id": "nelfund-portal",
+    "label": "NELFUND application portal",
+    "url": "https://portal.nelf.gov.ng/",
+    "official": true,
+    "scope": "nelfund-wide",
+    "institution_id": null
+  },
+  {
+    "id": "oou-website",
+    "label": "OOU official website",
+    "url": "https://oouagoiwoye.edu.ng/",
+    "official": true,
+    "scope": "institution-specific",
+    "institution_id": "oou"
+  },
+  {
+    "id": "oou-student-portal",
+    "label": "OOU student portal",
+    "url": "https://stdportal.oouagoiwoye.edu.ng/",
+    "official": true,
+    "scope": "institution-specific",
+    "institution_id": "oou"
+  },
+  {
+    "id": "prompt-seed",
+    "label": "Verified facts provided when this guide was built (August 2026)",
+    "url": "",
+    "official": false,
+    "scope": "nelfund-wide",
+    "institution_id": null
+  }
+]

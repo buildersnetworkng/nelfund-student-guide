@@ -1,0 +1,26 @@
+[
+  {
+    "id": "scam-no-processing-fees",
+    "tip": "Do not pay anyone who claims they can \"process\" or speed up your NELFUND application for a fee."
+  },
+  {
+    "id": "scam-no-guarantor-payment",
+    "tip": "Do not pay for a NELFUND guarantor, or pay anyone claiming to provide one."
+  },
+  {
+    "id": "scam-no-otp-sharing",
+    "tip": "Never share your passwords, PINs, or OTPs (one-time passcodes) with anyone, including people claiming to be NELFUND or bank staff."
+  },
+  {
+    "id": "scam-unofficial-deadlines",
+    "tip": "Do not trust application deadlines or opening dates shared on social media or by unofficial websites — confirm them on the official NELFUND portal."
+  },
+  {
+    "id": "scam-verify-channels",
+    "tip": "Always verify important information through official NELFUND or your institution's channels before acting on it."
+  },
+  {
+    "id": "scam-no-random-links",
+    "tip": "Never enter your NIN, BVN, bank details, or login credentials into a link sent to you unexpectedly — go directly to the official portal instead."
+  }
+]
