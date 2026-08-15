@@ -26,7 +26,7 @@ export default function Home() {
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-paper/75 sm:text-base">
             Understand NELFUND, prepare your documents, apply correctly, solve common problems,
-            and find trusted guidance — all in one place.
+            and find trusted guidance. All in one place.
           </p>
           <p className="mt-2 max-w-xl text-xs text-paper/55 sm:text-sm">
             Built with OOU students in mind, but designed to help students across Nigeria
@@ -81,8 +81,8 @@ export default function Home() {
             Always verify application dates and changing requirements through official
             NELFUND/institution announcements. This guide labels every piece of information as{' '}
             <strong>Verified</strong>, <strong>May Change</strong>, <strong>General Guidance</strong>,
-            or <strong>Unverified</strong> — and as <strong>NELFUND-wide</strong> or{' '}
-            <strong>institution-specific</strong> — so you always know how much to rely on it.
+            or <strong>Unverified</strong>. And as <strong>NELFUND-wide</strong> or{' '}
+            <strong>institution-specific</strong>. So you always know how much to rely on it.
           </p>
         </div>
       </section>
