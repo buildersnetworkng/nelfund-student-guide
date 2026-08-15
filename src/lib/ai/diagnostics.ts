@@ -20,8 +20,8 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
   const factOrFaq = evidence.find((e) => e.kind === 'fact' || e.kind === 'faq')
   const guide = evidence.find((e) => e.kind === 'guide')
   const primary = troubleshooting || factOrFaq || evidence[0]
-  const factBody = factOrFaq?.body ?? primary?.body ?? ''
-  const meanBody = troubleshooting?.body ?? factBody
+  const factBody = factOrFaq?.body ?? ''
+  const meanBody = troubleshooting?.body ?? null
   const steps = troubleshooting?.steps ?? guide?.steps ?? []
   const avoid = troubleshooting?.avoid ?? []
   const stillStuck = troubleshooting?.still_stuck
@@ -34,7 +34,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
   switch (intent) {
     case 'jamb-verification':
       answer = 'If the NELFUND portal is rejecting or not accepting your JAMB registration number, do not keep changing random details yet. First confirm that the number you entered matches the JAMB record linked to your admission exactly (same digits, no extra spaces).'
-      whatThisMeans = meanBody || 'JAMB-related failures are often a data match issue between what you typed, your JAMB record, and what your institution has on file.'
+      whatThisMeans = meanBody ?? 'JAMB-related failures are often a data match issue between what you typed, your JAMB record, and what your institution has on file.'
       nextActions.push(
         'Re-enter your JAMB registration number carefully and match it to your JAMB slip or admission letter.',
         'Confirm your name, admission, and institution details match your official records.',
@@ -46,7 +46,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       break
     case 'nin-verification':
       answer = 'If your NIN is not verifying on the NELFUND portal, pause and check that the NIN is entered exactly as on your NIN slip or NIMC record.'
-      whatThisMeans = meanBody || 'NIN verification failures are usually data mismatches or temporary system issues, not proof that you are ineligible.'
+      whatThisMeans = meanBody ?? 'NIN verification failures are usually data mismatches or temporary system issues, not proof that you are ineligible.'
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push('Confirm your NIN digits against your official NIN document.', 'Ensure the name and date of birth on your NELFUND profile match your NIN record.')
       if (stillStuck) nextActions.push(stillStuck)
@@ -54,7 +54,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       break
     case 'missing-information':
       answer = 'When the portal shows "missing information" or "no school information found," it usually means NELFUND cannot yet match your student record with data from your institution — not that you invented a school.'
-      whatThisMeans = meanBody || 'This is typically an institutional data upload or verification gap.'
+      whatThisMeans = meanBody ?? 'This is typically an institutional data upload or verification gap.'
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push(
         'Confirm you selected the correct institution and session.',
@@ -66,7 +66,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       break
     case 'school-not-found':
       answer = 'If your school is not showing on the portal, first check spelling and try the full official institution name. If it still does not appear, the list may not have loaded correctly, or your school data is not yet available the way the portal expects.'
-      whatThisMeans = meanBody || 'Institution lookup problems are common and are not always permanent exclusion.'
+      whatThisMeans = meanBody ?? 'Institution lookup problems are common and are not always permanent exclusion.'
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push(
         'Search using the full official name of your institution, not only the abbreviation.',
@@ -78,7 +78,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       break
     case 'pending-application':
       answer = 'A pending status means your application has been submitted and is still being processed or verified. Waiting is normal at this stage. Avoid submitting duplicate applications or paying anyone who claims they can speed it up.'
-      whatThisMeans = meanBody || 'Pending is a process state, not a rejection. Institutional verification and NELFUND checks can take time.'
+      whatThisMeans = meanBody ?? 'Pending is a process state, not a rejection. Institutional verification and NELFUND checks can take time.'
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push(
         'Check your status periodically on the official NELFUND portal only.',
@@ -90,7 +90,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       break
     case 'rejected-application':
       answer = 'If your application was rejected, the next step is to understand the reason shown on the portal (when available) and correct what you can — for example data mismatches — before considering a new attempt in an open cycle.'
-      whatThisMeans = meanBody || factBody || 'Rejection is not always final forever. Many cases relate to verification or data issues that can be addressed.'
+      whatThisMeans = meanBody ?? factBody || 'Rejection is not always final forever. Many cases relate to verification or data issues that can be addressed.'
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push(
         'Read any rejection or status note on the official portal carefully.',
@@ -102,7 +102,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       break
     case 'refund':
       answer = 'If you already paid school fees before your NELFUND application completed, this guide cannot confirm a single national refund rule. Outcomes depend on your institution bursary procedures and any current NELFUND guidance.'
-      whatThisMeans = meanBody || 'Do not assume an automatic refund or an automatic loss of institutional-charges support. Confirm with your school and the official portal.'
+      whatThisMeans = meanBody ?? 'Do not assume an automatic refund or an automatic loss of institutional-charges support. Confirm with your school and the official portal.'
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push(
         'Keep all payment receipts and related documents.',
@@ -119,13 +119,13 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
     case 'school-fees':
     case 'institutional-charges':
       answer = factBody || 'Institutional charges (school fees and related charges) are paid by NELFUND to the institution, not paid as cash into the student personal account.'
-      whatThisMeans = meanBody || null
+      whatThisMeans = meanBody
       nextActions.push('Use only the official portal to apply for institutional charges where available.', `Verify details on: ${OFFICIAL_PORTAL}`)
       break
     case 'repayment':
     case 'gsi':
       answer = factBody || 'NELFUND is a loan. It must be repaid. Repayment generally begins after a grace period following completion of study; GSI is a recovery mechanism that may be linked to bank accounts.'
-      whatThisMeans = meanBody || 'Exact timing and mechanics can change; confirm current repayment rules on official NELFUND channels.'
+      whatThisMeans = meanBody ?? 'Exact timing and mechanics can change; confirm current repayment rules on official NELFUND channels.'
       if (steps.length) nextActions.push(...steps.slice(0, 3))
       nextActions.push(`Confirm repayment rules on the official website: ${OFFICIAL_SITE}`)
       break
@@ -168,7 +168,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       nextActions.push('Open the Am I ready checklist on this site.', `Confirm requirements on the official portal: ${OFFICIAL_PORTAL}`)
       break
     case 'bank-information':
-      answer = meanBody || 'If bank details fail, check that your account number, bank name, and BVN match the account in your own name as required by the portal.'
+      answer = meanBody ?? 'If bank details fail, check that your account number, bank name, and BVN match the account in your own name as required by the portal.'
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push('Confirm account number and bank name carefully.', 'Ensure the account is in your name where required.', 'Retry after correcting any mismatch.')
       clarifyingQuestions.push('What exact bank error message do you see?')
@@ -186,7 +186,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       nextActions.push(`Review eligibility on the official site: ${OFFICIAL_SITE}`, `Apply only via: ${OFFICIAL_PORTAL}`)
       break
     case 'institution-verification':
-      answer = meanBody || 'Institutional verification is the step where NELFUND confirms your student record with your school. Delays here are often on the institution data submission side.'
+      answer = meanBody ?? 'Institutional verification is the step where NELFUND confirms your student record with your school. Delays here are often on the institution data submission side.'
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       clarifyingQuestions.push('Which institution are you registered with?')
       break
@@ -195,7 +195,8 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       nextActions.push(`Use only the official portal: ${OFFICIAL_PORTAL}`, 'Fix verification or document issues before a new submission.')
       break
     default:
-      answer = factBody || meanBody || primary?.body || ''
+      answer = (troubleshooting?.body) || factBody || primary?.body || ''
+      whatThisMeans = troubleshooting ? troubleshooting.body : null
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       break
   }
@@ -210,7 +211,6 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
     }
   }
   if (nextActions.length === 0) {
-    if (primary?.path) nextActions.push(`Read the full guide entry: ${primary.path}`)
     nextActions.push(`Verify on the official NELFUND portal: ${OFFICIAL_PORTAL}`)
   }
   if (intentMeta.confidence >= 0.85 && nextActions.length >= 3 && clarifyingQuestions.length > 1) {
