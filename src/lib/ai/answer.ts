@@ -19,10 +19,11 @@ function buildSources(evidence: EvidenceItem[]): AnswerSource[] {
     if (s) out.push({ id: s.id, label: s.label, url: s.url, official: s.official })
     else out.push({ id: e.source_id, label: e.source_id, url: null, official: false })
   }
-  for (const s of sources.filter((x) => x.official && x.scope === 'nelfund-wide')) {
-    if (seen.has(s.id)) continue
-    seen.add(s.id)
-    out.push({ id: s.id, label: s.label, url: s.url, official: true })
+  if (out.length === 0 || !out.some((s) => s.official)) {
+    const portal = sources.find((x) => x.id === 'nelfund-portal' || (x.official && x.scope === 'nelfund-wide'))
+    if (portal && !seen.has(portal.id)) {
+      out.push({ id: portal.id, label: portal.label, url: portal.url, official: portal.official })
+    }
   }
   return out.sort((a, b) => Number(b.official) - Number(a.official))
 }
