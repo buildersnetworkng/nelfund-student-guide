@@ -12,6 +12,7 @@ import TroubleshootingDetail from './pages/TroubleshootingDetail'
 import Faq from './pages/Faq'
 import Videos from './pages/Videos'
 import Sources from './pages/Sources'
+import Ask from './pages/Ask'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
       <main className="flex-1 pb-24 md:pb-0">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/ask" element={<Ask />} />
           <Route path="/readiness" element={<Readiness />} />
           <Route path="/apply" element={<Apply />} />
           <Route path="/fees" element={<Fees />} />

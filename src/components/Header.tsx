@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 const LINKS = [
   { to: '/', label: 'Home' },
+  { to: '/ask', label: 'Ask' },
   { to: '/readiness', label: 'Am I ready?' },
   { to: '/apply', label: 'How to apply' },
   { to: '/troubleshooting', label: 'Problems' },
@@ -42,5 +43,3 @@ export default function Header() {
     </header>
   )
 }
-
-export { LINKS }

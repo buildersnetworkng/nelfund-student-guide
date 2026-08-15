@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 const ITEMS = [
   { to: '/', label: 'Home', icon: '🏠' },
-  { to: '/readiness', label: 'Ready?', icon: '📋' },
+  { to: '/ask', label: 'Ask', icon: '💬' },
   { to: '/apply', label: 'Apply', icon: '📝' },
   { to: '/troubleshooting', label: 'Problems', icon: '❌' },
   { to: '/faq', label: 'FAQ', icon: '❓' },
