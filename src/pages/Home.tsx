@@ -36,11 +36,11 @@ export default function Home() {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link to="/apply" className="btn-primary bg-gold-500 text-ink hover:bg-gold-300">
-              How to apply
+            <Link to="/ask" className="btn-primary bg-gold-500 text-ink hover:bg-gold-300">
+              Ask a question
             </Link>
-            <Link to="/readiness" className="btn-secondary border-paper/40 text-paper hover:bg-paper/10">
-              Am I ready?
+            <Link to="/apply" className="btn-secondary border-paper/40 text-paper hover:bg-paper/10">
+              How to apply
             </Link>
           </div>
 
@@ -63,6 +63,7 @@ export default function Home() {
         <p className="mt-1 text-sm text-ink/60">Jump straight to what you need.</p>
 
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <QuickActionCard to="/ask" icon="💬" title="Ask a Question" description="Get answers from verified guide knowledge." />
           <QuickActionCard to="/apply" icon="📝" title="How to Apply" description="Step-by-step application guide." />
           <QuickActionCard to="/readiness" icon="📋" title="Am I Ready?" description="Interactive readiness checklist." />
           <QuickActionCard to="/fees" icon="💰" title="School Fees" description="How institutional charges work." />
