@@ -7,6 +7,9 @@ import InstitutionNotice from '../components/InstitutionNotice'
 export default function Videos() {
   const { institutionId } = useInstitution()
 
+  // NELFUND-wide videos always show; an institution's own videos only show
+  // once a student has selected that institution. No OOU-specific video is
+  // ever recommended to a student at another school by default.
   const visibleVideos = useMemo(() => getRelevantContent(videos, institutionId), [institutionId])
 
   const categories = useMemo(() => Array.from(new Set(visibleVideos.map((v) => v.category))), [visibleVideos])
