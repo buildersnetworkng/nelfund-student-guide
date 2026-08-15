@@ -1,9 +1,9 @@
 {
-  "name": "nelfund-student-guide",
+  "name": "nelfund-oou-guide",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "An unofficial NELFUND guide for Nigerian tertiary students — readiness checks, application steps, troubleshooting, FAQs and video guides, all clearly labelled as verified, may-change, general guidance, or unverified. Institution-aware architecture for OOU, UNILORIN and other Nigerian tertiary institutions.",
+  "description": "An unofficial NELFUND guide for Nigerian tertiary students. Readiness checks, application steps, troubleshooting, FAQs and video guides, all clearly labelled as verified, may-change, general guidance, or unverified. Institution-aware architecture for students at any Nigerian tertiary institution.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -29,6 +29,7 @@
     "postcss": "^8.4.45",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.5.4",
-    "vite": "^5.4.3"
+    "vite": "^5.4.3",
+    "gh-pages": "^6.1.1"
   }
 }
