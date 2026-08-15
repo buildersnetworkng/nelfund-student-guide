@@ -90,7 +90,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       break
     case 'rejected-application':
       answer = 'If your application was rejected, the next step is to understand the reason shown on the portal (when available) and correct what you can — for example data mismatches — before considering a new attempt in an open cycle.'
-      whatThisMeans = meanBody ?? factBody || 'Rejection is not always final forever. Many cases relate to verification or data issues that can be addressed.'
+      whatThisMeans = meanBody ?? (factBody || 'Rejection is not always final forever. Many cases relate to verification or data issues that can be addressed.')
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push(
         'Read any rejection or status note on the official portal carefully.',
