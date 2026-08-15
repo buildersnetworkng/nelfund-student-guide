@@ -5,6 +5,7 @@ import type {
   GroundedAnswer, EvidenceItem, AnswerSource, AnswerVideo, IntentId, ConversationTurn, IntentResult,
 } from './types'
 import { diagnosticAssemble } from './diagnostics'
+import { buildEscalationPlan, needsInstitutionForEscalation, resolveInstitutionFromText } from '../escalation'
 
 const OFFICIAL_PORTAL = 'https://portal.nelf.gov.ng/'
 const OFFICIAL_SITE = 'https://nelf.gov.ng/'
@@ -54,6 +55,7 @@ function insufficientAnswer(intent: IntentId, intentMeta: IntentResult): Grounde
     video: null,
     insufficientReason: 'No sufficiently relevant verified knowledge entry matched this question.',
     officialFallbackUrl: OFFICIAL_PORTAL,
+    escalation: null,
   }
 }
 
@@ -81,7 +83,7 @@ export function answerQuestion(
       hasEvidence: true, intent, confidence, problem: intentMeta.problem,
       answer: assembled.answer, whatThisMeans: assembled.whatThisMeans, nextActions: assembled.nextActions,
       clarifyingQuestions: assembled.clarifyingQuestions, evidence: strongEvidence, sources: buildSources(strongEvidence),
-      video: null, insufficientReason: null, officialFallbackUrl: OFFICIAL_PORTAL,
+      video: null, insufficientReason: null, officialFallbackUrl: OFFICIAL_PORTAL, escalation: null,
     }
   }
 
@@ -94,12 +96,42 @@ export function answerQuestion(
 
   const assembled = diagnosticAssemble(intent, strongEvidence, intentMeta)
   const videoRaw = retrieveRelevantVideo(strongEvidence, intent, institutionId)
-  const answerText = assembled.answer || strongEvidence[0]?.body || 'See the related verified entries linked below for details.'
+
+  let resolvedInstitutionId = institutionId
+  if (!resolvedInstitutionId) {
+    resolvedInstitutionId = resolveInstitutionFromText(trimmed)
+  }
+  if (!resolvedInstitutionId && history) {
+    for (const turn of [...history].reverse()) {
+      if (turn.role === 'user') {
+        const found = resolveInstitutionFromText(turn.text)
+        if (found) {
+          resolvedInstitutionId = found
+          break
+        }
+      }
+    }
+  }
+
+  const escalation = buildEscalationPlan(intent, resolvedInstitutionId)
+
+  const clarifyingQuestions = [...assembled.clarifyingQuestions]
+  if (escalation?.needsInstitution && !clarifyingQuestions.some((q) => /school|institution/i.test(q))) {
+    clarifyingQuestions.unshift('Which school do you attend?')
+  }
+
+  let answerText = assembled.answer || strongEvidence[0]?.body || 'See the related verified entries linked below for details.'
+  if (escalation?.needsInstitution && needsInstitutionForEscalation(intent)) {
+    answerText =
+      answerText +
+      ' To point you to the right office at your school, tell me which institution you attend.'
+  }
 
   return {
     hasEvidence: true, intent, confidence, problem: intentMeta.problem,
     answer: answerText, whatThisMeans: assembled.whatThisMeans, nextActions: assembled.nextActions,
-    clarifyingQuestions: assembled.clarifyingQuestions, evidence: strongEvidence, sources: buildSources(strongEvidence),
+    clarifyingQuestions: clarifyingQuestions.slice(0, 3), evidence: strongEvidence, sources: buildSources(strongEvidence),
     video: videoRaw ? mapVideo(videoRaw) : null, insufficientReason: null, officialFallbackUrl: OFFICIAL_PORTAL,
+    escalation,
   }
 }
