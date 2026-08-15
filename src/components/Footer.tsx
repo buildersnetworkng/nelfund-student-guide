@@ -6,10 +6,7 @@ export default function Footer() {
   const { institutionId, institution } = useInstitution()
   const nationalSources = sources.filter((s) => s.official && s.scope === 'nelfund-wide')
 
-  // Only the selected institution's own sources are ever shown here — never
-  // another institution's, and never any institution's before one is
-  // selected, so the footer can't imply OOU-specific links apply to a
-  // student who picked a different school (or none yet).
+  // Only the selected institution's own sources are ever shown here.
   const ownSources = institutionId
     ? sources.filter((s) => s.official && s.scope === 'institution-specific' && s.institution_id === institutionId)
     : []
@@ -21,9 +18,8 @@ export default function Footer() {
           <div>
             <p className="font-display text-sm font-semibold text-paper">NELFUND Student Guide</p>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-paper/60">
-              An independent, unofficial guide to NELFUND for Nigerian tertiary students. Built
-              with Olabisi Onabanjo University (OOU) students in mind first, but usable by
-              students at any institution. Not produced or endorsed by NELFUND or any
+              An independent, unofficial guide to NELFUND for Nigerian tertiary students.
+              Usable by students at any institution. Not produced or endorsed by NELFUND or any
               institution. Always confirm important decisions on the official portal.
             </p>
           </div>

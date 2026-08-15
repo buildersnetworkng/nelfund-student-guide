@@ -7,9 +7,6 @@ import InstitutionNotice from '../components/InstitutionNotice'
 export default function Videos() {
   const { institutionId } = useInstitution()
 
-  // NELFUND-wide videos always show; an institution's own videos only show
-  // once a student has selected that institution. No OOU-specific video is
-  // ever recommended to a student at another school by default.
   const visibleVideos = useMemo(() => getRelevantContent(videos, institutionId), [institutionId])
 
   const categories = useMemo(() => Array.from(new Set(visibleVideos.map((v) => v.category))), [visibleVideos])
@@ -22,9 +19,9 @@ export default function Videos() {
       <p className="eyebrow">Video guides</p>
       <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Tutorials organised by topic</h1>
       <p className="mt-2 max-w-xl text-sm text-ink/65">
-        Videos are labelled by source: official NELFUND, university (OOU or another
-        institution), educational, community/third-party, or unverified third-party. A
-        non-official label never means it's an official NELFUND instruction.
+        Videos are labelled by source: official NELFUND, university, educational,
+        community/third-party, or unverified third-party. A non-official label never means
+        it is an official NELFUND instruction.
       </p>
       <div className="mt-2"><InstitutionNotice /></div>
 
@@ -43,8 +40,14 @@ export default function Videos() {
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {filtered.map((v) => <VideoCard key={v.id} video={v} />)}
+        {filtered.map((v) => (
+          <VideoCard key={v.id} video={v} />
+        ))}
       </div>
+
+      {filtered.length === 0 && (
+        <p className="mt-8 text-sm text-ink/55">No videos in this category for the current filter.</p>
+      )}
     </div>
   )
 }

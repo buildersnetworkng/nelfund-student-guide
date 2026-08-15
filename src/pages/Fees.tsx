@@ -29,7 +29,7 @@ export default function Fees() {
         <div className="card border-rust-500/30 bg-rust-100/50">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <h2 className="font-display text-base font-semibold text-ink">Already paid your fees?</h2>
-            <ScopeBadge scope="institution-specific" institutionId="oou" />
+            <ScopeBadge scope="nelfund-wide" />
           </div>
           <p className="mt-1 text-sm text-ink/70">
             This guide does not have an official source confirming how refunds or credits are

@@ -29,18 +29,17 @@ export default function Home() {
             and find trusted guidance. All in one place.
           </p>
           <p className="mt-2 max-w-xl text-xs text-paper/55 sm:text-sm">
-            Built with OOU students in mind, but designed to help students across Nigeria
-            navigate NELFUND. Whether you're at OOU or another Nigerian institution, find
-            verified NELFUND information, step-by-step guides, troubleshooting help, and video
-            tutorials.
+            A general guide for Nigerian tertiary students. Find verified NELFUND information,
+            step-by-step guides, troubleshooting help, and video tutorials, whether you are at
+            any institution across Nigeria.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link to="/ask" className="btn-primary bg-gold-500 text-ink hover:bg-gold-300">
-              Ask a question
-            </Link>
-            <Link to="/apply" className="btn-secondary border-paper/40 text-paper hover:bg-paper/10">
+            <Link to="/apply" className="btn-primary bg-gold-500 text-ink hover:bg-gold-300">
               How to apply
+            </Link>
+            <Link to="/readiness" className="btn-secondary border-paper/40 text-paper hover:bg-paper/10">
+              Am I ready?
             </Link>
           </div>
 
@@ -78,17 +77,14 @@ export default function Home() {
       <section className="container-page mt-10">
         <div className="card border-amber-500/30 bg-amber-100/60">
           <p className="text-sm font-semibold text-amber-500">Always verify before you rely on this</p>
-          <p className="mt-1 text-sm leading-relaxed text-ink/70">
-            Always verify application dates and changing requirements through official
-            NELFUND/institution announcements. This guide labels every piece of information as{' '}
-            <strong>Verified</strong>, <strong>May Change</strong>, <strong>General Guidance</strong>,
-            or <strong>Unverified</strong>. And as <strong>NELFUND-wide</strong> or{' '}
-            <strong>institution-specific</strong>. So you always know how much to rely on it.
+          <p className="mt-1 text-sm text-ink/70">
+            This is an independent, unofficial guide. It is not produced or endorsed by NELFUND.
+            Confirm important decisions on the official portal before you apply or act.
           </p>
         </div>
       </section>
 
-      <section className="container-page mt-6 pb-4">
+      <section className="container-page mt-10 pb-4">
         <StaySafe />
       </section>
     </div>

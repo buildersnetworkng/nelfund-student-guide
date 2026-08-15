@@ -6,7 +6,7 @@ const COPY: Record<VerificationStatus, { label: string; icon: string; className:
     label: 'Verified',
     icon: '✓',
     className: 'stamp-verified',
-    helper: 'Supported by an official NELFUND/OOU source.',
+    helper: 'Supported by an official NELFUND or institutional source.',
   },
   may_change: {
     label: 'May change',
@@ -18,7 +18,7 @@ const COPY: Record<VerificationStatus, { label: string; icon: string; className:
     label: 'General guidance',
     icon: 'ⓘ',
     className: 'stamp-guidance',
-    helper: 'A useful explanation — confirm against current official instructions.',
+    helper: 'A useful explanation. Confirm against current official instructions.',
   },
   unverified: {
     label: 'Unverified',
@@ -55,7 +55,7 @@ export default function TrustBadge({ status, sourceId, lastVerified, compact }: 
         </span>
       )}
       {!compact && status === 'unverified' && (
-        <span className="text-xs text-ink/50">Check the official portal or latest OOU announcement.</span>
+        <span className="text-xs text-ink/50">Check the official portal or your institution&apos;s latest announcement.</span>
       )}
     </div>
   )
