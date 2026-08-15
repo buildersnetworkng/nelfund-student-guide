@@ -1,9 +1,5 @@
 import type { VerificationStatus, InformationScope } from '../types'
 
-/**
- * Intent taxonomy for the NELFUND support assistant.
- * Extensible: add new intents here and wire patterns + hints + diagnostic copy.
- */
 export type IntentId =
   | 'what-is-nelfund'
   | 'loan-or-scholarship'
@@ -93,6 +89,33 @@ export interface AnswerSource {
   official: boolean
 }
 
+export interface EscalationContactView {
+  id: string
+  label: string
+  office: string
+  why: string
+  email: string | null
+  phone: string | null
+  url: string | null
+  verification_status: VerificationStatus
+  notes: string | null
+  priority: 'primary' | 'secondary' | 'national'
+}
+
+export interface EscalationPlanView {
+  needsInstitution: boolean
+  institutionId: string | null
+  institutionName: string | null
+  understanding: string
+  diagnosis: string[]
+  institutionContacts: EscalationContactView[]
+  nelfundContacts: EscalationContactView[]
+  evidenceChecklist: string[]
+  supportMessage: { subject: string; body: string } | null
+  followUp: string | null
+  screenshotAdvice: string
+}
+
 export interface GroundedAnswer {
   hasEvidence: boolean
   intent: IntentId
@@ -107,6 +130,7 @@ export interface GroundedAnswer {
   video: AnswerVideo | null
   insufficientReason: string | null
   officialFallbackUrl: string
+  escalation: EscalationPlanView | null
 }
 
 export interface ConversationTurn {
