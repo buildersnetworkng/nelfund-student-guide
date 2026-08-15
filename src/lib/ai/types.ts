@@ -1,43 +1,66 @@
 import type { VerificationStatus, InformationScope } from '../types'
 
-/** Student intents the assistant can resolve against the verified knowledge layer. */
+/**
+ * Intent taxonomy for the NELFUND support assistant.
+ * Extensible: add new intents here and wire patterns + hints + diagnostic copy.
+ */
 export type IntentId =
   | 'what-is-nelfund'
   | 'loan-or-scholarship'
   | 'how-to-apply'
+  | 'eligibility'
   | 'documents-needed'
-  | 'upkeep-amount'
-  | 'fees-payment'
-  | 'already-paid-fees'
-  | 'school-not-showing'
-  | 'no-school-info'
-  | 'application-pending'
-  | 'application-rejected'
+  | 'nin-verification'
+  | 'jamb-verification'
+  | 'missing-information'
+  | 'school-not-found'
+  | 'institution-verification'
+  | 'pending-application'
+  | 'rejected-application'
+  | 'profile-update'
+  | 'bank-information'
+  | 'upkeep'
+  | 'institutional-charges'
+  | 'school-fees'
+  | 'refund'
+  | 'reapplication'
   | 'repayment'
-  | 'guarantor'
+  | 'gsi'
+  | 'academic-session'
+  | 'deadline'
+  | 'contact-support'
   | 'scam-safety'
   | 'readiness'
   | 'official-sources'
+  | 'guarantor'
+  | 'unknown'
+
+export type StudentStage =
+  | 'exploring'
+  | 'preparing'
+  | 'applying'
+  | 'waiting'
+  | 'rejected'
+  | 'approved'
+  | 'repaying'
   | 'unknown'
 
 export interface IntentResult {
   intent: IntentId
   confidence: number
-  /** Normalised topic labels used for retrieval boosts */
   topics: string[]
+  problem: string | null
+  stage: StudentStage
+  entities: string[]
+  isTroubleshooting: boolean
 }
 
 export type EvidenceKind = 'faq' | 'fact' | 'troubleshooting' | 'guide' | 'video' | 'source' | 'scam'
 
-/**
- * A single piece of verified knowledge retrieved for a question.
- * The answer layer may ONLY state claims present in these records.
- */
 export interface EvidenceItem {
   kind: EvidenceKind
   id: string
   title: string
-  /** Primary factual text the answer may use */
   body: string
   verification_status: VerificationStatus
   scope: InformationScope
@@ -45,12 +68,10 @@ export interface EvidenceItem {
   source_id: string | null
   last_verified: string | null
   related_video_ids: string[]
-  /** Optional structured steps (troubleshooting / guide) */
   steps?: string[]
   avoid?: string[]
   still_stuck?: string
   path: string
-  /** Retrieval score for ranking */
   score: number
 }
 
@@ -73,22 +94,23 @@ export interface AnswerSource {
 }
 
 export interface GroundedAnswer {
-  /** False when the knowledge layer lacked sufficient evidence */
   hasEvidence: boolean
   intent: IntentId
-  /** Short direct answer built only from evidence */
+  confidence: number
+  problem: string | null
   answer: string
-  /** Plain-language meaning when useful */
   whatThisMeans: string | null
-  /** Concrete next steps for the student */
   nextActions: string[]
-  /** Evidence items that backed the answer */
+  clarifyingQuestions: string[]
   evidence: EvidenceItem[]
-  /** Attributed sources (official preferred) */
   sources: AnswerSource[]
-  /** Relevant YouTube guide from the verified video catalogue */
   video: AnswerVideo | null
-  /** When hasEvidence is false, why / where to go */
   insufficientReason: string | null
   officialFallbackUrl: string
+}
+
+export interface ConversationTurn {
+  role: 'user' | 'assistant'
+  text: string
+  intent?: IntentId
 }

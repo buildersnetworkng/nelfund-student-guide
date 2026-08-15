@@ -1,19 +1,26 @@
 /**
  * Knowledge-first NELFUND assistant.
  *
- * Architecture (non-negotiable):
- *   Student question
- *   → Intent classification
- *   → Verified knowledge retrieval
- *   → Evidence-backed answer
+ * Pipeline:
+ *   Student message (natural language)
+ *   → Intent + problem + stage extraction
+ *   → Verified knowledge retrieval (synonym-aware)
+ *   → Evidence evaluation
+ *   → Diagnostic / personalised response from evidence only
  *   → Source attribution
- *   → Next action
- *   → Relevant YouTube guide (from catalogue only)
+ *   → Next actions
+ *   → Relevant video
+ *   → Optional clarifying questions
  *
  * The model's general knowledge is never treated as authoritative NELFUND policy.
- * If the verified layer lacks evidence, the assistant refuses rather than invents.
  */
 export { answerQuestion } from './answer'
 export { classifyIntent } from './intent'
 export { retrieveEvidence, retrieveRelevantVideo } from './retrieve'
-export type { GroundedAnswer, EvidenceItem, IntentId, IntentResult } from './types'
+export type {
+  GroundedAnswer,
+  EvidenceItem,
+  IntentId,
+  IntentResult,
+  ConversationTurn,
+} from './types'
