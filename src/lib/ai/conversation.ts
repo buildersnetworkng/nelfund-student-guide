@@ -1,9 +1,5 @@
 /**
  * Conversational dialogue manager for NELFUND student support.
- *
- * This is NOT an FAQ dump. It maintains slots, asks one focused follow-up
- * at a time, incorporates OCR from screenshots, and only produces a full
- * diagnosis + escalation when enough context exists.
  */
 
 import { classifyIntent } from './intent'
@@ -80,62 +76,19 @@ export function extractErrorSignals(text: string): {
   intentHint: IntentId | null
 } {
   const patterns: Array<{ re: RegExp; label: string; intent: IntentId }> = [
-    {
-      re: /missing\s*information\s*[-–—]?\s*student\s*records?/i,
-      label: 'Missing Information – Student Records',
-      intent: 'missing-information',
-    },
-    {
-      re: /missing\s*information/i,
-      label: 'Missing Information',
-      intent: 'missing-information',
-    },
-    {
-      re: /student\s*records?\s*(not\s*found|missing|unavailable)/i,
-      label: 'Student records not found',
-      intent: 'missing-information',
-    },
-    {
-      re: /school\s*(not\s*found|not\s*listed|does\s*not\s*appear|no\s*dey\s*show)/i,
-      label: 'School not found / not listed',
-      intent: 'school-not-found',
-    },
-    {
-      re: /invalid\s*(jamb|registration)|jamb.*(invalid|reject|not\s*accept|incorrect|no\s*dey)/i,
-      label: 'Invalid or rejected JAMB registration number',
-      intent: 'jamb-verification',
-    },
-    {
-      re: /not\s*accepting\s*my\s*jamb|jamb\s*(registration\s*)?(number\s*)?(keeps?\s*)?(reject|fail|invalid)/i,
-      label: 'JAMB registration number not accepted',
-      intent: 'jamb-verification',
-    },
-    {
-      re: /missing\s*info|no\s*dey\s*show\s*missing|e\s*dey\s*show\s*missing/i,
-      label: 'Missing Information',
-      intent: 'missing-information',
-    },
-    {
-      re: /nin.*(invalid|mismatch|not\s*match|reject)/i,
-      label: 'NIN verification problem',
-      intent: 'nin-verification',
-    },
-    {
-      re: /pending|under\s*review|processing/i,
-      label: 'Application pending / under review',
-      intent: 'pending-application',
-    },
-    {
-      re: /reject(ed)?|not\s*approved|declined/i,
-      label: 'Application rejected',
-      intent: 'rejected-application',
-    },
+    { re: /missing\s*information\s*[-–—]?\s*student\s*records?/i, label: 'Missing Information – Student Records', intent: 'missing-information' },
+    { re: /missing\s*information/i, label: 'Missing Information', intent: 'missing-information' },
+    { re: /student\s*records?\s*(not\s*found|missing|unavailable)/i, label: 'Student records not found', intent: 'missing-information' },
+    { re: /school\s*(not\s*found|not\s*listed|does\s*not\s*appear|no\s*dey\s*show)/i, label: 'School not found / not listed', intent: 'school-not-found' },
+    { re: /invalid\s*(jamb|registration)|jamb.*(invalid|reject|not\s*accept|incorrect|no\s*dey)/i, label: 'Invalid or rejected JAMB registration number', intent: 'jamb-verification' },
+    { re: /not\s*accepting\s*my\s*jamb|jamb\s*(registration\s*)?(number\s*)?(keeps?\s*)?(reject|fail|invalid)/i, label: 'JAMB registration number not accepted', intent: 'jamb-verification' },
+    { re: /missing\s*info|no\s*dey\s*show\s*missing|e\s*dey\s*show\s*missing/i, label: 'Missing Information', intent: 'missing-information' },
+    { re: /nin.*(invalid|mismatch|not\s*match|reject)/i, label: 'NIN verification problem', intent: 'nin-verification' },
+    { re: /pending|under\s*review|processing/i, label: 'Application pending / under review', intent: 'pending-application' },
+    { re: /reject(ed)?|not\s*approved|declined/i, label: 'Application rejected', intent: 'rejected-application' },
   ]
-
   for (const p of patterns) {
-    if (p.re.test(text)) {
-      return { exactError: p.label, intentHint: p.intent }
-    }
+    if (p.re.test(text)) return { exactError: p.label, intentHint: p.intent }
   }
   return { exactError: null, intentHint: null }
 }
@@ -149,9 +102,7 @@ function resolveInstitution(
     const inst = getInstitution(uiInstitutionId)
     return { id: uiInstitutionId, name: inst?.name ?? uiInstitutionId }
   }
-  if (slots.institutionId) {
-    return { id: slots.institutionId, name: slots.institutionName }
-  }
+  if (slots.institutionId) return { id: slots.institutionId, name: slots.institutionName }
   const fromText = resolveInstitutionFromText(text)
   if (fromText) {
     const inst = getInstitution(fromText)
@@ -185,10 +136,15 @@ function mergeSlots(
     confidence = Math.max(confidence, 0.7)
   }
 
+  const supportIntent =
+    Boolean(intent && needsInstitutionForEscalation(intent as IntentId)) ||
+    Boolean(signals.intentHint && needsInstitutionForEscalation(signals.intentHint))
+
   const isTroubleshooting =
     prev.isTroubleshooting ||
     intentMeta.isTroubleshooting ||
     Boolean(signals.intentHint) ||
+    supportIntent ||
     hasImage
 
   const exactError =
@@ -224,7 +180,6 @@ function nextFollowUp(slots: ConversationSlots): {
   }
 
   const needsSchool =
-    slots.isTroubleshooting &&
     slots.intent &&
     needsInstitutionForEscalation(slots.intent) &&
     !slots.institutionId
@@ -232,8 +187,7 @@ function nextFollowUp(slots: ConversationSlots): {
   if (needsSchool && !slots.askedFor.includes('institution')) {
     return {
       slot: 'institution',
-      question:
-        'I can help you troubleshoot that. Which university, polytechnic, college of education, or other institution do you attend?',
+      question: 'I can help you troubleshoot that. Which institution/school are you attending?',
     }
   }
 
@@ -329,7 +283,7 @@ function mapVideo(
 function produceDiagnosis(
   slots: ConversationSlots,
   userText: string,
-  history: ConversationTurn[],
+  _history: ConversationTurn[],
 ): GroundedAnswer {
   const intent = (slots.intent || 'unknown') as IntentId
   const intentMeta: IntentResult = {
@@ -491,7 +445,7 @@ export function processUserTurn(args: {
       phase: 'gathering',
     }
     const alreadySaid = out.some(
-      (m) => m.role === 'assistant' && m.text.includes('Which university'),
+      (m) => m.role === 'assistant' && m.text.includes('Which institution'),
     )
     if (!alreadySaid) {
       out.push({
@@ -546,7 +500,7 @@ export function createWelcomeMessage(): ChatMessage {
   return {
     id: mid(),
     role: 'assistant',
-    text: 'Hi. Describe your NELFUND problem in your own words (Pidgin is fine), or upload a screenshot of the error. I will ask only what I need, then guide you with verified steps — I will not invent contacts or policies.',
+    text: 'Hi. Describe your NELFUND problem in your own words (Pidgin is fine), or attach a screenshot from your gallery or camera. I will ask only what I need, then guide you with verified steps — I will not invent contacts or policies.',
     isFollowUp: true,
     timestamp: Date.now(),
   }
