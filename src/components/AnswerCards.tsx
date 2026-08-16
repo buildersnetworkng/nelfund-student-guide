@@ -1,4 +1,4 @@
-import type { GroundedAnswer } from '../lib/ai'
+import type { GroundedAnswer, EscalationContactView } from '../lib/ai'
 import TrustBadge from './TrustBadge'
 
 function statusLabel(status: string): 'verified' | 'may_change' | 'guidance' | 'unverified' {
@@ -6,6 +6,73 @@ function statusLabel(status: string): 'verified' | 'may_change' | 'guidance' | '
     return status
   }
   return 'guidance'
+}
+
+function ContactCard({
+  title,
+  subtitle,
+  contact,
+  kind,
+}: {
+  title: string
+  subtitle?: string | null
+  contact: EscalationContactView
+  kind: 'nelfund' | 'institution'
+}) {
+  return (
+    <div
+      className={`rounded-xl border px-3 py-3 ${
+        kind === 'nelfund' ? 'border-forest-700/20 bg-white' : 'border-forest-700/10 bg-white'
+      }`}
+    >
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-sm font-semibold text-ink">{title}</span>
+        <span className="rounded-full bg-forest-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-forest-700">
+          {contact.priority}
+        </span>
+        <TrustBadge status={statusLabel(contact.verification_status)} />
+      </div>
+      {subtitle && <p className="mt-0.5 text-xs font-medium text-ink/70">{subtitle}</p>}
+      <p className="mt-1 text-xs text-ink/55">{contact.why}</p>
+
+      <div className="mt-2 flex flex-col gap-1.5">
+        {contact.email && (
+          <a
+            href={`mailto:${contact.email}`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-forest-800 underline underline-offset-2"
+          >
+            <span aria-hidden>📧</span>
+            {contact.email}
+          </a>
+        )}
+        {contact.phone && (
+          <a
+            href={`tel:${contact.phone.replace(/\s+/g, '')}`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-forest-800 underline underline-offset-2"
+          >
+            <span aria-hidden>📞</span>
+            {contact.phone}
+          </a>
+        )}
+        {contact.url && (
+          <a
+            href={contact.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-forest-700"
+          >
+            {kind === 'nelfund' ? 'Open NELFUND support →' : 'Open institution page →'}
+          </a>
+        )}
+        {!contact.email && !contact.phone && contact.url && (
+          <p className="text-[11px] text-ink/45">
+            No unit email is stored here. Use the official page to confirm the correct contact before writing.
+          </p>
+        )}
+      </div>
+      {contact.notes && <p className="mt-1.5 text-[11px] text-ink/45">{contact.notes}</p>}
+    </div>
+  )
 }
 
 export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
@@ -30,7 +97,7 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
       )}
 
       {answer.escalation && (
-        <div className="rounded-xl border border-forest-700/15 bg-forest-50/50 p-3">
+        <div className="rounded-xl border border-forest-700/15 bg-forest-50/40 p-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-forest-800">Support path</p>
           <p className="mt-1 text-sm text-ink/80">{answer.escalation.understanding}</p>
 
@@ -44,7 +111,7 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
 
           {answer.escalation.needsInstitution && (
             <p className="mt-2 rounded-lg bg-gold-100 px-2 py-1.5 text-xs text-ink/80">
-              Reply with your institution name so I can show the relevant campus offices.
+              Which institution/school are you attending? Reply with the name so I can show the right offices.
             </p>
           )}
 
@@ -58,61 +125,29 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
             <p className="mt-1 text-xs text-ink/60">{answer.escalation.contactOrderExplanation}</p>
           )}
 
-          {answer.escalation.institutionContacts.length > 0 && (
+          {answer.escalation.nelfundContacts.length > 0 && (
             <div className="mt-3 space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">Campus offices</p>
-              {answer.escalation.institutionContacts.map((c) => (
-                <div key={c.id} className="rounded-lg border border-forest-700/10 bg-white px-2.5 py-2">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-sm font-semibold text-ink">{c.label}</span>
-                    <span className="rounded-full bg-forest-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-forest-700">
-                      {c.priority}
-                    </span>
-                    <TrustBadge status={statusLabel(c.verification_status)} />
-                  </div>
-                  <p className="mt-0.5 text-xs text-ink/55">{c.why}</p>
-                  {c.url && (
-                    <a
-                      href={c.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-1 inline-block text-xs font-medium text-forest-700 underline underline-offset-2"
-                    >
-                      Official website
-                    </a>
-                  )}
-                  {!c.email && !c.phone && (
-                    <p className="mt-1 text-[11px] text-amber-800">
-                      No unit email stored here. Confirm the correct contact on the institution website before writing.
-                    </p>
-                  )}
-                  {c.notes && <p className="mt-0.5 text-[11px] text-ink/45">{c.notes}</p>}
-                </div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">NELFUND support</p>
+              {answer.escalation.nelfundContacts.map((c) => (
+                <ContactCard key={c.id} title={c.label} contact={c} kind="nelfund" />
               ))}
             </div>
           )}
 
-          {answer.escalation.nelfundContacts.length > 0 && (
-            <div className="mt-3 space-y-1.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">NELFUND channels</p>
-              {answer.escalation.nelfundContacts.map((c) => (
-                <div key={c.id} className="text-sm text-ink/75">
-                  <span className="font-medium">{c.label}</span>
-                  {c.url && (
-                    <>
-                      {' · '}
-                      <a
-                        href={c.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-forest-700 underline underline-offset-2"
-                      >
-                        Open
-                      </a>
-                    </>
-                  )}
-                  <p className="text-xs text-ink/50">{c.why}</p>
-                </div>
+          {answer.escalation.institutionContacts.length > 0 && (
+            <div className="mt-3 space-y-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">
+                Your institution
+                {answer.escalation.institutionName ? ` · ${answer.escalation.institutionName}` : ''}
+              </p>
+              {answer.escalation.institutionContacts.map((c) => (
+                <ContactCard
+                  key={c.id}
+                  title={c.label}
+                  subtitle={c.office}
+                  contact={c}
+                  kind="institution"
+                />
               ))}
             </div>
           )}
@@ -191,9 +226,7 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
         </div>
       )}
 
-      {answer.insufficientReason && (
-        <p className="text-xs text-amber-800">{answer.insufficientReason}</p>
-      )}
+      {answer.insufficientReason && <p className="text-xs text-amber-800">{answer.insufficientReason}</p>}
     </div>
   )
 }
