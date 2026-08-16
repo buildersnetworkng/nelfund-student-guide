@@ -23,8 +23,6 @@ import type {
   Institution,
   InstitutionTip,
   InformationScope,
-  InstitutionContact,
-  NationalSupportContact,
 } from './types'
 
 interface ScopedItem {
@@ -47,18 +45,114 @@ export const institutionContactsData = institutionContactsRaw as {
   version: number
   problem_routing: Record<string, string[]>
   office_labels: Record<string, string>
-  nelfund_support: NationalSupportContact[]
-  institutions: { institution_id: string; contacts: InstitutionContact[] }[]
+  nelfund_support: import('./types').NationalSupportContact[]
+  institutions: { institution_id: string; contacts: import('./types').InstitutionContact[] }[]
 }
 
-export function getInstitutionContacts(institutionId: string | null): InstitutionContact[] {
+export function getInstitutionContacts(institutionId: string | null): import('./types').InstitutionContact[] {
   if (!institutionId) return []
   const row = institutionContactsData.institutions.find((i) => i.institution_id === institutionId)
   return row?.contacts ?? []
 }
 
-export function getNelfundSupportContacts(): NationalSupportContact[] {
-  return institutionContactsData.nelfund_support
+/** Verified national NELFUND support channels (official ticket portal + published email). */
+const VERIFIED_NELFUND_SUPPORT: import('./types').NationalSupportContact[] = [
+  {
+    id: 'nelfund-esupport-ticket',
+    label: 'NELFUND Support Ticket',
+    url: 'https://nelfund.esupport.ng/create',
+    email: null,
+    phone: null,
+    purpose: 'Official complaints and support ticket portal for application, verification, and disbursement issues.',
+    handles: [
+      'missing-information',
+      'school-not-found',
+      'jamb-verification',
+      'nin-verification',
+      'institution-verification',
+      'pending-application',
+      'rejected-application',
+      'refund',
+      'bank-information',
+      'profile-update',
+      'reapplication',
+      'contact-support',
+      'school-fees',
+      'institutional-charges',
+    ],
+    verification_status: 'verified',
+    source_url: 'https://nelfund.esupport.ng/create',
+    source_type: 'official_support_portal',
+    last_verified: '2026-08-16',
+    notes: 'Official NELFUND e-support ticket system. Preferred channel for tracked complaints.',
+  },
+  {
+    id: 'nelfund-client-support-email',
+    label: 'NELFUND Client Support',
+    url: null,
+    email: 'clientsupport@nelf.gov.ng',
+    phone: null,
+    purpose: 'Official client support email published by NELFUND for inquiries and portal assistance.',
+    handles: [
+      'missing-information',
+      'school-not-found',
+      'jamb-verification',
+      'nin-verification',
+      'pending-application',
+      'rejected-application',
+      'refund',
+      'contact-support',
+      'profile-update',
+      'bank-information',
+    ],
+    verification_status: 'verified',
+    source_url: 'https://nelf.gov.ng/',
+    source_type: 'official_channel',
+    last_verified: '2026-08-16',
+    notes: 'Published by official NELFUND communications. Do not share passwords, OTPs, or PINs.',
+  },
+  {
+    id: 'nelfund-portal-support',
+    label: 'NELFUND application portal',
+    url: 'https://portal.nelf.gov.ng/',
+    email: null,
+    phone: null,
+    purpose: 'Application status, verification, and portal-side issues.',
+    handles: [
+      'pending-application',
+      'rejected-application',
+      'jamb-verification',
+      'missing-information',
+      'school-not-found',
+      'institution-verification',
+      'how-to-apply',
+    ],
+    verification_status: 'verified',
+    source_url: 'https://portal.nelf.gov.ng/',
+    source_type: 'official_portal',
+    last_verified: '2026-08-16',
+    notes: 'Use only the official portal. Do not share OTP, passwords, or PINs.',
+  },
+  {
+    id: 'nelfund-website-support',
+    label: 'NELFUND official website',
+    url: 'https://nelf.gov.ng/',
+    email: null,
+    phone: null,
+    purpose: 'Official announcements, policy information, and published support channels.',
+    handles: ['what-is-nelfund', 'repayment', 'upkeep', 'contact-support', 'official-sources'],
+    verification_status: 'verified',
+    source_url: 'https://nelf.gov.ng/',
+    source_type: 'official_website',
+    last_verified: '2026-08-16',
+    notes: 'Confirm any contact channels published on the official website before use.',
+  },
+]
+
+export function getNelfundSupportContacts() {
+  const ids = new Set(VERIFIED_NELFUND_SUPPORT.map((c) => c.id))
+  const extras = institutionContactsData.nelfund_support.filter((c) => !ids.has(c.id))
+  return [...VERIFIED_NELFUND_SUPPORT, ...extras]
 }
 
 export function getProblemRouting(intent: string): string[] {
