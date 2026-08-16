@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import StatusCard from '../components/StatusCard'
 import StaySafe from '../components/StaySafe'
 import InstitutionSelect from '../components/InstitutionSelect'
@@ -42,7 +42,7 @@ function RevealSection({
   className = '',
   id,
 }: {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   id?: string
 }) {
