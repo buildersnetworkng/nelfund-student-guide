@@ -3,36 +3,38 @@ import { Link } from 'react-router-dom'
 import {
   processUserTurn,
   createInitialSlots,
-  createWelcomeMessage,
   extractTextFromImage,
   disposeOcrWorker,
 } from '../lib/ai'
 import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai'
 import { useInstitution } from '../context/InstitutionContext'
-import InstitutionNotice from '../components/InstitutionNotice'
 import { AnswerCards } from '../components/AnswerCards'
 
-const EXAMPLE_PROMPTS = [
-  "I'm trying to open that nelfund stuff but it is showing missing information",
-  'The nelfund portal is not accepting my Jamb registration number',
-  'My school no dey show for the portal',
-  "I've submitted since and this thing is still pending",
-  'Bro this NELFUND thing no dey work, e dey show missing info',
+const SUGGESTIONS = [
+  'My NELFUND application is pending',
+  'My school is not showing on the portal',
+  "I'm seeing Missing Information",
+  'How do I apply for NELFUND?',
+  'The portal is not accepting my JAMB number',
 ]
 
 export default function Ask() {
   const { institutionId } = useInstitution()
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [createWelcomeMessage()])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [slots, setSlots] = useState<ConversationSlots>(() => createInitialSlots(institutionId))
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [busyLabel, setBusyLabel] = useState('Thinking…')
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
   const cameraRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
+
+  const hasConversation = messages.some((m) => m.role === 'user')
 
   useEffect(() => {
     setSlots((prev) => {
@@ -52,6 +54,13 @@ export default function Ask() {
     }
   }, [])
 
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`
+  }, [input])
+
   function historyFromMessages(msgs: ChatMessage[], currentIntent?: string | null): ConversationTurn[] {
     return msgs
       .filter((m) => m.role === 'user' || m.role === 'assistant')
@@ -70,6 +79,7 @@ export default function Ask() {
 
     setBusy(true)
     setInput('')
+    setShowAttachMenu(false)
 
     let ocrText: string | null = null
     let imagePreview: string | null = null
@@ -84,7 +94,7 @@ export default function Ask() {
         ocrText = null
       }
     } else {
-      setBusyLabel('Thinking…')
+      setBusyLabel('Checking verified NELFUND information…')
     }
 
     await new Promise((r) => setTimeout(r, 40))
@@ -146,7 +156,7 @@ export default function Ask() {
       if (m.imagePreview?.startsWith('blob:')) URL.revokeObjectURL(m.imagePreview)
     })
     clearPendingImage()
-    setMessages([createWelcomeMessage()])
+    setMessages([])
     setSlots(createInitialSlots(institutionId))
     setInput('')
     setBusy(false)
@@ -154,115 +164,143 @@ export default function Ask() {
   }
 
   return (
-    <div className="container-page flex min-h-[calc(100vh-8rem)] flex-col py-6 sm:py-10">
-      <div className="shrink-0">
-        <p className="eyebrow">Support agent</p>
-        <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Talk through your NELFUND problem</h1>
-        <p className="mt-2 max-w-2xl text-sm text-ink/65">
-          Chat naturally or attach a portal screenshot from your gallery or camera. The agent asks only what it
-          needs, diagnoses from verified knowledge, and helps you escalate — without inventing contacts or policies.
-        </p>
-        <div className="mt-2">
-          <InstitutionNotice />
-        </div>
-      </div>
-
-      <div className="mt-5 flex min-h-0 flex-1 flex-col rounded-2xl border border-forest-700/15 bg-white shadow-card">
-        <div className="flex items-center justify-between border-b border-forest-700/10 px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-2 w-2 rounded-full bg-forest-600" />
-            <span className="text-xs font-medium text-ink/70">NELFUND support session</span>
+    <div className="fixed inset-0 z-40 flex flex-col bg-paper">
+      <header className="flex h-12 shrink-0 items-center justify-between border-b border-forest-100 bg-paper/95 px-3 backdrop-blur-md sm:h-14 sm:px-5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Link
+            to="/"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-forest-700 text-xs font-bold text-gold-300"
+            aria-label="Back to home"
+          >
+            N
+          </Link>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-ink">NELFUND AI</p>
             {slots.institutionName && (
-              <span className="rounded-full bg-forest-50 px-2 py-0.5 text-[10px] font-semibold text-forest-800">
-                {slots.institutionName}
-              </span>
-            )}
-            {slots.intent && slots.intent !== 'unknown' && (
-              <span className="hidden rounded-full bg-ink/5 px-2 py-0.5 text-[10px] text-ink/50 sm:inline">
-                {slots.intent.replace(/-/g, ' ')}
-              </span>
+              <p className="truncate text-[11px] text-forest-700">{slots.institutionName}</p>
             )}
           </div>
-          <button type="button" onClick={clearSession} className="text-xs font-medium text-ink/50 hover:text-ink">
-            New session
-          </button>
         </div>
-
-        <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 sm:px-5" style={{ maxHeight: 'min(60vh, 560px)' }}>
-          {messages.map((m) => (
-            <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div
-                className={`max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[85%] ${
-                  m.role === 'user'
-                    ? 'bg-forest-700 text-white'
-                    : 'border border-forest-700/10 bg-forest-50/60 text-ink'
-                }`}
-              >
-                {m.imagePreview && (
-                  <img
-                    src={m.imagePreview}
-                    alt="Uploaded portal screenshot"
-                    className="mb-2 max-h-48 rounded-lg border border-black/10 object-contain"
-                  />
-                )}
-                <p className="whitespace-pre-wrap">{m.text}</p>
-                {m.answer && <AnswerCards answer={m.answer} />}
-              </div>
-            </div>
-          ))}
-
-          {busy && (
-            <div className="flex justify-start">
-              <div className="rounded-2xl border border-forest-700/10 bg-forest-50/60 px-3.5 py-2.5 text-sm text-ink/60">
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-forest-600" />
-                  {busyLabel}
-                </span>
-              </div>
-            </div>
+        <div className="flex items-center gap-1.5">
+          {hasConversation && (
+            <button
+              type="button"
+              onClick={clearSession}
+              className="rounded-full px-3 py-1.5 text-xs font-semibold text-forest-700 transition hover:bg-forest-50"
+            >
+              New chat
+            </button>
           )}
-          <div ref={bottomRef} />
+          <Link
+            to="/"
+            className="rounded-full px-3 py-1.5 text-xs font-medium text-ink/50 transition hover:bg-forest-50 hover:text-ink"
+          >
+            Exit
+          </Link>
         </div>
+      </header>
 
-        <div className="border-t border-forest-700/10 px-3 py-3 sm:px-4">
-          {messages.length <= 2 && (
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {EXAMPLE_PROMPTS.slice(0, 3).map((ex) => (
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        {!hasConversation && !busy ? (
+          <div className="mx-auto flex h-full max-w-2xl flex-col justify-center px-4 py-10 sm:px-6">
+            <div className="fade-in text-center">
+              <h1 className="font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                How can NELFUND AI help?
+              </h1>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink/55">
+                Guidance on applications, portal errors, school records, and verified support contacts —
+                grounded in official NELFUND information.
+              </p>
+            </div>
+            <div className="mt-8 flex flex-wrap justify-center gap-2">
+              {SUGGESTIONS.map((s) => (
                 <button
-                  key={ex}
+                  key={s}
                   type="button"
                   disabled={busy}
-                  onClick={() => void handleTurn(ex)}
-                  className="rounded-full border border-forest-700/15 bg-white px-2.5 py-1 text-left text-[11px] text-ink/65 hover:border-forest-600/40 hover:text-ink"
+                  onClick={() => void handleTurn(s)}
+                  className="rounded-full border border-forest-100 bg-white px-3.5 py-2 text-left text-xs font-medium text-ink/75 shadow-sm transition hover:border-forest-300 hover:text-ink sm:text-sm"
                 >
-                  {ex.length > 52 ? `${ex.slice(0, 52)}…` : ex}
+                  {s}
                 </button>
               ))}
             </div>
-          )}
+          </div>
+        ) : (
+          <div className="mx-auto max-w-2xl space-y-5 px-4 py-6 sm:px-6">
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={`slide-up flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {m.role === 'user' ? (
+                  <div className="max-w-[85%] rounded-2xl rounded-br-md bg-forest-700 px-4 py-2.5 text-sm leading-relaxed text-white">
+                    {m.imagePreview && (
+                      <img
+                        src={m.imagePreview}
+                        alt="Uploaded portal screenshot"
+                        className="mb-2 max-h-48 rounded-lg object-contain"
+                      />
+                    )}
+                    <p className="whitespace-pre-wrap">{m.text}</p>
+                  </div>
+                ) : (
+                  <div className="w-full max-w-full text-sm leading-relaxed text-ink">
+                    {m.imagePreview && (
+                      <img
+                        src={m.imagePreview}
+                        alt="Uploaded portal screenshot"
+                        className="mb-2 max-h-48 rounded-lg border border-forest-100 object-contain"
+                      />
+                    )}
+                    <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{m.text}</p>
+                    {m.answer && <AnswerCards answer={m.answer} />}
+                  </div>
+                )}
+              </div>
+            ))}
 
+            {busy && (
+              <div className="flex items-center gap-2 text-sm text-ink/50">
+                <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-forest-600" />
+                {busyLabel}
+              </div>
+            )}
+            <div ref={bottomRef} className="h-4" />
+          </div>
+        )}
+      </div>
+
+      <div
+        className="shrink-0 border-t border-forest-100 bg-paper/95 px-3 pt-2 backdrop-blur-md sm:px-4"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      >
+        <div className="mx-auto max-w-2xl">
           {pendingPreview && (
-            <div className="mb-2 flex items-start gap-2 rounded-xl border border-forest-700/15 bg-forest-50/40 p-2">
+            <div className="mb-2 flex items-center gap-2 rounded-xl border border-forest-100 bg-white p-2">
               <img
                 src={pendingPreview}
-                alt="Selected screenshot preview"
-                className="h-16 w-16 rounded-lg object-cover"
+                alt="Selected screenshot"
+                className="h-12 w-12 rounded-lg object-cover"
               />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-ink">Screenshot attached</p>
-                <p className="text-[10px] text-ink/50">Add a question below, then Send. OCR runs on your device only.</p>
-                <button
-                  type="button"
-                  onClick={clearPendingImage}
-                  className="mt-1 text-[11px] font-medium text-red-700 underline"
-                >
-                  Remove image
-                </button>
+                <p className="text-[10px] text-ink/45">Don&apos;t include passwords, OTPs, or PINs.</p>
               </div>
+              <button
+                type="button"
+                onClick={clearPendingImage}
+                className="rounded-full px-2 py-1 text-xs font-medium text-rust-500 hover:bg-rust-100"
+              >
+                Remove
+              </button>
             </div>
           )}
 
-          <form onSubmit={onSubmit} className="flex items-end gap-2">
+          <form
+            onSubmit={onSubmit}
+            className="flex items-end gap-2 rounded-2xl border border-forest-100 bg-white px-2 py-2 shadow-card"
+          >
             <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={onFilePicked} />
             <input
               ref={cameraRef}
@@ -272,14 +310,14 @@ export default function Ask() {
               className="hidden"
               onChange={onFilePicked}
             />
+
             <div className="relative shrink-0">
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => setShowAttachMenu((v) => !v)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-forest-700/20 bg-white text-forest-800 hover:bg-forest-50 disabled:opacity-50"
-                title="Attach screenshot"
-                aria-label="Attach screenshot from gallery or camera"
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-forest-700 transition hover:bg-forest-50 disabled:opacity-50"
+                aria-label="Attach photo or screenshot"
                 aria-expanded={showAttachMenu}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -294,7 +332,7 @@ export default function Ask() {
                 </svg>
               </button>
               {showAttachMenu && (
-                <div className="absolute bottom-12 left-0 z-20 w-48 overflow-hidden rounded-xl border border-forest-700/15 bg-white shadow-lg">
+                <div className="absolute bottom-12 left-0 z-20 w-44 overflow-hidden rounded-xl border border-forest-100 bg-white shadow-lift">
                   <button
                     type="button"
                     className="block w-full px-3 py-2.5 text-left text-sm text-ink hover:bg-forest-50"
@@ -304,7 +342,7 @@ export default function Ask() {
                   </button>
                   <button
                     type="button"
-                    className="block w-full border-t border-forest-700/10 px-3 py-2.5 text-left text-sm text-ink hover:bg-forest-50"
+                    className="block w-full border-t border-forest-100 px-3 py-2.5 text-left text-sm text-ink hover:bg-forest-50"
                     onClick={() => cameraRef.current?.click()}
                   >
                     Take photo
@@ -312,10 +350,12 @@ export default function Ask() {
                 </div>
               )}
             </div>
+
             <label htmlFor="chat-input" className="sr-only">
-              Message
+              Ask about NELFUND
             </label>
             <textarea
+              ref={textareaRef}
               id="chat-input"
               rows={1}
               value={input}
@@ -326,29 +366,30 @@ export default function Ask() {
                   void handleTurn(input, pendingFile)
                 }
               }}
-              placeholder='e.g. "Missing information" or "What does this mean?"'
-              className="max-h-28 min-h-[44px] flex-1 resize-y rounded-2xl border border-forest-700/20 bg-white px-4 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-forest-500/30"
+              placeholder="Ask anything about NELFUND…"
+              className="max-h-[140px] min-h-[40px] flex-1 resize-none bg-transparent px-1 py-2 text-sm text-ink placeholder:text-ink/35 focus:outline-none"
               disabled={busy}
             />
+
             <button
               type="submit"
               disabled={busy || (!input.trim() && !pendingFile)}
-              className="btn-primary h-11 shrink-0 px-5"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-forest-700 text-paper transition hover:bg-forest-900 disabled:opacity-40"
+              aria-label="Send message"
             >
-              Send
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path
+                  d="M12 19V5M12 5l-6 6M12 5l6 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
           </form>
-          <p className="mt-1.5 text-[10px] text-ink/40">
-            Do not upload passwords, OTPs, PINs, or other unnecessary sensitive information. Images stay on your device
-            for OCR only.
-            {' · '}
-            <Link to="/faq" className="underline">
-              FAQ
-            </Link>
-            {' · '}
-            <Link to="/troubleshooting" className="underline">
-              Troubleshooting list
-            </Link>
+          <p className="mt-1.5 text-center text-[10px] text-ink/35">
+            Independent student guide · Verify critical details on the official portal
           </p>
         </div>
       </div>
