@@ -19,6 +19,7 @@ function ContactCard({
   contact: EscalationContactView
   kind: 'nelfund' | 'institution'
 }) {
+  const isTicket = Boolean(contact.url && /esupport\.ng/i.test(contact.url))
   return (
     <div
       className={`rounded-xl border px-3 py-3 ${
@@ -36,6 +37,16 @@ function ContactCard({
       <p className="mt-1 text-xs text-ink/55">{contact.why}</p>
 
       <div className="mt-2 flex flex-col gap-1.5">
+        {isTicket && contact.url && (
+          <a
+            href={contact.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-forest-700 px-3 py-2 text-sm font-semibold text-white hover:bg-forest-800"
+          >
+            Open NELFUND Support →
+          </a>
+        )}
         {contact.email && (
           <a
             href={`mailto:${contact.email}`}
@@ -54,17 +65,17 @@ function ContactCard({
             {contact.phone}
           </a>
         )}
-        {contact.url && (
+        {contact.url && !isTicket && (
           <a
             href={contact.url}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-sm font-semibold text-forest-700"
           >
-            {kind === 'nelfund' ? 'Open NELFUND support →' : 'Open institution page →'}
+            {kind === 'nelfund' ? 'Open official page →' : 'Open institution page →'}
           </a>
         )}
-        {!contact.email && !contact.phone && contact.url && (
+        {!contact.email && !contact.phone && contact.url && !isTicket && (
           <p className="text-[11px] text-ink/45">
             No unit email is stored here. Use the official page to confirm the correct contact before writing.
           </p>
@@ -89,7 +100,7 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">What to do next</p>
           <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm text-ink/80">
-            {answer.nextActions.map((a) => (
+            {answer.nextActions.slice(0, 5).map((a) => (
               <li key={a}>{a}</li>
             ))}
           </ol>
@@ -103,7 +114,7 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
 
           {answer.escalation.diagnosis.length > 0 && (
             <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-ink/70">
-              {answer.escalation.diagnosis.map((d) => (
+              {answer.escalation.diagnosis.slice(0, 4).map((d) => (
                 <li key={d}>{d}</li>
               ))}
             </ul>
@@ -155,7 +166,7 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
           <div className="mt-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">What to send</p>
             <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-ink/70">
-              {answer.escalation.evidenceChecklist.map((item) => (
+              {answer.escalation.evidenceChecklist.slice(0, 6).map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
@@ -206,7 +217,7 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">Sources</p>
           <ul className="mt-1 space-y-1">
-            {answer.sources.map((s) => (
+            {answer.sources.slice(0, 4).map((s) => (
               <li key={s.id} className="text-xs text-ink/70">
                 {s.official && (
                   <span className="mr-1 rounded bg-forest-100 px-1 py-0.5 text-[9px] font-bold uppercase text-forest-800">
