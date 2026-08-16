@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { FormEvent, ChangeEvent, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   processUserTurn,
@@ -28,7 +28,11 @@ export default function Ask() {
   const [busy, setBusy] = useState(false)
   const [busyLabel, setBusyLabel] = useState('Thinking…')
   const bottomRef = useRef<HTMLDivElement>(null)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null)
+  const [showAttachMenu, setShowAttachMenu] = useState(false)
 
   useEffect(() => {
     setSlots((prev) => {
@@ -97,18 +101,21 @@ export default function Ask() {
 
     setSlots(result.slots)
     setMessages((prev) => [...prev, ...result.messages])
+    setPendingFile(null)
+    setPendingPreview(null)
     setBusy(false)
     setBusyLabel('Thinking…')
   }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
-    void handleTurn(input)
+    void handleTurn(input, pendingFile)
   }
 
-  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function onFilePicked(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''
+    setShowAttachMenu(false)
     if (!file) return
     if (!file.type.startsWith('image/')) {
       setMessages((prev) => [
@@ -116,24 +123,34 @@ export default function Ask() {
         {
           id: `sys-${Date.now()}`,
           role: 'assistant',
-          text: 'Please upload an image file (screenshot or photo of the portal error).',
+          text: 'Please choose an image file (screenshot or photo of the portal error).',
           isFollowUp: true,
           timestamp: Date.now(),
         },
       ])
       return
     }
-    void handleTurn(input, file)
+    if (pendingPreview?.startsWith('blob:')) URL.revokeObjectURL(pendingPreview)
+    setPendingFile(file)
+    setPendingPreview(URL.createObjectURL(file))
+  }
+
+  function clearPendingImage() {
+    if (pendingPreview?.startsWith('blob:')) URL.revokeObjectURL(pendingPreview)
+    setPendingFile(null)
+    setPendingPreview(null)
   }
 
   function clearSession() {
     messages.forEach((m) => {
       if (m.imagePreview?.startsWith('blob:')) URL.revokeObjectURL(m.imagePreview)
     })
+    clearPendingImage()
     setMessages([createWelcomeMessage()])
     setSlots(createInitialSlots(institutionId))
     setInput('')
     setBusy(false)
+    setShowAttachMenu(false)
   }
 
   return (
@@ -142,9 +159,8 @@ export default function Ask() {
         <p className="eyebrow">Support agent</p>
         <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Talk through your NELFUND problem</h1>
         <p className="mt-2 max-w-2xl text-sm text-ink/65">
-          Chat naturally or upload a portal screenshot. The agent asks only what it needs, diagnoses from
-          verified knowledge, and helps you escalate to the right office — without inventing contacts or
-          policies.
+          Chat naturally or attach a portal screenshot from your gallery or camera. The agent asks only what it
+          needs, diagnoses from verified knowledge, and helps you escalate — without inventing contacts or policies.
         </p>
         <div className="mt-2">
           <InstitutionNotice />
@@ -225,34 +241,77 @@ export default function Ask() {
             </div>
           )}
 
+          {pendingPreview && (
+            <div className="mb-2 flex items-start gap-2 rounded-xl border border-forest-700/15 bg-forest-50/40 p-2">
+              <img
+                src={pendingPreview}
+                alt="Selected screenshot preview"
+                className="h-16 w-16 rounded-lg object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-ink">Screenshot attached</p>
+                <p className="text-[10px] text-ink/50">Add a question below, then Send. OCR runs on your device only.</p>
+                <button
+                  type="button"
+                  onClick={clearPendingImage}
+                  className="mt-1 text-[11px] font-medium text-red-700 underline"
+                >
+                  Remove image
+                </button>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={onSubmit} className="flex items-end gap-2">
+            <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={onFilePicked} />
             <input
-              ref={fileRef}
+              ref={cameraRef}
               type="file"
               accept="image/*"
               capture="environment"
               className="hidden"
-              onChange={onFileChange}
+              onChange={onFilePicked}
             />
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => fileRef.current?.click()}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-forest-700/20 bg-white text-forest-800 hover:bg-forest-50 disabled:opacity-50"
-              title="Upload screenshot"
-              aria-label="Upload screenshot of portal error"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path
-                  d="M4 16l4.6-6.1a1 1 0 011.6 0L14 15l1.4-1.9a1 1 0 011.6 0L20 16M4 16h16M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle cx="9" cy="8" r="1.5" fill="currentColor" />
-              </svg>
-            </button>
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setShowAttachMenu((v) => !v)}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-forest-700/20 bg-white text-forest-800 hover:bg-forest-50 disabled:opacity-50"
+                title="Attach screenshot"
+                aria-label="Attach screenshot from gallery or camera"
+                aria-expanded={showAttachMenu}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path
+                    d="M4 16l4.6-6.1a1 1 0 011.6 0L14 15l1.4-1.9a1 1 0 011.6 0L20 16M4 16h16M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="9" cy="8" r="1.5" fill="currentColor" />
+                </svg>
+              </button>
+              {showAttachMenu && (
+                <div className="absolute bottom-12 left-0 z-20 w-48 overflow-hidden rounded-xl border border-forest-700/15 bg-white shadow-lg">
+                  <button
+                    type="button"
+                    className="block w-full px-3 py-2.5 text-left text-sm text-ink hover:bg-forest-50"
+                    onClick={() => galleryRef.current?.click()}
+                  >
+                    Choose from gallery
+                  </button>
+                  <button
+                    type="button"
+                    className="block w-full border-t border-forest-700/10 px-3 py-2.5 text-left text-sm text-ink hover:bg-forest-50"
+                    onClick={() => cameraRef.current?.click()}
+                  >
+                    Take photo
+                  </button>
+                </div>
+              )}
+            </div>
             <label htmlFor="chat-input" className="sr-only">
               Message
             </label>
@@ -264,19 +323,24 @@ export default function Ask() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
-                  void handleTurn(input)
+                  void handleTurn(input, pendingFile)
                 }
               }}
-              placeholder='e.g. "Missing information" or "JAMB no dey accept"'
+              placeholder='e.g. "Missing information" or "What does this mean?"'
               className="max-h-28 min-h-[44px] flex-1 resize-y rounded-2xl border border-forest-700/20 bg-white px-4 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-forest-500/30"
               disabled={busy}
             />
-            <button type="submit" disabled={busy || !input.trim()} className="btn-primary h-11 shrink-0 px-5">
+            <button
+              type="submit"
+              disabled={busy || (!input.trim() && !pendingFile)}
+              className="btn-primary h-11 shrink-0 px-5"
+            >
               Send
             </button>
           </form>
           <p className="mt-1.5 text-[10px] text-ink/40">
-            Screenshots stay on your device for OCR only. Never share passwords, OTP, PIN, NIN, or BVN in chat.
+            Do not upload passwords, OTPs, PINs, or other unnecessary sensitive information. Images stay on your device
+            for OCR only.
             {' · '}
             <Link to="/faq" className="underline">
               FAQ
