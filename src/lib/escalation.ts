@@ -51,10 +51,13 @@ export function resolveInstitutionFromText(text: string): string | null {
     'ago iwoye': 'oou',
     'university of lagos': 'unilag',
     'uni lag': 'unilag',
+    unilag: 'unilag',
     'university of ibadan': 'ui',
     'lagos state university': 'lasu',
+    lasu: 'lasu',
     'university of nigeria': 'unn',
     nsukka: 'unn',
+    unn: 'unn',
     'ahmadu bello': 'abu',
     'abu zaria': 'abu',
     'university of ilorin': 'unilorin',
@@ -63,7 +66,27 @@ export function resolveInstitutionFromText(text: string): string | null {
     uniben: 'uniben',
     'obafemi awolowo': 'oau',
     'oau ile ife': 'oau',
+    oau: 'oau',
     'university of port harcourt': 'uniport',
+    uniport: 'uniport',
+    'federal university of technology akure': 'futa',
+    'federal university of technology, akure': 'futa',
+    futa: 'futa',
+    'federal university of technology owerri': 'futo',
+    'federal university of technology, owerri': 'futo',
+    futo: 'futo',
+    'university of calabar': 'unical',
+    unical: 'unical',
+    'university of jos': 'unijos',
+    unijos: 'unijos',
+    'national open university': 'nou',
+    'open university': 'nou',
+    noun: 'nou',
+    'yaba college of technology': 'yabatech',
+    yabatech: 'yabatech',
+    'the polytechnic ibadan': 'polyibadan',
+    'polytechnic ibadan': 'polyibadan',
+    'poly ibadan': 'polyibadan',
   }
   for (const [alias, id] of Object.entries(aliases)) {
     if (lower.includes(alias)) {
@@ -274,7 +297,7 @@ export function buildEscalationPlan(
     const name = studentHints?.name || '[Your full name]'
     supportMessage = {
       subject: `NELFUND Registration – ${intent.replace(/-/g, ' ')} – ${inst.short_name}`,
-      body: `Hello,\n\nI am a student of ${inst.name} trying to complete my NELFUND registration.\n\nThe portal is displaying: "${err}"\n\nI have attached a screenshot of the error (sensitive information hidden).\n\nKindly help me confirm whether my student record has been submitted and correctly matched with NELFUND, or advise the appropriate next step.\n\nName: ${name}\nInstitution: ${inst.name}\nMatriculation number: [if available]\nJAMB registration number: [if relevant]\n\nThank you.\n\nRegards,\n${name}`,
+      body: `Hello,\n\nI am a student of ${inst.name} trying to complete my NELFUND registration.\n\nThe portal is displaying: \"${err}\"\n\nI have attached a screenshot of the error (sensitive information hidden).\n\nKindly help me confirm whether my student record has been submitted and correctly matched with NELFUND, or advise the appropriate next step.\n\nName: ${name}\nInstitution: ${inst.name}\nMatriculation number: [if available]\nJAMB registration number: [if relevant]\n\nThank you.\n\nRegards,\n${name}`,
     }
   }
 
