@@ -45,11 +45,11 @@
   }
 
   .card {
-    @apply rounded-2xl border border-forest-700/10 bg-white p-5 shadow-card;
+    @apply rounded-2xl border border-forest-100 bg-white p-5 shadow-card;
   }
 
   .card-interactive {
-    @apply card transition duration-200 ease-out hover:-translate-y-0.5 hover:border-forest-700/20 hover:shadow-lift active:translate-y-0;
+    @apply card transition duration-200 ease-out hover:-translate-y-0.5 hover:border-forest-300 hover:shadow-lift active:translate-y-0;
   }
 
   .btn-primary {
@@ -57,11 +57,11 @@
   }
 
   .btn-secondary {
-    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-forest-700/25 bg-white px-5 py-2.5 text-sm font-semibold text-forest-700 transition duration-150 ease-out hover:border-forest-700/40 hover:bg-forest-50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-forest-300 bg-white px-5 py-2.5 text-sm font-semibold text-forest-700 transition duration-150 ease-out hover:border-forest-500 hover:bg-forest-50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-ghost {
-    @apply inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-ink/70 transition hover:bg-forest-50 hover:text-ink;
+    @apply inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-forest-700 transition hover:bg-forest-50 hover:text-forest-900;
   }
 
   .btn-gold {
@@ -77,15 +77,15 @@
   }
 
   .section-sub {
-    @apply mt-1 text-sm leading-relaxed text-ink/60;
+    @apply mt-1 text-sm leading-relaxed text-forest-700;
   }
 
   .input-field {
-    @apply w-full rounded-2xl border border-forest-700/15 bg-white px-4 py-3 text-sm text-ink shadow-sm transition placeholder:text-ink/35 focus:border-forest-600/40 focus:outline-none focus:ring-2 focus:ring-forest-500/25;
+    @apply w-full rounded-2xl border border-forest-100 bg-white px-4 py-3 text-sm text-ink shadow-sm transition placeholder:text-forest-300 focus:border-forest-500 focus:outline-none focus:ring-2 focus:ring-forest-300;
   }
 
   .chip {
-    @apply inline-flex items-center rounded-full border border-forest-700/12 bg-white px-3 py-1.5 text-xs font-medium text-ink/70 transition hover:border-forest-600/30 hover:text-ink;
+    @apply inline-flex items-center rounded-full border border-forest-100 bg-white px-3 py-1.5 text-xs font-medium text-forest-700 transition hover:border-forest-300 hover:text-forest-900;
   }
 
   .stamp {
@@ -93,13 +93,13 @@
     transform: rotate(-1.5deg);
   }
   .stamp-verified {
-    @apply stamp border-teal-500 text-teal-700 bg-teal-500/5;
+    @apply stamp border-teal-500 text-teal-700 bg-forest-50;
   }
   .stamp-may-change {
-    @apply stamp border-amber-500 text-amber-500 bg-amber-100/70;
+    @apply stamp border-amber-500 text-amber-500 bg-amber-100;
   }
   .stamp-guidance {
-    @apply stamp border-gold-500 text-gold-700 bg-gold-500/5;
+    @apply stamp border-gold-500 text-gold-700 bg-gold-100;
   }
   .stamp-unverified {
     @apply stamp border-rust-500 text-rust-500 bg-rust-100;
@@ -110,7 +110,7 @@
   }
 
   .chat-bubble-ai {
-    @apply max-w-[92%] rounded-2xl rounded-bl-md border border-forest-700/10 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink shadow-sm sm:max-w-[85%];
+    @apply max-w-[92%] rounded-2xl rounded-bl-md border border-forest-100 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink shadow-sm sm:max-w-[85%];
   }
 
   .safe-bottom {
