@@ -43,11 +43,15 @@ export default {
         'stamp-lines': 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(19,42,31,0.04) 3px, rgba(19,42,31,0.04) 4px)',
       },
       boxShadow: {
-        card: '0 1px 2px rgba(19,42,31,0.06), 0 4px 14px rgba(19,42,31,0.06)',
+        card: '0 1px 2px rgba(19,42,31,0.05), 0 4px 16px rgba(19,42,31,0.06)',
+        lift: '0 4px 8px rgba(19,42,31,0.06), 0 12px 28px rgba(19,42,31,0.08)',
         stamp: 'inset 0 0 0 1.5px currentColor',
       },
       borderRadius: {
         xl2: '1.25rem',
+      },
+      transitionTimingFunction: {
+        soft: 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
     },
   },
