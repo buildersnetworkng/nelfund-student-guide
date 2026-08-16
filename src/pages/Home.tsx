@@ -65,41 +65,60 @@ export default function Home() {
 
   return (
     <div className="pb-2">
-      <section className="hero-surface relative overflow-hidden pb-16 pt-10 sm:pt-14">
-        <div aria-hidden className="hero-glow hero-glow-a" />
-        <div aria-hidden className="hero-glow hero-glow-b" />
+      <section
+        className="relative overflow-hidden pb-16 pt-10 sm:pt-14"
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 60% at 90% -10%, rgba(200,155,60,0.12), transparent 55%), radial-gradient(ellipse 70% 50% at 0% 100%, rgba(46,130,89,0.35), transparent 50%), linear-gradient(165deg, #0a3a24 0%, #0f5132 42%, #1e6b45 100%)',
+        }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-gold-500/15 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-forest-300/25 blur-3xl"
+        />
 
         <div className="container-page relative">
-          <p className="hero-enter hero-enter-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-300">
+          <p className="fade-in text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-300">
             NELFUND · {applicationStatus.cycle}
           </p>
 
-          <h1 className="hero-enter hero-enter-2 mt-4 max-w-xl text-balance font-display text-3xl font-semibold leading-[1.18] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
+          <h1 className="slide-up mt-4 max-w-xl text-balance font-display text-3xl font-semibold leading-[1.18] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
             <span className="block text-white">Understand your</span>
             <span className="block text-white">NELFUND application.</span>
             <span className="mt-1 block text-gold-300">Know what to do next.</span>
           </h1>
 
-          <p className="hero-enter hero-enter-3 mt-5 max-w-md text-sm leading-relaxed text-white/80 sm:text-base">
+          <p className="slide-up mt-5 max-w-md text-sm leading-relaxed text-white/80 sm:text-base">
             Get clear guidance on your NELFUND application, portal issues, and next steps, backed by
             verified information.
           </p>
-          <p className="hero-enter hero-enter-3 mt-2 max-w-md text-sm leading-relaxed text-white/60">
+          <p className="slide-up mt-2 max-w-md text-sm leading-relaxed text-white/60">
             Ask questions, capture portal errors, and find relevant support contacts.
           </p>
 
-          <div className="hero-enter hero-enter-4 mt-8 flex flex-wrap gap-3">
-            <Link to="/ask" className="btn-gold btn-hero-cta">
+          <div className="slide-up mt-8 flex flex-wrap gap-3">
+            <Link to="/ask" className="btn-gold shadow-md hover:shadow-lg">
               Ask the support AI
             </Link>
-            <Link to="/apply" className="btn-hero-secondary">
+            <Link
+              to="/apply"
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/25 bg-transparent px-5 py-2.5 text-sm font-semibold text-white transition duration-150 hover:border-white/40 hover:bg-white/10 active:scale-[0.98]"
+            >
               How to apply
             </Link>
           </div>
 
-          <div className="hero-enter hero-enter-5 mt-6 flex flex-wrap gap-2">
+          <div className="slide-up mt-6 flex flex-wrap gap-2">
             {PROBLEM_SHORTCUTS.map((p) => (
-              <Link key={p.label} to={p.to} className="hero-chip">
+              <Link
+                key={p.label}
+                to={p.to}
+                className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/85 transition duration-150 hover:border-white/30 hover:bg-white/12"
+              >
                 {p.label}
               </Link>
             ))}
