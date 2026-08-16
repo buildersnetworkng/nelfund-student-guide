@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { faqs, getFaqsByIds, getRelevantContent } from '../lib/data'
 import { useInstitution } from '../context/InstitutionContext'
 import TrustBadge from '../components/TrustBadge'
@@ -27,20 +28,32 @@ export default function Faq() {
   }, [visibleFaqs, query, activeCategory])
 
   return (
-    <div className="container-page py-10">
+    <div className="container-page py-8 sm:py-10">
       <p className="eyebrow">FAQ</p>
       <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Frequently asked questions</h1>
-      <div className="mt-2"><InstitutionNotice /></div>
+      <p className="section-sub max-w-xl">Short, verified answers. For a specific portal error, use the support AI.</p>
+      <div className="mt-2">
+        <InstitutionNotice />
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-forest-700/10 bg-forest-50/50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
+        <p className="text-sm text-ink/70">Can't find your problem?</p>
+        <Link to="/ask" className="btn-primary mt-3 px-4 py-2 text-xs sm:mt-0">
+          Ask the AI →
+        </Link>
+      </div>
 
       <div className="mt-5">
-        <label htmlFor="faq-search" className="sr-only">Search FAQs</label>
+        <label htmlFor="faq-search" className="sr-only">
+          Search FAQs
+        </label>
         <input
           id="faq-search"
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search FAQs…"
-          className="w-full rounded-full border border-forest-700/20 bg-white px-4 py-3 text-sm shadow-card focus:outline-none focus:ring-2 focus:ring-forest-500/40"
+          className="input-field rounded-full"
         />
       </div>
 
@@ -49,8 +62,8 @@ export default function Faq() {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-              activeCategory === cat ? 'bg-forest-700 text-paper' : 'bg-forest-50 text-forest-700'
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+              activeCategory === cat ? 'bg-forest-700 text-paper' : 'bg-forest-50 text-forest-700 hover:bg-forest-100'
             }`}
           >
             {cat}
@@ -71,7 +84,9 @@ export default function Faq() {
                 aria-expanded={isOpen}
               >
                 <span className="font-display text-sm font-semibold text-ink">{f.title}</span>
-                <span aria-hidden="true" className="text-forest-700">{isOpen ? '−' : '+'}</span>
+                <span aria-hidden="true" className="text-forest-700">
+                  {isOpen ? '−' : '+'}
+                </span>
               </button>
 
               {isOpen && (
@@ -102,7 +117,9 @@ export default function Faq() {
           )
         })}
         {filtered.length === 0 && (
-          <p className="text-sm text-ink/60">No FAQs match "{query}". Try the troubleshooting section instead.</p>
+          <p className="text-sm text-ink/60">
+            No FAQs match "{query}". Try the support AI or the problems section.
+          </p>
         )}
       </ul>
     </div>
