@@ -5,7 +5,6 @@ import {
   faqs,
   nelfundFacts,
   troubleshootingItems,
-  guides,
   videos,
   isContentVisible,
 } from '../data'
@@ -19,56 +18,49 @@ export const INTENT_ALLOWLIST: Partial<
       faqIds?: string[]
       factIds?: string[]
       tbIds?: string[]
-      guideIds?: string[]
       videoIds?: string[]
     }
   >
 > = {
   'what-is-nelfund': { faqIds: ['faq-what-is-nelfund'], factIds: ['nf-what-is'], videoIds: ['vid-general-overview'] },
-  'loan-or-scholarship': { faqIds: ['faq-loan-or-scholarship'], factIds: ['nf-loan-nature'], videoIds: ['vid-general-overview'] },
-  'how-to-apply': { faqIds: ['faq-how-to-apply'], factIds: ['nf-how-to-apply'], videoIds: ['vid-application-walkthrough'] },
-  eligibility: { faqIds: ['faq-eligibility'], factIds: ['nf-eligibility'] },
-  'documents-needed': { faqIds: ['faq-documents'], factIds: ['nf-documents'], videoIds: ['vid-application-walkthrough'] },
-  'nin-verification': { faqIds: ['faq-nin'], tbIds: ['tb-nin-issues'], videoIds: ['vid-nin-troubleshooting', 'vid-profile-editing'] },
-  'jamb-verification': { faqIds: ['faq-jamb'], tbIds: ['tb-jamb-reject'], videoIds: ['vid-jamb-troubleshooting', 'vid-profile-editing'] },
+  'loan-or-scholarship': { faqIds: ['faq-is-scholarship'], factIds: ['nf-loan-not-scholarship'], videoIds: ['vid-repayment-explainer'] },
+  'how-to-apply': { faqIds: ['faq-how-to-apply'], videoIds: ['vid-application-walkthrough'] },
+  eligibility: { faqIds: ['faq-cgpa-eligibility'] },
+  'documents-needed': { faqIds: ['faq-documents-needed'], videoIds: ['vid-application-walkthrough'] },
+  'nin-verification': { tbIds: ['tb-nin-failed'], videoIds: ['vid-nin-troubleshooting'] },
+  'jamb-verification': { tbIds: ['tb-jamb-not-showing'], videoIds: ['vid-jamb-troubleshooting'] },
   'missing-information': {
     faqIds: ['faq-no-school-info', 'faq-school-not-uploaded'],
-    tbIds: ['tb-missing-info', 'tb-no-school-info'],
+    tbIds: ['tb-no-school-info-found'],
     videoIds: ['vid-missing-info-national', 'vid-school-not-found'],
   },
   'school-not-found': {
-    faqIds: ['faq-school-not-found'],
-    tbIds: ['tb-school-not-found'],
-    videoIds: ['vid-school-not-found', 'vid-missing-info-national'],
+    faqIds: ['faq-school-not-uploaded'],
+    tbIds: ['tb-no-school-info-found'],
+    videoIds: ['vid-school-not-found'],
   },
   'institution-verification': {
     faqIds: ['faq-school-not-uploaded'],
-    tbIds: ['tb-missing-info'],
+    tbIds: ['tb-no-school-info-found'],
     videoIds: ['vid-missing-info-national'],
   },
-  'pending-application': { faqIds: ['faq-pending'], tbIds: ['tb-pending'], videoIds: ['vid-status-checking'] },
-  'rejected-application': { faqIds: ['faq-rejected'], tbIds: ['tb-rejected'], videoIds: ['vid-rejection-explainer'] },
-  'profile-update': { faqIds: ['faq-profile'], tbIds: ['tb-profile'], videoIds: ['vid-profile-editing'] },
-  'bank-information': { faqIds: ['faq-bank'], videoIds: ['vid-profile-editing'] },
+  'pending-application': { faqIds: ['faq-pending'], videoIds: ['vid-status-checking'] },
+  'rejected-application': { faqIds: ['faq-rejected'] },
+  'profile-update': { videoIds: ['vid-profile-editing'] },
+  'bank-information': { videoIds: ['vid-profile-editing'] },
   upkeep: {
-    faqIds: ['faq-upkeep-amount', 'faq-both-components', 'faq-direct-payment'],
-    factIds: ['nf-upkeep-amount', 'nf-components'],
-    tbIds: ['tb-dont-understand-upkeep', 'tb-upkeep-or-not'],
+    faqIds: ['faq-upkeep-amount'],
+    factIds: ['nf-upkeep-amount'],
     videoIds: ['vid-upkeep-explainer'],
   },
-  'institutional-charges': { faqIds: ['faq-fees-payment'], factIds: ['nf-components'], videoIds: ['vid-school-fees-explainer'] },
-  'school-fees': { faqIds: ['faq-fees-payment', 'faq-already-paid'], factIds: ['nf-components'], videoIds: ['vid-school-fees-explainer'] },
-  refund: { faqIds: ['faq-already-paid'], tbIds: ['tb-already-paid'] },
-  reapplication: { faqIds: ['faq-reapply'], tbIds: ['tb-rejected'] },
-  repayment: { faqIds: ['faq-repayment'], factIds: ['nf-repayment'], videoIds: ['vid-repayment-explainer'] },
-  gsi: { faqIds: ['faq-gsi'], factIds: ['nf-gsi'] },
-  'academic-session': { faqIds: ['faq-session'] },
-  deadline: { faqIds: ['faq-deadline'] },
+  'institutional-charges': { faqIds: ['faq-fees-payment'], videoIds: ['vid-school-fees-explainer'] },
+  'school-fees': { faqIds: ['faq-fees-payment', 'faq-already-paid'], videoIds: ['vid-school-fees-explainer'] },
+  refund: { faqIds: ['faq-already-paid'] },
+  reapplication: { faqIds: ['faq-reapply'] },
+  repayment: { faqIds: ['faq-repayment'], videoIds: ['vid-repayment-explainer'] },
+  gsi: { faqIds: ['faq-gsi'] },
   'contact-support': { faqIds: ['faq-contact'] },
   'scam-safety': { faqIds: ['faq-scam'] },
-  readiness: { faqIds: ['faq-readiness'] },
-  'official-sources': { faqIds: ['faq-official'] },
-  guarantor: { faqIds: ['faq-guarantor'] },
 }
 
 function scoreText(q: string, fields: string[]): number {
@@ -90,69 +82,63 @@ export function retrieveEvidence(
   const results: EvidenceItem[] = []
   const q = question.toLowerCase()
 
-  const pushFaq = (f: (typeof faqs)[0], score: number) => {
-    if (!isContentVisible(f, institutionId)) return
-    results.push({
-      kind: 'faq',
-      id: f.id,
-      title: f.question,
-      body: f.answer,
-      verification_status: f.verification_status as VerificationStatus,
-      scope: f.scope as InformationScope,
-      institution_id: f.institution_id,
-      source_id: f.source_id,
-      last_verified: f.last_verified,
-      related_video_ids: f.related_video_ids || [],
-      path: '/faq',
-      score,
-    })
-  }
-
   if (allow) {
     for (const id of allow.faqIds || []) {
       const f = faqs.find((x) => x.id === id)
-      if (f) pushFaq(f, 40 + scoreText(q, [f.question, f.answer]))
+      if (!f || !isContentVisible(f, institutionId)) continue
+      results.push({
+        kind: 'faq',
+        id: f.id,
+        title: f.title,
+        body: f.content,
+        verification_status: f.verification_status as VerificationStatus,
+        scope: f.scope as InformationScope,
+        institution_id: f.institution_id,
+        source_id: f.source_id,
+        last_verified: f.last_verified,
+        related_video_ids: f.related_video_ids || [],
+        path: '/faq',
+        score: 40 + scoreText(q, [f.title, f.content]),
+      })
     }
     for (const id of allow.factIds || []) {
       const fact = nelfundFacts.find((x) => x.id === id)
-      if (fact && isContentVisible(fact, institutionId)) {
-        results.push({
-          kind: 'fact',
-          id: fact.id,
-          title: fact.title,
-          body: fact.body,
-          verification_status: fact.verification_status as VerificationStatus,
-          scope: fact.scope as InformationScope,
-          institution_id: fact.institution_id,
-          source_id: fact.source_id,
-          last_verified: fact.last_verified,
-          related_video_ids: fact.related_video_ids || [],
-          path: '/',
-          score: 45,
-        })
-      }
+      if (!fact || !isContentVisible(fact, institutionId)) continue
+      results.push({
+        kind: 'fact',
+        id: fact.id,
+        title: fact.title,
+        body: fact.content,
+        verification_status: fact.verification_status as VerificationStatus,
+        scope: fact.scope as InformationScope,
+        institution_id: fact.institution_id,
+        source_id: fact.source_id,
+        last_verified: fact.last_verified,
+        related_video_ids: fact.related_video_ids || [],
+        path: '/',
+        score: 45,
+      })
     }
     for (const id of allow.tbIds || []) {
       const tb = troubleshootingItems.find((x) => x.id === id)
-      if (tb && isContentVisible(tb, institutionId)) {
-        results.push({
-          kind: 'troubleshooting',
-          id: tb.id,
-          title: tb.title,
-          body: tb.summary || tb.what_this_means || '',
-          verification_status: tb.verification_status as VerificationStatus,
-          scope: tb.scope as InformationScope,
-          institution_id: tb.institution_id,
-          source_id: tb.source_id,
-          last_verified: tb.last_verified,
-          related_video_ids: tb.related_video_ids || [],
-          steps: tb.steps,
-          avoid: tb.avoid,
-          still_stuck: tb.still_stuck,
-          path: `/troubleshooting/${tb.id}`,
-          score: 50,
-        })
-      }
+      if (!tb || !isContentVisible(tb, institutionId)) continue
+      results.push({
+        kind: 'troubleshooting',
+        id: tb.id,
+        title: tb.problem,
+        body: tb.what_it_usually_means || '',
+        verification_status: tb.verification_status as VerificationStatus,
+        scope: tb.scope as InformationScope,
+        institution_id: tb.institution_id,
+        source_id: tb.source_id,
+        last_verified: tb.last_verified,
+        related_video_ids: tb.video_ids || [],
+        steps: tb.what_to_do,
+        avoid: tb.avoid_this,
+        still_stuck: tb.still_stuck,
+        path: `/troubleshooting/${tb.id}`,
+        score: 50,
+      })
     }
   }
 
