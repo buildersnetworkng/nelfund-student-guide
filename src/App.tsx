@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import MobileNav from './components/MobileNav'
@@ -16,13 +16,23 @@ import Ask from './pages/Ask'
 import NotFound from './pages/NotFound'
 
 export default function App() {
+  const { pathname } = useLocation()
+  const isAiWorkspace = pathname === '/ask'
+
+  if (isAiWorkspace) {
+    return (
+      <Routes>
+        <Route path="/ask" element={<Ask />} />
+      </Routes>
+    )
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 pb-24 md:pb-0">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/ask" element={<Ask />} />
           <Route path="/readiness" element={<Readiness />} />
           <Route path="/apply" element={<Apply />} />
           <Route path="/fees" element={<Fees />} />
