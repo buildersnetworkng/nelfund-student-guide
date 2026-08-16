@@ -57,7 +57,7 @@
   }
 
   .btn-secondary {
-    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-forest-700/25 bg-white px-5 py-2.5 text-sm font-semibold text-forest-800 transition duration-150 ease-out hover:border-forest-700/40 hover:bg-forest-50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-forest-700/25 bg-white px-5 py-2.5 text-sm font-semibold text-forest-700 transition duration-150 ease-out hover:border-forest-700/40 hover:bg-forest-50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-ghost {
