@@ -24,13 +24,21 @@ function dayKey(d = new Date()): string {
   return d.toISOString().slice(0, 10)
 }
 
+function redisUrl(): string {
+  return process.env.UPSTASH_REDIS_REST_URL || 'https://premium-rooster-109704.upstash.io'
+}
+
+function redisToken(): string {
+  return process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAayIAQIgcDE2YWZkNzllZDIxN2I0MjA5YWIwNDQ1OGFjNTY0MGUzNg'
+}
+
 function redisConfigured(): boolean {
-  return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+  return !!(redisUrl() && redisToken())
 }
 
 async function redisPipeline(commands: unknown[][]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!
+  const url = redisUrl()
+  const token = redisToken()
   const res = await fetch(`${url}/pipeline`, {
     method: 'POST',
     headers: {
