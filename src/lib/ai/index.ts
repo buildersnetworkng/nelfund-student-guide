@@ -1,8 +1,8 @@
 /**
  * NELFUND student support agent.
  *
- * Production path: /api/chat LLM agent (reason + tools + knowledge as evidence).
- * Offline path: local processUserTurn (capability router + verified data).
+ * PRIMARY: /api/chat LLM agent (reason + tools + knowledge as evidence).
+ * EMERGENCY: processUserTurn offline — must never silently pretend to be the LLM.
  */
 
 export { answerQuestion } from './answer'
@@ -22,7 +22,8 @@ export type {
   ConversationPhase,
 } from './conversation'
 export { extractTextFromImage, disposeOcrWorker } from './vision'
-export { callAgentApi } from './agentClient'
+export { callAgentApi, checkAgentStatus } from './agentClient'
+export type { AgentClientResult } from './agentClient'
 export type {
   GroundedAnswer,
   EvidenceItem,
