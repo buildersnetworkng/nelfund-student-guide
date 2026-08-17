@@ -108,7 +108,6 @@ export default function Ask() {
     const agentUserText =
       ocrText && text ? `${text}\n\n[Screenshot text]\n${ocrText}` : text || ocrText || ''
 
-    // Prefer LLM agent (reasoning + tools). Fall back to local orchestrator if unconfigured.
     const agent = await callAgentApi({
       history: hist,
       userText: agentUserText,
@@ -149,7 +148,7 @@ export default function Ask() {
         answer: lightAnswer,
         timestamp: Date.now(),
       }
-      const local = processUserTurn({
+      const local = await processUserTurn({
         userText: agentUserText,
         ocrText,
         imagePreview,
@@ -175,7 +174,7 @@ export default function Ask() {
 
     setBusyLabel('Using offline guide…')
     await new Promise((r) => setTimeout(r, 40))
-    const result = processUserTurn({
+    const result = await processUserTurn({
       userText: text,
       ocrText,
       imagePreview,
