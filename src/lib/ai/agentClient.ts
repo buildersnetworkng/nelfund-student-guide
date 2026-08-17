@@ -61,6 +61,7 @@ export async function callAgentApi(opts: {
       fallback?: boolean
       error?: string
       message?: string
+      detail?: string
     }
 
     if (res.status === 503 || body.error === 'agent_unconfigured' || body.fallback) {
