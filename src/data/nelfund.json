@@ -56,6 +56,48 @@
     "institution_tips": []
   },
   {
+    "id": "nf-eligibility",
+    "title": "Who can apply",
+    "content": "Official NELFUND FAQ guidance: students with admission into public Nigerian universities, polytechnics, colleges of education, or vocational schools may apply, with admission proof covering name, date of birth, admission, JAMB number, matriculation number, and BVN. New and existing students can apply. Direct Entry students need a JAMB number. Confirm current coverage on nelf.gov.ng.",
+    "category": "Eligibility",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-17",
+    "related_video_ids": [],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-disqualification",
+    "title": "What can cause denial",
+    "content": "Official NELFUND FAQ lists denial circumstances including: prior default on a loan from a licensed financial institution; submission of fake/fraudulent documents and dismissal for exam malpractice; and conviction for fraud, forgery, drug offences, cultism, felony, or offences involving dishonesty. Separate from formal disqualification, incomplete school records or data mismatches can also block verification.",
+    "category": "Eligibility",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-17",
+    "related_video_ids": [],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-portal-login",
+    "title": "Official portal for login and application",
+    "content": "Login and application both use the official NELFUND portal: https://portal.nelf.gov.ng/. Use https://nelf.gov.ng/ for public information. Never share OTP, passwords, or PIN on unofficial sites.",
+    "category": "Application",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-portal",
+    "last_verified": "2026-08-17",
+    "related_video_ids": [],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
     "id": "nf-repayment-start",
     "title": "When repayment starts",
     "content": "Repayment generally begins after a grace period following completion of the programme of study. Confirm the current grace period and start rules on the official NELFUND portal, and follow official channels once repayment obligations are generated for your account.",
