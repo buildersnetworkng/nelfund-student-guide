@@ -49,10 +49,81 @@ export const institutionContactsData = institutionContactsRaw as {
   institutions: { institution_id: string; contacts: import('./types').InstitutionContact[] }[]
 }
 
+/** Build safe guidance contacts from an institution's official website when no curated row exists. */
+function synthesizeInstitutionContacts(
+  institutionId: string,
+): import('./types').InstitutionContact[] {
+  const inst = getInstitution(institutionId)
+  const website = inst?.official_website || null
+  if (!website) return []
+  const note =
+    'No dedicated unit email is stored in this guide. Confirm the correct contact on the institution official website before writing.'
+  const base = {
+    institution_id: institutionId,
+    email: null as string | null,
+    phone: null as string | null,
+    url: website,
+    verification_status: 'guidance' as const,
+    source_url: website,
+    source_type: 'official_website',
+    last_verified: '2026-08-17',
+  }
+  return [
+    {
+      ...base,
+      id: `${institutionId}-ict`,
+      office: 'ict',
+      label: 'ICT / Information Technology',
+      purpose: 'Portal access, system data, student record upload and technical verification issues.',
+      handles: [
+        'missing-information',
+        'school-not-found',
+        'jamb-verification',
+        'nin-verification',
+        'institution-verification',
+        'pending-application',
+        'bank-information',
+        'profile-update',
+      ],
+      notes: note,
+    },
+    {
+      ...base,
+      id: `${institutionId}-nelfund-desk`,
+      office: 'nelfund_desk',
+      label: 'Institutional NELFUND coordination',
+      purpose: 'Campus coordination of NELFUND verification submissions.',
+      handles: [
+        'missing-information',
+        'pending-application',
+        'rejected-application',
+        'institution-verification',
+      ],
+      notes: null,
+    },
+    {
+      ...base,
+      id: `${institutionId}-registry`,
+      office: 'registry',
+      label: 'Registry',
+      purpose: 'Official registration and institutional student records.',
+      handles: [
+        'missing-information',
+        'school-not-found',
+        'jamb-verification',
+        'institution-verification',
+      ],
+      notes: 'Confirm the correct unit contact on the official website.',
+    },
+  ]
+}
+
 export function getInstitutionContacts(institutionId: string | null): import('./types').InstitutionContact[] {
   if (!institutionId) return []
   const row = institutionContactsData.institutions.find((i) => i.institution_id === institutionId)
-  return row?.contacts ?? []
+  if (row?.contacts?.length) return row.contacts
+  // Fallback: derive website-only guidance contacts so every listed institution can escalate safely.
+  return synthesizeInstitutionContacts(institutionId)
 }
 
 /** Verified national NELFUND support channels (official ticket portal + published email). */
