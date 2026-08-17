@@ -6,6 +6,7 @@ import {
   extractTextFromImage,
   disposeOcrWorker,
   callAgentApi,
+  checkAgentStatus,
 } from '../lib/ai'
 import type { ChatMessage, ConversationSlots, ConversationTurn, GroundedAnswer } from '../lib/ai'
 import { useInstitution } from '../context/InstitutionContext'
@@ -39,8 +40,24 @@ export default function Ask() {
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
+  /** true = LLM primary path; false = emergency offline; null = not checked yet */
+  const [agentReady, setAgentReady] = useState<boolean | null>(null)
+  const [degradedNote, setDegradedNote] = useState<string | null>(null)
 
   const hasConversation = messages.some((m) => m.role === 'user')
+
+  useEffect(() => {
+    void checkAgentStatus().then((s) => {
+      if (!s) {
+        setAgentReady(false)
+        setDegradedNote('Could not reach agent status. Limited offline mode may apply.')
+        return
+      }
+      const ready = s.agent === 'ready'
+      setAgentReady(ready)
+      setDegradedNote(ready ? null : s.message)
+    })
+  }, [])
 
   useEffect(() => {
     setSlots((prev) => {
@@ -100,7 +117,7 @@ export default function Ask() {
         ocrText = null
       }
     } else {
-      setBusyLabel('Thinking…')
+      setBusyLabel(agentReady === false ? 'Limited mode…' : 'Thinking…')
     }
 
     const hadUserMessage = messages.some((m) => m.role === 'user')
@@ -116,7 +133,9 @@ export default function Ask() {
       ocrText,
     })
 
-    if (agent) {
+    if (agent.kind === 'llm') {
+      setAgentReady(true)
+      setDegradedNote(null)
       const userMsg: ChatMessage = {
         id: uid('user'),
         role: 'user',
@@ -176,7 +195,10 @@ export default function Ask() {
       return
     }
 
-    setBusyLabel('Using offline guide…')
+    // Explicit degraded path — emergency offline only; never pretend this is the LLM.
+    setAgentReady(false)
+    setDegradedNote(agent.message)
+    setBusyLabel('Limited offline mode…')
     const result = await processUserTurn({
       userText: text,
       ocrText,
@@ -193,7 +215,7 @@ export default function Ask() {
       (assistantWithAnswer.answer.clarifyingQuestions?.length ?? 0) > 0
 
     trackAiQuestion({
-      intent,
+      intent: intent ? `offline:${intent}` : 'offline',
       institutionId: result.slots.institutionId || institutionId,
       hasImage: !!file,
       unresolved,
@@ -273,6 +295,16 @@ export default function Ask() {
           </div>
         </div>
         <div className="flex items-center gap-1.5">
+          {agentReady === true && (
+            <span className="hidden rounded-full bg-forest-50 px-2 py-0.5 text-[10px] font-semibold text-forest-700 sm:inline">
+              AI agent
+            </span>
+          )}
+          {agentReady === false && (
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+              Limited mode
+            </span>
+          )}
           {hasConversation && (
             <button
               type="button"
@@ -291,6 +323,13 @@ export default function Ask() {
         </div>
       </header>
 
+      {agentReady === false && degradedNote && (
+        <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-3 py-2 text-center text-[11px] leading-snug text-amber-950 sm:px-4">
+          <strong>Limited offline mode.</strong> The full AI agent is not active on this deployment
+          (server API key not configured). Answers may be narrower than the intended assistant.
+        </div>
+      )}
+
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {!hasConversation && !busy ? (
           <div className="mx-auto flex h-full max-w-2xl flex-col justify-center px-4 py-10 sm:px-6">
@@ -299,7 +338,8 @@ export default function Ask() {
                 How can NELFUND AI help?
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink/55">
-                Ask in your own words — portal errors, login links, school contacts, eligibility, drafts, or current status.
+                Ask in your own words — portal errors, login links, school contacts, eligibility, drafts, or current
+                status.
               </p>
             </div>
             <div className="mt-8 flex flex-wrap justify-center gap-2">
