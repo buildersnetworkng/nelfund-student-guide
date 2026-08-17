@@ -32,12 +32,12 @@ const CAPABILITY_BY_INTENT: Partial<Record<IntentId, AgentCapability>> = {
   guarantor: 'verified-knowledge',
   readiness: 'verified-knowledge',
   'official-sources': 'verified-knowledge',
+  'portal-login': 'verified-knowledge',
   'academic-session': 'current-information',
   deadline: 'current-information',
   'scam-safety': 'verified-knowledge',
 }
 
-/** Phrases that force generative / contact / research even if base intent is troubleshooting. */
 export function detectCapabilityOverride(text: string): AgentCapability | null {
   const t = text.toLowerCase()
   if (
@@ -56,7 +56,7 @@ export function detectCapabilityOverride(text: string): AgentCapability | null {
     return 'contact-lookup'
   }
   if (
-    /as\s*of\s*today|current\s*(info|information|status)|latest\s*(update|news)|what.?s\s*new|has\s*nelfund\s*announced/.test(
+    /as\s*of\s*today|current\s*(info|information|status)|latest\s*(update|news)|what.?s\s*new|has\s*nelfund\s*announced|is\s*nelfund\s*(still\s*)?(open|closed)|is\s*(the\s*)?(portal|application)\s*open/.test(
       t,
     )
   ) {

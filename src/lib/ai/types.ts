@@ -28,6 +28,7 @@ export type IntentId =
   | 'scam-safety'
   | 'readiness'
   | 'official-sources'
+  | 'portal-login'
   | 'guarantor'
   | 'email-draft'
   | 'contact-lookup'
@@ -105,7 +106,6 @@ export interface GroundedAnswer {
   hasEvidence: boolean
   intent: IntentId
   confidence: number
-  /** Which capability produced this answer (optional until full orchestrator is deployed) */
   responseMode?: AgentCapability
   problem: string | null
   answer: string
@@ -118,7 +118,6 @@ export interface GroundedAnswer {
   insufficientReason: string | null
   officialFallbackUrl: string
   escalation: EscalationPlanView | null
-  /** Generated email/letter when responseMode is email-draft */
   draft?: { subject: string; body: string } | null
 }
 

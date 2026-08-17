@@ -23,9 +23,12 @@ export const INTENT_ALLOWLIST: Partial<
   >
 > = {
   'what-is-nelfund': { faqIds: ['faq-what-is-nelfund'], factIds: ['nf-what-is'], videoIds: ['vid-general-overview'] },
-  'loan-or-scholarship': { faqIds: ['faq-is-scholarship'], factIds: ['nf-loan-not-scholarship'], videoIds: ['vid-repayment-explainer'] },
-  'how-to-apply': { faqIds: ['faq-how-to-apply'], videoIds: ['vid-application-walkthrough'] },
-  eligibility: { faqIds: ['faq-cgpa-eligibility'] },
+  'loan-or-scholarship': { faqIds: ['faq-loan-not-scholarship'], factIds: ['nf-loan-not-scholarship'], videoIds: ['vid-repayment-explainer'] },
+  'how-to-apply': { faqIds: ['faq-how-to-apply', 'faq-portal-login'], videoIds: ['vid-application-walkthrough'] },
+  eligibility: {
+    faqIds: ['faq-eligibility', 'faq-disqualification'],
+    factIds: ['nf-eligibility', 'nf-disqualification'],
+  },
   'documents-needed': { faqIds: ['faq-documents-needed'], videoIds: ['vid-application-walkthrough'] },
   'nin-verification': { tbIds: ['tb-nin-failed'], videoIds: ['vid-nin-troubleshooting'] },
   'jamb-verification': { tbIds: ['tb-jamb-not-showing'], videoIds: ['vid-jamb-troubleshooting'] },
@@ -35,17 +38,18 @@ export const INTENT_ALLOWLIST: Partial<
     videoIds: ['vid-missing-info-national', 'vid-school-not-found'],
   },
   'school-not-found': {
-    faqIds: ['faq-school-not-uploaded'],
+    faqIds: ['faq-school-not-uploaded', 'faq-school-not-showing'],
     tbIds: ['tb-no-school-info-found'],
     videoIds: ['vid-school-not-found'],
   },
   'institution-verification': {
-    faqIds: ['faq-school-not-uploaded'],
+    faqIds: ['faq-school-not-uploaded', 'faq-no-school-info'],
+    factIds: ['nf-institution-vs-nelfund'],
     tbIds: ['tb-no-school-info-found'],
     videoIds: ['vid-missing-info-national'],
   },
   'pending-application': { faqIds: ['faq-pending'], videoIds: ['vid-status-checking'] },
-  'rejected-application': { faqIds: ['faq-rejected'] },
+  'rejected-application': { faqIds: ['faq-rejected', 'faq-disqualification'] },
   'profile-update': { videoIds: ['vid-profile-editing'] },
   'bank-information': { videoIds: ['vid-profile-editing'] },
   upkeep: {
@@ -58,9 +62,12 @@ export const INTENT_ALLOWLIST: Partial<
   refund: { faqIds: ['faq-already-paid'] },
   reapplication: { faqIds: ['faq-reapply'] },
   repayment: { faqIds: ['faq-repayment'], videoIds: ['vid-repayment-explainer'] },
-  gsi: { faqIds: ['faq-gsi'] },
+  gsi: { faqIds: ['faq-gsi'], factIds: ['nf-gsi'] },
   'contact-support': { faqIds: ['faq-contact'] },
   'scam-safety': { faqIds: ['faq-scam'] },
+  'portal-login': { faqIds: ['faq-portal-login'], factIds: ['nf-portal-login'] },
+  'official-sources': { faqIds: ['faq-portal-login'], factIds: ['nf-portal-login'] },
+  guarantor: { faqIds: ['faq-guarantor'] },
 }
 
 function scoreText(q: string, fields: string[]): number {
