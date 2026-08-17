@@ -5,19 +5,24 @@ import {
   createInitialSlots,
   extractTextFromImage,
   disposeOcrWorker,
+  callAgentApi,
 } from '../lib/ai'
-import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai'
+import type { ChatMessage, ConversationSlots, ConversationTurn, GroundedAnswer } from '../lib/ai'
 import { useInstitution } from '../context/InstitutionContext'
 import { AnswerCards } from '../components/AnswerCards'
 import { trackAiQuestion } from '../lib/analytics'
 
 const SUGGESTIONS = [
-  'My NELFUND application is pending',
-  'My school is not showing on the portal',
-  "I'm seeing Missing Information",
-  'How do I apply for NELFUND?',
-  'The portal is not accepting my JAMB number',
+  'Is NELFUND open right now?',
+  'Which link do I use to login?',
+  'How do I know if my school uploaded my data?',
+  'What can disqualify someone from the loan?',
+  'My portal shows missing information',
 ]
+
+function uid(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
 
 export default function Ask() {
   const { institutionId } = useInstitution()
@@ -62,13 +67,13 @@ export default function Ask() {
     el.style.height = `${Math.min(el.scrollHeight, 140)}px`
   }, [input])
 
-  function historyFromMessages(msgs: ChatMessage[], currentIntent?: string | null): ConversationTurn[] {
+  function historyFromMessages(msgs: ChatMessage[]): ConversationTurn[] {
     return msgs
       .filter((m) => m.role === 'user' || m.role === 'assistant')
       .map((m) => ({
         role: m.role as 'user' | 'assistant',
         text: m.text,
-        intent: (m.answer?.intent || currentIntent || undefined) as ConversationTurn['intent'],
+        intent: m.answer?.intent,
       }))
       .slice(-12)
   }
@@ -95,13 +100,81 @@ export default function Ask() {
         ocrText = null
       }
     } else {
-      setBusyLabel('Checking verified NELFUND information…')
+      setBusyLabel('Thinking…')
     }
 
-    await new Promise((r) => setTimeout(r, 40))
-
-    const hist = historyFromMessages(messages, slots.intent)
     const hadUserMessage = messages.some((m) => m.role === 'user')
+    const hist = historyFromMessages(messages)
+    const agentUserText =
+      ocrText && text ? `${text}\n\n[Screenshot text]\n${ocrText}` : text || ocrText || ''
+
+    // Prefer LLM agent (reasoning + tools). Fall back to local orchestrator if unconfigured.
+    const agent = await callAgentApi({
+      history: hist,
+      userText: agentUserText,
+      institutionId: slots.institutionId || institutionId,
+      institutionName: slots.institutionName,
+      ocrText,
+    })
+
+    if (agent) {
+      const userMsg: ChatMessage = {
+        id: uid('user'),
+        role: 'user',
+        text: text || '[Screenshot uploaded]',
+        imagePreview,
+        timestamp: Date.now(),
+      }
+      const lightAnswer: GroundedAnswer = {
+        hasEvidence: true,
+        intent: 'unknown',
+        confidence: 0.75,
+        responseMode: 'conversation',
+        problem: null,
+        answer: agent.reply,
+        whatThisMeans: null,
+        nextActions: [],
+        clarifyingQuestions: [],
+        evidence: [],
+        sources: [],
+        video: null,
+        insufficientReason: null,
+        officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+        escalation: null,
+      }
+      const asst: ChatMessage = {
+        id: uid('asst'),
+        role: 'assistant',
+        text: agent.reply,
+        answer: lightAnswer,
+        timestamp: Date.now(),
+      }
+      const local = processUserTurn({
+        userText: agentUserText,
+        ocrText,
+        imagePreview,
+        uiInstitutionId: institutionId,
+        slots,
+        history: hist,
+      })
+      setSlots(local.slots)
+      setMessages((prev) => [...prev, userMsg, asst])
+      trackAiQuestion({
+        intent: 'llm-agent',
+        institutionId: local.slots.institutionId || institutionId,
+        hasImage: !!file,
+        unresolved: false,
+        isNewConversation: !hadUserMessage,
+      })
+      setPendingFile(null)
+      setPendingPreview(null)
+      setBusy(false)
+      setBusyLabel('Thinking…')
+      return
+    }
+
+    setBusyLabel('Using offline guide…')
+    await new Promise((r) => setTimeout(r, 40))
     const result = processUserTurn({
       userText: text,
       ocrText,
@@ -110,10 +183,8 @@ export default function Ask() {
       slots,
       history: hist,
     })
-
-    const nextSlots = result.slots
     const assistantWithAnswer = result.messages.find((m) => m.role === 'assistant' && m.answer)
-    const intent = assistantWithAnswer?.answer?.intent || nextSlots.intent || null
+    const intent = assistantWithAnswer?.answer?.intent || result.slots.intent || null
     const unresolved =
       !assistantWithAnswer?.answer ||
       intent === 'unknown' ||
@@ -121,13 +192,13 @@ export default function Ask() {
 
     trackAiQuestion({
       intent,
-      institutionId: nextSlots.institutionId || institutionId,
+      institutionId: result.slots.institutionId || institutionId,
       hasImage: !!file,
       unresolved,
       isNewConversation: !hadUserMessage,
     })
 
-    setSlots(nextSlots)
+    setSlots(result.slots)
     setMessages((prev) => [...prev, ...result.messages])
     setPendingFile(null)
     setPendingPreview(null)
@@ -226,7 +297,7 @@ export default function Ask() {
                 How can NELFUND AI help?
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink/55">
-                Guidance on applications, portal errors, school records, and verified support contacts, based on official NELFUND information.
+                Ask in your own words — portal errors, login links, school contacts, eligibility, drafts, or current status.
               </p>
             </div>
             <div className="mt-8 flex flex-wrap justify-center gap-2">
@@ -263,15 +334,11 @@ export default function Ask() {
                   </div>
                 ) : (
                   <div className="w-full max-w-full text-sm leading-relaxed text-ink">
-                    {m.imagePreview && (
-                      <img
-                        src={m.imagePreview}
-                        alt="Uploaded portal screenshot"
-                        className="mb-2 max-h-48 rounded-lg border border-forest-100 object-contain"
-                      />
-                    )}
                     <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{m.text}</p>
-                    {m.answer && <AnswerCards answer={m.answer} />}
+                    {m.answer && m.answer.responseMode !== 'conversation' && <AnswerCards answer={m.answer} />}
+                    {m.answer &&
+                      m.answer.responseMode === 'conversation' &&
+                      (m.answer.escalation || m.answer.draft) && <AnswerCards answer={m.answer} />}
                   </div>
                 )}
               </div>
@@ -295,11 +362,7 @@ export default function Ask() {
         <div className="mx-auto max-w-2xl">
           {pendingPreview && (
             <div className="mb-2 flex items-center gap-2 rounded-xl border border-forest-100 bg-white p-2">
-              <img
-                src={pendingPreview}
-                alt="Selected screenshot"
-                className="h-12 w-12 rounded-lg object-cover"
-              />
+              <img src={pendingPreview} alt="Selected screenshot" className="h-12 w-12 rounded-lg object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-ink">Screenshot attached</p>
                 <p className="text-[10px] text-ink/45">Don't include passwords, OTPs, or PINs.</p>

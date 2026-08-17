@@ -1,17 +1,8 @@
 /**
- * Conversational NELFUND student support agent.
+ * NELFUND student support agent.
  *
- * Architecture: GROUND THE FACTS, NOT THE CONVERSATION.
- *
- * Pipeline:
- *   Student message and/or screenshot
- *   → Intent classification (+ capability override)
- *   → Conversational state (phase, pending clarify, slots)
- *   → Decide: clarify one question | answer factual | troubleshoot | contact | draft | current
- *   → Execute capability against verified data (never invent contacts/deadlines)
- *   → Concise response + one useful next step
- *
- * FAQ/verified knowledge is ONE tool — not the whole agent.
+ * Production path: /api/chat LLM agent (reason + tools + knowledge as evidence).
+ * Offline path: local processUserTurn (capability router + verified data).
  */
 
 export { answerQuestion } from './answer'
@@ -31,6 +22,7 @@ export type {
   ConversationPhase,
 } from './conversation'
 export { extractTextFromImage, disposeOcrWorker } from './vision'
+export { callAgentApi } from './agentClient'
 export type {
   GroundedAnswer,
   EvidenceItem,
