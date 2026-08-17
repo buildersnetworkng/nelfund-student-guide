@@ -6,19 +6,12 @@
  * Pipeline:
  *   Student message and/or screenshot
  *   → Intent classification (+ capability override)
- *   → Capability router:
- *        verified-knowledge | troubleshooting | contact-lookup |
- *        email-draft | current-information | conversation
- *   → Follow-up only when that capability needs a slot (e.g. institution)
- *   → Execute capability (KB retrieve / contacts / generate / current status)
- *   → Verify factual claims against allowlisted sources
- *   → Actionable response (+ optional video, escalation, draft)
+ *   → Conversational state (phase, pending clarify, slots)
+ *   → Decide: clarify one question | answer factual | troubleshoot | contact | draft | current
+ *   → Execute capability against verified data (never invent contacts/deadlines)
+ *   → Concise response + one useful next step
  *
  * FAQ/verified knowledge is ONE tool — not the whole agent.
- * Generative writing does not require FAQ retrieval.
- * Current/time-sensitive questions use application-status + official links
- * and instruct the student to confirm live on nelf.gov.ng / the portal.
- * Contacts are never invented; only official websites or curated verified rows.
  */
 
 export { answerQuestion } from './answer'
@@ -31,7 +24,12 @@ export {
   createWelcomeMessage,
   extractErrorSignals,
 } from './conversation'
-export type { ConversationSlots, ChatMessage, AgentTurnResult } from './conversation'
+export type {
+  ConversationSlots,
+  ChatMessage,
+  AgentTurnResult,
+  ConversationPhase,
+} from './conversation'
 export { extractTextFromImage, disposeOcrWorker } from './vision'
 export type {
   GroundedAnswer,

@@ -1,5 +1,5 @@
 /**
- * Lightweight AI regression checks for NELFUND Student Guide.
+ * AI regression + multi-turn conversational checks.
  * Run: npm run eval:ai
  */
 import path from 'path'
@@ -83,6 +83,10 @@ function check(name, ok, detail = '') {
   }
 }
 
+function lastAsst(result) {
+  return [...result.messages].reverse().find((m) => m.role === 'assistant')
+}
+
 console.log('Intent classification')
 for (const c of CASES) {
   const r = intent.classifyIntent(c.q)
@@ -102,99 +106,136 @@ for (const c of INST_CASES) {
   check(`${c.expectId} <= "${c.text}"`, id === c.expectId, `got ${id}`)
 }
 
-console.log('\nConversation: missing info asks for school')
+console.log('\n--- Conversational intelligence ---')
+
+console.log('\nTEST: vague problem asks clarification (no FAQ dump)')
 {
   const slots = conversation.createInitialSlots(null)
   const result = conversation.processUserTurn({
-    userText: 'My NELFUND thing is showing missing information',
-    ocrText: null,
-    imagePreview: null,
-    uiInstitutionId: null,
+    userText: "I'm having a NELFUND issue.",
     slots,
     history: [],
   })
-  const askSchool = result.messages.some(
-    (m) => m.role === 'assistant' && /institution|school/i.test(m.text),
-  )
-  check('asks for institution', askSchool && !result.diagnosed)
+  const asst = lastAsst(result)
+  const text = asst?.text || ''
+  check('capability conversation or clarify', result.capability === 'conversation' || !result.diagnosed)
+  check('asks what part / menu', /what part|missing|jamb|pending|screenshot/i.test(text))
+  check('does not dump long FAQ', text.length < 900 && !/only answers from verified NELFUND information stored/i.test(text))
 }
 
-console.log('\nConversation: email draft does not return FAQ-only')
+console.log('\nTEST: missing info → ask institution once')
 {
   const slots = conversation.createInitialSlots(null)
   const result = conversation.processUserTurn({
-    userText: 'Draft me an email concerning my NELFUND missing information issue',
-    ocrText: null,
-    imagePreview: null,
-    uiInstitutionId: null,
+    userText: 'Bro, NELFUND is showing missing information.',
     slots,
     history: [],
   })
-  // Should ask for school first OR produce draft capability
-  const isDraftPath =
-    result.capability === 'email-draft' ||
-    result.messages.some((m) => m.role === 'assistant' && /draft|email|institution|school/i.test(m.text))
-  check('email-draft capability path', result.capability === 'email-draft' && isDraftPath, `cap=${result.capability}`)
+  const asst = lastAsst(result)
+  check('not fully diagnosed yet', !result.diagnosed)
+  check('asks institution', /institution|school/i.test(asst?.text || ''))
+  check('acknowledges issue', /got you|usually means|student record/i.test(asst?.text || ''))
+  check('pending institution slot', result.slots.awaitingInstitution || result.slots.pendingClarify === 'which-institution')
 }
 
-console.log('\nConversation: LASU contact in one message')
+console.log('\nTEST: multi-turn missing → LASU → uses LASU')
+{
+  let slots = conversation.createInitialSlots(null)
+  let result = conversation.processUserTurn({
+    userText: 'Portal shows Missing Information – Student Records',
+    slots,
+    history: [],
+  })
+  slots = result.slots
+  result = conversation.processUserTurn({
+    userText: 'LASU',
+    slots,
+    history: result.messages.map((m) => ({ role: m.role, text: m.text })),
+  })
+  check('resolves LASU', result.slots.institutionId === 'lasu', `got ${result.slots.institutionId}`)
+  check('diagnoses or acts', result.diagnosed || result.capability === 'troubleshooting')
+  const asst = lastAsst(result)
+  check('mentions LASU or contacts', /lasu|lagos state|contact|ict|registry|esupport/i.test(asst?.text || ''))
+  check('does not re-ask institution', !/which institution do you attend\?/i.test(asst?.text || ''))
+}
+
+console.log('\nTEST: JAMB flow asks exact error first')
 {
   const slots = conversation.createInitialSlots(null)
   const result = conversation.processUserTurn({
-    userText: 'My school is LASU. I need to contact my school through their email concerning the NELFUND missing information issue.',
-    ocrText: null,
-    imagePreview: null,
-    uiInstitutionId: null,
+    userText: 'My JAMB number is not working',
     slots,
     history: [],
   })
-  check('contact-lookup capability', result.capability === 'contact-lookup', `got ${result.capability}`)
-  check('resolves LASU', result.slots.institutionId === 'lasu', `inst=${result.slots.institutionId}`)
-  const asst = result.messages.find((m) => m.role === 'assistant')
-  const notFaqDump = asst && !/only answers from verified NELFUND information stored/i.test(asst.text || '')
-  check('actionable contact response', Boolean(result.diagnosed && notFaqDump))
+  const asst = lastAsst(result)
+  // Either asks institution OR exact error — not a full dump
+  const asks =
+    /exact message|what.*portal show|institution|school/i.test(asst?.text || '') ||
+    result.slots.pendingClarify === 'exact-error' ||
+    result.slots.awaitingInstitution
+  check('asks one useful question', asks)
+  check('not a wall of 12 reasons', (asst?.text || '').length < 700)
 }
 
-console.log('\nConversation: current information path')
+console.log('\nTEST: direct factual answer (no clarify)')
+{
+  const slots = conversation.createInitialSlots(null)
+  const result = conversation.processUserTurn({
+    userText: 'What is NELFUND?',
+    slots,
+    history: [],
+  })
+  check('answers without asking school', !result.slots.awaitingInstitution)
+  const asst = lastAsst(result)
+  check('mentions loan or fund', /loan|nelfund|education/i.test(asst?.text || ''))
+}
+
+console.log('\nTEST: draft email asks school then drafts')
+{
+  let slots = conversation.createInitialSlots(null)
+  let result = conversation.processUserTurn({
+    userText: 'Draft me an email about missing information',
+    slots,
+    history: [],
+  })
+  check('email-draft capability', result.capability === 'email-draft')
+  check('asks institution first', /institution|school/i.test(lastAsst(result)?.text || ''))
+  slots = result.slots
+  result = conversation.processUserTurn({
+    userText: 'University of Lagos',
+    slots,
+    history: result.messages.map((m) => ({ role: m.role, text: m.text })),
+  })
+  check('stays email-draft', result.capability === 'email-draft', `got ${result.capability}`)
+  check('UNILAG set', result.slots.institutionId === 'unilag')
+  const asst = lastAsst(result)
+  check('produces subject/body style draft', /subject:|dear |regards|missing information/i.test(asst?.text || ''))
+}
+
+console.log('\nTEST: LASU contact in one message (no extra questions)')
+{
+  const slots = conversation.createInitialSlots(null)
+  const result = conversation.processUserTurn({
+    userText: 'My school is LASU. Give me their email for the NELFUND missing information issue.',
+    slots,
+    history: [],
+  })
+  check('contact-lookup', result.capability === 'contact-lookup', `got ${result.capability}`)
+  check('LASU', result.slots.institutionId === 'lasu')
+  check('diagnosed', result.diagnosed)
+}
+
+console.log('\nTEST: current information path')
 {
   const slots = conversation.createInitialSlots(null)
   const result = conversation.processUserTurn({
     userText: "What's the current information on NELFUND as of today?",
-    ocrText: null,
-    imagePreview: null,
-    uiInstitutionId: null,
     slots,
     history: [],
   })
-  check('current-information capability', result.capability === 'current-information', `got ${result.capability}`)
-  const asst = result.messages.find((m) => m.role === 'assistant' && m.answer)
-  check('mentions official portal or last checked', Boolean(asst?.answer?.answer && /portal|last checked|nelf\.gov/i.test(asst.answer.answer)))
-}
-
-console.log('\nConversation with institution provided')
-{
-  const slots = conversation.createInitialSlots(null)
-  let result = conversation.processUserTurn({
-    userText: 'Portal shows Missing Information – Student Records',
-    ocrText: null,
-    imagePreview: null,
-    uiInstitutionId: null,
-    slots,
-    history: [],
-  })
-  result = conversation.processUserTurn({
-    userText: 'University of Lagos',
-    ocrText: null,
-    imagePreview: null,
-    uiInstitutionId: null,
-    slots: result.slots,
-    history: result.messages
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map((m) => ({ role: m.role, text: m.text })),
-  })
-  const hasAnswer = result.diagnosed || result.messages.some((m) => m.answer)
-  check('resolves UNILAG and diagnoses', result.slots.institutionId === 'unilag' && hasAnswer, `inst=${result.slots.institutionId} diagnosed=${result.diagnosed}`)
-  check('keeps institution slot', result.slots.institutionId === 'unilag')
+  check('current-information', result.capability === 'current-information')
+  const asst = lastAsst(result)
+  check('mentions portal or last checked', /portal|last checked|nelf\.gov/i.test(asst?.text || ''))
 }
 
 console.log(`\n${pass} passed, ${fail} failed`)
