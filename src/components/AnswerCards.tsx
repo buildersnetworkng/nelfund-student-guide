@@ -89,6 +89,21 @@ function ContactCard({
 export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
   return (
     <div className="mt-3 space-y-3 border-t border-forest-700/10 pt-3">
+      {answer.draft && (
+        <div className="rounded-xl border border-forest-700/15 bg-white p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-forest-700">
+            Email draft (review before sending)
+          </p>
+          <p className="mt-1 text-xs font-semibold text-ink">Subject: {answer.draft.subject}</p>
+          <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-forest-50/50 p-2.5 text-[12px] leading-relaxed text-ink/80">
+            {answer.draft.body}
+          </pre>
+          <p className="mt-2 text-[11px] text-ink/45">
+            Confirm the recipient on your school website. Never include passwords, OTP, or PIN. This app does not send email for you.
+          </p>
+        </div>
+      )}
+
       {answer.whatThisMeans && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">What this means</p>
@@ -173,7 +188,7 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
             <p className="mt-1.5 text-[11px] text-ink/50">{answer.escalation.screenshotAdvice}</p>
           </div>
 
-          {answer.escalation.supportMessage && (
+          {answer.escalation.supportMessage && !answer.draft && (
             <div className="mt-3 rounded-lg border border-forest-700/15 bg-white px-2.5 py-2">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-forest-700">
                 Ready-to-copy message (review before sending)

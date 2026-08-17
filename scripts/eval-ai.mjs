@@ -13,8 +13,9 @@ async function load() {
   try {
     const intent = await import(pathToFileURL(path.join(root, 'src/lib/ai/intent.ts')).href)
     const conversation = await import(pathToFileURL(path.join(root, 'src/lib/ai/conversation.ts')).href)
+    const capabilities = await import(pathToFileURL(path.join(root, 'src/lib/ai/capabilities.ts')).href)
     const escalation = await import(pathToFileURL(path.join(root, 'src/lib/escalation.ts')).href)
-    return { intent, conversation, escalation }
+    return { intent, conversation, capabilities, escalation }
   } catch (e) {
     console.error('Import failed. Ensure tsx is installed: npm i -D tsx')
     console.error(e)
@@ -36,6 +37,24 @@ const CASES = [
   { q: 'How do I fix my NIN mismatch?', expectIntent: 'nin-verification' },
   { q: 'I paid my school fees already', expectIntent: 'refund' },
   { q: 'What is NELFUND?', expectIntent: 'what-is-nelfund' },
+  { q: 'Draft me an email about missing information', expectIntent: 'email-draft' },
+  { q: 'Abeg draft email for me', expectIntent: 'email-draft' },
+  { q: 'My school is LASU, what is their email for NELFUND?', expectIntent: 'contact-lookup' },
+  { q: 'How I fit contact my school?', expectIntent: 'contact-lookup' },
+  { q: "What's the current information on NELFUND as of today?", expectIntent: 'current-information' },
+  { q: 'Any latest update on NELFUND?', expectIntent: 'current-information' },
+  { q: 'Has 2026/2027 application opened?', expectIntent: 'current-information' },
+]
+
+const CAP_CASES = [
+  { q: 'Draft me an email to my school about missing information', expectCap: 'email-draft' },
+  { q: 'Write an email concerning NELFUND missing information', expectCap: 'email-draft' },
+  { q: 'My school is LASU. I need to contact them by email about missing information', expectCap: 'contact-lookup' },
+  { q: 'Find the official contact for my school', expectCap: 'contact-lookup' },
+  { q: "What's the latest NELFUND update today?", expectCap: 'current-information' },
+  { q: 'My NELFUND is showing missing information', expectCap: 'troubleshooting' },
+  { q: 'How do I apply for NELFUND?', expectCap: 'verified-knowledge' },
+  { q: 'How much is upkeep currently?', expectCap: 'verified-knowledge' },
 ]
 
 const INST_CASES = [
@@ -45,9 +64,11 @@ const INST_CASES = [
   { text: 'NOUN', expectId: 'nou' },
   { text: 'Olabisi Onabanjo University', expectId: 'oou' },
   { text: 'poly ibadan', expectId: 'polyibadan' },
+  { text: 'LASU', expectId: 'lasu' },
+  { text: 'Lagos State University', expectId: 'lasu' },
 ]
 
-const { intent, conversation, escalation } = await load()
+const { intent, conversation, capabilities, escalation } = await load()
 
 let pass = 0
 let fail = 0
@@ -68,13 +89,20 @@ for (const c of CASES) {
   check(`${c.expectIntent} <= "${c.q}"`, r.intent === c.expectIntent, `got ${r.intent}`)
 }
 
+console.log('\nCapability routing')
+for (const c of CAP_CASES) {
+  const r = intent.classifyIntent(c.q)
+  const cap = capabilities.resolveCapability(r.intent, c.q)
+  check(`${c.expectCap} <= "${c.q}"`, cap === c.expectCap, `got ${cap} (intent ${r.intent})`)
+}
+
 console.log('\nInstitution resolve')
 for (const c of INST_CASES) {
   const id = escalation.resolveInstitutionFromText(c.text)
   check(`${c.expectId} <= "${c.text}"`, id === c.expectId, `got ${id}`)
 }
 
-console.log('\nConversation follow-ups (missing info, no school)')
+console.log('\nConversation: missing info asks for school')
 {
   const slots = conversation.createInitialSlots(null)
   const result = conversation.processUserTurn({
@@ -89,6 +117,58 @@ console.log('\nConversation follow-ups (missing info, no school)')
     (m) => m.role === 'assistant' && /institution|school/i.test(m.text),
   )
   check('asks for institution', askSchool && !result.diagnosed)
+}
+
+console.log('\nConversation: email draft does not return FAQ-only')
+{
+  const slots = conversation.createInitialSlots(null)
+  const result = conversation.processUserTurn({
+    userText: 'Draft me an email concerning my NELFUND missing information issue',
+    ocrText: null,
+    imagePreview: null,
+    uiInstitutionId: null,
+    slots,
+    history: [],
+  })
+  // Should ask for school first OR produce draft capability
+  const isDraftPath =
+    result.capability === 'email-draft' ||
+    result.messages.some((m) => m.role === 'assistant' && /draft|email|institution|school/i.test(m.text))
+  check('email-draft capability path', result.capability === 'email-draft' && isDraftPath, `cap=${result.capability}`)
+}
+
+console.log('\nConversation: LASU contact in one message')
+{
+  const slots = conversation.createInitialSlots(null)
+  const result = conversation.processUserTurn({
+    userText: 'My school is LASU. I need to contact my school through their email concerning the NELFUND missing information issue.',
+    ocrText: null,
+    imagePreview: null,
+    uiInstitutionId: null,
+    slots,
+    history: [],
+  })
+  check('contact-lookup capability', result.capability === 'contact-lookup', `got ${result.capability}`)
+  check('resolves LASU', result.slots.institutionId === 'lasu', `inst=${result.slots.institutionId}`)
+  const asst = result.messages.find((m) => m.role === 'assistant')
+  const notFaqDump = asst && !/only answers from verified NELFUND information stored/i.test(asst.text || '')
+  check('actionable contact response', Boolean(result.diagnosed && notFaqDump))
+}
+
+console.log('\nConversation: current information path')
+{
+  const slots = conversation.createInitialSlots(null)
+  const result = conversation.processUserTurn({
+    userText: "What's the current information on NELFUND as of today?",
+    ocrText: null,
+    imagePreview: null,
+    uiInstitutionId: null,
+    slots,
+    history: [],
+  })
+  check('current-information capability', result.capability === 'current-information', `got ${result.capability}`)
+  const asst = result.messages.find((m) => m.role === 'assistant' && m.answer)
+  check('mentions official portal or last checked', Boolean(asst?.answer?.answer && /portal|last checked|nelf\.gov/i.test(asst.answer.answer)))
 }
 
 console.log('\nConversation with institution provided')

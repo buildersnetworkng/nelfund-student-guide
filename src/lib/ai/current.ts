@@ -24,20 +24,22 @@ export function buildCurrentInformationAnswer(): {
   const note = status.note || ''
 
   const answer = [
-    `Here is the current status this guide has on file for the ${cycle} cycle (last checked: ${lastChecked || 'date not recorded'}).`,
+    `Here is what this guide has on file for current NELFUND status (${cycle}).`,
+    `Last checked: ${lastChecked || 'date not recorded'}.`,
     '',
-    `Status: ${label}.`,
+    `Status summary: ${label}.`,
+    '',
     note,
     '',
-    'This guide does not invent live announcements. For anything time-sensitive (whether applications are open, new deadlines, or fresh policy changes), confirm directly on the official NELFUND website and portal today.',
+    'This guide does not invent live announcements or unofficial social media dates. For whether you can apply today, open the official portal and check nelf.gov.ng announcements.',
   ]
     .filter((line, i, arr) => !(line === '' && arr[i - 1] === ''))
     .join('\n')
 
   const nextActions = [
-    `Check official announcements on ${SITE}`,
+    `Check official announcements: ${SITE}`,
     `Open the application portal: ${PORTAL}`,
-    `If you need tracked support: ${ESUPPORT}`,
+    `Tracked support if needed: ${ESUPPORT}`,
     'Ignore unofficial social media dates unless confirmed on nelf.gov.ng or the portal.',
   ]
 
@@ -51,6 +53,14 @@ export function buildCurrentInformationAnswer(): {
       id: 'nelfund-portal-live',
       label: 'NELFUND application portal',
       url: PORTAL,
+      official: true,
+    })
+  }
+  if (!officialSources.some((s) => s.url === SITE)) {
+    officialSources.unshift({
+      id: 'nelfund-site-live',
+      label: 'NELFUND official website',
+      url: SITE,
       official: true,
     })
   }
