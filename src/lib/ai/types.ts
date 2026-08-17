@@ -105,8 +105,8 @@ export interface GroundedAnswer {
   hasEvidence: boolean
   intent: IntentId
   confidence: number
-  /** Which capability produced this answer */
-  responseMode: AgentCapability
+  /** Which capability produced this answer (optional until full orchestrator is deployed) */
+  responseMode?: AgentCapability
   problem: string | null
   answer: string
   whatThisMeans: string | null
