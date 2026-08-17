@@ -9,6 +9,7 @@ import {
 import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai'
 import { useInstitution } from '../context/InstitutionContext'
 import { AnswerCards } from '../components/AnswerCards'
+import { trackAiQuestion } from '../lib/analytics'
 
 const SUGGESTIONS = [
   'My NELFUND application is pending',
@@ -100,6 +101,7 @@ export default function Ask() {
     await new Promise((r) => setTimeout(r, 40))
 
     const hist = historyFromMessages(messages, slots.intent)
+    const hadUserMessage = messages.some((m) => m.role === 'user')
     const result = processUserTurn({
       userText: text,
       ocrText,
@@ -109,7 +111,23 @@ export default function Ask() {
       history: hist,
     })
 
-    setSlots(result.slots)
+    const nextSlots = result.slots
+    const assistantWithAnswer = result.messages.find((m) => m.role === 'assistant' && m.answer)
+    const intent = assistantWithAnswer?.answer?.intent || nextSlots.intent || null
+    const unresolved =
+      !assistantWithAnswer?.answer ||
+      intent === 'unknown' ||
+      (assistantWithAnswer.answer.clarifyingQuestions?.length ?? 0) > 0
+
+    trackAiQuestion({
+      intent,
+      institutionId: nextSlots.institutionId || institutionId,
+      hasImage: !!file,
+      unresolved,
+      isNewConversation: !hadUserMessage,
+    })
+
+    setSlots(nextSlots)
     setMessages((prev) => [...prev, ...result.messages])
     setPendingFile(null)
     setPendingPreview(null)
@@ -208,8 +226,7 @@ export default function Ask() {
                 How can NELFUND AI help?
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink/55">
-                Guidance on applications, portal errors, school records, and verified support contacts —
-                grounded in official NELFUND information.
+                Guidance on applications, portal errors, school records, and verified support contacts, based on official NELFUND information.
               </p>
             </div>
             <div className="mt-8 flex flex-wrap justify-center gap-2">
@@ -285,7 +302,7 @@ export default function Ask() {
               />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-ink">Screenshot attached</p>
-                <p className="text-[10px] text-ink/45">Don&apos;t include passwords, OTPs, or PINs.</p>
+                <p className="text-[10px] text-ink/45">Don't include passwords, OTPs, or PINs.</p>
               </div>
               <button
                 type="button"
