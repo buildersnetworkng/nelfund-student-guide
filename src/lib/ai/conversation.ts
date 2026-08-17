@@ -36,11 +36,8 @@ export interface ConversationSlots {
   matric: string | null
   awaitingInstitution: boolean
   lastCapability: AgentCapability | null
-  /** What we are trying to help with */
   objective: string | null
-  /** open → clarify → gather → act → resolve */
   phase: ConversationPhase
-  /** Pending single clarification question type */
   pendingClarify:
     | 'which-problem'
     | 'which-institution'
@@ -48,11 +45,8 @@ export interface ConversationSlots {
     | 'draft-office'
     | 'current-topic'
     | null
-  /** Short summary of the student problem */
   problemSummary: string | null
-  /** Whether error message was confirmed */
   errorConfirmed: boolean
-  /** Actions already suggested so we do not loop the same advice */
   actionsTaken: string[]
 }
 
@@ -152,25 +146,37 @@ function applyInstitutionToSlots(
   return next
 }
 
+function isAckOrThanks(text: string): boolean {
+  const t = text.toLowerCase().trim()
+  return (
+    t.length < 50 &&
+    /^(thanks?|thank\s*you|ok|okay|alright|got\s*it|cool|noted|done|sorted|fixed|cleared|great|fine)\.?$/i.test(
+      t,
+    )
+  )
+}
+
 /** Very vague / emotional / "not working" with no specific error. */
 function isVagueProblem(text: string, intent: IntentId): boolean {
   const t = text.toLowerCase().trim()
-  if (t.length < 8) return true
+  if (isAckOrThanks(t)) return false
+  if (t.length < 8 && !/help|hi|hello|abeg|pls/i.test(t)) return false
   if (
     /^(help|hi|hello|please|abeg|pls)\.?$/i.test(t) ||
-    /nelfund\s*(is\s*)?(not\s*working|no\s*dey\s*work|dey\s*frustrat)/i.test(t) ||
+    /nelfund\s*(is\s*)?(not\s*working|no\s*dey\s*work)/i.test(t) ||
     /having\s*(a\s*)?(problem|issue|wahala)/i.test(t) ||
     /something\s*(is\s*)?wrong/i.test(t) ||
     /i\s*don'?t\s*know\s*what\s*to\s*do/i.test(t) ||
-    /this\s*thing\s*(is\s*)?(frustrating|confusing)/i.test(t)
+    /this\s*thing\s*(is\s*)?(frustrating|confusing|stressing)/i.test(t) ||
+    /(frustrating|tired\s*of|fed\s*up).{0,30}nelfund/i.test(t) ||
+    /nelfund.{0,30}(frustrating|confusing)/i.test(t)
   ) {
     return intent === 'unknown' || intent === 'contact-support'
   }
-  // Short complaint without concrete error
   if (
     intent === 'unknown' &&
     t.length < 60 &&
-    /(problem|issue|help|stuck|error|not\s*working)/i.test(t)
+    /(problem|issue|help|stuck|error|not\s*working|wahala)/i.test(t)
   ) {
     return true
   }
@@ -237,7 +243,10 @@ function shortAck(slots: ConversationSlots, intent: IntentId): string {
   return 'Understood.'
 }
 
-function clarifyVagueMessage(): GroundedAnswer {
+function clarifyVagueMessage(frustrated: boolean): GroundedAnswer {
+  const open = frustrated
+    ? "I understand — let's work through it step by step.\n\nWhat part is not working?"
+    : 'I can help. What part is not working?'
   return {
     hasEvidence: false,
     intent: 'unknown',
@@ -245,7 +254,8 @@ function clarifyVagueMessage(): GroundedAnswer {
     responseMode: 'conversation',
     problem: null,
     answer:
-      'I can help. What part is not working?\n\n' +
+      open +
+      '\n\n' +
       '• Creating account / login\n' +
       '• JAMB verification\n' +
       '• Missing student information\n' +
@@ -262,34 +272,6 @@ function clarifyVagueMessage(): GroundedAnswer {
     insufficientReason: null,
     officialFallbackUrl: 'https://portal.nelf.gov.ng/',
     escalation: null,
-  }
-}
-
-function askOne(
-  text: string,
-  slots: ConversationSlots,
-  capability: AgentCapability,
-  intent: IntentId,
-): AgentTurnResult {
-  const userPlaceholder: ChatMessage = {
-    id: uid('user'),
-    role: 'user',
-    text: '',
-    timestamp: Date.now(),
-  }
-  // caller replaces user message
-  const asst: ChatMessage = {
-    id: uid('asst'),
-    role: 'assistant',
-    text,
-    isFollowUp: true,
-    timestamp: Date.now(),
-  }
-  return {
-    messages: [userPlaceholder, asst],
-    slots,
-    diagnosed: false,
-    capability,
   }
 }
 
@@ -417,7 +399,6 @@ function runContactLookup(slots: ConversationSlots, intent: IntentId): GroundedA
   }
 }
 
-/** Concise troubleshooting: short explanation + one path, not a wall of FAQ. */
 function runTroubleshootingConcise(
   slots: ConversationSlots,
   intent: IntentId,
@@ -435,7 +416,6 @@ function runTroubleshootingConcise(
 
   const ack = shortAck(slots, intent)
   let core = grounded.answer
-  // Keep first 2 sentences max for conversational tone
   const sentences = core.split(/(?<=[.!?])\s+/).filter(Boolean)
   if (sentences.length > 2) {
     core = sentences.slice(0, 2).join(' ')
@@ -449,14 +429,15 @@ function runTroubleshootingConcise(
   }
   next.push('NELFUND support ticket if needed: https://nelfund.esupport.ng/create')
   if (grounded.nextActions[0]) next.unshift(grounded.nextActions[0])
-  // Deduplicate and limit
   const seen = new Set<string>()
-  const limited = next.filter((a) => {
-    const k = a.toLowerCase()
-    if (seen.has(k)) return false
-    seen.add(k)
-    return true
-  }).slice(0, 4)
+  const limited = next
+    .filter((a) => {
+      const k = a.toLowerCase()
+      if (seen.has(k)) return false
+      seen.add(k)
+      return true
+    })
+    .slice(0, 4)
 
   limited.push('After you contact them, tell me what they said and we can decide the next step.')
 
@@ -486,7 +467,7 @@ function runTroubleshootingConcise(
 
 function conversationalFallback(userText: string, history: ConversationTurn[]): GroundedAnswer {
   const lower = userText.toLowerCase()
-  if (/thank|thanks|ok|okay|alright|got it|done|sorted/.test(lower) && userText.trim().length < 50) {
+  if (isAckOrThanks(userText) || (/thank|thanks|ok|okay|alright|got it|done|sorted/.test(lower) && userText.trim().length < 50)) {
     return {
       hasEvidence: false,
       intent: 'unknown',
@@ -558,7 +539,6 @@ export function processUserTurn(opts: {
     if (slots.pendingClarify === 'exact-error') slots.pendingClarify = null
   }
 
-  // OCR-only: treat as error signal
   if (ocr && !rawUser) {
     const ocrErr = extractErrorSignals(ocr)
     if (ocrErr) {
@@ -571,7 +551,6 @@ export function processUserTurn(opts: {
   const intentMeta = classifyIntent(combined || rawUser, history)
   let intent = intentMeta.intent
 
-  // Institution-only reply after we asked for school
   if (wasAwaiting && slots.institutionId && priorIntent) {
     const looksLikeInstitutionOnly =
       rawUser.length < 80 && Boolean(resolveInstitutionFromText(rawUser))
@@ -580,9 +559,7 @@ export function processUserTurn(opts: {
     }
   }
 
-  // Pending clarify: map short answers to context
   if (priorPending === 'which-problem' && intent === 'unknown') {
-    // try to pick up problem from short reply
     if (/missing|record/i.test(rawUser)) intent = 'missing-information'
     else if (/jamb/i.test(rawUser)) intent = 'jamb-verification'
     else if (/nin/i.test(rawUser)) intent = 'nin-verification'
@@ -624,11 +601,12 @@ export function processUserTurn(opts: {
   }
   slots.lastCapability = capability
 
-  // ——— VAGUE: clarify first, do not dump FAQ ———
+  // Vague: clarify first
   if (isVagueProblem(combined || rawUser, intent) && capability === 'conversation') {
     slots.phase = 'clarify'
     slots.pendingClarify = 'which-problem'
-    const answer = clarifyVagueMessage()
+    const frustrated = /frustrat|stress|fed\s*up|tired\s*of|wahala/i.test(combined || rawUser)
+    const answer = clarifyVagueMessage(frustrated)
     const asst: ChatMessage = {
       id: uid('asst'),
       role: 'assistant',
@@ -640,7 +618,6 @@ export function processUserTurn(opts: {
     return { messages: [userMsg, asst], slots, diagnosed: false, capability: 'conversation' }
   }
 
-  // ——— EMAIL DRAFT: need institution first ———
   if (capability === 'email-draft' && !slots.institutionId) {
     slots.awaitingInstitution = true
     slots.phase = 'gather'
@@ -657,7 +634,6 @@ export function processUserTurn(opts: {
     return { messages: [userMsg, asst], slots, diagnosed: false, capability }
   }
 
-  // ——— CONTACT: need institution first ———
   if (capability === 'contact-lookup' && !slots.institutionId) {
     slots.awaitingInstitution = true
     slots.phase = 'gather'
@@ -673,9 +649,7 @@ export function processUserTurn(opts: {
     return { messages: [userMsg, asst], slots, diagnosed: false, capability }
   }
 
-  // ——— TROUBLESHOOTING: one question at a time ———
   if (capability === 'troubleshooting') {
-    // Need institution?
     if (needsInstitutionSlot(capability, intent) && !slots.institutionId) {
       slots.awaitingInstitution = true
       slots.phase = 'gather'
@@ -692,7 +666,6 @@ export function processUserTurn(opts: {
       return { messages: [userMsg, asst], slots, diagnosed: false, capability }
     }
 
-    // Have institution but weak error signal for jamb — ask exact error once
     if (
       intent === 'jamb-verification' &&
       !slots.errorConfirmed &&
@@ -714,7 +687,6 @@ export function processUserTurn(opts: {
     }
   }
 
-  // ——— ACT ———
   slots.phase = 'act'
   slots.pendingClarify = null
   slots.awaitingInstitution = false
@@ -737,7 +709,6 @@ export function processUserTurn(opts: {
     case 'verified-knowledge': {
       if (isFactualDirect(intent, capability)) {
         const grounded = answerQuestion(combined || rawUser, slots.institutionId, history)
-        // Keep factual answers reasonably short
         let text = grounded.answer
         const parts = text.split(/(?<=[.!?])\s+/)
         if (parts.length > 4) text = parts.slice(0, 4).join(' ')
@@ -758,7 +729,6 @@ export function processUserTurn(opts: {
       break
   }
 
-  // Offer single next step if troubleshooting and we have institution
   if (capability === 'troubleshooting' && slots.institutionId && !/draft/i.test(answer.answer)) {
     if (!answer.nextActions.some((a) => /draft/i.test(a))) {
       answer.nextActions = [
@@ -793,6 +763,3 @@ export function processUserTurn(opts: {
     capability,
   }
 }
-
-// silence unused helper warning in some toolchains
-void askOne
