@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { getInstitution } from '../lib/data'
 import type { Institution } from '../lib/types'
+import { trackInstitution } from '../lib/analytics'
 
 const STORAGE_KEY = 'nelfund-guide:institution-id'
 
@@ -30,10 +31,14 @@ export function InstitutionProvider({ children }: { children: ReactNode }) {
   function setInstitutionId(id: string | null) {
     setInstitutionIdState(id)
     try {
-      if (id) window.localStorage.setItem(STORAGE_KEY, id)
-      else window.localStorage.removeItem(STORAGE_KEY)
+      if (id) {
+        window.localStorage.setItem(STORAGE_KEY, id)
+        trackInstitution(id)
+      } else {
+        window.localStorage.removeItem(STORAGE_KEY)
+      }
     } catch {
-      // Ignore storage failures
+      // Ignore storage failures; in-memory selection still works for this session.
     }
   }
 

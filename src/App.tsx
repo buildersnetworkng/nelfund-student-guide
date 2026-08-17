@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import MobileNav from './components/MobileNav'
+import AnalyticsProvider from './components/AnalyticsProvider'
 import Home from './pages/Home'
 import Readiness from './pages/Readiness'
 import Apply from './pages/Apply'
@@ -13,22 +14,40 @@ import Faq from './pages/Faq'
 import Videos from './pages/Videos'
 import Sources from './pages/Sources'
 import Ask from './pages/Ask'
+import AdminAnalytics from './pages/AdminAnalytics'
 import NotFound from './pages/NotFound'
 
 export default function App() {
   const { pathname } = useLocation()
   const isAiWorkspace = pathname === '/ask'
+  const isAdmin = pathname === '/admin' || pathname === '/admin/analytics'
+
+  if (isAdmin) {
+    return (
+      <>
+        <AnalyticsProvider />
+        <Routes>
+          <Route path="/admin" element={<AdminAnalytics />} />
+          <Route path="/admin/analytics" element={<AdminAnalytics />} />
+        </Routes>
+      </>
+    )
+  }
 
   if (isAiWorkspace) {
     return (
-      <Routes>
-        <Route path="/ask" element={<Ask />} />
-      </Routes>
+      <>
+        <AnalyticsProvider />
+        <Routes>
+          <Route path="/ask" element={<Ask />} />
+        </Routes>
+      </>
     )
   }
 
   return (
     <div className="flex min-h-screen flex-col">
+      <AnalyticsProvider />
       <Header />
       <main className="flex-1 pb-24 md:pb-0">
         <Routes>
@@ -42,6 +61,8 @@ export default function App() {
           <Route path="/faq" element={<Faq />} />
           <Route path="/videos" element={<Videos />} />
           <Route path="/sources" element={<Sources />} />
+          <Route path="/admin" element={<AdminAnalytics />} />
+          <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
