@@ -1,16 +1,14 @@
 /**
- * Conversational student-support agent for NELFUND.
- * GROUND THE FACTS, NOT THE CONVERSATION.
- *
- * Flow: understand → clarify (one question) → investigate → act → check resolution.
- * Does not dump FAQ walls on the first vague message.
+ * Offline / fallback conversational agent (when LLM API is unavailable).
+ * Task-aware handlers — not FAQ matching as the brain.
+ * Production path prefers /api/chat LLM agent.
  */
 
 import { getInstitution } from '../data'
 import { buildEscalationPlan, resolveInstitutionFromText } from '../escalation'
 import { answerQuestion } from './answer'
 import { resolveCapability } from './capabilities'
-import { buildCurrentInformationAnswer, buildCurrentInformationAnswerLive } from './current'
+import { buildCurrentInformationAnswerLive } from './current'
 import { draftSupportEmail, describeContactLookup } from './generate'
 import { classifyIntent } from './intent'
 import type {
@@ -20,12 +18,7 @@ import type {
   IntentId,
 } from './types'
 
-export type ConversationPhase =
-  | 'open'
-  | 'clarify'
-  | 'gather'
-  | 'act'
-  | 'resolve'
+export type ConversationPhase = 'open' | 'clarify' | 'gather' | 'act' | 'resolve'
 
 export interface ConversationSlots {
   institutionId: string | null
@@ -182,27 +175,6 @@ function isVagueProblem(text: string, intent: IntentId): boolean {
   return false
 }
 
-function isFactualDirect(intent: IntentId, capability: AgentCapability): boolean {
-  if (capability === 'current-information') return true
-  if (capability === 'email-draft' || capability === 'contact-lookup') return false
-  return [
-    'what-is-nelfund',
-    'upkeep',
-    'school-fees',
-    'institutional-charges',
-    'repayment',
-    'gsi',
-    'loan-or-scholarship',
-    'guarantor',
-    'how-to-apply',
-    'eligibility',
-    'documents-needed',
-    'official-sources',
-    'scam-safety',
-    'readiness',
-  ].includes(intent)
-}
-
 function needsInstitutionSlot(capability: AgentCapability, intent: IntentId): boolean {
   if (capability === 'email-draft' || capability === 'contact-lookup') return true
   if (capability === 'troubleshooting') {
@@ -221,39 +193,99 @@ function needsInstitutionSlot(capability: AgentCapability, intent: IntentId): bo
 function shortAck(slots: ConversationSlots, intent: IntentId): string {
   if (intent === 'missing-information') {
     return slots.institutionName
-      ? `Got you — that usually means the portal cannot match your student record yet (often on the ${slots.institutionName} side).`
-      : 'Got you — that usually means the portal cannot match your student record with your school yet.'
+      ? `Got you — that often means the portal cannot match your student record yet (sometimes on the ${slots.institutionName} side).`
+      : 'Got you — that often means the portal cannot match your student record with your school yet.'
   }
-  if (intent === 'jamb-verification') {
-    return 'Okay — JAMB number issues are often a data match problem, not that you typed randomly.'
+  if (intent === 'institution-verification') {
+    return 'You are asking how to tell whether your school has submitted your record to NELFUND.'
   }
-  if (intent === 'nin-verification') {
-    return 'Okay — NIN verification failures are often a mismatch or temporary system issue.'
-  }
-  if (intent === 'pending-application') {
-    return 'Understood — pending means submitted and still processing, not necessarily rejected.'
-  }
-  if (intent === 'rejected-application') {
-    return 'Sorry that happened. We can work from whatever reason the portal shows.'
-  }
-  if (intent === 'school-not-found') {
-    return 'Got it — school-not-showing is common and not always permanent.'
-  }
+  if (intent === 'jamb-verification') return 'Okay — JAMB issues are often a data-match problem.'
+  if (intent === 'nin-verification') return 'Okay — NIN failures are often a mismatch or temporary system issue.'
+  if (intent === 'pending-application') return 'Understood — pending usually means still processing, not rejected.'
+  if (intent === 'rejected-application') return 'Sorry that happened. We can work from the portal reason if you have it.'
+  if (intent === 'school-not-found') return 'Got it — school-not-showing is common and not always permanent.'
   return 'Understood.'
+}
+
+function simpleAnswer(
+  text: string,
+  intent: IntentId,
+  opts?: { next?: string[]; sources?: GroundedAnswer['sources'] },
+): GroundedAnswer {
+  return {
+    hasEvidence: true,
+    intent,
+    confidence: 0.8,
+    responseMode: 'conversation',
+    problem: null,
+    answer: text,
+    whatThisMeans: null,
+    nextActions: opts?.next || [],
+    clarifyingQuestions: [],
+    evidence: [],
+    sources: opts?.sources || [],
+    video: null,
+    insufficientReason: null,
+    officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+    escalation: null,
+  }
+}
+
+function answerPortalLogin(): GroundedAnswer {
+  return simpleAnswer(
+    'For login and for continuing an existing application, use the official NELFUND portal:\n\nhttps://portal.nelf.gov.ng/\n\nThat is the same official destination whether you are signing in or filling application information. Avoid third-party sites that ask for payment or OTP.\n\nPublic information site: https://nelf.gov.ng/',
+    'portal-login',
+    {
+      sources: [
+        { id: 'portal', label: 'NELFUND portal', url: 'https://portal.nelf.gov.ng/', official: true },
+        { id: 'site', label: 'NELFUND website', url: 'https://nelf.gov.ng/', official: true },
+      ],
+    },
+  )
+}
+
+function answerDataUploadCheck(slots: ConversationSlots): GroundedAnswer {
+  const schoolQ = slots.institutionName
+    ? `If you need the school to check the upload for ${slots.institutionName}, say so and I can help with contacts or a draft email.`
+    : 'If you need your school to check, tell me your institution name and I can help with contacts or a draft email.'
+  return simpleAnswer(
+    'As a student you cannot open a private NELFUND “upload log.” What you can check is what the portal shows for your own account.\n\nCommon signs that your record may not be matched yet:\n• School not appearing when it should\n• “Missing information” / student record messages\n• Institutional verification stuck or failing\n\nWhat helps next: confirm your NIN, JAMB, matric, and name match your school’s records exactly, then ask your institution’s ICT / Registry / NELFUND desk whether your session cohort was submitted.\n\n' +
+      schoolQ,
+    'institution-verification',
+  )
+}
+
+function answerEligibilityDisqualify(userText: string): GroundedAnswer {
+  const grounded = answerQuestion(userText, null, [])
+  if (grounded.hasEvidence && grounded.answer) {
+    const parts = grounded.answer.split(/(?<=[.!?])\s+/)
+    const short = parts.slice(0, 5).join(' ')
+    return {
+      ...grounded,
+      responseMode: 'conversation',
+      answer: short,
+      whatThisMeans: null,
+      nextActions: [
+        'Confirm current rules on https://nelf.gov.ng/faq',
+        'Data mismatches can block progress even when formal disqualification grounds do not apply.',
+      ].slice(0, 3),
+    }
+  }
+  return simpleAnswer(
+    'Official NELFUND FAQ guidance lists denial circumstances such as: default on a previous loan from a licensed financial institution; fake/fraudulent documents and dismissal for exam malpractice; and conviction for fraud, forgery, drug offences, cultism, felony, or offences involving dishonesty.\n\nSeparately, incomplete school records or data mismatches can block verification even without those grounds.\n\nConfirm the latest wording on https://nelf.gov.ng/faq — rules can be updated.',
+    'eligibility',
+    {
+      sources: [{ id: 'faq', label: 'Official NELFUND FAQ', url: 'https://nelf.gov.ng/faq', official: true }],
+    },
+  )
 }
 
 function clarifyVagueMessage(frustrated: boolean): GroundedAnswer {
   const open = frustrated
     ? "I understand — let's work through it step by step.\n\nWhat part is not working?"
     : 'I can help. What part is not working?'
-  return {
-    hasEvidence: false,
-    intent: 'unknown',
-    confidence: 0.5,
-    responseMode: 'conversation',
-    problem: null,
-    answer:
-      open +
+  return simpleAnswer(
+    open +
       '\n\n' +
       '• Creating account / login\n' +
       '• JAMB verification\n' +
@@ -262,37 +294,8 @@ function clarifyVagueMessage(frustrated: boolean): GroundedAnswer {
       '• Application status (pending / rejected)\n' +
       '• Something else\n\n' +
       'If you see an error, paste the exact message or upload a screenshot (hide passwords and OTP).',
-    whatThisMeans: null,
-    nextActions: [],
-    clarifyingQuestions: [],
-    evidence: [],
-    sources: [],
-    video: null,
-    insufficientReason: null,
-    officialFallbackUrl: 'https://portal.nelf.gov.ng/',
-    escalation: null,
-  }
-}
-
-function buildGroundedFromCurrent(): GroundedAnswer {
-  const cur = buildCurrentInformationAnswer()
-  return {
-    hasEvidence: true,
-    intent: 'current-information',
-    confidence: 0.85,
-    responseMode: 'current-information',
-    problem: 'Current / time-sensitive NELFUND status',
-    answer: cur.answer,
-    whatThisMeans: cur.whatThisMeans,
-    nextActions: cur.nextActions,
-    clarifyingQuestions: [],
-    evidence: [],
-    sources: cur.sources,
-    video: null,
-    insufficientReason: null,
-    officialFallbackUrl: 'https://portal.nelf.gov.ng/',
-    escalation: null,
-  }
+    'unknown',
+  )
 }
 
 function runEmailDraft(slots: ConversationSlots, intent: IntentId): GroundedAnswer {
@@ -325,12 +328,10 @@ function runEmailDraft(slots: ConversationSlots, intent: IntentId): GroundedAnsw
     responseMode: 'email-draft',
     problem: 'Support email draft',
     answer: lines.join('\n'),
-    whatThisMeans:
-      'Writing aid only. Confirm the recipient on your institution website or the contact cards below before sending. Never include passwords, OTP, or PIN.',
+    whatThisMeans: null,
     nextActions: [
-      'Confirm the correct official email on your school website or the contacts below.',
-      'Attach a screenshot with passwords/OTP/PIN hidden.',
-      'If the school confirms your record is correct but the portal still fails: https://nelfund.esupport.ng/create',
+      'Confirm the correct official email before sending.',
+      'NELFUND support if needed: https://nelfund.esupport.ng/create',
     ],
     clarifyingQuestions: [],
     evidence: [],
@@ -359,18 +360,6 @@ function runContactLookup(slots: ConversationSlots, intent: IntentId): GroundedA
     errorMessage: slots.exactError,
   })
   const narrative = describeContactLookup(slots.institutionName, plan)
-  const next: string[] = []
-  if (plan?.institutionContacts?.length) {
-    for (const c of plan.institutionContacts.slice(0, 3)) {
-      if (c.email) next.push(`${c.label}: ${c.email}`)
-      else if (c.url) next.push(`${c.label}: confirm contact on ${c.url}`)
-      else next.push(`${c.label}: confirm on institution website`)
-    }
-  }
-  next.push('NELFUND support ticket: https://nelfund.esupport.ng/create')
-  next.push('Never share passwords, OTP, or PIN with anyone.')
-  next.push('If you want, I can draft the message once you confirm the office.')
-
   return {
     hasEvidence: true,
     intent: 'contact-lookup',
@@ -378,9 +367,11 @@ function runContactLookup(slots: ConversationSlots, intent: IntentId): GroundedA
     responseMode: 'contact-lookup',
     problem: 'Institution / NELFUND contact lookup',
     answer: narrative,
-    whatThisMeans:
-      'Contacts are from curated official website pointers. Dedicated unit emails appear only when verified; otherwise use the official site.',
-    nextActions: next,
+    whatThisMeans: null,
+    nextActions: [
+      'NELFUND support ticket: https://nelfund.esupport.ng/create',
+      'I can draft the message once you confirm the office.',
+    ],
     clarifyingQuestions: [],
     evidence: [],
     sources: [
@@ -404,6 +395,8 @@ function runTroubleshootingConcise(
   userText: string,
   history: ConversationTurn[],
 ): GroundedAnswer {
+  if (intent === 'institution-verification') return answerDataUploadCheck(slots)
+
   const grounded = answerQuestion(userText, slots.institutionId, history)
   const plan =
     grounded.escalation ||
@@ -414,88 +407,71 @@ function runTroubleshootingConcise(
     )
 
   const ack = shortAck(slots, intent)
-  let core = grounded.answer
+  let core = grounded.answer || ''
   const sentences = core.split(/(?<=[.!?])\s+/).filter(Boolean)
-  if (sentences.length > 2) {
-    core = sentences.slice(0, 2).join(' ')
-  }
+  if (sentences.length > 2) core = sentences.slice(0, 2).join(' ')
 
   const next: string[] = []
-  if (plan?.institutionContacts?.length) {
+  if (plan?.institutionContacts?.[0]) {
     const primary = plan.institutionContacts[0]
     if (primary.email) next.push(`Contact ${primary.label}: ${primary.email}`)
     else if (primary.url) next.push(`Confirm the right office on: ${primary.url}`)
   }
-  next.push('NELFUND support ticket if needed: https://nelfund.esupport.ng/create')
-  if (grounded.nextActions[0]) next.unshift(grounded.nextActions[0])
-  const seen = new Set<string>()
-  const limited = next
-    .filter((a) => {
-      const k = a.toLowerCase()
-      if (seen.has(k)) return false
-      seen.add(k)
-      return true
-    })
-    .slice(0, 4)
-
-  limited.push('After you contact them, tell me what they said and we can decide the next step.')
-
-  const answerText = [
-    ack,
-    '',
-    core,
-    slots.institutionName
-      ? `\nFor ${slots.institutionName}, start with the contacts below (or ask me to draft an email).`
-      : '',
-  ]
-    .filter(Boolean)
-    .join('\n')
+  next.push('NELFUND support if needed: https://nelfund.esupport.ng/create')
+  next.push('After you contact them, tell me what they said and we can decide the next step.')
 
   return {
     ...grounded,
-    responseMode: 'troubleshooting',
-    answer: answerText,
-    whatThisMeans: grounded.whatThisMeans
-      ? grounded.whatThisMeans.split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')
-      : null,
-    nextActions: limited,
+    responseMode: 'conversation',
+    answer: [ack, '', core].filter(Boolean).join('\n'),
+    whatThisMeans: null,
+    nextActions: next.slice(0, 4),
     clarifyingQuestions: [],
     escalation: plan,
   }
 }
 
+/** No more "I am not sure I have enough detail yet" wall. */
 function conversationalFallback(userText: string, history: ConversationTurn[]): GroundedAnswer {
   const lower = userText.toLowerCase()
   if (isAckOrThanks(userText) || (/thank|thanks|ok|okay|alright|got it|done|sorted/.test(lower) && userText.trim().length < 50)) {
+    return simpleAnswer(
+      /done|sorted|fixed|cleared/.test(lower)
+        ? 'Good to hear. If anything else shows up on the portal, paste the message or a screenshot and we can continue.'
+        : 'You are welcome. If another portal message appears, paste it or upload a screenshot (hide passwords and OTP).',
+      'unknown',
+    )
+  }
+
+  if (/login|log\s*in|sign\s*in|which\s*link/i.test(userText)) return answerPortalLogin()
+  if (/upload|data\s*(been\s*)?upload|how\s*(do\s*i|to)\s*know.*school/i.test(userText)) {
+    return answerDataUploadCheck(createInitialSlots(null))
+  }
+  if (/disqualif|eligib|deny|who\s*can\s*apply/i.test(userText)) return answerEligibilityDisqualify(userText)
+  if (/open|latest|current|today|deadline|announce/i.test(userText)) {
+    // Caller should prefer current-information capability; this is last resort text.
+    return simpleAnswer(
+      'For whether applications are open right now, check the official portal and site:\n\nhttps://portal.nelf.gov.ng/\nhttps://nelf.gov.ng/\n\nI can also summarise the latest curated status snapshot if you ask “Is NELFUND open?” again after the live agent is configured.',
+      'current-information',
+    )
+  }
+
+  const grounded = answerQuestion(userText, null, history)
+  if (grounded.hasEvidence && grounded.answer) {
+    const parts = grounded.answer.split(/(?<=[.!?])\s+/)
     return {
-      hasEvidence: false,
-      intent: 'unknown',
-      confidence: 0.4,
+      ...grounded,
       responseMode: 'conversation',
-      problem: null,
-      answer:
-        /done|sorted|fixed|cleared/.test(lower)
-          ? 'Good to hear. If anything else shows up on the portal, paste the message or a screenshot and we can continue.'
-          : 'You are welcome. If another portal message appears, paste it or upload a screenshot (hide passwords and OTP).',
+      answer: parts.slice(0, 4).join(' '),
       whatThisMeans: null,
-      nextActions: [],
-      clarifyingQuestions: [],
-      evidence: [],
-      sources: [],
-      video: null,
-      insufficientReason: null,
-      officialFallbackUrl: 'https://portal.nelf.gov.ng/',
-      escalation: null,
+      nextActions: grounded.nextActions.slice(0, 2),
     }
   }
-  const grounded = answerQuestion(userText, null, history)
-  if (grounded.hasEvidence) return { ...grounded, responseMode: 'verified-knowledge' }
-  return {
-    ...grounded,
-    responseMode: 'conversation',
-    answer:
-      'I am not sure I have enough detail yet. You can tell me the exact portal message, your institution, or ask me to draft an email / find contacts / check current status.',
-  }
+
+  return simpleAnswer(
+    'I want to help with the right thing. Are you trying to:\n\n• Check if applications are open\n• Log in or find the portal link\n• Fix a portal error (paste the message if you can)\n• Contact your school or NELFUND\n• Draft an email\n\nReply with the option that fits — or paste the exact portal text.',
+    'unknown',
+  )
 }
 
 export async function processUserTurn(opts: {
@@ -553,9 +529,7 @@ export async function processUserTurn(opts: {
   if (wasAwaiting && slots.institutionId && priorIntent) {
     const looksLikeInstitutionOnly =
       rawUser.length < 80 && Boolean(resolveInstitutionFromText(rawUser))
-    if (looksLikeInstitutionOnly || intent === 'unknown') {
-      intent = priorIntent
-    }
+    if (looksLikeInstitutionOnly || intent === 'unknown') intent = priorIntent
   }
 
   if (priorPending === 'which-problem' && intent === 'unknown') {
@@ -565,7 +539,7 @@ export async function processUserTurn(opts: {
     else if (/pending|status/i.test(rawUser)) intent = 'pending-application'
     else if (/reject/i.test(rawUser)) intent = 'rejected-application'
     else if (/school.*(not|no)|not\s*show/i.test(rawUser)) intent = 'school-not-found'
-    else if (/login|account|sign\s*in/i.test(rawUser)) intent = 'profile-update'
+    else if (/login|account|sign\s*in/i.test(rawUser)) intent = 'portal-login'
   }
 
   slots.intent = intent
@@ -600,20 +574,68 @@ export async function processUserTurn(opts: {
   }
   slots.lastCapability = capability
 
+  // Direct task replies (no FAQ wall)
+  if (intent === 'portal-login' || (capability === 'verified-knowledge' && /login|log\s*in|sign\s*in/i.test(combined))) {
+    const answer = answerPortalLogin()
+    slots.phase = 'resolve'
+    return {
+      messages: [userMsg, { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() }],
+      slots,
+      diagnosed: true,
+      capability: 'verified-knowledge',
+    }
+  }
+
+  if (intent === 'institution-verification') {
+    if (!slots.institutionId) {
+      slots.awaitingInstitution = true
+      slots.phase = 'gather'
+      slots.pendingClarify = 'which-institution'
+      const text =
+        answerDataUploadCheck(slots).answer +
+        '\n\nWhich institution do you attend? I can then help with the right office or a draft message.'
+      return {
+        messages: [userMsg, { id: uid('asst'), role: 'assistant', text, isFollowUp: true, timestamp: Date.now() }],
+        slots,
+        diagnosed: false,
+        capability: 'troubleshooting',
+      }
+    }
+    const answer = answerDataUploadCheck(slots)
+    slots.phase = 'resolve'
+    return {
+      messages: [userMsg, { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() }],
+      slots,
+      diagnosed: true,
+      capability: 'troubleshooting',
+    }
+  }
+
+  if (intent === 'eligibility') {
+    const answer = answerEligibilityDisqualify(combined || rawUser)
+    slots.phase = 'resolve'
+    return {
+      messages: [userMsg, { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() }],
+      slots,
+      diagnosed: true,
+      capability: 'verified-knowledge',
+    }
+  }
+
   if (isVagueProblem(combined || rawUser, intent) && capability === 'conversation') {
     slots.phase = 'clarify'
     slots.pendingClarify = 'which-problem'
     const frustrated = /frustrat|stress|fed\s*up|tired\s*of|wahala/i.test(combined || rawUser)
     const answer = clarifyVagueMessage(frustrated)
-    const asst: ChatMessage = {
-      id: uid('asst'),
-      role: 'assistant',
-      text: answer.answer,
-      answer,
-      isFollowUp: true,
-      timestamp: Date.now(),
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, isFollowUp: true, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: false,
+      capability: 'conversation',
     }
-    return { messages: [userMsg, asst], slots, diagnosed: false, capability: 'conversation' }
   }
 
   if (capability === 'email-draft' && !slots.institutionId) {
@@ -621,15 +643,13 @@ export async function processUserTurn(opts: {
     slots.phase = 'gather'
     slots.pendingClarify = 'which-institution'
     const ask =
-      'I can draft that for you. Which institution should it go to? (e.g. LASU, UNILAG, OOU — full name or short form is fine.)'
-    const asst: ChatMessage = {
-      id: uid('asst'),
-      role: 'assistant',
-      text: ask,
-      isFollowUp: true,
-      timestamp: Date.now(),
+      'I can draft that for you. Which institution should it go to? (e.g. LASU, UNILAG — full name or short form is fine.)'
+    return {
+      messages: [userMsg, { id: uid('asst'), role: 'assistant', text: ask, isFollowUp: true, timestamp: Date.now() }],
+      slots,
+      diagnosed: false,
+      capability,
     }
-    return { messages: [userMsg, asst], slots, diagnosed: false, capability }
   }
 
   if (capability === 'contact-lookup' && !slots.institutionId) {
@@ -637,14 +657,12 @@ export async function processUserTurn(opts: {
     slots.phase = 'gather'
     slots.pendingClarify = 'which-institution'
     const ask = 'Sure. Which institution do you attend so I can look up the right official office?'
-    const asst: ChatMessage = {
-      id: uid('asst'),
-      role: 'assistant',
-      text: ask,
-      isFollowUp: true,
-      timestamp: Date.now(),
+    return {
+      messages: [userMsg, { id: uid('asst'), role: 'assistant', text: ask, isFollowUp: true, timestamp: Date.now() }],
+      slots,
+      diagnosed: false,
+      capability,
     }
-    return { messages: [userMsg, asst], slots, diagnosed: false, capability }
   }
 
   if (capability === 'troubleshooting') {
@@ -654,34 +672,12 @@ export async function processUserTurn(opts: {
       slots.pendingClarify = 'which-institution'
       const ack = shortAck(slots, intent)
       const ask = `${ack}\n\nWhich institution do you attend? That tells me which office to point you to.`
-      const asst: ChatMessage = {
-        id: uid('asst'),
-        role: 'assistant',
-        text: ask,
-        isFollowUp: true,
-        timestamp: Date.now(),
+      return {
+        messages: [userMsg, { id: uid('asst'), role: 'assistant', text: ask, isFollowUp: true, timestamp: Date.now() }],
+        slots,
+        diagnosed: false,
+        capability,
       }
-      return { messages: [userMsg, asst], slots, diagnosed: false, capability }
-    }
-
-    if (
-      intent === 'jamb-verification' &&
-      !slots.errorConfirmed &&
-      slots.pendingClarify !== 'exact-error' &&
-      !extractErrorSignals(combined)
-    ) {
-      slots.phase = 'gather'
-      slots.pendingClarify = 'exact-error'
-      const ask =
-        'What exact message does the portal show when you enter the JAMB number? (You can paste it or upload a screenshot with passwords/OTP hidden.)'
-      const asst: ChatMessage = {
-        id: uid('asst'),
-        role: 'assistant',
-        text: `Okay, let's check rather than guess.\n\n${ask}`,
-        isFollowUp: true,
-        timestamp: Date.now(),
-      }
-      return { messages: [userMsg, asst], slots, diagnosed: false, capability }
     }
   }
 
@@ -704,11 +700,11 @@ export async function processUserTurn(opts: {
         hasEvidence: true,
         intent: 'current-information',
         confidence: 0.85,
-        responseMode: 'current-information',
+        responseMode: 'conversation',
         problem: 'Current / time-sensitive NELFUND status',
         answer: cur.answer,
-        whatThisMeans: cur.whatThisMeans,
-        nextActions: cur.nextActions,
+        whatThisMeans: null,
+        nextActions: cur.nextActions.slice(0, 3),
         clarifyingQuestions: [],
         evidence: [],
         sources: cur.sources,
@@ -723,19 +719,18 @@ export async function processUserTurn(opts: {
       answer = runTroubleshootingConcise(slots, intent, combined || rawUser, history)
       break
     case 'verified-knowledge': {
-      if (isFactualDirect(intent, capability)) {
-        const grounded = answerQuestion(combined || rawUser, slots.institutionId, history)
-        let text = grounded.answer
-        const parts = text.split(/(?<=[.!?])\s+/)
-        if (parts.length > 4) text = parts.slice(0, 4).join(' ')
+      const grounded = answerQuestion(combined || rawUser, slots.institutionId, history)
+      if (grounded.hasEvidence) {
+        const parts = grounded.answer.split(/(?<=[.!?])\s+/)
         answer = {
           ...grounded,
-          responseMode: 'verified-knowledge',
-          answer: text,
+          responseMode: 'conversation',
+          answer: parts.slice(0, 4).join(' '),
+          whatThisMeans: null,
           nextActions: grounded.nextActions.slice(0, 3),
         }
       } else {
-        answer = runTroubleshootingConcise(slots, intent, combined || rawUser, history)
+        answer = conversationalFallback(combined || rawUser, history)
       }
       break
     }
@@ -745,18 +740,9 @@ export async function processUserTurn(opts: {
       break
   }
 
-  if (capability === 'troubleshooting' && slots.institutionId && !/draft/i.test(answer.answer)) {
-    if (!answer.nextActions.some((a) => /draft/i.test(a))) {
-      answer.nextActions = [
-        ...answer.nextActions.slice(0, 3),
-        'If you want, I can draft an email to your school for this issue.',
-      ]
-    }
-  }
-
   const assistantText =
     answer.answer ||
-    'I could not build a confident answer from verified information. Check the official portal.'
+    'Check the official portal: https://portal.nelf.gov.ng/ — or tell me more about what you are trying to do.'
 
   const asst: ChatMessage = {
     id: uid('asst'),
@@ -772,10 +758,5 @@ export async function processUserTurn(opts: {
 
   if (diagnosed) slots.phase = 'resolve'
 
-  return {
-    messages: [userMsg, asst],
-    slots,
-    diagnosed,
-    capability,
-  }
+  return { messages: [userMsg, asst], slots, diagnosed, capability }
 }

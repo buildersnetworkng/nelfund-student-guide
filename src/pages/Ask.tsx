@@ -148,19 +148,23 @@ export default function Ask() {
         answer: lightAnswer,
         timestamp: Date.now(),
       }
-      const local = await processUserTurn({
-        userText: agentUserText,
-        ocrText,
-        imagePreview,
-        uiInstitutionId: institutionId,
-        slots,
-        history: hist,
-      })
-      setSlots(local.slots)
+      try {
+        const local = await processUserTurn({
+          userText: agentUserText,
+          ocrText,
+          imagePreview,
+          uiInstitutionId: institutionId,
+          slots,
+          history: hist,
+        })
+        setSlots(local.slots)
+      } catch {
+        /* slots best-effort */
+      }
       setMessages((prev) => [...prev, userMsg, asst])
       trackAiQuestion({
         intent: 'llm-agent',
-        institutionId: local.slots.institutionId || institutionId,
+        institutionId: slots.institutionId || institutionId,
         hasImage: !!file,
         unresolved: false,
         isNewConversation: !hadUserMessage,
@@ -173,7 +177,6 @@ export default function Ask() {
     }
 
     setBusyLabel('Using offline guide…')
-    await new Promise((r) => setTimeout(r, 40))
     const result = await processUserTurn({
       userText: text,
       ocrText,
