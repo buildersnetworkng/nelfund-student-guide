@@ -1,7 +1,7 @@
 {
   "cycle": "2025/2026 and subsequent cycles",
-  "status": "active_disbursement_confirm_portal",
+  "status": "pending_verification",
   "status_label": "Scheme active; confirm live portal status for new applications",
-  "note": "As of 17 August 2026, official NELFUND channels continue to report student loan activity and disbursements. The 2025/2026 application window was announced to open on 23 October 2025 (with a published close of 31 January 2026) and was later extended by NELFUND for additional applicants and institutions. A separate, formally announced open window specifically labelled 2026/2027 has not been confirmed on nelf.gov.ng as of this check. Always verify whether applications are open for your session on the official portal (portal.nelf.gov.ng) and announcements on nelf.gov.ng. Do not rely on unofficial sites or social media for deadlines.",
+  "note": "Official NELFUND channels continue to report student loan activity and disbursements. Always verify whether applications are open for your session on the official portal (portal.nelf.gov.ng) and announcements on nelf.gov.ng. Do not rely on unofficial sites or social media for deadlines.",
   "last_checked": "2026-08-17"
 }
