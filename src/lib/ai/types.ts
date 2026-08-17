@@ -29,7 +29,19 @@ export type IntentId =
   | 'readiness'
   | 'official-sources'
   | 'guarantor'
+  | 'email-draft'
+  | 'contact-lookup'
+  | 'current-information'
   | 'unknown'
+
+/** What kind of work the agent should do for this turn. */
+export type AgentCapability =
+  | 'verified-knowledge'
+  | 'troubleshooting'
+  | 'contact-lookup'
+  | 'email-draft'
+  | 'current-information'
+  | 'conversation'
 
 export type StudentStage =
   | 'exploring'
@@ -93,6 +105,8 @@ export interface GroundedAnswer {
   hasEvidence: boolean
   intent: IntentId
   confidence: number
+  /** Which capability produced this answer */
+  responseMode: AgentCapability
   problem: string | null
   answer: string
   whatThisMeans: string | null
@@ -104,6 +118,8 @@ export interface GroundedAnswer {
   insufficientReason: string | null
   officialFallbackUrl: string
   escalation: EscalationPlanView | null
+  /** Generated email/letter when responseMode is email-draft */
+  draft?: { subject: string; body: string } | null
 }
 
 export interface EscalationContactView {
