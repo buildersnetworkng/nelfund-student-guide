@@ -106,7 +106,7 @@ function buildPayload(live: LiveApplicationStatus | null): {
   }
 }
 
-/** Sync fallback using static JSON only (offline / first paint). */
+/** Sync using static JSON (offline / SSR-safe). Prefer buildCurrentInformationAnswerLive when possible. */
 export function buildCurrentInformationAnswer(): {
   answer: string
   whatThisMeans: string
@@ -117,7 +117,7 @@ export function buildCurrentInformationAnswer(): {
   return buildPayload(null)
 }
 
-/** Preferred: live official refresh via knowledge API. */
+/** Live official refresh via knowledge API + Redis cache. */
 export async function buildCurrentInformationAnswerLive(): Promise<{
   answer: string
   whatThisMeans: string
