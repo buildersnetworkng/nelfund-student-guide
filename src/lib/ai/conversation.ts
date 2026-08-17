@@ -166,11 +166,15 @@ function runEmailDraft(slots: ConversationSlots, intent: IntentId): GroundedAnsw
     institutionId: slots.institutionId,
     institutionName: slots.institutionName,
     exactError: slots.exactError,
-    intentLabel: intent.replace(/-/g, ' '),
+    intentLabel: (intent === 'email-draft' ? 'missing-information' : intent).replace(/-/g, ' '),
     studentName: slots.studentName,
     matric: slots.matric,
   })
-  const plan = buildEscalationPlan(intent === 'unknown' ? 'missing-information' : intent, slots.institutionId, {
+  const planIntent: IntentId =
+    intent === 'unknown' || intent === 'email-draft' || intent === 'contact-lookup'
+      ? 'missing-information'
+      : intent
+  const plan = buildEscalationPlan(planIntent, slots.institutionId, {
     errorMessage: slots.exactError,
   })
   const lines = [
@@ -213,7 +217,7 @@ function runEmailDraft(slots: ConversationSlots, intent: IntentId): GroundedAnsw
   }
 }
 
-function runContactLookup(slots: ConversationSlots, intent: IntentId, userText: string): GroundedAnswer {
+function runContactLookup(slots: ConversationSlots, intent: IntentId, _userText: string): GroundedAnswer {
   const effectiveIntent: IntentId =
     intent === 'contact-lookup' || intent === 'contact-support' || intent === 'email-draft' || intent === 'unknown'
       ? 'missing-information'
@@ -281,7 +285,6 @@ function conversationalFallback(userText: string, history: ConversationTurn[]): 
       escalation: null,
     }
   }
-  // Soft attempt: still try grounded answer with history context
   const grounded = answerQuestion(userText, null, history)
   if (grounded.hasEvidence) return { ...grounded, responseMode: 'verified-knowledge' }
   return {
@@ -314,6 +317,10 @@ export function processUserTurn(opts: {
     timestamp: Date.now(),
   }
 
+  const wasAwaiting = opts.slots.awaitingInstitution
+  const priorCapability = opts.slots.lastCapability
+  const priorIntent = opts.slots.intent
+
   let slots = applyInstitutionToSlots(
     { ...opts.slots },
     combined,
@@ -323,22 +330,39 @@ export function processUserTurn(opts: {
   const err = extractErrorSignals(combined)
   if (err) slots.exactError = err
 
-  // If we were waiting for institution and user only named a school
-  if (slots.awaitingInstitution && slots.institutionId) {
-    // continue with previous intent if any
-  }
-
   const intentMeta = classifyIntent(combined || rawUser, history)
   let intent = intentMeta.intent
-  if (slots.awaitingInstitution && slots.institutionId && slots.intent) {
-    intent = slots.intent
+
+  // Institution-only reply after we asked for school: keep prior intent
+  if (wasAwaiting && slots.institutionId && priorIntent) {
+    const looksLikeInstitutionOnly =
+      rawUser.length < 80 && Boolean(resolveInstitutionFromText(rawUser))
+    if (looksLikeInstitutionOnly || intent === 'unknown') {
+      intent = priorIntent
+    }
   }
   slots.intent = intent
 
-  const capability = resolveCapability(intent, combined || rawUser)
+  let capability = resolveCapability(intent, combined || rawUser)
+  // Preserve email-draft / contact-lookup when user only named the school
+  if (
+    wasAwaiting &&
+    slots.institutionId &&
+    priorCapability &&
+    (priorCapability === 'email-draft' || priorCapability === 'contact-lookup' || priorCapability === 'troubleshooting')
+  ) {
+    const override = resolveCapability(intent, combined || rawUser)
+    // Only keep prior if new message does not explicitly switch to a stronger capability
+    if (override === 'verified-knowledge' || override === 'conversation' || override === priorCapability) {
+      capability = priorCapability
+    } else if (override === 'email-draft' || override === 'contact-lookup' || override === 'current-information') {
+      capability = override
+    } else {
+      capability = priorCapability
+    }
+  }
   slots.lastCapability = capability
 
-  // Follow-up: need institution before contact/email/troubleshooting for school-side issues
   if (needsInstitutionSlot(capability, intent) && !slots.institutionId) {
     slots.awaitingInstitution = true
     const ask: ChatMessage = {
@@ -377,11 +401,12 @@ export function processUserTurn(opts: {
     case 'verified-knowledge': {
       const grounded = answerQuestion(combined || rawUser, slots.institutionId, history)
       answer = { ...grounded, responseMode: capability }
-      // Enrich with escalation when troubleshooting and we have institution
       if (capability === 'troubleshooting' && !answer.escalation) {
-        answer.escalation = buildEscalationPlan(intent, slots.institutionId, {
-          errorMessage: slots.exactError,
-        })
+        answer.escalation = buildEscalationPlan(
+          intent === 'email-draft' || intent === 'contact-lookup' ? 'missing-information' : intent,
+          slots.institutionId,
+          { errorMessage: slots.exactError },
+        )
       }
       break
     }
