@@ -1,4 +1,10 @@
-import { applicationStatus } from '../lib/data'
+import { useEffect, useState } from 'react'
+import { applicationStatus as staticStatus } from '../lib/data'
+import {
+  fetchLiveApplicationStatus,
+  formatChecked,
+  type LiveApplicationStatus,
+} from '../lib/knowledge/client'
 import type { ApplicationCycleStatus } from '../lib/types'
 
 const STATUS_DOT: Record<ApplicationCycleStatus, string> = {
@@ -9,20 +15,89 @@ const STATUS_DOT: Record<ApplicationCycleStatus, string> = {
   pending_verification: 'bg-gold-300',
 }
 
+function toView(s: LiveApplicationStatus | typeof staticStatus) {
+  return {
+    cycle: s.cycle,
+    status: s.status as ApplicationCycleStatus,
+    status_label: s.status_label,
+    note: s.note,
+    last_checked:
+      'last_checked_iso' in s && (s as LiveApplicationStatus).last_checked_iso
+        ? formatChecked(s as LiveApplicationStatus)
+        : s.last_checked,
+    freshness:
+      'freshness' in s ? (s as LiveApplicationStatus).freshness : ('static_fallback' as const),
+    verified: 'verified' in s ? Boolean((s as LiveApplicationStatus).verified) : false,
+  }
+}
+
 export default function StatusCard() {
-  const dot = STATUS_DOT[applicationStatus.status]
+  const [view, setView] = useState(() => toView(staticStatus))
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const live = await fetchLiveApplicationStatus()
+        if (!cancelled && live) setView(toView(live))
+      } catch {
+        /* keep static fallback */
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const dot = STATUS_DOT[view.status] || STATUS_DOT.pending_verification
+  const freshnessLabel =
+    view.freshness === 'live'
+      ? 'Verified from official sources'
+      : view.freshness === 'cached'
+        ? 'Recently verified'
+        : 'Confirm on official portal'
 
   return (
     <div className="card border-forest-700/20 bg-forest-700 text-paper">
-      <div className="eyebrow text-gold-300">{applicationStatus.cycle} application status</div>
+      <div className="eyebrow text-gold-300">{view.cycle} application status</div>
       <div className="mt-2 flex items-center gap-2">
         <span className={`h-2.5 w-2.5 rounded-full ${dot}`} aria-hidden="true" />
         <span className="font-display text-lg font-semibold text-paper">
-          {applicationStatus.status_label}
+          {view.status_label}
         </span>
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-paper/80">{applicationStatus.note}</p>
-      <p className="mt-3 text-xs text-paper/60">Last checked: {applicationStatus.last_checked}</p>
+      <p className="mt-3 text-sm leading-relaxed text-paper/80">{view.note}</p>
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-paper/60">
+        <span>
+          Last checked: {view.last_checked}
+          {loading ? ' · updating…' : ''}
+        </span>
+        <span className="text-paper/40" aria-hidden>
+          ·
+        </span>
+        <span>{freshnessLabel}</span>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <a
+          href="https://portal.nelf.gov.ng/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-[36px] items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-paper ring-1 ring-white/20 transition hover:bg-white/15"
+        >
+          Open official portal
+        </a>
+        <a
+          href="https://nelf.gov.ng/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-[36px] items-center rounded-full px-3 py-1.5 text-xs font-semibold text-gold-300/90 transition hover:text-gold-300"
+        >
+          nelf.gov.ng
+        </a>
+      </div>
     </div>
   )
 }
