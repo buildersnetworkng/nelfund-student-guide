@@ -7,6 +7,7 @@ import ScopeBadge from '../components/ScopeBadge'
 import RecommendedVideo from '../components/RecommendedVideo'
 import InstitutionNotice from '../components/InstitutionNotice'
 import InstitutionTip from '../components/InstitutionTip'
+import { trackFaqOpen } from '../lib/analytics'
 
 export default function Faq() {
   const [query, setQuery] = useState('')
@@ -37,9 +38,9 @@ export default function Faq() {
       </div>
 
       <div className="mt-4 rounded-2xl border border-forest-700/10 bg-forest-50/50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
-        <p className="text-sm text-ink/70">Can't find your problem?</p>
+        <p className="text-sm text-ink/70">Can&apos;t find your problem?</p>
         <Link to="/ask" className="btn-primary mt-3 px-4 py-2 text-xs sm:mt-0">
-          Ask the AI →
+          Ask the AI
         </Link>
       </div>
 
@@ -62,8 +63,8 @@ export default function Faq() {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-              activeCategory === cat ? 'bg-forest-700 text-paper' : 'bg-forest-50 text-forest-700 hover:bg-forest-100'
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+              activeCategory === cat ? 'bg-forest-700 text-paper' : 'bg-forest-50 text-forest-700'
             }`}
           >
             {cat}
@@ -79,7 +80,10 @@ export default function Faq() {
           return (
             <li key={f.id} id={f.id} className="card">
               <button
-                onClick={() => setOpenId(isOpen ? null : f.id)}
+                onClick={() => {
+                  if (!isOpen) trackFaqOpen(f.id)
+                  setOpenId(isOpen ? null : f.id)
+                }}
                 className="flex w-full items-start justify-between gap-3 text-left"
                 aria-expanded={isOpen}
               >
@@ -117,9 +121,7 @@ export default function Faq() {
           )
         })}
         {filtered.length === 0 && (
-          <p className="text-sm text-ink/60">
-            No FAQs match "{query}". Try the support AI or the problems section.
-          </p>
+          <p className="text-sm text-ink/60">No FAQs match this search. Try the troubleshooting section instead.</p>
         )}
       </ul>
     </div>
