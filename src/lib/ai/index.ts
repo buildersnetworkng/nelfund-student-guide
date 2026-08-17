@@ -1,20 +1,29 @@
 /**
  * Conversational NELFUND student support agent.
  *
+ * Architecture: GROUND THE FACTS, NOT THE CONVERSATION.
+ *
  * Pipeline:
  *   Student message and/or screenshot
- *   → Intent + slot update (institution, error, entities)
- *   → Follow-up question if critical context is missing
- *   → Verified knowledge retrieval (allowlist-scoped)
- *   → Diagnosis + next actions + escalation + message draft
- *   → Source attribution + optional relevant video
+ *   → Intent classification (+ capability override)
+ *   → Capability router:
+ *        verified-knowledge | troubleshooting | contact-lookup |
+ *        email-draft | current-information | conversation
+ *   → Follow-up only when that capability needs a slot (e.g. institution)
+ *   → Execute capability (KB retrieve / contacts / generate / current status)
+ *   → Verify factual claims against allowlisted sources
+ *   → Actionable response (+ optional video, escalation, draft)
  *
- * The model’s general knowledge is never treated as authoritative NELFUND policy.
- * Contacts and facts come only from the verified data layer.
+ * FAQ/verified knowledge is ONE tool — not the whole agent.
+ * Generative writing does not require FAQ retrieval.
+ * Current/time-sensitive questions use application-status + official links
+ * and instruct the student to confirm live on nelf.gov.ng / the portal.
+ * Contacts are never invented; only official websites or curated verified rows.
  */
 
 export { answerQuestion } from './answer'
 export { classifyIntent } from './intent'
+export { resolveCapability, detectCapabilityOverride } from './capabilities'
 export { retrieveEvidence, retrieveRelevantVideo } from './retrieve'
 export {
   processUserTurn,
@@ -32,4 +41,5 @@ export type {
   ConversationTurn,
   EscalationPlanView,
   EscalationContactView,
+  AgentCapability,
 } from './types'
