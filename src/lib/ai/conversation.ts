@@ -271,10 +271,11 @@ export async function processUserTurn(opts: {
   }
 
   if (
-    /whatsapp|telegram|pay\s*(#?|naira|₦)?\s*\d|fast\s*track|agent\s*(said|told|messaged)|send\s*(money|otp|pin)/i.test(
+    /whatsapp|telegram|pay\s*(#?|naira|₦)?\s*\d|fast\s*track|agent\s*(said|told|messaged|ask)|send\s*(money|otp|pin)/i.test(
       combined,
     ) ||
-    (/pay/i.test(combined) && /nelfund|loan|application/i.test(combined) && /agent|man|guy|someone/i.test(combined))
+    (/pay/i.test(combined) && /nelfund|loan|application/i.test(combined) && /agent|man|guy|someone/i.test(combined)) ||
+    /agent.{0,40}otp|otp.{0,40}agent|ask\s*(for\s*)?(my\s*)?otp/i.test(combined)
   ) {
     const answer = lightAnswer(
       'contact-support',
@@ -319,7 +320,7 @@ export async function processUserTurn(opts: {
 
   if (
     /password\s*(is|=|:)|my\s*password\s*is|otp\s*(is|=)/i.test(combined) ||
-    /send\s*(my\s*)?(otp|password|pin)|share\s*(my\s*)?(otp|password|pin)|give\s*(my\s*)?(otp|password)/i.test(
+    /send\s*(my\s*)?(otp|password|pin)|share\s*(my\s*)?(otp|password|pin)|give\s*(my\s*)?(otp|password)|ask\s*(for\s*)?(my\s*)?(otp|password|pin)|agent.{0,30}(otp|password|pin)/i.test(
       combined,
     )
   ) {
@@ -581,6 +582,62 @@ export async function processUserTurn(opts: {
     }
   }
 
+  if (/official\s*email|nelfund\s*email|email\s*(of|for)\s*nelfund|mail\s*nelfund/i.test(combined)) {
+    const answer = lightAnswer(
+      'contact-support',
+      [
+        'Use official support channels rather than random email addresses circulating online:',
+        '',
+        '• Support tickets: https://nelfund.esupport.ng/create',
+        '• Portal: https://portal.nelf.gov.ng/',
+        '• Site: https://nelf.gov.ng/',
+        '',
+        'This guide will not invent staff email addresses. Prefer the ticket system so your request is logged.',
+      ].join('\n'),
+      { next: ['https://nelfund.esupport.ng/create', 'https://nelf.gov.ng/'] },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'contact-lookup',
+    }
+  }
+
+  if (
+    /still\s*paying|dey\s*pay|disburse|money\s*enter|when\s*will\s*(I\s*)?(get|receive)\s*(the\s*)?(money|loan|fund)/i.test(
+      combined,
+    )
+  ) {
+    const answer = lightAnswer(
+      'current-information',
+      [
+        'Disbursement and payment status change by cycle and by student. This guide cannot see your private account balance.',
+        '',
+        'Check only:',
+        '• https://portal.nelf.gov.ng/ for your application/loan status',
+        '• https://nelf.gov.ng/ for official announcements',
+        '',
+        'Ignore WhatsApp claims about mass payments unless confirmed on those official channels.',
+      ].join('\n'),
+      { next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'] },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'current-information',
+    }
+  }
+
   if (/school\s*not\s*(on\s*)?(the\s*)?list|institution\s*not\s*found|my\s*school\s*(is\s*)?not\s*(showing|listed|on)/i.test(combined)) {
     const answer = lightAnswer(
       'school-not-found',
@@ -742,127 +799,11 @@ export async function processUserTurn(opts: {
   }
 
   if (
-    /no\s*dey\s*open|not\s*open|cannot\s*apply|can'?t\s*apply|e\s*no\s*dey\s*open|window\s*(is\s*)?closed|registration\s*closed/i.test(
-      combined,
-    )
-  ) {
-    const answer = lightAnswer(
-      'current-information',
-      'If the portal will not let you start or submit an application, the registration window for that session may be closed or not yet open.\n\nCheck only:\n• https://portal.nelf.gov.ng/\n• https://nelf.gov.ng/\n\nDo not use third-party “application” sites. If your account exists but counters are zero, that is different from a pending review — upload a screenshot of the yellow notice dates if you want me to read them.',
-      { next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'] },
-    )
-    slots.phase = 'resolve'
-    return {
-      messages: [
-        userMsg,
-        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-      ],
-      slots,
-      diagnosed: true,
-      capability: 'current-information',
-    }
-  }
-
-  if (/verification\s*fee|pay\s*(to\s*)?verify|pay\s*for\s*(upload|admission|clearance)/i.test(combined)) {
-    const answer = lightAnswer(
-      'contact-support',
-      'Be careful: NELFUND applications are handled on official channels. Random “verification fees” demanded on WhatsApp or by unknown agents are a common scam pattern.\n\nUse only:\n• https://portal.nelf.gov.ng/\n• https://nelf.gov.ng/\n• https://nelfund.esupport.ng/create\n\nNever pay individuals to process your loan.',
-      { next: ['https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'] },
-    )
-    slots.phase = 'resolve'
-    return {
-      messages: [
-        userMsg,
-        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-      ],
-      slots,
-      diagnosed: true,
-      capability: 'conversation',
-    }
-  }
-
-  if (/friend\s*used\s*my\s*nin|used\s*my\s*nin|share[d]?\s*my\s*nin|someone\s*used\s*my\s*(nin|bvn)/i.test(combined)) {
-    const answer = lightAnswer(
-      'nin-verification',
-      'Your NIN should only be used by you for official processes. If someone else used your NIN on a NELFUND or other application, treat it as identity misuse.\n\nSteps:\n1. Do not share NIN, BVN, OTP, or passwords with friends or agents.\n2. Check your own portal status only at https://portal.nelf.gov.ng/\n3. Open a support ticket at https://nelfund.esupport.ng/create if a wrong application appears under your identity.\n4. Consider reporting serious identity fraud through official national channels.\n\nThis guide cannot cancel applications for you.',
-      { next: ['https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'] },
-    )
-    slots.phase = 'resolve'
-    return {
-      messages: [
-        userMsg,
-        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-      ],
-      slots,
-      diagnosed: true,
-      capability: 'conversation',
-    }
-  }
-
-  if (
-    /pay(ment)?\s*(has\s*been\s*)?(made|received)|money\s*(enter|enter\s*my|in\s*my)\s*account|disburse|when\s*will\s*they\s*pay/i.test(
-      combined,
-    )
-  ) {
-    const answer = lightAnswer(
-      'current-information',
-      'Disbursement status is shown on the official portal for your application — not on social media.\n\n1. Log in at https://portal.nelf.gov.ng/\n2. Check loan / payment status there\n3. Confirm bank details on the portal only\n4. For payment issues after official confirmation, use https://nelfund.esupport.ng/create\n\nNever pay anyone to “release” funds.',
-      { next: ['https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'] },
-    )
-    slots.phase = 'resolve'
-    return {
-      messages: [
-        userMsg,
-        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-      ],
-      slots,
-      diagnosed: true,
-      capability: 'conversation',
-    }
-  }
-
-  if (
-    /part[- ]?time|postgraduate|masters|phd|outside\s*nigeria|abroad|foreign/i.test(combined) &&
-    /eligib|can\s*i\s*apply|cover|work\s*for/i.test(combined)
-  ) {
-    const answer = lightAnswer(
-      'eligibility',
-      'Eligibility for part-time, postgraduate, or students outside Nigeria depends on the official rules for the current NELFUND cycle and participating institutions.\n\nThis guide will not invent a personal yes/no. Confirm on:\n• https://nelf.gov.ng/\n• https://portal.nelf.gov.ng/\n\nIf your programme or location is excluded in official guidance, the portal is the authority.',
-      { next: ['https://nelf.gov.ng/', 'https://portal.nelf.gov.ng/'] },
-    )
-    slots.phase = 'resolve'
-    return {
-      messages: [
-        userMsg,
-        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-      ],
-      slots,
-      diagnosed: true,
-      capability: 'verified-knowledge',
-    }
-  }
-
-  if (/name\s*no\s*dey|name\s*not\s*(on|in)\s*(the\s*)?(school\s*)?list|not\s*on\s*school\s*list/i.test(combined)) {
-    const answer = lightAnswer(
-      'school-not-found',
-      'If your name is not on the school’s NELFUND list, your record may not have been submitted or may not match (name, NIN, JAMB, matric).\n\n1. Contact your school ICT / Registry / NELFUND desk with your details\n2. Ask them to confirm upload / correction\n3. Retry the portal after they confirm: https://portal.nelf.gov.ng/\n4. If school confirms but portal still fails: https://nelfund.esupport.ng/create\n\nTell me your institution if you want a draft message.',
-      { next: ['Share your school name', 'https://nelfund.esupport.ng/create'] },
-    )
-    slots.phase = 'resolve'
-    return {
-      messages: [
-        userMsg,
-        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-      ],
-      slots,
-      diagnosed: true,
-      capability: 'conversation',
-    }
-  }
-
-  if (
     intent === 'unknown' &&
-    (combined.trim().length < 60 || /help\s*(me)?|nelfund\s*thing|stuck|wahala/i.test(combined))
+    (combined.trim().length < 60 ||
+      /help\s*(me)?|nelfund\s*thing|stuck|wahala|dey\s*confuse|I\s*no\s*know|wetin\s*I\s*go\s*do/i.test(
+        combined,
+      ))
   ) {
     const answer = lightAnswer(
       'unknown',
