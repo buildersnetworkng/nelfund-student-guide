@@ -6,7 +6,40 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { resolveLlmConfig } from './_lib/llmProvider'
+
+type LlmConfig = { provider: string; key: string; base: string; model: string }
+
+function resolveLlmConfig(): LlmConfig | null {
+  const compatKey = process.env.LLM_API_KEY?.trim()
+  const compatBase = process.env.LLM_BASE_URL?.trim()
+  if (compatKey && compatBase) {
+    return {
+      provider: 'openai-compatible',
+      key: compatKey,
+      base: compatBase.replace(/\/$/, ''),
+      model: process.env.LLM_MODEL || 'default',
+    }
+  }
+  const xai = process.env.XAI_API_KEY?.trim()
+  if (xai) {
+    return {
+      provider: 'xai',
+      key: xai,
+      base: (process.env.XAI_BASE_URL || 'https://api.x.ai/v1').replace(/\/$/, ''),
+      model: process.env.XAI_MODEL || 'grok-3-mini',
+    }
+  }
+  const oai = process.env.OPENAI_API_KEY?.trim()
+  if (oai) {
+    return {
+      provider: 'openai',
+      key: oai,
+      base: (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, ''),
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    }
+  }
+  return null
+}
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -381,8 +414,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const incoming = Array.isArray(body.messages) ? body.messages.slice(-16) : []
   if (!incoming.length) return res.status(400).json({ error: 'messages required' })
 
-  const institutionName =
-    body.institutionName || body.slots?.institutionName || null
+  const institutionName = body.institutionName || body.slots?.institutionName || null
 
   const messages: ChatMsg[] = [
     {
