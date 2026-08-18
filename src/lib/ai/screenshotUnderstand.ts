@@ -1,6 +1,5 @@
 /**
  * Interpret OCR / pasted portal UI text into structured understanding.
- * Does not invent policy — reads signals from the student's screen.
  */
 
 export type PortalScreenKind =
@@ -31,8 +30,9 @@ const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 function parseCount(label: string, text: string): number | undefined {
-  const re = new RegExp(label.replace(/\s+/g, '\\s+') + '\\s*(\d+)', 'i')
-  const m = text.replace(/\n/g, ' ').match(re)
+  const flat = text.replace(/\s+/g, ' ')
+  const re = new RegExp(label.replace(/\s+/g, '\\s+') + '\\s*(\\d+)', 'i')
+  const m = flat.match(re)
   if (m) return Number(m[1])
   return undefined
 }
@@ -99,7 +99,7 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
       loanCounts,
       exactError: errorMatch[0].trim(),
       studentNameHint,
-      explanation: `Your screenshot shows a portal problem message: “${errorMatch[0].trim()}”. That usually relates to student-record matching with your school, not a random website glitch.`,
+      explanation: `Your screenshot shows a portal problem message: "${errorMatch[0].trim()}". That usually relates to student-record matching with your school, not a random website glitch.`,
       nextActions: [
         'Tell me which institution you attend so I can point you to the right office.',
         'Confirm name, NIN, JAMB, and matric match your school records exactly.',
@@ -133,13 +133,15 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
       )
     }
     if (loanCounts) {
-      const t = loanCounts.total ?? 0
-      const a = loanCounts.approved ?? 0
-      const p = loanCounts.pending ?? 0
-      const d = loanCounts.declined ?? 0
-      lines.push(
-        `Your loan counters show **Total ${t}**, **Approved ${a}**, **Pending ${p}**, **Declined ${d}**. Zeros usually mean you do not have a loan application in those states yet — not that the portal is broken.`,
-      )
+      const t = loanCounts.total
+      const a = loanCounts.approved
+      const p = loanCounts.pending
+      const d = loanCounts.declined
+      if (t !== undefined || a !== undefined || p !== undefined || d !== undefined) {
+        lines.push(
+          `Your loan counters show **Total ${t ?? '—'}**, **Approved ${a ?? '—'}**, **Pending ${p ?? '—'}**, **Declined ${d ?? '—'}**. Zeros usually mean you do not have a loan application in those states yet — not that the portal is broken.`,
+        )
+      }
     }
     lines.push(
       'If you tell me what you want next (start registration, check status, fix an error, or contact support), I can guide the next step.',
