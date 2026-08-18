@@ -16,7 +16,6 @@ export type ScreenshotUnderstanding = {
     start?: string
     end?: string
     session?: string
-    /** true when end date is clearly in the past relative to now */
     appearsClosed?: boolean
   } | null
   loanCounts?: {
@@ -58,7 +57,6 @@ function parseCount(label: string, text: string): number | undefined {
   return undefined
 }
 
-/** Parse "March 5th 2026" / "June 5 2026" style dates from portal notices. */
 function parsePortalDate(raw: string | undefined): Date | null {
   if (!raw) return null
   const m = raw.match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s*,?\s*(\d{4})/i)
@@ -92,7 +90,6 @@ function windowStatus(endRaw: string | undefined): {
       note: `Based on the end date shown on your screen (${endRaw}), that registration window has ended. Loan application for that session appears closed.`,
     }
   }
-  const start = null
   return {
     appearsClosed: false,
     appearsOpen: true,
@@ -119,7 +116,11 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
     counterHits >= 2 ||
     (/session\s*registration/i.test(text) && counterHits >= 1)
 
-  const isLogin = /sign\s*in|log\s*in|password|otp/i.test(lower) && !isDashboard
+  const isLoginScreenUi =
+    (/sign\s*in|log\s*in/i.test(text) && /password|username|email|otp|captcha/i.test(text)) ||
+    (/enter\s*(your\s*)?(password|otp)/i.test(text) && !/\?/.test(text))
+  const looksLikeQuestion = /\?|how\s*(do|to)|which\s*(link|url|site)|where\s*(do|to)/i.test(text)
+  const isLogin = isLoginScreenUi && !isDashboard && !looksLikeQuestion
 
   const errorMatch =
     text.match(/missing\s*information[^.]{0,60}/i) ||
@@ -166,7 +167,10 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   const nameMatch = text.match(/Welcome\s+to\s+Student\s+Loan\s+Portal[,\s]+([A-Za-z]+)/i)
   const studentNameHint = nameMatch ? nameMatch[1] : null
 
-  if (errorMatch && !isDashboard) {
+  const isQuestionAboutIssue =
+    /\?|who\s*should|how\s*(do|to)|what\s*(does|do|is)|contact|draft|email|help\s*me/i.test(text)
+
+  if (errorMatch && !isDashboard && !isQuestionAboutIssue) {
     return {
       kind: 'error',
       signals: [...signals, 'portal_error'],
@@ -203,9 +207,7 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
 
       const status = windowStatus(registrationWindow.end)
       if (status.appearsClosed) {
-        lines.push(
-          `**Loan application for that session appears closed** — ${status.note}`,
-        )
+        lines.push(`**Loan application for that session appears closed** — ${status.note}`)
         lines.push(
           'That is different from a “pending” application. Closed means the registration/application window on the notice has ended, not that NELFUND is still reviewing a submitted loan.',
         )
@@ -265,7 +267,7 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
     }
   }
 
-  if (/nelfund|student\s*loan\s*portal|portal\.nelf/i.test(text)) {
+  if (/nelfund|student\s*loan\s*portal|portal\.nelf/i.test(text) && !looksLikeQuestion) {
     return {
       kind: 'unknown',
       signals: ['portal_ui'],
