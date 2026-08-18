@@ -173,9 +173,16 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   const studentNameHint = nameMatch ? nameMatch[1] : null
 
   const isQuestionAboutIssue =
-    /\?|who\s*should|how\s*(do|to)|what\s*(does|do|is)|contact|draft|email|help\s*me/i.test(text)
+    /\?|who\s*should|how\s*(do|to)|what\s*(does|do|is)|contact|draft|email|help\s*me|explain|mean|means|simple\s*english|pidgin/i.test(
+      text,
+    )
 
-  if (errorMatch && !isDashboard && !isQuestionAboutIssue) {
+  const looksLikePastedUi =
+    /welcome\s+to|student\s+loan\s+portal|total\s*loans|session\s*registration|error\s*code|try\s*again|click\s*here/i.test(
+      text,
+    ) || text.length > 180
+
+  if (errorMatch && !isDashboard && !isQuestionAboutIssue && looksLikePastedUi) {
     return {
       kind: 'error',
       signals: [...signals, 'portal_error'],
