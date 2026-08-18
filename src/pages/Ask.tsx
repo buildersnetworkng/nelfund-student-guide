@@ -40,7 +40,6 @@ export default function Ask() {
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
-  /** true = LLM primary path; false = emergency offline; null = not checked yet */
   const [agentReady, setAgentReady] = useState<boolean | null>(null)
   const [degradedNote, setDegradedNote] = useState<string | null>(null)
 
@@ -131,6 +130,14 @@ export default function Ask() {
       institutionId: slots.institutionId || institutionId,
       institutionName: slots.institutionName,
       ocrText,
+      slots: {
+        institutionId: slots.institutionId || institutionId,
+        institutionName: slots.institutionName,
+        problemSummary: slots.problemSummary,
+        exactError: slots.exactError,
+        objective: slots.objective,
+        phase: slots.phase,
+      },
     })
 
     if (agent.kind === 'llm') {
@@ -195,7 +202,6 @@ export default function Ask() {
       return
     }
 
-    // Explicit degraded path — emergency offline only; never pretend this is the LLM.
     setAgentReady(false)
     setDegradedNote(agent.message)
     setBusyLabel('Limited offline mode…')
@@ -325,8 +331,8 @@ export default function Ask() {
 
       {agentReady === false && degradedNote && (
         <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-3 py-2 text-center text-[11px] leading-snug text-amber-950 sm:px-4">
-          <strong>Limited offline mode.</strong> The full AI agent is not active on this deployment
-          (server API key not configured). Answers may be narrower than the intended assistant.
+          <strong>Limited offline mode.</strong> Full AI agent unavailable (provider not configured or key rejected).
+          Offline answers are narrower than the intended assistant.
         </div>
       )}
 
