@@ -83,6 +83,12 @@ export interface EvidenceItem {
   steps?: string[]
   avoid?: string[]
   still_stuck?: string
+  /** Optional metadata used by retrieval ranking (not always shown in UI). */
+  scope?: InformationScope
+  institution_id?: string | null
+  last_verified?: string | null
+  related_video_ids?: string[]
+  path?: string
 }
 
 export interface AnswerSource {
@@ -113,6 +119,7 @@ export interface EscalationContactView {
   priority: string
   verification_status: VerificationStatus
   office?: string
+  notes?: string | null
 }
 
 export interface EscalationPlanView {
@@ -124,6 +131,10 @@ export interface EscalationPlanView {
   understanding?: string
   diagnosis?: string[]
   contactOrderExplanation?: string | null
+  evidenceChecklist?: string[]
+  screenshotAdvice?: string
+  supportMessage?: { subject: string; body: string } | null
+  followUp?: string | null
 }
 
 export interface GroundedAnswer {

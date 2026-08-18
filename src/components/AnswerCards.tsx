@@ -127,9 +127,9 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
           <p className="text-[10px] font-semibold uppercase tracking-wide text-forest-800">Support path</p>
           <p className="mt-1 text-sm text-ink/80">{answer.escalation.understanding}</p>
 
-          {answer.escalation.diagnosis.length > 0 && (
+          {(answer.escalation.diagnosis?.length ?? 0) > 0 && (
             <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-ink/70">
-              {answer.escalation.diagnosis.slice(0, 4).map((d) => (
+              {(answer.escalation.diagnosis ?? []).slice(0, 4).map((d) => (
                 <li key={d}>{d}</li>
               ))}
             </ul>
@@ -181,7 +181,7 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
           <div className="mt-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">What to send</p>
             <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-ink/70">
-              {answer.escalation.evidenceChecklist.slice(0, 6).map((item) => (
+              {(answer.escalation.evidenceChecklist ?? []).slice(0, 6).map((item: string) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
