@@ -23,7 +23,6 @@ function uid(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-/** Render text with clickable https links (no external LLM required). */
 function LinkifiedText({ text }: { text: string }) {
   const parts: ReactNode[] = []
   const re = /(https?:\/\/[^\s<>\]\)]+)/gi
@@ -54,6 +53,19 @@ function LinkifiedText({ text }: { text: string }) {
   return <span className="whitespace-pre-wrap">{parts}</span>
 }
 
+function shouldShowCards(m: ChatMessage): boolean {
+  const a = m.answer
+  if (!a) return false
+  return Boolean(
+    a.draft ||
+      a.escalation ||
+      a.video ||
+      (a.sources && a.sources.length > 0) ||
+      (a.nextActions && a.nextActions.length > 0) ||
+      a.whatThisMeans,
+  )
+}
+
 export default function Ask() {
   const { institutionId } = useInstitution()
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -62,7 +74,6 @@ export default function Ask() {
   const [busy, setBusy] = useState(false)
   const [busyLabel, setBusyLabel] = useState('Thinking…')
   const bottomRef = useRef<HTMLDivElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
   const cameraRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -138,7 +149,6 @@ export default function Ask() {
 
     setBusyLabel('Thinking…')
 
-    // PRIMARY PATH: offline NELFUND intelligence (no external LLM API)
     const offline = await processUserTurn({
       userText: text,
       ocrText,
@@ -255,7 +265,7 @@ export default function Ask() {
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
         {!hasConversation && !busy ? (
           <div className="mx-auto flex h-full max-w-2xl flex-col justify-center px-4 py-10 sm:px-6">
             <div className="fade-in text-center">
@@ -263,8 +273,8 @@ export default function Ask() {
                 How can NELFUND AI help?
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink/55">
-                Ask in your own words — portal errors, login links, school contacts, eligibility, BVN timing, or
-                current application status.
+                Ask in your own words — portal errors, login, school contacts, eligibility, BVN timing, or current
+                application status.
               </p>
             </div>
             <div className="mt-8 flex flex-wrap justify-center gap-2">
@@ -304,10 +314,7 @@ export default function Ask() {
                     <div className="text-[15px] leading-relaxed">
                       <LinkifiedText text={m.text} />
                     </div>
-                    {m.answer && m.answer.responseMode !== 'conversation' && <AnswerCards answer={m.answer} />}
-                    {m.answer &&
-                      m.answer.responseMode === 'conversation' &&
-                      (m.answer.escalation || m.answer.draft) && <AnswerCards answer={m.answer} />}
+                    {shouldShowCards(m) && m.answer && <AnswerCards answer={m.answer} />}
                   </div>
                 )}
               </div>
