@@ -4,7 +4,7 @@
  * - Anonymous user id in localStorage (survives refresh; not a new user each load)
  * - Session id in sessionStorage (new tab/session = new session)
  * - Never sends passwords, OTPs, BVN, NIN, bank details, or free-text questions
- * - Only coarse intents, paths, feature names, institution ids
+ * - Only coarse intents, paths, feature names, institution ids, topic buckets
  */
 
 import type { AnalyticsEventName, AnalyticsEventPayload, AnalyticsStats, TrackBody } from './types'
@@ -146,6 +146,7 @@ export function track(name: AnalyticsEventName, partial: Omit<AnalyticsEventPayl
     faqId: partial.faqId ? String(partial.faqId).slice(0, 64) : undefined,
     unresolved: partial.unresolved,
     hasImage: partial.hasImage,
+    topic: partial.topic ? String(partial.topic).slice(0, 48) : undefined,
     meta: sanitizeMeta(partial.meta),
   }
 
@@ -174,39 +175,97 @@ export function trackPageView(path: string) {
   track('page_view', { path: path.slice(0, 120) })
 }
 
+/** Coarse topic buckets only — never stores the student question text. */
+export function deriveUnknownTopic(text: string | null | undefined): string {
+  if (!text || !text.trim()) return 'empty'
+  const t = text.toLowerCase()
+  if (/missing|no\s*info|record\s*not\s*found/.test(t)) return 'missing-info'
+  if (/jamb/.test(t)) return 'jamb'
+  if (/nin/.test(t)) return 'nin'
+  if (/pending|status|under\s*review/.test(t)) return 'pending-status'
+  if (/reject|declined|not\s*approved/.test(t)) return 'rejection'
+  if (/school\s*(not|no)|not\s*show|institution\s*not/.test(t)) return 'school-list'
+  if (/upkeep|20\s*k|allowance/.test(t)) return 'upkeep'
+  if (/fee|tuition|charges/.test(t)) return 'fees'
+  if (/repay|gsi|pay\s*back/.test(t)) return 'repayment'
+  if (/open|deadline|window|apply\s*today|latest\s*update/.test(t)) return 'open-status'
+  if (/login|password|otp|sign\s*in|portal/.test(t)) return 'login-portal'
+  if (/contact|email|phone|who\s*do\s*i/.test(t)) return 'contacts'
+  if (/draft|write\s*(an?\s*)?(email|message)/.test(t)) return 'email-draft'
+  if (/eligib|qualify|disqualif/.test(t)) return 'eligibility'
+  if (/screenshot|error|what\s*does\s*this\s*mean/.test(t)) return 'error-screenshot'
+  if (/hello|hi\b|help|abeg|please/.test(t) && t.length < 40) return 'greeting-vague'
+  return 'other'
+}
+
+function isUnknownIntent(intent?: string | null): boolean {
+  if (!intent) return true
+  const i = intent.toLowerCase()
+  return (
+    i === 'unknown' ||
+    i === 'offline:unknown' ||
+    i === 'llm-agent' ||
+    i.endsWith(':unknown') ||
+    i === 'conversation'
+  )
+}
+
 export function trackAiQuestion(opts: {
   intent?: string | null
   institutionId?: string | null
   hasImage?: boolean
   unresolved?: boolean
   isNewConversation?: boolean
+  /** Optional user text — used only to derive coarse topic; never sent as free text */
+  userText?: string | null
 }) {
+  const intent = opts.intent || 'unknown'
+  const unknown = isUnknownIntent(intent) || !!opts.unresolved
+  const topic = unknown ? deriveUnknownTopic(opts.userText) : undefined
+
   if (opts.isNewConversation) {
     track('ai_conversation_start', {
-      intent: opts.intent || undefined,
+      intent,
       institutionId: opts.institutionId || undefined,
+      topic,
     })
   }
   track('ai_question', {
-    intent: opts.intent || undefined,
+    intent,
     institutionId: opts.institutionId || undefined,
     hasImage: !!opts.hasImage,
-    unresolved: !!opts.unresolved,
+    unresolved: !!opts.unresolved || unknown,
+    topic,
   })
   if (opts.hasImage) {
     track('ai_image_analysis', {
-      intent: opts.intent || undefined,
+      intent,
       institutionId: opts.institutionId || undefined,
+      topic,
     })
   }
-  if (opts.unresolved) {
-    track('ai_unresolved', {
-      intent: opts.intent || undefined,
+  if (unknown) {
+    track('ai_unknown', {
+      intent: intent === 'llm-agent' ? 'llm-agent' : 'unknown',
       institutionId: opts.institutionId || undefined,
+      hasImage: !!opts.hasImage,
+      unresolved: true,
+      topic: topic || 'other',
     })
-  } else if (opts.intent && opts.intent !== 'unknown') {
+    track('ai_unresolved', {
+      intent,
+      institutionId: opts.institutionId || undefined,
+      topic,
+    })
+  } else if (opts.unresolved) {
+    track('ai_unresolved', {
+      intent,
+      institutionId: opts.institutionId || undefined,
+      topic,
+    })
+  } else {
     track('ai_resolved', {
-      intent: opts.intent,
+      intent,
       institutionId: opts.institutionId || undefined,
     })
   }
