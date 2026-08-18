@@ -1,7 +1,6 @@
 /**
- * Offline / fallback conversational agent (when LLM API is unavailable).
- * Task-aware handlers — not FAQ matching as the brain.
- * Production path prefers /api/chat LLM agent.
+ * Offline conversational agent — primary intelligence when no LLM API is configured.
+ * Task-aware: login, contacts, drafts, screenshots, eligibility, upload checks.
  */
 
 import { getInstitution } from '../data'
@@ -200,7 +199,6 @@ export async function processUserTurn(opts: {
     if (slots.pendingClarify === 'exact-error') slots.pendingClarify = null
   }
 
-  // Dashboard / portal UI OCR — never treat as FAQ "pending application"
   {
     const screen = understandPortalText(combined || ocr || rawUser || '')
     if (screen && (screen.kind === 'dashboard' || screen.kind === 'error' || screen.kind === 'login')) {
@@ -254,7 +252,32 @@ export async function processUserTurn(opts: {
   const capability = resolveCapability(intent, combined || rawUser)
   slots.lastCapability = capability
 
-  if (capability === 'portal-login' || intent === 'portal-login') {
+  if (/password\s*(is|=|:)|my\s*password\s*is|otp\s*(is|=)/i.test(combined)) {
+    const answer = lightAnswer(
+      'portal-login',
+      'Do not share passwords, OTP, or PINs in chat — I cannot and should not use them. Sign in only at https://portal.nelf.gov.ng/ and use official reset options if you are locked out.',
+      { next: ['https://portal.nelf.gov.ng/', 'Never send credentials to anyone'] },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'portal-login',
+    }
+  }
+
+  if (
+    capability === 'portal-login' ||
+    intent === 'portal-login' ||
+    /which\s*(website|link|url|site).{0,40}(login|log\s*in|sign\s*in|application|continue)/i.test(
+      combined,
+    ) ||
+    /continue\s*(my\s*)?application/i.test(combined)
+  ) {
     const answer = lightAnswer(
       'portal-login',
       'Use the official student portal only: https://portal.nelf.gov.ng/ — never third-party login pages.',
@@ -294,8 +317,7 @@ export async function processUserTurn(opts: {
       }
     }
     try {
-      const escIntent = 'missing-information' as IntentId
-      const esc = buildEscalationPlan(escIntent, slots.institutionId)
+      const esc = buildEscalationPlan('missing-information' as IntentId, slots.institutionId)
       const described = describeContactLookup(slots.institutionName, esc)
       const answer = lightAnswer('contact-lookup', described, {
         next: ['https://nelfund.esupport.ng/create', 'https://portal.nelf.gov.ng/'],
@@ -405,6 +427,98 @@ export async function processUserTurn(opts: {
       `Noted — **${slots.institutionName || 'your institution'}**. What do you need next: portal error help, a contact, a draft email, or current application status?`,
     )
     slots.phase = 'gather'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
+  if (
+    intent === 'eligibility' ||
+    /disqualif|lose\s*(the\s*)?(chance|loan)|who\s*can\s*apply|ineligib/i.test(combined)
+  ) {
+    const groundedElig = answerQuestion(combined || rawUser, slots.institutionId, history)
+    if (groundedElig.hasEvidence && groundedElig.answer) {
+      groundedElig.responseMode = 'conversation'
+      groundedElig.whatThisMeans = null
+      slots.phase = 'resolve'
+      return {
+        messages: [
+          userMsg,
+          {
+            id: uid('asst'),
+            role: 'assistant',
+            text: groundedElig.answer,
+            answer: groundedElig,
+            timestamp: Date.now(),
+          },
+        ],
+        slots,
+        diagnosed: true,
+        capability: 'verified-knowledge',
+      }
+    }
+    const answer = lightAnswer(
+      'eligibility',
+      'Eligibility depends on official NELFUND rules for the current cycle (identity, admission, institution participation, and any published conditions). This guide will not invent a personal yes/no decision. Check requirements on https://nelf.gov.ng/ and apply only via https://portal.nelf.gov.ng/.',
+      { next: ['https://nelf.gov.ng/', 'https://portal.nelf.gov.ng/'] },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'verified-knowledge',
+    }
+  }
+
+  if (
+    intent === 'unknown' &&
+    (combined.trim().length < 60 || /help\s*(me)?|nelfund\s*thing|stuck|wahala/i.test(combined))
+  ) {
+    const answer = lightAnswer(
+      'unknown',
+      'I can help — what is going wrong right now?\n\n1. Login / which website to use\n2. Missing information on the portal\n3. Whether my school uploaded my data\n4. Contact school or NELFUND\n5. Draft an email\n6. Is application open\n\nReply with a number or a short description (and your school name if relevant).',
+    )
+    slots.phase = 'clarify'
+    slots.pendingClarify = 'problem'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
+  if (
+    intent === 'institution-verification' ||
+    /upload|school.*(submit|sent|upload)|university.*(submit|sent|upload)|know.*school.*(upload|submit|sent)/i.test(
+      combined,
+    )
+  ) {
+    const answer = lightAnswer(
+      'institution-verification',
+      'You cannot see a private NELFUND admin “upload log.” Practical signs:\n\n• Portal still shows missing information / no school data → record may not be matched yet.\n• Ask your school ICT / Registry / NELFUND desk whether they submitted your name, NIN, JAMB, and matric correctly.\n• If the school confirms upload but the portal still fails, open a ticket at https://nelfund.esupport.ng/create with evidence (no passwords).\n\nTell me your institution if you want contact guidance or a draft message.',
+      {
+        next: [
+          'Ask school NELFUND desk',
+          'https://nelfund.esupport.ng/create',
+          'https://portal.nelf.gov.ng/',
+        ],
+      },
+    )
+    slots.phase = 'resolve'
     return {
       messages: [
         userMsg,
