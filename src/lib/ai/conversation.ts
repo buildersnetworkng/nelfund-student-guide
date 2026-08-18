@@ -188,6 +188,7 @@ function finalize(
   opts?: { next?: string[]; sources?: GroundedAnswer['sources'] },
 ): AgentTurnResult {
   const answer = lightAnswer(intent, text, opts)
+  slots.intent = intent
   slots.phase = 'resolve'
   slots.lastCapability = capability
   return {
@@ -215,6 +216,7 @@ export async function processUserTurn(opts: {
   const combined = mergeQuery(rawUser, ocr)
   const prevAsst = lastAssistantText(history)
   const turnIndex = userTurnCount(history)
+  const priorIntent = opts.slots.intent
 
   const userMsg: ChatMessage = {
     id: uid('user'),
@@ -272,7 +274,16 @@ export async function processUserTurn(opts: {
   }
 
   const intentMeta = classifyIntent(combined || rawUser, history)
-  const intent = intentMeta.intent
+  // Sticky: do not drop a known prior intent when the new turn is weak "unknown"
+  let intent: IntentId = intentMeta.intent
+  if (
+    intent === 'unknown' &&
+    priorIntent &&
+    priorIntent !== 'unknown' &&
+    (rawUser.length < 60 || isShortFollowUp(rawUser))
+  ) {
+    intent = priorIntent
+  }
   slots.intent = intent
   if (intentMeta.problem) slots.problemSummary = slots.problemSummary || intentMeta.problem
 
@@ -389,7 +400,6 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Contact / email paths need institution sometimes
   if (capability === 'contact-lookup' || intent === 'contact-lookup') {
     if (!slots.institutionId) {
       slots.awaitingInstitution = true
@@ -467,14 +477,12 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Live status for current-information when possible
   if (
     capability === 'current-information' ||
     intent === 'current-information' ||
     intent === 'deadline' ||
     intent === 'academic-session'
   ) {
-    // Prefer situational playbook for BVN / expire wording first
     const pb = playbookAnswer(intent, {
       institutionName: slots.institutionName,
       problemSummary: slots.problemSummary,
@@ -526,7 +534,6 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Core playbook for known intents (government offline intelligence)
   {
     const pb = playbookAnswer(intent, {
       institutionName: slots.institutionName,
@@ -579,16 +586,18 @@ export async function processUserTurn(opts: {
     )
   }
 
-  // Evidence retrieval fallback
   const grounded = answerQuestion(combined || rawUser, slots.institutionId, history)
-  let textOut = grounded.answer || playbookAnswer('what-is-nelfund', {
-    institutionName: slots.institutionName,
-    problemSummary: slots.problemSummary,
-    exactError: slots.exactError,
-    turnIndex,
-    lastAssistant: prevAsst,
-    userText: combined,
-  }) || 'Tell me more about what the portal shows, or ask about how to apply, missing information, upkeep, or current status.'
+  let textOut =
+    grounded.answer ||
+    playbookAnswer('what-is-nelfund', {
+      institutionName: slots.institutionName,
+      problemSummary: slots.problemSummary,
+      exactError: slots.exactError,
+      turnIndex,
+      lastAssistant: prevAsst,
+      userText: combined,
+    }) ||
+    'Tell me more about what the portal shows, or ask about how to apply, missing information, upkeep, or current status.'
 
   if (isNearDuplicate(prevAsst, textOut)) {
     textOut = nextStepAdvance(
@@ -607,6 +616,7 @@ export async function processUserTurn(opts: {
   grounded.responseMode = 'conversation'
   grounded.whatThisMeans = null
   grounded.answer = textOut
+  slots.intent = grounded.intent || intent
   slots.phase = grounded.clarifyingQuestions?.length ? 'clarify' : 'resolve'
 
   return {
