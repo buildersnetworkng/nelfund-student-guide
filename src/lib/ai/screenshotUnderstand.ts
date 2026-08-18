@@ -44,10 +44,18 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   const signals: string[] = []
   const lower = text.toLowerCase()
 
+  // Strong dashboard signals: welcome OR any two loan counters
+  const counterHits = [
+    /total\s*loans/i.test(text),
+    /approved\s*loans/i.test(text),
+    /pending\s*loans/i.test(text),
+    /declined\s*loans/i.test(text),
+  ].filter(Boolean).length
+
   const isDashboard =
     /welcome\s+to\s+student\s+loan\s+portal/i.test(text) ||
-    (/total\s*loans/i.test(text) && /approved\s*loans/i.test(text)) ||
-    (/pending\s*loans/i.test(text) && /declined\s*loans/i.test(text))
+    counterHits >= 2 ||
+    (/session\s*registration/i.test(text) && counterHits >= 1)
 
   const isLogin = /sign\s*in|log\s*in|password|otp/i.test(lower) && !isDashboard
 
@@ -91,7 +99,8 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   const nameMatch = text.match(/Welcome\s+to\s+Student\s+Loan\s+Portal[,\s]+([A-Za-z]+)/i)
   const studentNameHint = nameMatch ? nameMatch[1] : null
 
-  if (errorMatch) {
+  // Prefer dashboard over error if both present (rare)
+  if (errorMatch && !isDashboard) {
     return {
       kind: 'error',
       signals: [...signals, 'portal_error'],
@@ -125,7 +134,7 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
       )
       if (signals.includes('deadline_warning')) {
         lines.push(
-          'The red warning means you should complete registration within that window — after the end date you may not be able to apply for that session.',
+          'The red warning on the portal means you should complete registration within that window — after the end date you may not be able to apply for that session.',
         )
       }
       lines.push(
@@ -139,7 +148,7 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
       const d = loanCounts.declined
       if (t !== undefined || a !== undefined || p !== undefined || d !== undefined) {
         lines.push(
-          `Your loan counters show **Total ${t ?? '—'}**, **Approved ${a ?? '—'}**, **Pending ${p ?? '—'}**, **Declined ${d ?? '—'}**. Zeros usually mean you do not have a loan application in those states yet — not that the portal is broken.`,
+          `Your loan counters show **Total ${t ?? '—'}**, **Approved ${a ?? '—'}**, **Pending ${p ?? '—'}**, **Declined ${d ?? '—'}**. These are summary counters — **Pending Loans: 0** does **not** mean your application is stuck in "pending". Zeros usually mean you do not have applications in those buckets yet.`,
         )
       }
     }
