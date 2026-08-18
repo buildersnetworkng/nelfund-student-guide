@@ -65,9 +65,9 @@ export function runToolLocal(call: ToolCall): ToolResult {
               kind: e.kind,
               title: e.title,
               body: e.body.slice(0, 600),
-              last_verified: e.last_verified,
+              last_verified: (e as { last_verified?: string }).last_verified,
               score: e.score,
-              path: e.path,
+              path: (e as { path?: string }).path,
             })),
           },
           evidenceIds: items.map((e) => e.id),
@@ -107,7 +107,7 @@ export function runToolLocal(call: ToolCall): ToolResult {
           errorMessage: args.error || null,
         })
         const inst = args.institutionId ? getInstitution(args.institutionId) : null
-        const contacts = (plan.institutionContacts || []).map((c) => ({
+        const contacts = (plan?.institutionContacts || []).map((c) => ({
           label: c.label,
           email: c.email,
           url: c.url,
