@@ -27,8 +27,17 @@ export async function processUserTurn(opts: {
   const combined = [rawUser, ocr].filter(Boolean).join('\n')
 
   const screen = understandPortalText(combined)
-  if (screen && (screen.kind === 'dashboard' || screen.kind === 'error' || screen.kind === 'login')) {
-    const slots: ConversationSlots = { ...opts.slots, actionsTaken: [...(opts.slots.actionsTaken || [])] }
+  const allowErrorScreen = !!(ocr && ocr.trim().length >= 8)
+  if (
+    screen &&
+    (screen.kind === 'dashboard' ||
+      screen.kind === 'login' ||
+      (screen.kind === 'error' && allowErrorScreen))
+  ) {
+    const slots: ConversationSlots = {
+      ...opts.slots,
+      actionsTaken: [...(opts.slots.actionsTaken || [])],
+    }
     if (screen.exactError) {
       slots.exactError = screen.exactError
       slots.problemSummary = screen.exactError
@@ -94,4 +103,9 @@ export {
   createWelcomeMessage,
   extractErrorSignals,
 } from './conversation'
-export type { ConversationSlots, ChatMessage, AgentTurnResult, ConversationPhase } from './conversation'
+export type {
+  ConversationSlots,
+  ChatMessage,
+  AgentTurnResult,
+  ConversationPhase,
+} from './conversation'
