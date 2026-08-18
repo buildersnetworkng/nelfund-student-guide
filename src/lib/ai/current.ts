@@ -1,7 +1,5 @@
 /**
- * Current / time-sensitive NELFUND information.
- * Prefers live refresh from official sources (via /api/knowledge/status).
- * Falls back to verified static application-status data.
+ * Current NELFUND application-status answers from curated + optional live status data.
  * Does not invent announcements.
  */
 import { applicationStatus, sources } from '../data'
@@ -54,15 +52,19 @@ function buildPayload(live: LiveApplicationStatus | null): {
         : 'Static guide data — confirm live on the official portal.'
 
   const answer = [
-    `Here is the latest status this guide can confirm for NELFUND (${s.cycle}).`,
-    `Last checked: ${s.lastChecked || 'date not recorded'}.`,
-    freshnessLine,
+    `**NELFUND status (guide snapshot for ${s.cycle})**`,
+    `Last checked: ${s.lastChecked || 'date not recorded'}. ${freshnessLine}`,
     '',
-    `Status summary: ${s.status_label}.`,
+    `Summary: ${s.status_label}.`,
     '',
     s.note,
     '',
-    'This guide does not invent live announcements or unofficial social media dates. For whether you can apply today, open the official portal and check nelf.gov.ng announcements.',
+    '**Do not mix these up:**',
+    '• Account creation on the portal ≠ loan application still open',
+    '• A closed session notice (past end date) ≠ “you cannot create an account”',
+    '• Social media dates are not official until on nelf.gov.ng or the portal',
+    '',
+    `Confirm live: ${SITE} and ${PORTAL}`,
   ]
     .filter((line, i, arr) => !(line === '' && arr[i - 1] === ''))
     .join('\n')
@@ -79,34 +81,23 @@ function buildPayload(live: LiveApplicationStatus | null): {
     .slice(0, 4)
     .map((src) => ({ id: src.id, label: src.label, url: src.url, official: src.official }))
 
-  if (!officialSources.some((src) => src.url === PORTAL)) {
-    officialSources.unshift({
-      id: 'nelfund-portal-live',
-      label: 'NELFUND application portal',
-      url: PORTAL,
-      official: true,
-    })
-  }
-  if (!officialSources.some((src) => src.url === SITE)) {
-    officialSources.unshift({
-      id: 'nelfund-site-live',
-      label: 'NELFUND official website',
-      url: SITE,
-      official: true,
-    })
+  if (!officialSources.length) {
+    officialSources.push(
+      { id: 'nelf-site', label: 'NELFUND official site', url: SITE, official: true },
+      { id: 'nelf-portal', label: 'NELFUND portal', url: PORTAL, official: true },
+    )
   }
 
   return {
     answer,
     whatThisMeans:
-      'Current information can change quickly. Treat official NELFUND channels as authoritative over secondary guides or social posts.',
+      'Account setup and loan-application windows are different. Only official pages define whether applications are open today.',
     nextActions,
     sources: officialSources,
     lastChecked: s.lastChecked,
   }
 }
 
-/** Sync using static JSON (offline / SSR-safe). Prefer buildCurrentInformationAnswerLive when possible. */
 export function buildCurrentInformationAnswer(): {
   answer: string
   whatThisMeans: string
