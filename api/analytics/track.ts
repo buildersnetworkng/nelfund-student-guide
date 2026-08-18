@@ -10,6 +10,7 @@ type EventPayload = {
   faqId?: string
   unresolved?: boolean
   hasImage?: boolean
+  topic?: string
 }
 
 type TrackBody = {
@@ -180,6 +181,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (faqId) {
         if (useRedis) commands.push(['ZINCRBY', 'nsg:z:faqs', 1, faqId])
         else memIncr(`faq:${faqId}`)
+      }
+    }
+    if (ev.topic) {
+      const topic = sanitizeId(ev.topic, 48)
+      if (topic) {
+        if (useRedis) commands.push(['ZINCRBY', 'nsg:z:unknown_topics', 1, topic])
+        else memIncr(`unknown_topic:${topic}`)
+      }
+    }
+    // Dedicated unknown conversation tracking
+    if (name === 'ai_unknown' || (ev.intent && /unknown/i.test(ev.intent))) {
+      if (useRedis) {
+        commands.push(['INCR', 'nsg:counters:ai_unknown'])
+        commands.push(['INCR', `nsg:day:${today}:ai_unknown`])
+        commands.push(['SADD', `nsg:unknown_sessions:${today}`, sid])
+        commands.push(['EXPIRE', `nsg:unknown_sessions:${today}`, 60 * 60 * 24 * 400])
+      } else {
+        memIncr('ai_unknown')
+        memIncr(`day:${today}:ai_unknown`)
       }
     }
   }
