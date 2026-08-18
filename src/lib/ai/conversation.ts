@@ -343,10 +343,12 @@ export async function processUserTurn(opts: {
   if (
     capability === 'portal-login' ||
     intent === 'portal-login' ||
-    /which\s*(website|link|url|site).{0,40}(login|log\s*in|sign\s*in|application|continue)/i.test(
+    /which\s*(website|link|url|site).{0,60}(login|log\s*in|sign\s*in|application|continue|enter|nelfund)/i.test(
       combined,
     ) ||
-    /continue\s*(my\s*)?application/i.test(combined)
+    /continue\s*(my\s*)?application/i.test(combined) ||
+    /(which|wetin)\s*(site|link|website).{0,40}(enter|login|open|use).{0,20}nelfund/i.test(combined) ||
+    /abeg.{0,30}(site|link|website).{0,40}(nelfund|login|enter)/i.test(combined)
   ) {
     const answer = lightAnswer(
       'portal-login',
@@ -566,6 +568,80 @@ export async function processUserTurn(opts: {
     const answer = lightAnswer(
       intent,
       `Noted — **${slots.institutionName || 'your institution'}**. What do you need next: portal error help, a contact, a draft email, or current application status?`,
+    )
+    slots.phase = 'gather'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
+  if (/school\s*not\s*(on\s*)?(the\s*)?list|institution\s*not\s*found|my\s*school\s*(is\s*)?not\s*(showing|listed|on)/i.test(combined)) {
+    const answer = lightAnswer(
+      'school-not-found',
+      'If your school does not appear on the portal, it may not be participating in the current cycle yet, or the name search does not match the official listing.\n\nWhat to do:\n1. Search alternate spellings / short name on https://portal.nelf.gov.ng/\n2. Ask your school ICT / Registry whether they are onboarded for NELFUND this cycle.\n3. Confirm announcements on https://nelf.gov.ng/\n4. If needed, ticket: https://nelfund.esupport.ng/create\n\nI will not invent a school list entry that is not on the official portal.',
+      { next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'] },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
+  if (/how\s*long.{0,30}(approv|pending|process)|when\s*will.{0,20}(approv|disburse)|approval\s*time/i.test(combined)) {
+    const answer = lightAnswer(
+      'pending-application',
+      'There is no fixed public “X days” guarantee for every application. Processing time depends on the current cycle, complete records, and official reviews.\n\nPractical steps:\n• Check status only on https://portal.nelf.gov.ng/\n• Ensure school records match (name, NIN, JAMB, matric)\n• Watch https://nelf.gov.ng/ for official updates\n\nAnyone promising instant approval for a fee is not official.',
+      { next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'] },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
+  if (/apply\s*twice|re-?apply|second\s*application|apply\s*again/i.test(combined)) {
+    const answer = lightAnswer(
+      'reapplication',
+      'Whether you can re-apply depends on the official rules for the current cycle and your previous application outcome.\n\nDo not rely on social media. Check https://nelf.gov.ng/ and your status on https://portal.nelf.gov.ng/. If the portal or support guidance allows a new application for your case, follow only those official steps.',
+      { next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'] },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
+  if (slots.pendingClarify === 'institution' && slots.institutionId && rawUser.length < 100) {
+    slots.awaitingInstitution = false
+    slots.pendingClarify = null
+    const answer = lightAnswer(
+      'missing-information',
+      `Noted — **${slots.institutionName}**. For missing information, ask that school’s ICT / Registry / NELFUND desk to confirm your record (name, NIN, JAMB, matric). I can also draft a message for them — just say “draft the email.”`,
+      { next: ['Say “draft the email”', 'https://nelfund.esupport.ng/create'] },
     )
     slots.phase = 'gather'
     return {
