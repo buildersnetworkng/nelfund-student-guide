@@ -1,5 +1,6 @@
 /**
- * Evidence retrieval with strict INTENT_ALLOWLIST to prevent cross-topic leakage.
+ * Evidence retrieval with intent allowlist + synonym expansion.
+ * Abstraction allows swapping keyword scorer for embeddings later.
  */
 import {
   faqs,
@@ -70,29 +71,86 @@ export const INTENT_ALLOWLIST: Partial<
   guarantor: { faqIds: ['faq-guarantor'] },
 }
 
+/** Synonym groups — expand query tokens so related phrasings hit same evidence */
+const SYNONYM_GROUPS: string[][] = [
+  ['upload', 'uploaded', 'submit', 'submitted', 'send', 'sent', 'record', 'records', 'data', 'details', 'information'],
+  ['school', 'institution', 'university', 'polytechnic', 'college', 'campus'],
+  ['missing', 'absent', 'no', 'not', 'found', 'unavailable'],
+  ['login', 'log', 'signin', 'sign', 'portal', 'account', 'access'],
+  ['open', 'opening', 'deadline', 'window', 'apply', 'application', 'current', 'latest', 'today'],
+  ['loan', 'nelfund', 'nelf', 'funding', 'student'],
+  ['disqualify', 'disqualification', 'eligibility', 'eligible', 'deny', 'denied'],
+  ['contact', 'email', 'office', 'support', 'reach', 'phone'],
+]
+
+function expandTokens(q: string): Set<string> {
+  const raw = q
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 2)
+  const out = new Set(raw)
+  for (const t of raw) {
+    for (const group of SYNONYM_GROUPS) {
+      if (group.includes(t)) {
+        for (const g of group) out.add(g)
+      }
+    }
+  }
+  return out
+}
+
 function scoreText(q: string, fields: string[]): number {
-  const tokens = q.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length > 2)
+  const tokens = expandTokens(q)
   let score = 0
   const hay = fields.join(' ').toLowerCase()
   for (const t of tokens) {
-    if (hay.includes(t)) score += 8
+    if (hay.includes(t)) score += 6
   }
+  // Phrase bonuses for common student formulations
+  const ql = q.toLowerCase()
+  if (/school.*(upload|submit)|upload.*school|institution.*(upload|submit)/i.test(ql)) score += 20
+  if (/missing\s*information|no\s*school\s*info|record\s*not\s*found/i.test(ql)) score += 20
+  if (/how\s*(do\s*i|can\s*i|to)\s*know/i.test(ql)) score += 8
   return score
+}
+
+/** Future: replace body with vector similarity; keep this signature. */
+export interface RetrievalBackend {
+  score(query: string, document: string): number
+}
+
+export const keywordRetrievalBackend: RetrievalBackend = {
+  score(query, document) {
+    return scoreText(query, [document])
+  },
 }
 
 export function retrieveEvidence(
   question: string,
   intent: IntentId,
   institutionId: string | null,
+  backend: RetrievalBackend = keywordRetrievalBackend,
 ): EvidenceItem[] {
   const allow = INTENT_ALLOWLIST[intent]
   const results: EvidenceItem[] = []
   const q = question.toLowerCase()
 
-  if (allow) {
-    for (const id of allow.faqIds || []) {
+  // If intent is weak, also soft-scan missing-information / institution-verification for upload phrasings
+  const softIntents: IntentId[] =
+    intent === 'unknown' && /upload|submit|record|missing\s*info/i.test(q)
+      ? ['missing-information', 'institution-verification', 'school-not-found']
+      : []
+
+  const intentList: IntentId[] = [intent, ...softIntents]
+
+  for (const intentKey of intentList) {
+    const a = INTENT_ALLOWLIST[intentKey]
+    if (!a) continue
+
+    for (const id of a.faqIds || []) {
       const f = faqs.find((x) => x.id === id)
       if (!f || !isContentVisible(f, institutionId)) continue
+      const textScore = backend.score(q, `${f.title} ${f.content}`)
       results.push({
         kind: 'faq',
         id: f.id,
@@ -105,10 +163,10 @@ export function retrieveEvidence(
         last_verified: f.last_verified,
         related_video_ids: f.related_video_ids || [],
         path: '/faq',
-        score: 40 + scoreText(q, [f.title, f.content]),
+        score: 40 + textScore,
       })
     }
-    for (const id of allow.factIds || []) {
+    for (const id of a.factIds || []) {
       const fact = nelfundFacts.find((x) => x.id === id)
       if (!fact || !isContentVisible(fact, institutionId)) continue
       results.push({
@@ -123,10 +181,10 @@ export function retrieveEvidence(
         last_verified: fact.last_verified,
         related_video_ids: fact.related_video_ids || [],
         path: '/',
-        score: 45,
+        score: 45 + backend.score(q, `${fact.title} ${fact.content}`),
       })
     }
-    for (const id of allow.tbIds || []) {
+    for (const id of a.tbIds || []) {
       const tb = troubleshootingItems.find((x) => x.id === id)
       if (!tb || !isContentVisible(tb, institutionId)) continue
       results.push({
@@ -144,7 +202,7 @@ export function retrieveEvidence(
         avoid: tb.avoid_this,
         still_stuck: tb.still_stuck,
         path: `/troubleshooting/${tb.id}`,
-        score: 50,
+        score: 50 + backend.score(q, `${tb.problem} ${tb.what_it_usually_means || ''}`),
       })
     }
   }

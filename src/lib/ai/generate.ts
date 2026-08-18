@@ -1,9 +1,11 @@
 /**
- * Generative assistance (emails/messages). Not FAQ retrieval.
+ * Generative assistance (emails/messages). Task capability — not FAQ retrieval.
  * Placeholders only — never invent student PII or institutional emails.
  */
 import type { EscalationPlan } from '../escalation'
 import { getInstitution } from '../data'
+
+export type DraftRecipient = 'school' | 'nelfund'
 
 export function draftSupportEmail(opts: {
   institutionId: string | null
@@ -12,7 +14,10 @@ export function draftSupportEmail(opts: {
   intentLabel?: string
   studentName?: string | null
   matric?: string | null
-}): { subject: string; body: string } {
+  recipient?: DraftRecipient
+  requestedAction?: string | null
+}): { subject: string; body: string; recipient: DraftRecipient } {
+  const recipient: DraftRecipient = opts.recipient || 'school'
   const instName =
     opts.institutionName ||
     (opts.institutionId ? getInstitution(opts.institutionId)?.name : null) ||
@@ -21,6 +26,38 @@ export function draftSupportEmail(opts: {
   const name = opts.studentName || '[Your full name]'
   const matric = opts.matric || '[Matriculation number if available]'
   const topic = opts.intentLabel || 'missing information / student record issue'
+  const action =
+    opts.requestedAction ||
+    (recipient === 'nelfund'
+      ? 'Kindly advise the next official step on my application.'
+      : 'Kindly help me confirm whether my student record has been submitted and correctly matched for NELFUND, or advise the appropriate next step.')
+
+  if (recipient === 'nelfund') {
+    const subject = `Student support request — ${topic} — ${instName}`
+    const body = `Dear NELFUND Support Team,
+
+I am a student of ${instName} and I need assistance with the NELFUND application portal.
+
+Portal message / issue:
+"${err}"
+
+My details:
+Name: ${name}
+Institution: ${instName}
+Matriculation number: ${matric}
+JAMB registration number: [if relevant]
+Application reference: [if available]
+
+${action}
+
+I can attach a screenshot with sensitive information hidden (no passwords, OTP, or PIN).
+
+Thank you for your assistance.
+
+Kind regards,
+${name}`
+    return { subject, body, recipient }
+  }
 
   const subject = `NELFUND Application — ${topic} — ${instName}`
   const body = `Dear Sir/Madam,
@@ -36,7 +73,7 @@ Institution: ${instName}
 Matriculation number: ${matric}
 JAMB registration number: [if relevant]
 
-Kindly help me confirm whether my student record has been submitted and correctly matched for NELFUND, or advise the appropriate next step.
+${action}
 
 I can attach a screenshot of the error with sensitive information hidden (no passwords, OTP, or PIN).
 
@@ -45,7 +82,7 @@ Thank you for your assistance.
 Kind regards,
 ${name}`
 
-  return { subject, body }
+  return { subject, body, recipient }
 }
 
 export function describeContactLookup(
