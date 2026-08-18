@@ -251,10 +251,9 @@ export async function processUserTurn(opts: {
   const intent = intentMeta.intent
   slots.intent = intent
 
-  const capability = resolveCapability(combined || rawUser, intent)
+  const capability = resolveCapability(intent, combined || rawUser)
   slots.lastCapability = capability
 
-  // Capability-specific offline handlers
   if (capability === 'portal-login' || intent === 'portal-login') {
     const answer = lightAnswer(
       'portal-login',
@@ -275,14 +274,155 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Default: grounded answer pipeline (still may FAQ-match; screenshot path above protects dashboards)
+  if (capability === 'contact-lookup' || intent === 'contact-lookup' || intent === 'contact-support') {
+    if (!slots.institutionId) {
+      slots.awaitingInstitution = true
+      slots.pendingClarify = 'institution'
+      slots.phase = 'clarify'
+      const answer = lightAnswer(
+        'contact-lookup',
+        'Which institution do you attend? Once I know the school, I can point you to curated contacts or official channels — I will not invent email addresses.',
+      )
+      return {
+        messages: [
+          userMsg,
+          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+        ],
+        slots,
+        diagnosed: true,
+        capability: 'contact-lookup',
+      }
+    }
+    try {
+      const escIntent = 'missing-information' as IntentId
+      const esc = buildEscalationPlan(escIntent, slots.institutionId)
+      const described = describeContactLookup(slots.institutionName, esc)
+      const answer = lightAnswer('contact-lookup', described, {
+        next: ['https://nelfund.esupport.ng/create', 'https://portal.nelf.gov.ng/'],
+      })
+      if (esc) answer.escalation = esc
+      slots.phase = 'resolve'
+      return {
+        messages: [
+          userMsg,
+          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+        ],
+        slots,
+        diagnosed: true,
+        capability: 'contact-lookup',
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+
+  if (
+    capability === 'email-draft' ||
+    intent === 'email-draft' ||
+    /draft|write\s*(an?\s*)?(email|message)/i.test(combined)
+  ) {
+    if (!slots.institutionId && !/nelfund/i.test(combined)) {
+      slots.awaitingInstitution = true
+      slots.pendingClarify = 'institution'
+      slots.phase = 'clarify'
+      const answer = lightAnswer(
+        'email-draft',
+        'I can draft that. Which school should the message go to, and is it for your institution office or NELFUND support?',
+      )
+      return {
+        messages: [
+          userMsg,
+          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+        ],
+        slots,
+        diagnosed: true,
+        capability: 'email-draft',
+      }
+    }
+    try {
+      const draft = draftSupportEmail({
+        institutionId: slots.institutionId,
+        institutionName: slots.institutionName,
+        exactError: slots.exactError || slots.problemSummary,
+        recipient: /nelfund/i.test(combined) ? 'nelfund' : 'school',
+      })
+      const body = `Here is a draft you can adapt:\n\nSubject: ${draft.subject}\n\n${draft.body}`
+      const answer = lightAnswer('email-draft', body, {
+        next: ['Copy and send only via official channels', 'https://nelfund.esupport.ng/create'],
+      })
+      answer.draft = draft
+      slots.phase = 'resolve'
+      return {
+        messages: [
+          userMsg,
+          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+        ],
+        slots,
+        diagnosed: true,
+        capability: 'email-draft',
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+
+  if (
+    capability === 'current-information' ||
+    intent === 'current-information' ||
+    intent === 'deadline' ||
+    intent === 'academic-session'
+  ) {
+    try {
+      const live = await buildCurrentInformationAnswerLive()
+      if (live?.answer) {
+        const answer = lightAnswer('current-information', live.answer, {
+          next: live.nextActions?.slice(0, 4),
+          sources: live.sources as GroundedAnswer['sources'],
+        })
+        slots.phase = 'resolve'
+        return {
+          messages: [
+            userMsg,
+            { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+          ],
+          slots,
+          diagnosed: true,
+          capability: 'current-information',
+        }
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+
+  if (
+    slots.institutionId &&
+    rawUser.length < 80 &&
+    /^(my\s+school\s+is|i\s+attend|i\s+am\s+at|school\s*:)/i.test(rawUser.trim())
+  ) {
+    const answer = lightAnswer(
+      intent,
+      `Noted — **${slots.institutionName || 'your institution'}**. What do you need next: portal error help, a contact, a draft email, or current application status?`,
+    )
+    slots.phase = 'gather'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
   const grounded = answerQuestion(combined || rawUser, slots.institutionId, history)
-  let text = grounded.answer || conversationalFallback(intent)
+  const text = grounded.answer || conversationalFallback(intent)
   if (grounded.responseMode !== 'conversation') {
     grounded.responseMode = 'conversation'
     grounded.whatThisMeans = null
   }
-  grounded.answer = text.startsWith('Understood') ? text : text
+  grounded.answer = text
 
   slots.phase = grounded.clarifyingQuestions?.length ? 'clarify' : 'resolve'
 
