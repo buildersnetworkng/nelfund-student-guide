@@ -6,6 +6,7 @@ import {
   extractTextFromImage,
   disposeOcrWorker,
   callAgentApi,
+  checkAgentStatus,
 } from '../lib/ai'
 import type { ChatMessage, ConversationSlots, ConversationTurn, GroundedAnswer } from '../lib/ai'
 import { useInstitution } from '../context/InstitutionContext'
@@ -39,8 +40,19 @@ export default function Ask() {
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
+  const [agentReady, setAgentReady] = useState<boolean | null>(null)
 
   const hasConversation = messages.some((m) => m.role === 'user')
+
+  useEffect(() => {
+    void checkAgentStatus().then((s) => {
+      if (!s) {
+        setAgentReady(false)
+        return
+      }
+      setAgentReady(s.agent === 'ready')
+    })
+  }, [])
 
   useEffect(() => {
     setSlots((prev) => {
@@ -75,7 +87,7 @@ export default function Ask() {
         text: m.text,
         intent: m.answer?.intent,
       }))
-      .slice(-12)
+      .slice(-24)
   }
 
   async function handleTurn(userText: string, file?: File | null) {
@@ -105,11 +117,7 @@ export default function Ask() {
 
     const hadUserMessage = messages.some((m) => m.role === 'user')
     const hist = historyFromMessages(messages)
-    const agentUserText =
-      ocrText && text ? `${text}\n\n[Screenshot text]\n${ocrText}` : text || ocrText || ''
 
-    // Prefer offline intelligent agent first (no API dependency).
-    // Optional LLM is attempted only as silent enhancement; never shown as "limited".
     setBusyLabel('Thinking…')
     const offline = await processUserTurn({
       userText: text,
@@ -120,93 +128,92 @@ export default function Ask() {
       history: hist,
     })
 
-    // Silent optional LLM path — if it succeeds and produces a useful reply, prefer it.
-    // Failures are ignored; offline answer is always used as baseline.
-    let usedLlm = false
-    try {
-      const agent = await callAgentApi({
-        history: hist,
-        userText: agentUserText,
+    const agentUserText =
+      ocrText && text ? `${text}\n\n[Screenshot text]\n${ocrText}` : text || ocrText || ''
+
+    const agent = await callAgentApi({
+      history: hist,
+      userText: agentUserText,
+      institutionId: offline.slots.institutionId || institutionId,
+      institutionName: offline.slots.institutionName,
+      ocrText,
+      slots: {
         institutionId: offline.slots.institutionId || institutionId,
         institutionName: offline.slots.institutionName,
-        ocrText,
-        slots: {
-          institutionId: offline.slots.institutionId || institutionId,
-          institutionName: offline.slots.institutionName,
-          problemSummary: offline.slots.problemSummary,
-          exactError: offline.slots.exactError,
-          objective: offline.slots.objective,
-          phase: offline.slots.phase,
-        },
-      })
+        problemSummary: offline.slots.problemSummary,
+        exactError: offline.slots.exactError,
+        objective: offline.slots.objective,
+        phase: offline.slots.phase,
+      },
+    })
 
-      if (agent.kind === 'llm' && agent.reply?.trim()) {
-        usedLlm = true
-        const userMsg: ChatMessage = {
-          id: uid('user'),
-          role: 'user',
-          text: text || '[Screenshot uploaded]',
-          imagePreview,
-          timestamp: Date.now(),
-        }
-        const lightAnswer: GroundedAnswer = {
-          hasEvidence: true,
-          intent: offline.slots.intent || 'unknown',
-          confidence: 0.75,
-          responseMode: 'conversation',
-          problem: null,
-          answer: agent.reply,
-          whatThisMeans: null,
-          nextActions: [],
-          clarifyingQuestions: [],
-          evidence: [],
-          sources: [],
-          video: null,
-          insufficientReason: null,
-          officialFallbackUrl: 'https://portal.nelf.gov.ng/',
-          escalation: null,
-        }
-        const asst: ChatMessage = {
-          id: uid('asst'),
-          role: 'assistant',
-          text: agent.reply,
-          answer: lightAnswer,
-          timestamp: Date.now(),
-        }
-        setSlots(offline.slots)
-        setMessages((prev) => [...prev, userMsg, asst])
-        trackAiQuestion({
-          intent: 'llm-agent',
-          institutionId: offline.slots.institutionId || institutionId,
-          hasImage: !!file,
-          unresolved: false,
-          isNewConversation: !hadUserMessage,
-        })
+    if (agent.kind === 'llm') {
+      setAgentReady(true)
+      const userMsg: ChatMessage = {
+        id: uid('user'),
+        role: 'user',
+        text: text || '[Screenshot uploaded]',
+        imagePreview,
+        timestamp: Date.now(),
       }
-    } catch {
-      /* silent — offline path is authoritative */
-    }
-
-    if (!usedLlm) {
-      const assistantWithAnswer = offline.messages.find((m) => m.role === 'assistant' && m.answer)
-      const intent = assistantWithAnswer?.answer?.intent || offline.slots.intent || null
-      const unresolved =
-        !assistantWithAnswer?.answer ||
-        intent === 'unknown' ||
-        (assistantWithAnswer.answer.clarifyingQuestions?.length ?? 0) > 0
-
+      const lightAnswer: GroundedAnswer = {
+        hasEvidence: true,
+        intent: offline.slots.intent || 'unknown',
+        confidence: 0.75,
+        responseMode: 'conversation',
+        problem: null,
+        answer: agent.reply,
+        whatThisMeans: null,
+        nextActions: [],
+        clarifyingQuestions: [],
+        evidence: [],
+        sources: [],
+        video: null,
+        insufficientReason: null,
+        officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+        escalation: null,
+      }
+      const asst: ChatMessage = {
+        id: uid('asst'),
+        role: 'assistant',
+        text: agent.reply,
+        answer: lightAnswer,
+        timestamp: Date.now(),
+      }
+      setSlots(offline.slots)
+      setMessages((prev) => [...prev, userMsg, asst])
       trackAiQuestion({
-        intent: intent ? `offline:${intent}` : 'offline',
+        intent: 'llm-agent',
         institutionId: offline.slots.institutionId || institutionId,
         hasImage: !!file,
-        unresolved,
+        unresolved: false,
         isNewConversation: !hadUserMessage,
       })
-
-      setSlots(offline.slots)
-      setMessages((prev) => [...prev, ...offline.messages])
+      setPendingFile(null)
+      setPendingPreview(null)
+      setBusy(false)
+      setBusyLabel('Thinking…')
+      return
     }
 
+    setAgentReady(false)
+    const assistantWithAnswer = offline.messages.find((m) => m.role === 'assistant' && m.answer)
+    const intent = assistantWithAnswer?.answer?.intent || offline.slots.intent || null
+    const unresolved =
+      !assistantWithAnswer?.answer ||
+      intent === 'unknown' ||
+      (assistantWithAnswer.answer.clarifyingQuestions?.length ?? 0) > 0
+
+    trackAiQuestion({
+      intent: intent ? `offline:${intent}` : 'offline',
+      institutionId: offline.slots.institutionId || institutionId,
+      hasImage: !!file,
+      unresolved,
+      isNewConversation: !hadUserMessage,
+    })
+
+    setSlots(offline.slots)
+    setMessages((prev) => [...prev, ...offline.messages])
     setPendingFile(null)
     setPendingPreview(null)
     setBusy(false)
