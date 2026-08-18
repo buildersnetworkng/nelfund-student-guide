@@ -28,14 +28,19 @@ function detectObjective(text: string): AgentObjective {
   )
     return 'portal_access'
   if (
-    /upload|school.*(submit|sent|upload)|university.*(submit|sent|upload)|data.*(upload|submit)|(sent|submit).*(information|record|data|details)|know.*school.*(upload|submit|sent)/i.test(
+    /upload|school.*(submit|sent|upload)|university.*(submit|sent|upload)|institution.*(submit|sent|upload)|data.*(upload|submit)|(sent|submit).*(information|record|data|details)|know.*school.*(upload|submit|sent)/i.test(
       t,
     )
   )
     return 'verify_school_upload'
   if (/missing\s*information|record\s*not\s*found|no\s*school\s*info/i.test(t))
     return 'resolve_portal_error'
-  if (/what\s*is\s*nelfund|eligib|disqualif|repay|upkeep|how\s*to\s*apply/i.test(t)) return 'explain'
+  if (
+    /what\s*is\s*nelfund|eligib|disqualif|deny|denied|lose\s*(the\s*)?(chance|loan)|who\s*can\s*apply|repay|upkeep|how\s*to\s*apply/i.test(
+      t,
+    )
+  )
+    return 'explain'
   if (/error|problem|issue|stuck|not\s*working|wahala/i.test(t)) return 'troubleshoot'
   return 'unknown'
 }
@@ -149,7 +154,12 @@ export function mockPlanTurn(input: AgentInput): MockPlan {
       }
       break
     case 'explain':
-      add('search_verified_knowledge', { query: input.message, intent: 'what-is-nelfund' })
+      add('search_verified_knowledge', {
+        query: input.message,
+        intent: /disqualif|eligib|lose\s*(the\s*)?(chance|loan)|deny/i.test(input.message)
+          ? 'eligibility'
+          : 'what-is-nelfund',
+      })
       break
     default:
       add('search_verified_knowledge', { query: input.message, intent: 'unknown' })
