@@ -182,12 +182,14 @@ export default function Ask() {
       }
       setSlots(offline.slots)
       setMessages((prev) => [...prev, userMsg, asst])
+      // Always record LLM turns; unknown-ish intents get dedicated unknown tracking + topic
       trackAiQuestion({
-        intent: 'llm-agent',
+        intent: offline.slots.intent || 'llm-agent',
         institutionId: offline.slots.institutionId || institutionId,
         hasImage: !!file,
-        unresolved: false,
+        unresolved: !offline.slots.intent || offline.slots.intent === 'unknown',
         isNewConversation: !hadUserMessage,
+        userText: agentUserText,
       })
       setPendingFile(null)
       setPendingPreview(null)
@@ -205,11 +207,12 @@ export default function Ask() {
       (assistantWithAnswer.answer.clarifyingQuestions?.length ?? 0) > 0
 
     trackAiQuestion({
-      intent: intent ? `offline:${intent}` : 'offline',
+      intent: intent ? `offline:${intent}` : 'offline:unknown',
       institutionId: offline.slots.institutionId || institutionId,
       hasImage: !!file,
       unresolved,
       isNewConversation: !hadUserMessage,
+      userText: agentUserText,
     })
 
     setSlots(offline.slots)
