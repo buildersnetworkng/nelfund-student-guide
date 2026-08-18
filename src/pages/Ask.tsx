@@ -1,28 +1,57 @@
-import { FormEvent, ChangeEvent, useEffect, useRef, useState } from 'react'
+import { FormEvent, ChangeEvent, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
   processUserTurn,
   createInitialSlots,
   extractTextFromImage,
   disposeOcrWorker,
-  callAgentApi,
-  checkAgentStatus,
 } from '../lib/ai'
-import type { ChatMessage, ConversationSlots, ConversationTurn, GroundedAnswer } from '../lib/ai'
+import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai'
 import { useInstitution } from '../context/InstitutionContext'
 import { AnswerCards } from '../components/AnswerCards'
 import { trackAiQuestion } from '../lib/analytics'
 
 const SUGGESTIONS = [
   'Is NELFUND open right now?',
-  'Which link do I use to login?',
-  'How do I know if my school uploaded my data?',
-  'What can disqualify someone from the loan?',
+  'What is NELFUND and how does it work?',
   'My portal shows missing information',
+  'When will registration expire? I do not have BVN yet',
+  'How do I apply for the student loan?',
 ]
 
 function uid(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+/** Render text with clickable https links (no external LLM required). */
+function LinkifiedText({ text }: { text: string }) {
+  const parts: ReactNode[] = []
+  const re = /(https?:\/\/[^\s<>\]\)]+)/gi
+  let last = 0
+  let m: RegExpExecArray | null
+  let key = 0
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) {
+      parts.push(<span key={key++}>{text.slice(last, m.index)}</span>)
+    }
+    const url = m[1].replace(/[.,;:!?)]+$/, '')
+    const trailing = m[1].slice(url.length)
+    parts.push(
+      <a
+        key={key++}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="break-all font-medium text-forest-700 underline underline-offset-2 hover:text-forest-900"
+      >
+        {url}
+      </a>,
+    )
+    if (trailing) parts.push(<span key={key++}>{trailing}</span>)
+    last = m.index + m[0].length
+  }
+  if (last < text.length) parts.push(<span key={key++}>{text.slice(last)}</span>)
+  return <span className="whitespace-pre-wrap">{parts}</span>
 }
 
 export default function Ask() {
@@ -40,19 +69,8 @@ export default function Ask() {
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
-  const [agentReady, setAgentReady] = useState<boolean | null>(null)
 
   const hasConversation = messages.some((m) => m.role === 'user')
-
-  useEffect(() => {
-    void checkAgentStatus().then((s) => {
-      if (!s) {
-        setAgentReady(false)
-        return
-      }
-      setAgentReady(s.agent === 'ready')
-    })
-  }, [])
 
   useEffect(() => {
     setSlots((prev) => {
@@ -119,6 +137,8 @@ export default function Ask() {
     const hist = historyFromMessages(messages)
 
     setBusyLabel('Thinking…')
+
+    // PRIMARY PATH: offline NELFUND intelligence (no external LLM API)
     const offline = await processUserTurn({
       userText: text,
       ocrText,
@@ -128,77 +148,6 @@ export default function Ask() {
       history: hist,
     })
 
-    const agentUserText =
-      ocrText && text ? `${text}\n\n[Screenshot text]\n${ocrText}` : text || ocrText || ''
-
-    const agent = await callAgentApi({
-      history: hist,
-      userText: agentUserText,
-      institutionId: offline.slots.institutionId || institutionId,
-      institutionName: offline.slots.institutionName,
-      ocrText,
-      slots: {
-        institutionId: offline.slots.institutionId || institutionId,
-        institutionName: offline.slots.institutionName,
-        problemSummary: offline.slots.problemSummary,
-        exactError: offline.slots.exactError,
-        objective: offline.slots.objective,
-        phase: offline.slots.phase,
-      },
-    })
-
-    if (agent.kind === 'llm') {
-      setAgentReady(true)
-      const userMsg: ChatMessage = {
-        id: uid('user'),
-        role: 'user',
-        text: text || '[Screenshot uploaded]',
-        imagePreview,
-        timestamp: Date.now(),
-      }
-      const lightAnswer: GroundedAnswer = {
-        hasEvidence: true,
-        intent: offline.slots.intent || 'unknown',
-        confidence: 0.75,
-        responseMode: 'conversation',
-        problem: null,
-        answer: agent.reply,
-        whatThisMeans: null,
-        nextActions: [],
-        clarifyingQuestions: [],
-        evidence: [],
-        sources: [],
-        video: null,
-        insufficientReason: null,
-        officialFallbackUrl: 'https://portal.nelf.gov.ng/',
-        escalation: null,
-      }
-      const asst: ChatMessage = {
-        id: uid('asst'),
-        role: 'assistant',
-        text: agent.reply,
-        answer: lightAnswer,
-        timestamp: Date.now(),
-      }
-      setSlots(offline.slots)
-      setMessages((prev) => [...prev, userMsg, asst])
-      // Always record LLM turns; unknown-ish intents get dedicated unknown tracking + topic
-      trackAiQuestion({
-        intent: offline.slots.intent || 'llm-agent',
-        institutionId: offline.slots.institutionId || institutionId,
-        hasImage: !!file,
-        unresolved: !offline.slots.intent || offline.slots.intent === 'unknown',
-        isNewConversation: !hadUserMessage,
-        userText: agentUserText,
-      })
-      setPendingFile(null)
-      setPendingPreview(null)
-      setBusy(false)
-      setBusyLabel('Thinking…')
-      return
-    }
-
-    setAgentReady(false)
     const assistantWithAnswer = offline.messages.find((m) => m.role === 'assistant' && m.answer)
     const intent = assistantWithAnswer?.answer?.intent || offline.slots.intent || null
     const unresolved =
@@ -207,12 +156,12 @@ export default function Ask() {
       (assistantWithAnswer.answer.clarifyingQuestions?.length ?? 0) > 0
 
     trackAiQuestion({
-      intent: intent ? `offline:${intent}` : 'offline:unknown',
+      intent: intent || 'unknown',
       institutionId: offline.slots.institutionId || institutionId,
       hasImage: !!file,
       unresolved,
       isNewConversation: !hadUserMessage,
-      userText: agentUserText,
+      userText: text || ocrText || '',
     })
 
     setSlots(offline.slots)
@@ -314,8 +263,8 @@ export default function Ask() {
                 How can NELFUND AI help?
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink/55">
-                Ask in your own words — portal errors, login links, school contacts, eligibility, drafts, or current
-                status.
+                Ask in your own words — portal errors, login links, school contacts, eligibility, BVN timing, or
+                current application status.
               </p>
             </div>
             <div className="mt-8 flex flex-wrap justify-center gap-2">
@@ -352,7 +301,9 @@ export default function Ask() {
                   </div>
                 ) : (
                   <div className="w-full max-w-full text-sm leading-relaxed text-ink">
-                    <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{m.text}</p>
+                    <div className="text-[15px] leading-relaxed">
+                      <LinkifiedText text={m.text} />
+                    </div>
                     {m.answer && m.answer.responseMode !== 'conversation' && <AnswerCards answer={m.answer} />}
                     {m.answer &&
                       m.answer.responseMode === 'conversation' &&
