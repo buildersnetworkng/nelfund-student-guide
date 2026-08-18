@@ -127,6 +127,7 @@ function applyInstitutionToSlots(
     const inst = getInstitution(found)
     if (inst) next.institutionName = inst.name
     next.awaitingInstitution = false
+    next.pendingClarify = next.pendingClarify === 'institution' ? null : next.pendingClarify
   }
   return next
 }
@@ -150,6 +151,7 @@ function lightAnswer(
     sources: opts?.sources || [
       { id: 'portal', label: 'NELFUND portal', url: 'https://portal.nelf.gov.ng/', official: true },
       { id: 'site', label: 'NELFUND website', url: 'https://nelf.gov.ng/', official: true },
+      { id: 'esupport', label: 'NELFUND eSupport', url: 'https://nelfund.esupport.ng/create', official: true },
     ],
     video: null,
     insufficientReason: null,
@@ -185,9 +187,10 @@ function finalize(
   intent: IntentId,
   text: string,
   capability: AgentCapability,
-  opts?: { next?: string[]; sources?: GroundedAnswer['sources'] },
+  opts?: { next?: string[]; sources?: GroundedAnswer['sources']; escalation?: GroundedAnswer['escalation'] },
 ): AgentTurnResult {
   const answer = lightAnswer(intent, text, opts)
+  if (opts?.escalation) answer.escalation = opts.escalation
   slots.intent = intent
   slots.phase = 'resolve'
   slots.lastCapability = capability
@@ -217,6 +220,7 @@ export async function processUserTurn(opts: {
   const prevAsst = lastAssistantText(history)
   const turnIndex = userTurnCount(history)
   const priorIntent = opts.slots.intent
+  const wasAwaitingInstitution = opts.slots.awaitingInstitution || opts.slots.pendingClarify === 'institution'
 
   const userMsg: ChatMessage = {
     id: uid('user'),
@@ -238,6 +242,50 @@ export async function processUserTurn(opts: {
     slots.errorConfirmed = true
     slots.problemSummary = err
     if (slots.pendingClarify === 'exact-error') slots.pendingClarify = null
+  }
+
+  // Student just provided school name after we asked — resume prior problem with institution context
+  if (wasAwaitingInstitution && slots.institutionId && slots.institutionName) {
+    slots.awaitingInstitution = false
+    slots.pendingClarify = null
+    const resumeIntent: IntentId =
+      priorIntent && priorIntent !== 'unknown' ? priorIntent : 'missing-information'
+    try {
+      const esc = buildEscalationPlan(resumeIntent, slots.institutionId, {
+        errorMessage: slots.exactError || slots.problemSummary,
+      })
+      const pb =
+        playbookAnswer(resumeIntent, {
+          institutionName: slots.institutionName,
+          problemSummary: slots.problemSummary,
+          exactError: slots.exactError,
+          turnIndex,
+          lastAssistant: prevAsst,
+          userText: `${combined} ${slots.problemSummary || ''}`,
+        }) ||
+        `Thanks — I have **${slots.institutionName}** on this conversation.\n\nFor your issue, start with the school ICT / Registry / NELFUND desk, then use https://nelfund.esupport.ng/create if the portal still fails after the school confirms your record.\n\nPortal: https://portal.nelf.gov.ng/\nSay **“draft the email”** if you want a message for the school.`
+      const answer = lightAnswer(resumeIntent, pb, {
+        next: [
+          'https://portal.nelf.gov.ng/',
+          'https://nelfund.esupport.ng/create',
+          'https://nelf.gov.ng/',
+        ],
+      })
+      if (esc) answer.escalation = esc
+      slots.intent = resumeIntent
+      slots.phase = 'resolve'
+      return {
+        messages: [
+          userMsg,
+          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+        ],
+        slots,
+        diagnosed: true,
+        capability: 'conversation',
+      }
+    } catch {
+      /* fall through to normal routing */
+    }
   }
 
   {
@@ -274,7 +322,6 @@ export async function processUserTurn(opts: {
   }
 
   const intentMeta = classifyIntent(combined || rawUser, history)
-  // Sticky: do not drop a known prior intent when the new turn is weak "unknown"
   let intent: IntentId = intentMeta.intent
   if (
     intent === 'unknown' &&
