@@ -10,12 +10,23 @@ export type AgentClientResult =
       reply: string
       mode: 'llm-agent'
       toolsUsed?: string[]
+      provider?: string
+      latencyMs?: number
     }
   | {
       kind: 'degraded'
       reason: 'unconfigured' | 'llm_error' | 'network' | 'empty'
       message: string
     }
+
+export type AgentSlotsPayload = {
+  institutionId?: string | null
+  institutionName?: string | null
+  problemSummary?: string | null
+  exactError?: string | null
+  objective?: string | null
+  phase?: string | null
+}
 
 export async function checkAgentStatus(): Promise<{
   agent: 'ready' | 'unconfigured'
@@ -37,6 +48,7 @@ export async function callAgentApi(opts: {
   institutionId: string | null
   institutionName: string | null
   ocrText: string | null
+  slots?: AgentSlotsPayload | null
 }): Promise<AgentClientResult> {
   try {
     const messages = [
@@ -51,6 +63,10 @@ export async function callAgentApi(opts: {
         institutionId: opts.institutionId,
         institutionName: opts.institutionName,
         ocrText: opts.ocrText,
+        slots: opts.slots || {
+          institutionId: opts.institutionId,
+          institutionName: opts.institutionName,
+        },
       }),
     })
 
@@ -62,15 +78,21 @@ export async function callAgentApi(opts: {
       error?: string
       message?: string
       detail?: string
+      provider?: string
+      latencyMs?: number
     }
 
     if (res.status === 503 || body.error === 'agent_unconfigured' || body.fallback) {
+      // llm_error with fallback also lands here when provider rejects key
+      const reason =
+        body.error === 'llm_error' || res.status === 502 ? 'llm_error' : 'unconfigured'
       return {
         kind: 'degraded',
-        reason: 'unconfigured',
+        reason,
         message:
           body.message ||
-          'The intelligent AI agent is not configured on the server (missing API key). Offline limited mode is active.',
+          body.detail ||
+          'The intelligent AI agent is not available. Offline limited mode is active.',
       }
     }
 
@@ -95,6 +117,8 @@ export async function callAgentApi(opts: {
       reply: body.reply,
       mode: 'llm-agent',
       toolsUsed: body.toolsUsed,
+      provider: body.provider,
+      latencyMs: body.latencyMs,
     }
   } catch {
     return {
