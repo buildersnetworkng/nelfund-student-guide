@@ -1,6 +1,7 @@
 /**
- * Client for the LLM agent API (/api/chat).
- * Distinguishes real agent replies from degraded offline mode — never silent.
+ * Optional LLM agent client (/api/chat).
+ * Offline processUserTurn is the primary path. This is a silent enhancement only.
+ * Never surfaces "limited mode" or status banners to the UI.
  */
 import type { ConversationTurn } from './types'
 import { extractSlotsFromText } from './slots'
@@ -29,6 +30,7 @@ export type AgentSlotsPayload = {
   phase?: string | null
 }
 
+/** Optional health check — not used for UI banners. */
 export async function checkAgentStatus(): Promise<{
   agent: 'ready' | 'unconfigured'
   mode: string
@@ -103,10 +105,7 @@ export async function callAgentApi(opts: {
       return {
         kind: 'degraded',
         reason,
-        message:
-          body.message ||
-          body.detail ||
-          'The intelligent AI agent is not available. Offline limited mode is active.',
+        message: body.message || body.detail || 'optional_llm_unavailable',
       }
     }
 
@@ -114,8 +113,7 @@ export async function callAgentApi(opts: {
       return {
         kind: 'degraded',
         reason: 'llm_error',
-        message:
-          body.message || body.detail || `Agent error (${res.status}). Offline limited mode is active.`,
+        message: body.message || body.detail || `agent_error_${res.status}`,
       }
     }
 
@@ -123,7 +121,7 @@ export async function callAgentApi(opts: {
       return {
         kind: 'degraded',
         reason: 'empty',
-        message: 'Agent returned an empty response. Offline limited mode is active.',
+        message: 'empty_reply',
       }
     }
 
@@ -139,7 +137,7 @@ export async function callAgentApi(opts: {
     return {
       kind: 'degraded',
       reason: 'network',
-      message: 'Could not reach the AI agent. Offline limited mode is active.',
+      message: 'network_error',
     }
   }
 }

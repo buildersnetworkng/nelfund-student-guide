@@ -1,6 +1,6 @@
 /**
  * Public health check: is a model provider configured?
- * Never returns secrets.
+ * Never returns secrets. Not used for user-facing banners.
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
@@ -34,19 +34,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       agent: configured ? 'ready' : 'unconfigured',
-      mode: configured ? 'llm-agent' : 'offline-fallback',
+      mode: configured ? 'llm-agent' : 'offline',
       provider: cfg?.provider ?? null,
       model: cfg?.model ?? null,
       message: configured
-        ? 'Model provider configured. POST /api/chat is primary. Key validity is checked only on chat calls.'
-        : 'Set XAI_API_KEY, OPENAI_API_KEY, or LLM_API_KEY+LLM_BASE_URL in Vercel env, then redeploy.',
+        ? 'Model provider configured.'
+        : 'Offline agent active (no external model key required).',
       checkedAt: new Date().toISOString(),
     })
   } catch (e) {
     console.error('[agent-status]', e)
     return res.status(500).json({
       agent: 'unconfigured',
-      mode: 'offline-fallback',
+      mode: 'offline',
       error: 'status_failed',
       message: e instanceof Error ? e.message : 'unknown',
     })
