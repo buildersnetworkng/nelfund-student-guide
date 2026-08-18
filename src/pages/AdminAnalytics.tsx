@@ -149,6 +149,11 @@ export default function AdminAnalytics() {
                 <StatCard label="Image analyses" value={stats.totals.imageAnalyses} />
                 <StatCard label="FAQ opens" value={stats.totals.faqOpens} />
                 <StatCard label="Unresolved AI" value={stats.totals.unresolvedAi} hint="Low-confidence answers" />
+                <StatCard
+                  label="Unknown AI"
+                  value={stats.totals.unknownAi ?? 0}
+                  hint="Intent not classified"
+                />
               </div>
             </section>
 
@@ -180,6 +185,10 @@ export default function AdminAnalytics() {
 
             <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <RankList title="Common AI intents / problems" items={stats.topIntents} />
+              <RankList
+                title="Unknown AI topic buckets"
+                items={stats.topUnknownTopics || []}
+              />
               <RankList title="Institutions (when provided)" items={stats.topInstitutions} />
               <RankList title="Top pages" items={stats.topPages} />
               <RankList title="Features used" items={stats.topFeatures} />
@@ -187,7 +196,8 @@ export default function AdminAnalytics() {
 
             <p className="text-xs leading-relaxed text-ink/45">
               Metrics use anonymous device IDs and session IDs only. Refreshing the page does not create a new unique
-              user. Free-text questions and sensitive identifiers are not collected.
+              user. Free-text questions are never stored — unknown questions only produce coarse topic buckets
+              (e.g. missing-info, jamb, pending-status) so product gaps can be improved safely.
             </p>
           </div>
         )}
