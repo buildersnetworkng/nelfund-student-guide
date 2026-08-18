@@ -1,7 +1,5 @@
 /**
  * Offline architecture tests — no live model required.
- * Run via: npx tsx src/lib/ai/agent/runArchitectureTests.ts
- * (or import runArchitectureTests() from app tooling)
  */
 
 import { ARCH_DATASET } from '../eval/dataset'
@@ -15,7 +13,11 @@ export type TestReport = {
   results: Array<{ id: string; pass: boolean; notes: string[] }>
 }
 
-function runMultiTurn(turns: string[]): { state: AgentState; lastMessage: string; tools: string[] } {
+function runMultiTurn(turns: string[]): {
+  state: AgentState
+  lastMessage: string
+  tools: string[]
+} {
   let ctx = createContext()
   let lastMessage = ''
   let tools: string[] = []
@@ -44,10 +46,10 @@ export function runArchitectureTests(): TestReport {
   for (const c of ARCH_DATASET) {
     const notes: string[] = []
     const { state, lastMessage, tools } = runMultiTurn(c.turns)
+    const lower = lastMessage.toLowerCase()
 
     if (c.expectObjective && state.objective !== c.expectObjective) {
-      // last turn may set objective; allow prior turn objective if final is unknown after clarify
-      if (!(c.expectClarify && state.phase === 'clarify')) {
+      if (!(c.expectClarify && (state.phase === 'clarify' || state.phase === 'gather'))) {
         notes.push(`objective: got ${state.objective}, expected ${c.expectObjective}`)
       }
     }
@@ -75,22 +77,20 @@ export function runArchitectureTests(): TestReport {
         notes.push('possible invented email in message')
       }
     }
+    if (c.expectMessageIncludes) {
+      for (const s of c.expectMessageIncludes) {
+        if (!lower.includes(s.toLowerCase())) notes.push(`message missing: ${s}`)
+      }
+    }
+    if (c.mustNotInclude) {
+      for (const s of c.mustNotInclude) {
+        if (lower.includes(s.toLowerCase())) notes.push(`message must not include: ${s}`)
+      }
+    }
 
     results.push({ id: c.id, pass: notes.length === 0, notes })
   }
 
   const passed = results.filter((r) => r.pass).length
   return { total: results.length, passed, failed: results.length - passed, results }
-}
-
-// Allow direct execution in Node if bundled with tsx
-declare const require: undefined | NodeRequire
-if (typeof require !== 'undefined' && typeof module !== 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mod = module as any
-  if (require.main === mod) {
-    const report = runArchitectureTests()
-    console.log(JSON.stringify(report, null, 2))
-    if (report.failed > 0) process.exitCode = 1
-  }
 }

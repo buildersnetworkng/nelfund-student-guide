@@ -8,19 +8,54 @@ import { emptyAgentState } from './contracts'
 import { mockPlanTurn } from './mockModel'
 import { runToolLocal } from './tools'
 import { nextPhase } from './stateMachine'
+import { conflictSchoolUploadedStillMissing, recoverFromToolResult } from './failureRecovery'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 
+function isUploadConflict(message: string, state: AgentState): boolean {
+  const t = message.toLowerCase()
+  const mentionsUpload =
+    /upload|uploaded|submit|submitted|sent.*(data|record|information)/i.test(t)
+  const stillBroken =
+    /still|yet|but|however|missing|not\s*work|no\s*change/i.test(t) ||
+    Boolean(state.exactError || state.problem)
+  return mentionsUpload && stillBroken && Boolean(state.institutionId || state.institutionName)
+}
+
 function composeMessage(
   plan: ReturnType<typeof mockPlanTurn>,
-  toolData: Array<{ name: string; data: Record<string, unknown>; warnings?: string[] }>,
-): { message: string; emailDraft?: { subject: string; body: string } | null; actions: string[]; warnings: string[]; sources: SourceRef[] } {
+  toolData: Array<{ name: string; data: Record<string, unknown>; warnings?: string[]; status?: string }>,
+  inputMessage: string,
+): {
+  message: string
+  emailDraft?: { subject: string; body: string } | null
+  actions: string[]
+  warnings: string[]
+  sources: SourceRef[]
+} {
   if (plan.clarify) {
     return {
       message: plan.clarify,
       actions: [],
       warnings: [],
       sources: [],
+    }
+  }
+
+  if (isUploadConflict(inputMessage, plan.state)) {
+    const rec = conflictSchoolUploadedStillMissing(plan.state.institutionName)
+    return {
+      message: rec.message,
+      actions: rec.actions,
+      warnings: rec.warnings,
+      sources: [
+        {
+          id: 'esupport',
+          label: 'NELFUND eSupport',
+          url: 'https://nelfund.esupport.ng/create',
+          authority: 'official',
+        },
+      ],
     }
   }
 
@@ -32,6 +67,21 @@ function composeMessage(
 
   for (const t of toolData) {
     if (t.warnings) warnings.push(...t.warnings)
+    if (t.status && t.status !== 'ok') {
+      const recovery = recoverFromToolResult({
+        callId: 'x',
+        name: t.name as import('./contracts').ToolName,
+        status: t.status as import('./contracts').ToolResultStatus,
+        data: t.data,
+        warnings: t.warnings,
+      })
+      if (recovery) {
+        parts.push(recovery.message)
+        actions.push(...recovery.actions)
+        warnings.push(...recovery.warnings)
+        continue
+      }
+    }
     if (t.name === 'get_current_status') {
       parts.push(
         String(t.data.answer_preview || t.data.status_label || 'Check the official portal for live status.'),
@@ -92,7 +142,9 @@ function composeMessage(
   }
 
   if (!parts.length) {
-    parts.push('Tell me a bit more about what you are trying to do on NELFUND, or paste the exact portal message.')
+    parts.push(
+      'Tell me a bit more about what you are trying to do on NELFUND, or paste the exact portal message.',
+    )
   }
 
   return { message: parts.join('\n'), emailDraft, actions, warnings, sources }
@@ -102,14 +154,14 @@ export function runMockAgentTurn(input: AgentInput): AgentResponse {
   const plan = mockPlanTurn(input)
   const toolData = plan.toolCalls.map((c) => {
     const r = runToolLocal(c)
-    return { name: r.name, data: r.data, warnings: r.warnings }
+    return { name: r.name, data: r.data, warnings: r.warnings, status: r.status }
   })
 
   let state: AgentState = plan.state
   if (plan.toolCalls.length) state = nextPhase(state, { type: 'tools_completed' })
   if (!plan.clarify) state = nextPhase(state, { type: 'resolved' })
 
-  const composed = composeMessage(plan, toolData)
+  const composed = composeMessage(plan, toolData, input.message)
 
   return {
     message: composed.message,
