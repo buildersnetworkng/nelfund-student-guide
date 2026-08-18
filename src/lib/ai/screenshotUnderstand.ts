@@ -183,7 +183,7 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
       loanCounts,
       exactError: errorMatch[0].trim(),
       studentNameHint,
-      explanation: `Your screenshot shows a portal problem message: "${errorMatch[0].trim()}". That usually relates to student-record matching with your school, not a random website glitch.`,
+      explanation: `The portal problem message is: "${errorMatch[0].trim()}". That usually relates to student-record matching with your school, not a random website glitch.`,
       nextActions: [
         'Tell me which institution you attend so I can point you to the right office.',
         'Confirm name, NIN, JAMB, and matric match your school records exactly.',
