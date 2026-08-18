@@ -27,14 +27,14 @@ function instLine(ctx: PlaybookContext): string {
 /** Avoid repeating the same core explanation in one conversation. */
 export function isNearDuplicate(prev: string | undefined, next: string): boolean {
   if (!prev || prev.length < 40) return false
-  const a = prev.toLowerCase().replace(/\s+/g, ' ').slice(0, 120)
-  const b = next.toLowerCase().replace(/\s+/g, ' ').slice(0, 120)
+  const a = prev.toLowerCase().replace(/\s+/g, ' ').slice(0, 160)
+  const b = next.toLowerCase().replace(/\s+/g, ' ').slice(0, 160)
   if (a === b) return true
   let same = 0
   const wa = new Set(a.split(' ').filter((w) => w.length > 3))
   const wb = b.split(' ').filter((w) => w.length > 3)
   for (const w of wb) if (wa.has(w)) same += 1
-  return wb.length > 8 && same / wb.length > 0.72
+  return wb.length > 8 && same / wb.length > 0.65
 }
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
@@ -46,7 +46,10 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     if (n > 0 && /repay|loan|scholarship|free/i.test(t)) {
       return `NELFUND is a **loan**, not a scholarship or free money.\n\n• **Institutional charges** (school-related charges) are paid to your school, not into your pocket.\n• **Upkeep** (living support) is a separate component when approved — currently guided as **₦20,000/month** unless official pages change it.\n• You repay after studies under official repayment rules.\n\nOfficial overview: ${SITE} and ${FAQ}`
     }
-    return `**NELFUND** is the **Nigerian Education Loan Fund**.\n\nIt helps eligible students in public Nigerian tertiary institutions with:\n1. **Institutional charges** (paid to the school)\n2. **Upkeep** (monthly living support when that component applies)\n\nIt is a **loan you repay**, not a grant. Eligible pathways include universities, polytechnics, colleges of education, and other covered public institutions — always confirm coverage on ${SITE}.\n\n**How it works in practice**\n• Your school must have your student record in order (admission, JAMB, matric, etc.).\n• You create/login on ${PORTAL}\n• You apply only when that **application window** is officially open.\n• Support tickets: ${ESUPPORT}\n\nAsk me anything next: how to apply, missing information, BVN, upkeep, or whether applications are open.`
+    if (n > 0 && /how|work|process|apply/i.test(t)) {
+      return `**How NELFUND works (process)**\n\n1. School holds your admission + student data (JAMB, NIN, matric when available).\n2. You create/sign in only on ${PORTAL}\n3. You apply when that **loan/upkeep window** is officially open (check ${SITE}).\n4. Institutional charges go to the school; upkeep (if approved) follows official rules.\n5. If the portal shows **missing information**, fix records with school ICT/Registry first.\n\nSupport tickets: ${ESUPPORT}`
+    }
+    return `**NELFUND** is the **Nigerian Education Loan Fund**.\n\nIt helps eligible students in public Nigerian tertiary institutions with:\n1. **Institutional charges** (paid to the school)\n2. **Upkeep** (monthly living support when that component applies)\n\nIt is a **loan you repay**, not a grant. Eligible pathways include universities, polytechnics, colleges of education, and other covered public institutions — always confirm coverage on ${SITE}.\n\n**How it works in practice**\n• Your school must have your student record in order (admission, JAMB, matric, etc.).\n• You create/login on ${PORTAL}\n• You apply only when that **application window** is officially open.\n• Support tickets: ${ESUPPORT}\n\nAsk me next: how to apply, missing information, BVN, upkeep, or whether applications are open.`
   }
 
   // —— Current / open / deadline / expire / BVN timing ——
@@ -54,13 +57,16 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     intent === 'current-information' ||
     intent === 'deadline' ||
     intent === 'academic-session' ||
-    /bvn|expire|deadline|when\s*will|open\s*now|still\s*open|closing|2026|2027/i.test(t)
+    /bvn|expire|deadline|when\s*will|open\s*now|still\s*open|closing|2026|2027|registration/i.test(t)
   ) {
-    if (/bvn/i.test(t) && /expire|deadline|registr|account|apply/i.test(t)) {
-      return `You do **not** need to panic about BVN right now.\n\n**Separate these three things:**\n\n1. **NELFUND account creation** on ${PORTAL} — you can often create your account and prepare your profile while you sort BVN through your bank.\n2. **Loan / upkeep application window** — only open during an **officially announced** period. A notice about a *previous* cycle that already closed is **not** the same as “you can never register again.”\n3. **BVN** — needed for banking steps. Not having BVN yet should not stop you from reading official guidance and starting account setup if the portal allows it.\n\nThis guide **will not invent** the next 2026/2027 opening or closing date. When NELFUND announces it, it appears on ${SITE} and ${PORTAL} — not on random WhatsApp dates.\n\n**What to do next**\n• Try account creation on ${PORTAL} if available\n• Sort BVN with your bank\n• Watch ${SITE} for the next official application window`
+    if (/bvn/i.test(t) && /(expire|deadline|registr|account|apply|yet|don'?t|dont|no\s*bvn|when)/i.test(t)) {
+      if (n >= 1 && ctx.lastAssistant && /bvn|account creation|portal\.nelf/i.test(ctx.lastAssistant)) {
+        return `Still on the **BVN vs registration** point:\n\n• Sort BVN with your **bank** when you can.\n• You can often still create/prepare your account on ${PORTAL} while you wait.\n• The **loan application window** only opens when NELFUND officially announces it on ${SITE} — this guide will not invent that date.\n\nIf you want, tell me whether you are stuck on **account creation** or waiting for the **loan window**.`
+      }
+      return `You do **not** need to panic about BVN right now.\n\nThe NELFUND account creation path on ${PORTAL} is separate from whether the **loan/upkeep application window** is open.\n\n• You can create your account and prepare while you sort BVN with your bank.\n• A deadline notice about a **previous** loan/upkeep cycle that already closed is **not** the same as “you can never register again.”\n• The next 2026/2027 loan and upkeep window opens only when NELFUND **officially announces** it — this assistant will not invent opening or closing dates.\n\n**What to do next**\n1. Try account setup on ${PORTAL} if available\n2. Sort BVN with your bank\n3. Watch official updates on ${SITE}\n\nWe'll treat only ${SITE} and ${PORTAL} as authoritative for opening/closing dates.`
     }
     if (n >= 1 && ctx.lastAssistant && /nelf\.gov|portal\.nelf/i.test(ctx.lastAssistant)) {
-      return `Still the same rule: **only** ${SITE} and ${PORTAL} define whether applications are open today.\n\nI will not invent a closing date. If you tell me whether you are stuck on **account creation**, **loan application**, or **BVN**, I can give the exact next step for that situation.`
+      return `Same rule still applies: **only** ${SITE} and ${PORTAL} define whether applications are open today.\n\nI will not invent a closing date. Tell me if you are stuck on **account creation**, **loan application**, **BVN**, or **missing information** so the next step matches your situation.`
     }
     return `**Current application status (how to check — not a guessed date)**\n\nNELFUND opening and closing dates **change by cycle**. This assistant does not invent dates.\n\n**Reliable sources only:**\n• Official site: ${SITE}\n• Student portal: ${PORTAL}\n• FAQ: ${FAQ}\n\n**Do not mix these up:**\n• Account creation ≠ loan application still open\n• A closed *previous* session notice ≠ “you can never create an account”\n• Social media “deadlines” are unofficial until they match nelf.gov.ng or the portal\n\nIf you say what you are trying to do (create account, apply for loan, sort BVN, missing information), I will guide that path.`
   }
@@ -86,6 +92,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   // —— How to apply ——
   if (intent === 'how-to-apply') {
+    if (n >= 1) {
+      return `Next application detail${instLine(ctx)}:\n\n• Official portal only: ${PORTAL}\n• Confirm the window is open on ${SITE} before treating the form as “this cycle’s loan application”\n• If you hit **missing information**, fix school records first — do not keep re-submitting blindly\n\nSay what step you are on (account, profile, school list, or submit).`
+    }
     return `**How to apply (nationwide process)**\n\n1. Confirm you have admission into a covered public institution and basic IDs (JAMB, NIN; BVN for banking steps).\n2. Create / sign in on the official portal only: ${PORTAL}\n3. Complete profile and verification steps the portal shows.\n4. Apply for the **loan/upkeep session only when that window is officially open** (check ${SITE}).\n5. Your school must have submitted matching student data — if you see missing information, fix records with the school first.\n\nNever use third-party “agents” or share OTP/password.\n\nOfficial info: ${SITE} · FAQ: ${FAQ} · Support: ${ESUPPORT}`
   }
 
@@ -156,6 +165,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   // —— Bank / BVN verification fail ——
   if (intent === 'bank-information') {
+    if (/don'?t|dont|no\s*bvn|yet|expire|deadline/i.test(t)) {
+      return playbookAnswer('current-information', ctx)
+    }
     return `Bank / BVN problems are usually data mismatches or incomplete banking steps.\n\n• Confirm BVN is linked to the account you are using (via your bank)\n• Re-enter account details carefully on ${PORTAL}\n• Do not share full BVN in this chat\n• If the portal still fails after bank confirmation → ${ESUPPORT}`
   }
 
@@ -168,5 +180,25 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 }
 
 export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string {
-  return `I already covered the main point for this${instLine(ctx)}.\n\nPick a next action:\n• “draft the email” to your school or NELFUND\n• Share your **school name** for contacts\n• Paste the **exact portal message**\n• Ask about **upkeep**, **how to apply**, or **whether applications are open**\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
+  const lines = [
+    `I already covered the main point for this${instLine(ctx)}.`,
+    '',
+    'Pick a **different** next action so we do not repeat the same answer:',
+    '• “draft the email” to your school or NELFUND',
+    '• Share your **school name** for contacts',
+    '• Paste the **exact portal message**',
+    '• Ask about **upkeep**, **how to apply**, or **whether applications are open**',
+    '',
+    `Portal: ${PORTAL}`,
+    `Support: ${ESUPPORT}`,
+  ]
+  if (intent === 'current-information' || intent === 'deadline') {
+    lines.splice(
+      3,
+      0,
+      '• Clarify if you mean **account creation** vs **loan application window**',
+      '• Ask about **BVN timing** if that is the blocker',
+    )
+  }
+  return lines.join('\n')
 }
