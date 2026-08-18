@@ -12,7 +12,13 @@ export type PortalScreenKind =
 export type ScreenshotUnderstanding = {
   kind: PortalScreenKind
   signals: string[]
-  registrationWindow?: { start?: string; end?: string; session?: string } | null
+  registrationWindow?: {
+    start?: string
+    end?: string
+    session?: string
+    /** true when end date is clearly in the past relative to now */
+    appearsClosed?: boolean
+  } | null
   loanCounts?: {
     total?: number
     approved?: number
@@ -29,12 +35,69 @@ const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
+const MONTHS: Record<string, number> = {
+  january: 0,
+  february: 1,
+  march: 2,
+  april: 3,
+  may: 4,
+  june: 5,
+  july: 6,
+  august: 7,
+  september: 8,
+  october: 9,
+  november: 10,
+  december: 11,
+}
+
 function parseCount(label: string, text: string): number | undefined {
   const flat = text.replace(/\s+/g, ' ')
   const re = new RegExp(label.replace(/\s+/g, '\\s+') + '\\s*(\\d+)', 'i')
   const m = flat.match(re)
   if (m) return Number(m[1])
   return undefined
+}
+
+/** Parse "March 5th 2026" / "June 5 2026" style dates from portal notices. */
+function parsePortalDate(raw: string | undefined): Date | null {
+  if (!raw) return null
+  const m = raw.match(/([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s*,?\s*(\d{4})/i)
+  if (!m) return null
+  const month = MONTHS[m[1].toLowerCase()]
+  if (month === undefined) return null
+  const day = Number(m[2])
+  const year = Number(m[3])
+  if (!year || !day) return null
+  return new Date(year, month, day, 23, 59, 59)
+}
+
+function windowStatus(endRaw: string | undefined): {
+  appearsClosed: boolean
+  appearsOpen: boolean
+  note: string
+} {
+  const end = parsePortalDate(endRaw)
+  if (!end) {
+    return {
+      appearsClosed: false,
+      appearsOpen: false,
+      note: 'Confirm on the live portal whether applications are open right now.',
+    }
+  }
+  const now = new Date()
+  if (now.getTime() > end.getTime()) {
+    return {
+      appearsClosed: true,
+      appearsOpen: false,
+      note: `Based on the end date shown on your screen (${endRaw}), that registration window has ended. Loan application for that session appears closed.`,
+    }
+  }
+  const start = null
+  return {
+    appearsClosed: false,
+    appearsOpen: true,
+    note: `Based on the dates on your screen, the window may still be open until ${endRaw}. Confirm on the live portal before relying on this.`,
+  }
 }
 
 export function understandPortalText(raw: string): ScreenshotUnderstanding | null {
@@ -44,7 +107,6 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   const signals: string[] = []
   const lower = text.toLowerCase()
 
-  // Strong dashboard signals: welcome OR any two loan counters
   const counterHits = [
     /total\s*loans/i.test(text),
     /approved\s*loans/i.test(text),
@@ -73,10 +135,15 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   )
   if (sessionMatch || rangeMatch || /session\s*registration/i.test(text)) {
     signals.push('registration_notice')
+    const end = rangeMatch ? rangeMatch[2] : undefined
+    const status = windowStatus(end)
+    if (status.appearsClosed) signals.push('window_closed')
+    if (status.appearsOpen) signals.push('window_open')
     registrationWindow = {
       session: sessionMatch ? sessionMatch[1].replace(/\s/g, '') : undefined,
       start: rangeMatch ? rangeMatch[1] : undefined,
-      end: rangeMatch ? rangeMatch[2] : undefined,
+      end,
+      appearsClosed: status.appearsClosed,
     }
   }
 
@@ -99,7 +166,6 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   const nameMatch = text.match(/Welcome\s+to\s+Student\s+Loan\s+Portal[,\s]+([A-Za-z]+)/i)
   const studentNameHint = nameMatch ? nameMatch[1] : null
 
-  // Prefer dashboard over error if both present (rare)
   if (errorMatch && !isDashboard) {
     return {
       kind: 'error',
@@ -120,27 +186,36 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   if (isDashboard) {
     const lines: string[] = []
     lines.push(
-      'This looks like your **NELFUND Student Loan Portal dashboard** (you are already logged in).',
+      'From this screen: **your NELFUND student account is set up** — you are already logged into the Student Loan Portal' +
+        (studentNameHint ? ` as **${studentNameHint}**` : '') +
+        '.',
     )
-    if (studentNameHint) {
-      lines.push(`The portal is welcoming you as **${studentNameHint}**.`)
-    }
+
     if (registrationWindow) {
-      const sess = registrationWindow.session ? ` for the **${registrationWindow.session}** session` : ''
+      const sess = registrationWindow.session
+        ? ` for the **${registrationWindow.session}** session`
+        : ''
       const start = registrationWindow.start || 'the published start date'
       const end = registrationWindow.end || 'the published end date'
       lines.push(
-        `The yellow notice is about **session registration${sess}**. It indicates registration **starts ${start}** and **ends ${end}**.`,
+        `The yellow notice is about **session registration${sess}**: **starts ${start}** and **ends ${end}**.`,
       )
-      if (signals.includes('deadline_warning')) {
+
+      const status = windowStatus(registrationWindow.end)
+      if (status.appearsClosed) {
         lines.push(
-          'The red warning on the portal means you should complete registration within that window — after the end date you may not be able to apply for that session.',
+          `**Loan application for that session appears closed** — ${status.note}`,
         )
+        lines.push(
+          'That is different from a “pending” application. Closed means the registration/application window on the notice has ended, not that NELFUND is still reviewing a submitted loan.',
+        )
+      } else if (status.appearsOpen) {
+        lines.push(status.note)
+      } else {
+        lines.push(status.note)
       }
-      lines.push(
-        'Treat those dates as shown on **your** portal screen. Always re-check the live notice on the portal in case NELFUND updates it.',
-      )
     }
+
     if (loanCounts) {
       const t = loanCounts.total
       const a = loanCounts.approved
@@ -148,12 +223,16 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
       const d = loanCounts.declined
       if (t !== undefined || a !== undefined || p !== undefined || d !== undefined) {
         lines.push(
-          `Your loan counters show **Total ${t ?? '—'}**, **Approved ${a ?? '—'}**, **Pending ${p ?? '—'}**, **Declined ${d ?? '—'}**. These are summary counters — **Pending Loans: 0** does **not** mean your application is stuck in "pending". Zeros usually mean you do not have applications in those buckets yet.`,
+          `Loan counters: **Total ${t ?? '—'}**, **Approved ${a ?? '—'}**, **Pending ${p ?? '—'}**, **Declined ${d ?? '—'}**.`,
+        )
+        lines.push(
+          '**Pending Loans = 0 does not mean your application is pending.** Zero across the board usually means you have not submitted a loan application in those buckets yet (or none are recorded).',
         )
       }
     }
+
     lines.push(
-      'If you tell me what you want next (start registration, check status, fix an error, or contact support), I can guide the next step.',
+      'Next: watch the official portal for the next open cycle, or ask me what to prepare for when applications reopen.',
     )
 
     return {
@@ -165,10 +244,9 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
       studentNameHint,
       explanation: lines.join('\n\n'),
       nextActions: [
-        `Continue only on the official portal: ${PORTAL}`,
-        'Start or continue registration if the session window is open on your account.',
-        `Public information site: ${SITE}`,
-        `Tracked support if something is blocked: ${ESUPPORT}`,
+        `Check live status on the official portal: ${PORTAL}`,
+        `Announcements: ${SITE}`,
+        `Support ticket if something is wrong with the account: ${ESUPPORT}`,
       ],
     }
   }
@@ -192,7 +270,7 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
       kind: 'unknown',
       signals: ['portal_ui'],
       explanation:
-        'I can see this is related to the NELFUND portal. Tell me what you want to do (understand a notice, fix an error, start applying, or contact support), or paste the main text from the screen.',
+        'I can see this is related to the NELFUND portal. Tell me what you want to do, or paste the main text from the screen (notice dates, loan counters, or any error).',
       nextActions: [`Portal: ${PORTAL}`, `Support: ${ESUPPORT}`],
       exactError: null,
       loanCounts: null,
