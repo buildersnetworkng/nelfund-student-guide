@@ -1,14 +1,11 @@
 /**
  * Client-side screenshot analysis for NELFUND portal errors / dashboard.
- *
  * Uses Tesseract.js OCR in the browser. No image is uploaded to any server.
- * Extracted text is kept only in session memory for diagnosis.
  */
 
 export interface OcrResult {
   text: string
   confidence: number
-  /** True when OCR ran but found little useful text */
   lowSignal: boolean
 }
 
@@ -27,10 +24,6 @@ async function getWorker() {
   return workerPromise
 }
 
-/**
- * Run OCR on an image File or Blob.
- * Returns cleaned text focused on portal-style messages and dashboard labels.
- */
 export async function extractTextFromImage(file: Blob): Promise<OcrResult> {
   try {
     const worker = await getWorker()
@@ -56,7 +49,6 @@ export async function extractTextFromImage(file: Blob): Promise<OcrResult> {
   }
 }
 
-/** Optional: terminate worker when leaving the page (best-effort). */
 export async function disposeOcrWorker() {
   if (workerPromise) {
     try {

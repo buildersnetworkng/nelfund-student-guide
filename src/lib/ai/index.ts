@@ -1,9 +1,5 @@
 /**
- * NELFUND student support agent.
- *
- * PRIMARY (production): /api/chat LLM agent when a provider is available.
- * ARCHITECTURE (always): contracts, tools, state machine, mock orchestrator, offline tests.
- * EMERGENCY: processUserTurn — degraded only, never pretend to be full AI.
+ * NELFUND student support agent public exports.
  */
 
 export { answerQuestion } from './answer'
@@ -15,13 +11,13 @@ export {
   createInitialSlots,
   createWelcomeMessage,
   extractErrorSignals,
-} from './conversation'
+} from './processTurn'
 export type {
   ConversationSlots,
   ChatMessage,
   AgentTurnResult,
   ConversationPhase,
-} from './conversation'
+} from './processTurn'
 export { extractTextFromImage, disposeOcrWorker } from './vision'
 export { callAgentApi, checkAgentStatus } from './agentClient'
 export type { AgentClientResult, AgentSlotsPayload } from './agentClient'
@@ -31,11 +27,10 @@ export { EVAL_SCENARIOS, scoreReply } from './eval/scenarios'
 export type { EvalScenario, EvalTurn } from './eval/scenarios'
 export { ARCH_DATASET } from './eval/dataset'
 export type { ArchCase } from './eval/dataset'
-export {
-  freshnessFromDates,
-  formatEvidenceForPrompt,
-} from './evidence'
+export { freshnessFromDates, formatEvidenceForPrompt } from './evidence'
 export type { EvidenceMeta, SourceAuthority, SourceType, Freshness } from './evidence'
+export { understandPortalText, SAMPLE_DASHBOARD_OCR } from './screenshotUnderstand'
+export type { ScreenshotUnderstanding, PortalScreenKind } from './screenshotUnderstand'
 
 export { emptyAgentState } from './agent/contracts'
 export type {
