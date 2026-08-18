@@ -1,6 +1,3 @@
-/**
- * Capability router: facts are grounded; conversation is not forced through FAQ.
- */
 import type { AgentCapability, IntentId } from './types'
 
 const CAPABILITY_BY_INTENT: Partial<Record<IntentId, AgentCapability>> = {
@@ -17,51 +14,40 @@ const CAPABILITY_BY_INTENT: Partial<Record<IntentId, AgentCapability>> = {
   'rejected-application': 'troubleshooting',
   'bank-information': 'troubleshooting',
   'profile-update': 'troubleshooting',
-  reapplication: 'troubleshooting',
   refund: 'troubleshooting',
-  'how-to-apply': 'verified-knowledge',
-  eligibility: 'verified-knowledge',
-  'documents-needed': 'verified-knowledge',
+  'scam-safety': 'troubleshooting',
   'what-is-nelfund': 'verified-knowledge',
-  'loan-or-scholarship': 'verified-knowledge',
+  eligibility: 'verified-knowledge',
+  'how-to-apply': 'verified-knowledge',
+  'documents-needed': 'verified-knowledge',
   upkeep: 'verified-knowledge',
   'school-fees': 'verified-knowledge',
   'institutional-charges': 'verified-knowledge',
   repayment: 'verified-knowledge',
   gsi: 'verified-knowledge',
-  guarantor: 'verified-knowledge',
+  'loan-or-scholarship': 'verified-knowledge',
   readiness: 'verified-knowledge',
   'official-sources': 'verified-knowledge',
-  'portal-login': 'verified-knowledge',
+  'portal-login': 'portal-login',
+  guarantor: 'verified-knowledge',
   'academic-session': 'current-information',
   deadline: 'current-information',
-  'scam-safety': 'verified-knowledge',
+  reapplication: 'troubleshooting',
 }
 
 export function detectCapabilityOverride(text: string): AgentCapability | null {
   const t = text.toLowerCase()
+  if (/draft|write\s*(an?\s*)?(email|message|letter)/i.test(t)) return 'email-draft'
   if (
-    /draft\s*(me\s*)?(an?\s*)?(email|mail|message|letter)/.test(t) ||
-    /write\s*(me\s*)?(an?\s*)?(email|mail|message|letter)/.test(t) ||
-    /compose\s*(an?\s*)?(email|mail)/.test(t)
-  ) {
-    return 'email-draft'
-  }
-  if (
-    /(school|institution|lasu|unilag|oou).{0,40}(email|contact|phone)/.test(t) ||
-    /(email|contact|phone).{0,40}(school|institution|lasu|unilag|ict|registry)/.test(t) ||
-    /need\s*to\s*contact\s*(my\s*)?(school|institution)/.test(t) ||
-    /who\s*(do\s*i|should\s*i)\s*contact/.test(t)
-  ) {
-    return 'contact-lookup'
-  }
-  if (
-    /as\s*of\s*today|current\s*(info|information|status)|latest\s*(update|news)|what.?s\s*new|has\s*nelfund\s*announced|is\s*nelfund\s*(still\s*)?(open|closed)|is\s*(the\s*)?(portal|application)\s*open/.test(
+    /(who\s*(do\s*i|should\s*i)\s*contact|find\s*(the\s*)?(contact|email)|school.?s?\s*email)/i.test(
       t,
     )
-  ) {
+  )
+    return 'contact-lookup'
+  if (/(as\s*of\s*today|latest\s*update|is\s*(nelfund|application)\s*open)/i.test(t))
     return 'current-information'
-  }
+  if (/(which\s*(link|url|website).{0,30}(login|application)|continue\s*(my\s*)?application)/i.test(t))
+    return 'portal-login'
   return null
 }
 

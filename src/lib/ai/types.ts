@@ -1,30 +1,27 @@
-import type { VerificationStatus, InformationScope } from '../types'
+export type VerificationStatus = 'verified' | 'may_change' | 'guidance' | 'unverified'
+export type InformationScope = 'nelfund-wide' | 'institution-specific'
 
 export type IntentId =
   | 'what-is-nelfund'
-  | 'loan-or-scholarship'
-  | 'how-to-apply'
   | 'eligibility'
+  | 'how-to-apply'
   | 'documents-needed'
-  | 'nin-verification'
   | 'jamb-verification'
+  | 'nin-verification'
   | 'missing-information'
   | 'school-not-found'
   | 'institution-verification'
   | 'pending-application'
   | 'rejected-application'
-  | 'profile-update'
-  | 'bank-information'
-  | 'upkeep'
-  | 'institutional-charges'
-  | 'school-fees'
   | 'refund'
-  | 'reapplication'
+  | 'upkeep'
+  | 'school-fees'
+  | 'institutional-charges'
   | 'repayment'
   | 'gsi'
-  | 'academic-session'
-  | 'deadline'
-  | 'contact-support'
+  | 'loan-or-scholarship'
+  | 'bank-information'
+  | 'profile-update'
   | 'scam-safety'
   | 'readiness'
   | 'official-sources'
@@ -33,6 +30,10 @@ export type IntentId =
   | 'email-draft'
   | 'contact-lookup'
   | 'current-information'
+  | 'contact-support'
+  | 'academic-session'
+  | 'deadline'
+  | 'reapplication'
   | 'unknown'
 
 /** What kind of work the agent should do for this turn. */
@@ -42,6 +43,7 @@ export type AgentCapability =
   | 'contact-lookup'
   | 'email-draft'
   | 'current-information'
+  | 'portal-login'
   | 'conversation'
 
 export type StudentStage =
@@ -64,24 +66,30 @@ export interface IntentResult {
   isTroubleshooting: boolean
 }
 
-export type EvidenceKind = 'faq' | 'fact' | 'troubleshooting' | 'guide' | 'video' | 'source' | 'scam'
+export interface ConversationTurn {
+  role: 'user' | 'assistant'
+  text: string
+  intent?: IntentId
+}
 
 export interface EvidenceItem {
-  kind: EvidenceKind
   id: string
+  kind: 'faq' | 'fact' | 'troubleshooting' | 'guide' | 'scam' | 'video'
   title: string
   body: string
+  score: number
   verification_status: VerificationStatus
-  scope: InformationScope
-  institution_id: string | null
   source_id: string | null
-  last_verified: string | null
-  related_video_ids: string[]
   steps?: string[]
   avoid?: string[]
   still_stuck?: string
-  path: string
-  score: number
+}
+
+export interface AnswerSource {
+  id: string
+  label: string
+  url: string | null
+  official: boolean
 }
 
 export interface AnswerVideo {
@@ -95,11 +103,27 @@ export interface AnswerVideo {
   freshness_note: string | null
 }
 
-export interface AnswerSource {
+export interface EscalationContactView {
   id: string
   label: string
+  email: string | null
+  phone: string | null
   url: string | null
-  official: boolean
+  why: string
+  priority: string
+  verification_status: VerificationStatus
+  office?: string
+}
+
+export interface EscalationPlanView {
+  needsInstitution: boolean
+  institutionId: string | null
+  institutionName: string | null
+  institutionContacts: EscalationContactView[]
+  nelfundContacts: EscalationContactView[]
+  understanding?: string
+  diagnosis?: string[]
+  contactOrderExplanation?: string | null
 }
 
 export interface GroundedAnswer {
@@ -119,38 +143,4 @@ export interface GroundedAnswer {
   officialFallbackUrl: string
   escalation: EscalationPlanView | null
   draft?: { subject: string; body: string } | null
-}
-
-export interface EscalationContactView {
-  id: string
-  label: string
-  office: string
-  why: string
-  email: string | null
-  phone: string | null
-  url: string | null
-  verification_status: VerificationStatus
-  notes: string | null
-  priority: 'primary' | 'secondary' | 'national'
-}
-
-export interface EscalationPlanView {
-  needsInstitution: boolean
-  institutionId: string | null
-  institutionName: string | null
-  understanding: string
-  diagnosis: string[]
-  institutionContacts: EscalationContactView[]
-  nelfundContacts: EscalationContactView[]
-  evidenceChecklist: string[]
-  supportMessage: { subject: string; body: string } | null
-  followUp: string | null
-  screenshotAdvice: string
-  contactOrderExplanation?: string | null
-}
-
-export interface ConversationTurn {
-  role: 'user' | 'assistant'
-  text: string
-  intent?: IntentId
 }
