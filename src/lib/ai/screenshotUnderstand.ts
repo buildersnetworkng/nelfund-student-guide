@@ -1,5 +1,6 @@
 /**
  * Interpret OCR / pasted portal UI text into structured understanding.
+ * Works fully offline — no external API.
  */
 
 export type PortalScreenKind =
@@ -102,7 +103,6 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   if (text.length < 8) return null
 
   const signals: string[] = []
-  const lower = text.toLowerCase()
 
   const counterHits = [
     /total\s*loans/i.test(text),
@@ -117,9 +117,14 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
     (/session\s*registration/i.test(text) && counterHits >= 1)
 
   const isLoginScreenUi =
-    (/sign\s*in|log\s*in/i.test(text) && /password|username|email|otp|captcha/i.test(text)) ||
+    (/sign\s*in|log\s*in/i.test(text) &&
+      /password|username|otp|captcha/i.test(text) &&
+      /button|submit|form|field|enter\s*your/i.test(text)) ||
     (/enter\s*(your\s*)?(password|otp)/i.test(text) && !/\?/.test(text))
-  const looksLikeQuestion = /\?|how\s*(do|to)|which\s*(link|url|site)|where\s*(do|to)/i.test(text)
+  const looksLikeQuestion =
+    /\?|how\s*(do|to)|which\s*(link|url|site|website)|where\s*(do|to)|fix\s*my|my\s*password\s*is/i.test(
+      text,
+    )
   const isLogin = isLoginScreenUi && !isDashboard && !looksLikeQuestion
 
   const errorMatch =
