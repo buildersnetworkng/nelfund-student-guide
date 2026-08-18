@@ -76,8 +76,17 @@ const RULES: IntentRule[] = [
       /latest\s*official\s*nelfund/i,
       /what\s*changed\s*(about|on|with)?\s*nelfund/i,
       /session\s*registration/i,
+      /when\s*(will|is|does).{0,40}(expire|close|end|open)/i,
+      /when\s*(will|is).{0,30}(registration|application)/i,
+      /registration.{0,20}(expire|deadline|close)/i,
+      /(expire|deadline).{0,30}(registration|application|account)/i,
+      /don'?t\s*have\s*(a\s*)?bvn/i,
+      /no\s*bvn\s*yet/i,
+      /i\s*don'?t\s*have\s*bvn/i,
+      /bvn\s*yet/i,
+      /sort\s*out\s*(my\s*)?bvn/i,
     ],
-    topics: ['current', 'latest', 'open'],
+    topics: ['current', 'latest', 'open', 'deadline', 'bvn'],
     problem: 'Current or time-sensitive NELFUND information',
     stage: 'exploring',
     entities: ['session'],
@@ -230,7 +239,6 @@ const RULES: IntentRule[] = [
   {
     intent: 'pending-application',
     patterns: [
-      // Avoid matching dashboard label "Pending Loans"
       /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)/i,
       /application\s*(is\s*)?pending/i,
       /status\s*(is\s*)?pending/i,
@@ -250,7 +258,6 @@ const RULES: IntentRule[] = [
   {
     intent: 'rejected-application',
     patterns: [
-      // Avoid "Declined Loans" counter
       /\breject(?:ed|ion)?\b/i,
       /(?<!declined\s)\bdeclined\b(?!\s*loans)/i,
       /not\s*approv/i,
@@ -267,9 +274,13 @@ const RULES: IntentRule[] = [
   },
   {
     intent: 'bank-information',
-    patterns: [/bank.*(detail|account|info|fail|reject|not)/i, /bvn.*(fail|reject|not|verif)/i],
+    patterns: [
+      /bank.*(detail|account|info|fail|reject|not)/i,
+      /bvn.*(fail|reject|not|verif)/i,
+      /\bbvn\b/i,
+    ],
     topics: ['bank', 'bvn'],
-    problem: 'Bank details failed verification',
+    problem: 'Bank details or BVN steps',
     stage: 'applying',
     entities: ['bank'],
     troubleshooting: true,
@@ -419,6 +430,8 @@ const RULES: IntentRule[] = [
       /register\s*(for|on)\s*nelfund/i,
       /fill\s*(my\s*)?(information|application|form)/i,
       /new\s*application/i,
+      /how\s*(does|do)\s*(nelfund|it)\s*work/i,
+      /how\s*nelfund\s*works/i,
     ],
     topics: ['apply'],
     problem: 'How to apply for NELFUND',
@@ -449,13 +462,13 @@ const RULES: IntentRule[] = [
   },
   {
     intent: 'deadline',
-    patterns: [/deadline/i, /closing\s*date/i],
+    patterns: [/deadline/i, /closing\s*date/i, /expire/i, /when\s*will.{0,20}close/i],
     topics: ['deadline'],
     problem: 'Application deadline',
     stage: 'exploring',
     entities: ['deadline'],
     troubleshooting: false,
-    weight: 8,
+    weight: 12,
   },
   {
     intent: 'scam-safety',
@@ -573,8 +586,19 @@ function expandWithContext(question: string, history?: ConversationTurn[]): stri
     .slice(-2)
     .map((t) => t.text)
     .join(' ')
-  if (question.trim().length < 40 && recentUser) return `${recentUser} ${question}`
+  if (question.trim().length < 48 && recentUser) return `${recentUser} ${question}`
   return question
+}
+
+function lastUserIntent(history?: ConversationTurn[]): IntentId | null {
+  if (!history) return null
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].role === 'user' && history[i].intent) return history[i].intent as IntentId
+  }
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].intent) return history[i].intent as IntentId
+  }
+  return null
 }
 
 export function classifyIntent(question: string, history?: ConversationTurn[]): IntentResult {
@@ -593,7 +617,6 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   const q = expandWithContext(raw, history)
   const entities = detectEntities(q)
 
-  // Dashboard OCR must not become "pending application"
   if (isLoanCounterNoise(q)) {
     return {
       intent: 'current-information',
@@ -602,6 +625,19 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
       problem: 'Portal dashboard or registration notice',
       stage: 'applying',
       entities: Array.from(new Set([...entities, 'portal'])),
+      isTroubleshooting: false,
+    }
+  }
+
+  // BVN + timing / expire → current-information (situational playbook)
+  if (/\bbvn\b/i.test(q) && /(expire|deadline|registr|account|apply|when|yet|don'?t|dont|no\s*bvn)/i.test(q)) {
+    return {
+      intent: 'current-information',
+      confidence: 0.92,
+      topics: ['bvn', 'deadline', 'registration'],
+      problem: 'BVN timing vs registration / application window',
+      stage: 'preparing',
+      entities: Array.from(new Set([...entities, 'bvn'])),
       isTroubleshooting: false,
     }
   }
@@ -632,6 +668,21 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
       isTroubleshooting: best.rule.troubleshooting,
     }
   }
+
+  // Sticky context: short follow-ups keep prior intent
+  const prev = lastUserIntent(history)
+  if (prev && prev !== 'unknown' && raw.length < 48) {
+    return {
+      intent: prev,
+      confidence: 0.55,
+      topics: ['follow-up'],
+      problem: null,
+      stage: 'unknown',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+
   const lower = q.toLowerCase()
   if (lower.includes('nelfund') && (lower.includes('what') || lower.includes('mean'))) {
     return {
