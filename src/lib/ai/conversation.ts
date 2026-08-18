@@ -270,7 +270,59 @@ export async function processUserTurn(opts: {
     })
   }
 
-  if (/password\s*(is|=|:)|my\s*password\s*is|otp\s*(is|=)/i.test(combined)) {
+  if (
+    /whatsapp|telegram|pay\s*(#?|naira|₦)?\s*\d|fast\s*track|agent\s*(said|told|messaged)|send\s*(money|otp|pin)/i.test(
+      combined,
+    ) ||
+    (/pay/i.test(combined) && /nelfund|loan|application/i.test(combined) && /agent|man|guy|someone/i.test(combined))
+  ) {
+    const answer = lightAnswer(
+      'contact-support',
+      '**Do not pay anyone** to “fast-track” NELFUND, and **never share OTP, PIN, or password** with WhatsApp/Telegram “agents.”\n\nOfficial channels only:\n• Portal: https://portal.nelf.gov.ng/\n• Site: https://nelf.gov.ng/\n• Support tickets: https://nelfund.esupport.ng/create\n\nNELFUND does not ask students to pay random people to process applications.',
+      {
+        next: [
+          'https://portal.nelf.gov.ng/',
+          'https://nelfund.esupport.ng/create',
+          'https://nelf.gov.ng/',
+        ],
+      },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
+  if (/forgot\s*(my\s*)?password|reset\s*(my\s*)?password|can'?t\s*log\s*in|cannot\s*log\s*in/i.test(combined)) {
+    const answer = lightAnswer(
+      'portal-login',
+      'I cannot reset passwords for you. Use only the official portal:\n\n1. Open https://portal.nelf.gov.ng/\n2. Use the portal’s own **Forgot password / reset** option if shown.\n3. Never send your password or OTP to anyone in chat, email, or WhatsApp.\n\nIf reset fails, open a ticket at https://nelfund.esupport.ng/create describing the login problem (no secrets).',
+      { next: ['https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'] },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'portal-login',
+    }
+  }
+
+  if (
+    /password\s*(is|=|:)|my\s*password\s*is|otp\s*(is|=)/i.test(combined) ||
+    /send\s*(my\s*)?(otp|password|pin)|share\s*(my\s*)?(otp|password|pin)|give\s*(my\s*)?(otp|password)/i.test(
+      combined,
+    )
+  ) {
     const answer = lightAnswer(
       'portal-login',
       'Do not share passwords, OTP, or PINs in chat — I cannot and should not use them. Sign in only at https://portal.nelf.gov.ng/ and use official reset options if you are locked out.',
@@ -315,7 +367,57 @@ export async function processUserTurn(opts: {
     }
   }
 
+  if (/contact\s*nelfund|nelfund\s*support|how\s*i\s*go\s*contact\s*nelfund|reach\s*nelfund/i.test(combined)) {
+    const answer = lightAnswer(
+      'contact-support',
+      'To contact **NELFUND**:\n\n• Support tickets: https://nelfund.esupport.ng/create\n• Portal: https://portal.nelf.gov.ng/\n• Site: https://nelf.gov.ng/\n\nNo passwords or OTP in any message.',
+      {
+        next: [
+          'https://nelfund.esupport.ng/create',
+          'https://portal.nelf.gov.ng/',
+          'https://nelf.gov.ng/',
+        ],
+      },
+    )
+    slots.phase = 'resolve'
+    return {
+      messages: [
+        userMsg,
+        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'contact-lookup',
+    }
+  }
+
   if (capability === 'contact-lookup' || intent === 'contact-lookup' || intent === 'contact-support') {
+    if (
+      /nelfund|nelf\.gov|esupport/i.test(combined) &&
+      !/school|university|poly|my\s*institution|LASU|OOU|UNILAG/i.test(combined)
+    ) {
+      const answer = lightAnswer(
+        'contact-support',
+        'To contact **NELFUND** (not your school):\n\n• Support tickets: https://nelfund.esupport.ng/create\n• Portal: https://portal.nelf.gov.ng/\n• Official site: https://nelf.gov.ng/\n\nDescribe the issue clearly and attach a screenshot with passwords/OTP hidden. Do not send login secrets to anyone.',
+        {
+          next: [
+            'https://nelfund.esupport.ng/create',
+            'https://portal.nelf.gov.ng/',
+            'https://nelf.gov.ng/',
+          ],
+        },
+      )
+      slots.phase = 'resolve'
+      return {
+        messages: [
+          userMsg,
+          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+        ],
+        slots,
+        diagnosed: true,
+        capability: 'contact-lookup',
+      }
+    }
     if (!slots.institutionId) {
       slots.awaitingInstitution = true
       slots.pendingClarify = 'institution'
