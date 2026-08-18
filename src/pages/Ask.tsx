@@ -49,7 +49,7 @@ export default function Ask() {
     void checkAgentStatus().then((s) => {
       if (!s) {
         setAgentReady(false)
-        setDegradedNote('Could not reach agent status. Limited offline mode may apply.')
+        setDegradedNote('Offline guide mode')
         return
       }
       const ready = s.agent === 'ready'
@@ -111,12 +111,12 @@ export default function Ask() {
       imagePreview = URL.createObjectURL(file)
       try {
         const ocr = await extractTextFromImage(file)
-        ocrText = ocr.lowSignal ? null : ocr.text
+        ocrText = ocr.text && ocr.text.trim().length >= 12 ? ocr.text : ocr.lowSignal ? null : ocr.text
       } catch {
         ocrText = null
       }
     } else {
-      setBusyLabel(agentReady === false ? 'Limited mode…' : 'Thinking…')
+      setBusyLabel(agentReady === false ? 'Offline mode…' : 'Thinking…')
     }
 
     const hadUserMessage = messages.some((m) => m.role === 'user')
@@ -204,7 +204,7 @@ export default function Ask() {
 
     setAgentReady(false)
     setDegradedNote(agent.message)
-    setBusyLabel('Limited offline mode…')
+    setBusyLabel('Offline mode…')
     const result = await processUserTurn({
       userText: text,
       ocrText,
@@ -307,8 +307,8 @@ export default function Ask() {
             </span>
           )}
           {agentReady === false && (
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-              Limited mode
+            <span className="rounded-full bg-forest-50 px-2 py-0.5 text-[10px] font-semibold text-forest-700">
+              Offline mode
             </span>
           )}
           {hasConversation && (
@@ -329,10 +329,9 @@ export default function Ask() {
         </div>
       </header>
 
-      {agentReady === false && degradedNote && (
-        <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-3 py-2 text-center text-[11px] leading-snug text-amber-950 sm:px-4">
-          <strong>Limited offline mode.</strong> Full AI agent unavailable (provider not configured or key rejected).
-          Offline answers are narrower than the intended assistant.
+      {agentReady === false && (
+        <div className="shrink-0 border-b border-forest-100 bg-forest-50/80 px-3 py-1.5 text-center text-[11px] leading-snug text-forest-800 sm:px-4">
+          Offline guide mode — core help still works. Full AI agent is not connected on this deployment.
         </div>
       )}
 
