@@ -22,7 +22,6 @@ export type ScreenshotUnderstanding = {
   } | null
   exactError?: string | null
   studentNameHint?: string | null
-  /** Natural language reply for offline / mock agent */
   explanation: string
   nextActions: string[]
 }
@@ -32,8 +31,8 @@ const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 function parseCount(label: string, text: string): number | undefined {
-  const re = new RegExp(label + '\\s*[\n\r]*\\s*(\d+)', 'i')
-  const m = text.match(re)
+  const re = new RegExp(label.replace(/\s+/g, '\\s+') + '\\s*(\d+)', 'i')
+  const m = text.replace(/\n/g, ' ').match(re)
   if (m) return Number(m[1])
   return undefined
 }
@@ -50,8 +49,7 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
     (/total\s*loans/i.test(text) && /approved\s*loans/i.test(text)) ||
     (/pending\s*loans/i.test(text) && /declined\s*loans/i.test(text))
 
-  const isLogin =
-    /sign\s*in|log\s*in|password|otp/i.test(lower) && !isDashboard
+  const isLogin = /sign\s*in|log\s*in|password|otp/i.test(lower) && !isDashboard
 
   const errorMatch =
     text.match(/missing\s*information[^.]{0,60}/i) ||
@@ -60,29 +58,17 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
     text.match(/invalid\s*jamb[^.]{0,40}/i) ||
     text.match(/nin\s*(verification\s*)?failed[^.]{0,40}/i)
 
-  // Registration window from official notice text
   let registrationWindow: ScreenshotUnderstanding['registrationWindow'] = null
   const sessionMatch = text.match(/(\d{4}\s*\/\s*\d{4})\s*session/i)
   const rangeMatch = text.match(
-    /(?:starts?|start)\s*([A-Za-z]+\s*\d{1,2}\s*,?\s*\d{4})\s*(?:and\s*)?ends?\s*([A-Za-z]+\s*\d{1,2}\s*,?\s*\d{4})/i,
+    /starts?\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?\s*,?\s*\d{4})\s+and\s+ends?\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?\s*,?\s*\d{4})/i,
   )
-  const rangeMatch2 = text.match(
-    /(March|April|May|June|July|August|September|October|November|December)\s*(\d{1,2})\s*,?\s*(\d{4}).{0,40}(March|April|May|June|July|August|September|October|November|December)\s*(\d{1,2})\s*,?\s*(\d{4})/i,
-  )
-  if (sessionMatch || rangeMatch || rangeMatch2 || /session\s*registration/i.test(text)) {
+  if (sessionMatch || rangeMatch || /session\s*registration/i.test(text)) {
     signals.push('registration_notice')
     registrationWindow = {
       session: sessionMatch ? sessionMatch[1].replace(/\s/g, '') : undefined,
-      start: rangeMatch
-        ? rangeMatch[1]
-        : rangeMatch2
-          ? `${rangeMatch2[1]} ${rangeMatch2[2]} ${rangeMatch2[3]}`
-          : undefined,
-      end: rangeMatch
-        ? rangeMatch[2]
-        : rangeMatch2
-          ? `${rangeMatch2[4]} ${rangeMatch2[5]} ${rangeMatch2[6]}`
-          : undefined,
+      start: rangeMatch ? rangeMatch[1] : undefined,
+      end: rangeMatch ? rangeMatch[2] : undefined,
     }
   }
 
@@ -207,7 +193,6 @@ export function understandPortalText(raw: string): ScreenshotUnderstanding | nul
   return null
 }
 
-/** Sample OCR-like text from a typical dashboard screenshot (for tests). */
 export const SAMPLE_DASHBOARD_OCR = `
 Welcome to Student Loan Portal, Damilola
 Notice 2025/2026 Session Registration Starts March 5th 2026 And Ends June 5th 2026
