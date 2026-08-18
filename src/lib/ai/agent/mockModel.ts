@@ -20,9 +20,19 @@ function detectObjective(text: string): AgentObjective {
   if (/draft|write\s*(an?\s*)?(email|message|complaint)/i.test(text)) return 'draft_message'
   if (/contact|who\s*should\s*i|reach|email\s*(for|of)/i.test(t) && !/draft/i.test(t))
     return 'find_contact'
-  if (/open|latest|current|today|deadline|announce/i.test(t)) return 'current_status'
-  if (/login|log\s*in|sign\s*in|which\s*link/i.test(t)) return 'portal_access'
-  if (/upload|school.*(submit|sent|upload)|data.*(upload|submit)/i.test(t)) return 'verify_school_upload'
+  if (/\b(open|opening|latest|current|today|deadline|announce)\b/i.test(t)) return 'current_status'
+  if (
+    /login|log\s*in|sign\s*in|which\s*link|which\s*website|portal\s*link|continue\s*(my\s*)?application/i.test(
+      t,
+    )
+  )
+    return 'portal_access'
+  if (
+    /upload|school.*(submit|sent|upload)|university.*(submit|sent|upload)|data.*(upload|submit)|(sent|submit).*(information|record|data|details)|know.*school.*(upload|submit|sent)/i.test(
+      t,
+    )
+  )
+    return 'verify_school_upload'
   if (/missing\s*information|record\s*not\s*found|no\s*school\s*info/i.test(t))
     return 'resolve_portal_error'
   if (/what\s*is\s*nelfund|eligib|disqualif|repay|upkeep|how\s*to\s*apply/i.test(t)) return 'explain'
@@ -35,6 +45,17 @@ function detectRecipient(text: string): 'school' | 'nelfund' | null {
     return 'nelfund'
   if (/school|institution|registry|ict|lecturer/i.test(text)) return 'school'
   return null
+}
+
+function isVagueHelp(text: string): boolean {
+  const t = text.trim().toLowerCase()
+  if (t.length > 80) return false
+  return (
+    /^(help|hi|hello|please|abeg)\b/i.test(t) ||
+    /help\s*(me\s*)?(with\s*)?(this\s*)?nelfund/i.test(t) ||
+    /nelfund\s*thing/i.test(t) ||
+    (/help|problem|issue|stuck/.test(t) && t.split(/\s+/).length <= 8)
+  )
 }
 
 export function mockPlanTurn(input: AgentInput): MockPlan {
@@ -57,21 +78,22 @@ export function mockPlanTurn(input: AgentInput): MockPlan {
   }
   if (extracted.problemSummary && !state.problem) state.problem = extracted.problemSummary
 
-  const objective = detectObjective(input.message) || state.objective || 'unknown'
+  let objective = detectObjective(input.message)
+  if (objective === 'unknown' && state.objective) objective = state.objective
   state.objective = objective
   const recipient = detectRecipient(input.message)
   if (recipient) state.requestedRecipient = recipient
 
-  // Gather institution if required
   if (needsInstitution(objective) && !state.institutionId && !state.institutionName) {
     state = nextPhase(state, { type: 'needs_context', field: 'institution' })
     return { objective, state, toolCalls: [], clarify: state.pendingQuestion, label: 'mock' }
   }
 
-  if (objective === 'unknown' && input.message.trim().length < 25 && /help|problem|issue/i.test(input.message)) {
+  if (objective === 'unknown' && isVagueHelp(input.message)) {
     state = nextPhase(state, {
       type: 'needs_clarification',
-      question: 'What part is not working — login, missing information, school not showing, or something else?',
+      question:
+        'What part is not working — login, missing information, school not showing, or something else?',
     })
     return { objective, state, toolCalls: [], clarify: state.pendingQuestion, label: 'mock' }
   }
