@@ -3,6 +3,7 @@
  * Distinguishes real agent replies from degraded offline mode — never silent.
  */
 import type { ConversationTurn } from './types'
+import { extractSlotsFromText } from './slots'
 
 export type AgentClientResult =
   | {
@@ -51,6 +52,23 @@ export async function callAgentApi(opts: {
   slots?: AgentSlotsPayload | null
 }): Promise<AgentClientResult> {
   try {
+    const extracted = extractSlotsFromText(opts.userText, {
+      institutionId: opts.slots?.institutionId ?? opts.institutionId,
+      institutionName: opts.slots?.institutionName ?? opts.institutionName,
+      problemSummary: opts.slots?.problemSummary ?? null,
+      exactError: opts.slots?.exactError ?? null,
+      objective: opts.slots?.objective ?? null,
+    })
+
+    const slots: AgentSlotsPayload = {
+      institutionId: extracted.institutionId,
+      institutionName: extracted.institutionName,
+      problemSummary: extracted.problemSummary,
+      exactError: extracted.exactError,
+      objective: extracted.objective,
+      phase: opts.slots?.phase ?? null,
+    }
+
     const messages = [
       ...opts.history.map((h) => ({ role: h.role, content: h.text })),
       { role: 'user' as const, content: opts.userText },
@@ -60,13 +78,10 @@ export async function callAgentApi(opts: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         messages,
-        institutionId: opts.institutionId,
-        institutionName: opts.institutionName,
+        institutionId: slots.institutionId,
+        institutionName: slots.institutionName,
         ocrText: opts.ocrText,
-        slots: opts.slots || {
-          institutionId: opts.institutionId,
-          institutionName: opts.institutionName,
-        },
+        slots,
       }),
     })
 
@@ -83,7 +98,6 @@ export async function callAgentApi(opts: {
     }
 
     if (res.status === 503 || body.error === 'agent_unconfigured' || body.fallback) {
-      // llm_error with fallback also lands here when provider rejects key
       const reason =
         body.error === 'llm_error' || res.status === 502 ? 'llm_error' : 'unconfigured'
       return {
@@ -100,7 +114,8 @@ export async function callAgentApi(opts: {
       return {
         kind: 'degraded',
         reason: 'llm_error',
-        message: body.message || body.detail || `Agent error (${res.status}). Offline limited mode is active.`,
+        message:
+          body.message || body.detail || `Agent error (${res.status}). Offline limited mode is active.`,
       }
     }
 

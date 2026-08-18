@@ -24,8 +24,15 @@ export type {
 export { extractTextFromImage, disposeOcrWorker } from './vision'
 export { callAgentApi, checkAgentStatus } from './agentClient'
 export type { AgentClientResult, AgentSlotsPayload } from './agentClient'
+export { extractSlotsFromText } from './slots'
+export type { ExtractedSlots } from './slots'
 export { EVAL_SCENARIOS, scoreReply } from './eval/scenarios'
 export type { EvalScenario, EvalTurn } from './eval/scenarios'
+export {
+  freshnessFromDates,
+  formatEvidenceForPrompt,
+} from './evidence'
+export type { EvidenceMeta, SourceAuthority, SourceType, Freshness } from './evidence'
 export type {
   GroundedAnswer,
   EvidenceItem,
