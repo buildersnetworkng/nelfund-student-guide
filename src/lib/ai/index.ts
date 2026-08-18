@@ -1,7 +1,7 @@
 /**
  * NELFUND student support agent.
  *
- * PRIMARY: /api/chat LLM agent (reason + tools + knowledge as evidence).
+ * PRIMARY: /api/chat LLM agent (provider-agnostic + tools + knowledge as evidence).
  * EMERGENCY: processUserTurn offline — must never silently pretend to be the LLM.
  */
 
@@ -23,7 +23,9 @@ export type {
 } from './conversation'
 export { extractTextFromImage, disposeOcrWorker } from './vision'
 export { callAgentApi, checkAgentStatus } from './agentClient'
-export type { AgentClientResult } from './agentClient'
+export type { AgentClientResult, AgentSlotsPayload } from './agentClient'
+export { EVAL_SCENARIOS, scoreReply } from './eval/scenarios'
+export type { EvalScenario, EvalTurn } from './eval/scenarios'
 export type {
   GroundedAnswer,
   EvidenceItem,
