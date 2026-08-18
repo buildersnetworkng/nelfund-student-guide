@@ -41,7 +41,6 @@ export default function Ask() {
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
   const [agentReady, setAgentReady] = useState<boolean | null>(null)
-  const [degradedNote, setDegradedNote] = useState<string | null>(null)
 
   const hasConversation = messages.some((m) => m.role === 'user')
 
@@ -49,12 +48,9 @@ export default function Ask() {
     void checkAgentStatus().then((s) => {
       if (!s) {
         setAgentReady(false)
-        setDegradedNote('Offline guide mode')
         return
       }
-      const ready = s.agent === 'ready'
-      setAgentReady(ready)
-      setDegradedNote(ready ? null : s.message)
+      setAgentReady(s.agent === 'ready')
     })
   }, [])
 
@@ -116,7 +112,7 @@ export default function Ask() {
         ocrText = null
       }
     } else {
-      setBusyLabel(agentReady === false ? 'Offline mode…' : 'Thinking…')
+      setBusyLabel('Thinking…')
     }
 
     const hadUserMessage = messages.some((m) => m.role === 'user')
@@ -142,7 +138,6 @@ export default function Ask() {
 
     if (agent.kind === 'llm') {
       setAgentReady(true)
-      setDegradedNote(null)
       const userMsg: ChatMessage = {
         id: uid('user'),
         role: 'user',
@@ -203,8 +198,7 @@ export default function Ask() {
     }
 
     setAgentReady(false)
-    setDegradedNote(agent.message)
-    setBusyLabel('Offline mode…')
+    setBusyLabel('Thinking…')
     const result = await processUserTurn({
       userText: text,
       ocrText,
@@ -301,16 +295,6 @@ export default function Ask() {
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          {agentReady === true && (
-            <span className="hidden rounded-full bg-forest-50 px-2 py-0.5 text-[10px] font-semibold text-forest-700 sm:inline">
-              AI agent
-            </span>
-          )}
-          {agentReady === false && (
-            <span className="rounded-full bg-forest-50 px-2 py-0.5 text-[10px] font-semibold text-forest-700">
-              Offline mode
-            </span>
-          )}
           {hasConversation && (
             <button
               type="button"
@@ -328,12 +312,6 @@ export default function Ask() {
           </Link>
         </div>
       </header>
-
-      {agentReady === false && (
-        <div className="shrink-0 border-b border-forest-100 bg-forest-50/80 px-3 py-1.5 text-center text-[11px] leading-snug text-forest-800 sm:px-4">
-          Offline guide mode — core help still works. Full AI agent is not connected on this deployment.
-        </div>
-      )}
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {!hasConversation && !busy ? (
