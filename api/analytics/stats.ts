@@ -99,10 +99,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         imageAnalyses,
         faqOpens,
         unresolvedAi,
+        unknownAi,
         topIntents,
         topInstitutions,
         topPages,
         topFeatures,
+        topUnknownTopics,
       ] = await redisPipeline([
         ['SCARD', 'nsg:users'],
         ['SCARD', `nsg:dau:${today}`],
@@ -113,10 +115,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ['GET', 'nsg:counters:ai_image_analysis'],
         ['GET', 'nsg:counters:faq_open'],
         ['GET', 'nsg:counters:ai_unresolved'],
-        ['ZREVRANGE', 'nsg:z:intents', 0, 14, 'WITHSCORES'],
+        ['GET', 'nsg:counters:ai_unknown'],
+        ['ZREVRANGE', 'nsg:z:intents', 0, 19, 'WITHSCORES'],
         ['ZREVRANGE', 'nsg:z:institutions', 0, 14, 'WITHSCORES'],
         ['ZREVRANGE', 'nsg:z:pages', 0, 14, 'WITHSCORES'],
         ['ZREVRANGE', 'nsg:z:features', 0, 14, 'WITHSCORES'],
+        ['ZREVRANGE', 'nsg:z:unknown_topics', 0, 14, 'WITHSCORES'],
       ])
 
       const weekUnionKey = `nsg:tmp:wau:${today}`
@@ -176,6 +180,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           imageAnalyses: Number(imageAnalyses || 0),
           faqOpens: Number(faqOpens || 0),
           unresolvedAi: Number(unresolvedAi || 0),
+          unknownAi: Number(unknownAi || 0),
         },
         active: {
           today: Number(dauToday || 0),
@@ -186,6 +191,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         topInstitutions: toPairs(topInstitutions),
         topPages: toPairs(topPages),
         topFeatures: toPairs(topFeatures),
+        topUnknownTopics: toPairs(topUnknownTopics),
         daily,
         storage: 'redis',
       })
@@ -204,12 +210,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           imageAnalyses: 0,
           faqOpens: 0,
           unresolvedAi: 0,
+          unknownAi: 0,
         },
         active: { today: 0, week: 0, month: 0 },
         topIntents: [],
         topInstitutions: [],
         topPages: [],
         topFeatures: [],
+        topUnknownTopics: [],
         daily: last7
           .slice()
           .reverse()
@@ -248,6 +256,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         imageAnalyses: get('ai_image_analysis'),
         faqOpens: get('faq_open'),
         unresolvedAi: get('ai_unresolved'),
+        unknownAi: get('ai_unknown'),
       },
       active: {
         today: s.dau.get(today)?.size || 0,
@@ -258,6 +267,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       topInstitutions: fromPrefix('institution:'),
       topPages: fromPrefix('page:'),
       topFeatures: fromPrefix('feature:'),
+      topUnknownTopics: fromPrefix('unknown_topic:'),
       daily: last7
         .slice()
         .reverse()
