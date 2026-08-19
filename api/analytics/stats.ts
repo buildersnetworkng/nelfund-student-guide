@@ -140,7 +140,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ['GET', 'nsg:counters:ai_escalation_fired'],
         ['GET', 'nsg:counters:ai_feedback_up'],
         ['GET', 'nsg:counters:ai_feedback_down'],
-        ['ZREVRANGE', 'nsg:z:intents', 0, 19, 'WITHSCORES'],
+        ['ZREVRANGE', 'nsg:z:intents', 0, 14, 'WITHSCORES'],
         ['ZREVRANGE', 'nsg:z:institutions', 0, 14, 'WITHSCORES'],
         ['ZREVRANGE', 'nsg:z:pages', 0, 14, 'WITHSCORES'],
         ['ZREVRANGE', 'nsg:z:features', 0, 14, 'WITHSCORES'],
@@ -306,3 +306,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Failed to load stats' })
   }
 }
+
+// deploy-marker: pilot-quality-counters 2026-08-19
