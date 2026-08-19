@@ -11,6 +11,7 @@ import { buildCurrentInformationAnswerLive } from './current'
 import { draftSupportEmail, describeContactLookup } from './generate'
 import { classifyIntent } from './intent'
 import { isNearDuplicate, nextStepAdvance, playbookAnswer } from './playbook'
+import { institutionAskPrompt, needsInstitutionEarly } from './supportGates'
 import type {
   AgentCapability,
   ConversationTurn,
@@ -192,7 +193,7 @@ function finalize(
   const answer = lightAnswer(intent, text, opts)
   if (opts?.escalation) answer.escalation = opts.escalation
   slots.intent = intent
-  slots.phase = 'resolve'
+  slots.phase = slots.awaitingInstitution ? 'clarify' : 'resolve'
   slots.lastCapability = capability
   return {
     messages: [
@@ -244,7 +245,6 @@ export async function processUserTurn(opts: {
     if (slots.pendingClarify === 'exact-error') slots.pendingClarify = null
   }
 
-  // Student just provided school name after we asked — resume prior problem with institution context
   if (wasAwaitingInstitution && slots.institutionId && slots.institutionName) {
     slots.awaitingInstitution = false
     slots.pendingClarify = null
@@ -284,7 +284,7 @@ export async function processUserTurn(opts: {
         capability: 'conversation',
       }
     } catch {
-      /* fall through to normal routing */
+      /* fall through */
     }
   }
 
@@ -310,14 +310,15 @@ export async function processUserTurn(opts: {
           screen.kind === 'error' ? 'missing-information' : 'current-information',
         )
       }
-      return finalize(
-        userMsg,
-        slots,
-        screen.kind === 'error' ? 'missing-information' : 'current-information',
-        explanation,
-        'conversation',
-        { next: screen.nextActions.slice(0, 4) },
-      )
+      const intentScr: IntentId = screen.kind === 'error' ? 'missing-information' : 'current-information'
+      if (needsInstitutionEarly(intentScr) && !slots.institutionId) {
+        slots.awaitingInstitution = true
+        slots.pendingClarify = 'institution'
+        explanation = `${explanation}\n\n${institutionAskPrompt(intentScr)}`
+      }
+      return finalize(userMsg, slots, intentScr, explanation, 'conversation', {
+        next: screen.nextActions.slice(0, 4),
+      })
     }
   }
 
@@ -336,6 +337,30 @@ export async function processUserTurn(opts: {
 
   const capability = resolveCapability(intent, combined || rawUser)
   slots.lastCapability = capability
+
+  // Force earlier institution capture on support flows (pilot fix)
+  if (needsInstitutionEarly(intent) && !slots.institutionId) {
+    slots.awaitingInstitution = true
+    slots.pendingClarify = 'institution'
+    const brief =
+      playbookAnswer(intent, {
+        institutionName: null,
+        problemSummary: slots.problemSummary,
+        exactError: slots.exactError,
+        turnIndex,
+        lastAssistant: prevAsst,
+        userText: combined,
+      }) || null
+    const ask = institutionAskPrompt(intent)
+    const firstLine = brief ? brief.split('\n\n')[0] : null
+    const text =
+      firstLine && turnIndex === 0 && firstLine.length < 280
+        ? `${firstLine}\n\n${ask}`
+        : ask
+    return finalize(userMsg, slots, intent, text, capability, {
+      next: ['Share your school name', 'https://portal.nelf.gov.ng/'],
+    })
+  }
 
   if (slots.pendingClarify === 'problem' && /^\s*[1-6]\s*$/.test(rawUser)) {
     const n = rawUser.trim()
@@ -430,8 +455,8 @@ export async function processUserTurn(opts: {
         return finalize(
           userMsg,
           slots,
-          'contact-lookup',
-          'Please type your institution name (for example LASU, UNILAG, OOU, FUTA). I will use it for contacts and drafts — I will not invent emails.',
+          slots.intent || 'contact-lookup',
+          institutionAskPrompt(slots.intent),
           'conversation',
         )
       }
@@ -451,13 +476,7 @@ export async function processUserTurn(opts: {
     if (!slots.institutionId) {
       slots.awaitingInstitution = true
       slots.pendingClarify = 'institution'
-      return finalize(
-        userMsg,
-        slots,
-        'contact-lookup',
-        'Which institution do you attend? Once I know the school, I can point you to curated contacts or official channels — I will not invent email addresses.',
-        'contact-lookup',
-      )
+      return finalize(userMsg, slots, 'contact-lookup', institutionAskPrompt('contact-lookup'), 'contact-lookup')
     }
     try {
       const esc = buildEscalationPlan('missing-information' as IntentId, slots.institutionId)
@@ -604,10 +623,6 @@ export async function processUserTurn(opts: {
             intent,
           )
         : pb
-      if (intent === 'missing-information' && !slots.institutionId) {
-        slots.awaitingInstitution = true
-        slots.pendingClarify = 'institution'
-      }
       return finalize(userMsg, slots, intent, text, capability, {
         next: [
           'https://portal.nelf.gov.ng/',
