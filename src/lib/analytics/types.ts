@@ -8,6 +8,7 @@ export type AnalyticsEventName =
   | 'ai_image_analysis'
   | 'ai_unresolved'
   | 'ai_resolved'
+  | 'ai_unknown'
   /** Conversation produced a useful grounded answer (diagnosed, known intent) */
   | 'ai_resolution_closed'
   /** AI handed off school and/or NELFUND contact details */
@@ -34,6 +35,8 @@ export interface AnalyticsEventPayload {
   unresolved?: boolean
   /** true when image OCR/analysis ran */
   hasImage?: boolean
+  /** Coarse unknown-topic bucket only — never free-text questions */
+  topic?: string
   meta?: Record<string, string | number | boolean | null>
 }
 
@@ -54,6 +57,7 @@ export interface AnalyticsStats {
     imageAnalyses: number
     faqOpens: number
     unresolvedAi: number
+    unknownAi: number
     /** Exact: useful diagnosis closed */
     resolutionClosed: number
     /** Exact: escalation / contact handoff fired */
@@ -70,6 +74,8 @@ export interface AnalyticsStats {
   topInstitutions: Array<{ key: string; count: number }>
   topPages: Array<{ key: string; count: number }>
   topFeatures: Array<{ key: string; count: number }>
+  /** Coarse buckets for unclassified questions (never free-text) */
+  topUnknownTopics: Array<{ key: string; count: number }>
   daily: Array<{ date: string; users: number; sessions: number; aiQuestions: number }>
   storage: 'redis' | 'memory' | 'unavailable'
 }
