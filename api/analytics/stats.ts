@@ -74,6 +74,22 @@ function adminAuthorized(req: VercelRequest): boolean {
   return typeof provided === 'string' && provided.length > 0 && provided === expected
 }
 
+const emptyTotals = {
+  uniqueUsers: 0,
+  sessions: 0,
+  pageViews: 0,
+  aiConversations: 0,
+  aiQuestions: 0,
+  imageAnalyses: 0,
+  faqOpens: 0,
+  unresolvedAi: 0,
+  unknownAi: 0,
+  resolutionClosed: 0,
+  escalationFired: 0,
+  feedbackUp: 0,
+  feedbackDown: 0,
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
@@ -100,6 +116,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         faqOpens,
         unresolvedAi,
         unknownAi,
+        resolutionClosed,
+        escalationFired,
+        feedbackUp,
+        feedbackDown,
         topIntents,
         topInstitutions,
         topPages,
@@ -116,6 +136,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ['GET', 'nsg:counters:faq_open'],
         ['GET', 'nsg:counters:ai_unresolved'],
         ['GET', 'nsg:counters:ai_unknown'],
+        ['GET', 'nsg:counters:ai_resolution_closed'],
+        ['GET', 'nsg:counters:ai_escalation_fired'],
+        ['GET', 'nsg:counters:ai_feedback_up'],
+        ['GET', 'nsg:counters:ai_feedback_down'],
         ['ZREVRANGE', 'nsg:z:intents', 0, 19, 'WITHSCORES'],
         ['ZREVRANGE', 'nsg:z:institutions', 0, 14, 'WITHSCORES'],
         ['ZREVRANGE', 'nsg:z:pages', 0, 14, 'WITHSCORES'],
@@ -181,6 +205,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           faqOpens: Number(faqOpens || 0),
           unresolvedAi: Number(unresolvedAi || 0),
           unknownAi: Number(unknownAi || 0),
+          resolutionClosed: Number(resolutionClosed || 0),
+          escalationFired: Number(escalationFired || 0),
+          feedbackUp: Number(feedbackUp || 0),
+          feedbackDown: Number(feedbackDown || 0),
         },
         active: {
           today: Number(dauToday || 0),
@@ -201,17 +229,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!s) {
       return res.status(200).json({
         generatedAt: new Date().toISOString(),
-        totals: {
-          uniqueUsers: 0,
-          sessions: 0,
-          pageViews: 0,
-          aiConversations: 0,
-          aiQuestions: 0,
-          imageAnalyses: 0,
-          faqOpens: 0,
-          unresolvedAi: 0,
-          unknownAi: 0,
-        },
+        totals: { ...emptyTotals },
         active: { today: 0, week: 0, month: 0 },
         topIntents: [],
         topInstitutions: [],
@@ -257,6 +275,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         faqOpens: get('faq_open'),
         unresolvedAi: get('ai_unresolved'),
         unknownAi: get('ai_unknown'),
+        resolutionClosed: get('ai_resolution_closed'),
+        escalationFired: get('ai_escalation_fired'),
+        feedbackUp: get('ai_feedback_up'),
+        feedbackDown: get('ai_feedback_down'),
       },
       active: {
         today: s.dau.get(today)?.size || 0,
