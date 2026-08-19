@@ -9,6 +9,10 @@ export type AnalyticsEventName =
   | 'ai_unresolved'
   | 'ai_resolved'
   | 'ai_unknown'
+  | 'ai_resolution_closed'
+  | 'ai_escalation_fired'
+  | 'ai_feedback_up'
+  | 'ai_feedback_down'
   | 'faq_view'
   | 'faq_open'
   | 'feature_use'
@@ -51,8 +55,13 @@ export interface AnalyticsStats {
     imageAnalyses: number
     faqOpens: number
     unresolvedAi: number
-    /** Explicit unknown-intent AI turns */
     unknownAi: number
+    /** Exact: conversation ended with a useful grounded answer */
+    resolutionClosed: number
+    /** Exact: AI handed off to school or NELFUND support */
+    escalationFired: number
+    feedbackUp: number
+    feedbackDown: number
   }
   active: {
     today: number
@@ -63,7 +72,6 @@ export interface AnalyticsStats {
   topInstitutions: Array<{ key: string; count: number }>
   topPages: Array<{ key: string; count: number }>
   topFeatures: Array<{ key: string; count: number }>
-  /** Coarse topic tags for unknown questions (privacy-safe) */
   topUnknownTopics: Array<{ key: string; count: number }>
   daily: Array<{ date: string; users: number; sessions: number; aiQuestions: number }>
   storage: 'redis' | 'memory' | 'unavailable'
