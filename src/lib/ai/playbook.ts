@@ -115,7 +115,8 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Upkeep** is living support (separate from school charges paid to the institution).\n\n• Confirmed figure on this guide: **₦20,000 per month**, unless official pages change it\n• Only when approved and disbursement rules are met\n• Ignore WhatsApp ₦25k claims unless ${SITE} or ${PORTAL} confirms\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
   }
 
-  if (asksMoney && (intent === 'unknown' || intent === 'current-information')) {
+  // current-information already handled above; only unknown remains for money timing
+  if (asksMoney && intent === 'unknown') {
     return `**Payment timing** is controlled by approval and official disbursement — not by this chat.\n\n• School charges → to the **institution**\n• Upkeep → only if approved\n• Status: ${PORTAL}\n• Approved but stuck → ${ESUPPORT}\n\nI will not invent a personal credit date.`
   }
 
