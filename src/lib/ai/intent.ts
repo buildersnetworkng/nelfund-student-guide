@@ -11,7 +11,6 @@ interface IntentRule {
   weight: number
 }
 
-/** Dashboard OCR often contains "Pending Loans" / "Declined Loans" — not app status. */
 function isLoanCounterNoise(q: string): boolean {
   return (
     /total\s*loans/i.test(q) ||
@@ -85,6 +84,9 @@ const RULES: IntentRule[] = [
       /i\s*don'?t\s*have\s*bvn/i,
       /bvn\s*yet/i,
       /sort\s*out\s*(my\s*)?bvn/i,
+      /them\s*never\s*open/i,
+      /dem\s*never\s*open/i,
+      /window\s*(still\s*)?(open|close)/i,
     ],
     topics: ['current', 'latest', 'open', 'deadline', 'bvn'],
     problem: 'Current or time-sensitive NELFUND information',
@@ -105,6 +107,9 @@ const RULES: IntentRule[] = [
       /i\s*want\s*to\s*(login|log\s*in)/i,
       /existing\s*(account|application)/i,
       /already\s*(have|created)\s*(an?\s*)?account/i,
+      /portal\s*link/i,
+      /nelfund\s*website/i,
+      /where\s*(i\s*)?(go|enter|open)\s*(the\s*)?(portal|site)/i,
     ],
     topics: ['login', 'portal'],
     problem: 'Official link to login or continue an existing application',
@@ -127,6 +132,8 @@ const RULES: IntentRule[] = [
       /know\s*if\s*(my\s*)?(data|record).{0,40}upload/i,
       /whether\s*(my\s*)?(school|data|record).{0,40}upload/i,
       /student\s*record\s*(upload|submit)/i,
+      /school\s*(don|doesn|no)\s*(upload|submit)/i,
+      /my\s*school\s*(never|no)\s*upload/i,
     ],
     topics: ['institution verification', 'upload'],
     problem: 'Whether institution has uploaded student record to NELFUND',
@@ -170,6 +177,8 @@ const RULES: IntentRule[] = [
       /no\s*dey\s*accept\s*my\s*jamb/i,
       /jamb.*(no\s*dey|won'?t|wont)\s*(enter|work|go)/i,
       /can'?t\s*(enter|use|input).*jamb/i,
+      /jamb\s*issue/i,
+      /problem\s*with\s*(my\s*)?jamb/i,
     ],
     topics: ['jamb', 'verification'],
     problem: 'JAMB registration number rejected or not verifying',
@@ -185,6 +194,8 @@ const RULES: IntentRule[] = [
       /(not|isn'?t|no|keep|reject|invalid|fail|mismatch).*nin/i,
       /nin.*(verif|fail|reject|mismatch)/i,
       /fix\s*(my\s*)?nin/i,
+      /nin\s*issue/i,
+      /problem\s*with\s*(my\s*)?nin/i,
     ],
     topics: ['nin', 'verification'],
     problem: 'NIN is not verifying',
@@ -211,6 +222,11 @@ const RULES: IntentRule[] = [
       /my\s*nelfund.*(missing|no\s*info)/i,
       /student\s*record.*(missing|not\s*found)/i,
       /record\s*not\s*found/i,
+      /no\s*dey\s*show\s*(my\s*)?(info|information|data)/i,
+      /portal\s*no\s*dey\s*work/i,
+      /e\s*no\s*dey\s*work/i,
+      /nelfund\s*thing\s*no\s*dey\s*work/i,
+      /wahala\s*(with\s*)?(missing|info|portal)/i,
     ],
     topics: ['missing information'],
     problem: 'Portal shows missing or no school information',
@@ -228,6 +244,7 @@ const RULES: IntentRule[] = [
       /institution\s*(not|isn'?t).*(on|in|show|list|found)/i,
       /school\s*no\s*dey\s*show/i,
       /can'?t\s*find\s*(my\s*)?school/i,
+      /school\s*not\s*on\s*(the\s*)?(list|portal)/i,
     ],
     topics: ['school not showing'],
     problem: 'School or institution is not appearing on the portal',
@@ -247,6 +264,10 @@ const RULES: IntentRule[] = [
       /nothing\s*is\s*happening/i,
       /i'?ve\s*submitted.*(since|and|but)/i,
       /this\s*thing\s*is\s*still\s*pending/i,
+      /how\s*long.*(pending|wait|processing)/i,
+      /since\s*(last\s*)?(week|month).*(pending|nothing)/i,
+      /my\s*application\s*(still|no)\s*(move|change)/i,
+      /status\s*no\s*dey\s*change/i,
     ],
     topics: ['pending', 'status'],
     problem: 'Application is still pending',
@@ -325,6 +346,8 @@ const RULES: IntentRule[] = [
       /monthly\s*allowance/i,
       /how\s*(do\s*i|to)\s*get\s*(the\s*)?(20k|upkeep|allowance)/i,
       /get\s*(the\s*)?20k/i,
+      /when\s*will\s*i\s*(get|receive).*(money|upkeep|allowance|20k)/i,
+      /disburse/i,
     ],
     topics: ['upkeep', '20k'],
     problem: 'Upkeep allowance amount or access',
@@ -432,6 +455,8 @@ const RULES: IntentRule[] = [
       /new\s*application/i,
       /how\s*(does|do)\s*(nelfund|it)\s*work/i,
       /how\s*nelfund\s*works/i,
+      /how\s*to\s*register/i,
+      /steps?\s*to\s*apply/i,
     ],
     topics: ['apply'],
     problem: 'How to apply for NELFUND',
@@ -472,7 +497,7 @@ const RULES: IntentRule[] = [
   },
   {
     intent: 'scam-safety',
-    patterns: [/scam/i, /fraud/i, /otp/i, /agent.*(pay|money)/i],
+    patterns: [/scam/i, /fraud/i, /\botp\b/i, /agent.*(pay|money)/i, /pay\s*(an?\s*)?agent/i],
     topics: ['scam'],
     problem: 'Scam or safety concern',
     stage: 'unknown',
@@ -533,6 +558,7 @@ const RULES: IntentRule[] = [
       /about\s*nelfund/i,
       /tell\s*me\s*about\s*nelfund/i,
       /^nelfund\??$/i,
+      /wetin\s*be\s*nelfund/i,
     ],
     topics: ['what is', 'nelfund'],
     problem: 'What NELFUND is',
@@ -601,6 +627,111 @@ function lastUserIntent(history?: ConversationTurn[]): IntentId | null {
   return null
 }
 
+/** Last-resort recovery for pilot free-text that missed RULES. */
+function recoverPilotUnknown(q: string, entities: string[]): IntentResult | null {
+  const t = q.toLowerCase()
+  if (/missing|no\s*info|record\s*not|e\s*dey\s*show|no\s*dey\s*work|wahala.*(portal|nelfund)/i.test(t)) {
+    return {
+      intent: 'missing-information',
+      confidence: 0.7,
+      topics: ['missing information'],
+      problem: 'Portal shows missing or no school information',
+      stage: 'applying',
+      entities,
+      isTroubleshooting: true,
+    }
+  }
+  if (/pending|still\s*wait|nothing\s*(is\s*)?happen|status\s*no\s*dey/i.test(t)) {
+    return {
+      intent: 'pending-application',
+      confidence: 0.7,
+      topics: ['pending'],
+      problem: 'Application is still pending',
+      stage: 'waiting',
+      entities,
+      isTroubleshooting: true,
+    }
+  }
+  if (/bvn|expire|deadline|when\s*will|open\s*now|still\s*open|2026|2027/i.test(t)) {
+    return {
+      intent: 'current-information',
+      confidence: 0.72,
+      topics: ['current', 'deadline'],
+      problem: 'Current or time-sensitive NELFUND information',
+      stage: 'exploring',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  if (/upkeep|20k|allowance|disburse|when\s*will\s*i\s*(get|receive)/i.test(t)) {
+    return {
+      intent: 'upkeep',
+      confidence: 0.7,
+      topics: ['upkeep'],
+      problem: 'Upkeep allowance amount or access',
+      stage: 'exploring',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  if (/jamb/i.test(t)) {
+    return {
+      intent: 'jamb-verification',
+      confidence: 0.68,
+      topics: ['jamb'],
+      problem: 'JAMB registration number rejected or not verifying',
+      stage: 'applying',
+      entities,
+      isTroubleshooting: true,
+    }
+  }
+  if (/upload|school.*(submit|sent)|know\s*if\s*(my\s*)?school/i.test(t)) {
+    return {
+      intent: 'institution-verification',
+      confidence: 0.68,
+      topics: ['upload'],
+      problem: 'Whether institution has uploaded student record to NELFUND',
+      stage: 'waiting',
+      entities,
+      isTroubleshooting: true,
+    }
+  }
+  if (/how\s*(to|do\s*i)\s*apply|register|start\s*application/i.test(t)) {
+    return {
+      intent: 'how-to-apply',
+      confidence: 0.68,
+      topics: ['apply'],
+      problem: 'How to apply for NELFUND',
+      stage: 'preparing',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  if (/what\s*is\s*nelfund|wetin\s*be\s*nelfund|about\s*nelfund/i.test(t)) {
+    return {
+      intent: 'what-is-nelfund',
+      confidence: 0.7,
+      topics: ['what is'],
+      problem: 'What NELFUND is',
+      stage: 'exploring',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  if (/login|portal\s*link|which\s*(site|link)/i.test(t)) {
+    return {
+      intent: 'portal-login',
+      confidence: 0.68,
+      topics: ['login'],
+      problem: 'Official link to login or continue an existing application',
+      stage: 'applying',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  return null
+}
+
 export function classifyIntent(question: string, history?: ConversationTurn[]): IntentResult {
   const raw = question.trim()
   if (!raw) {
@@ -629,7 +760,6 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     }
   }
 
-  // BVN + timing / expire → current-information (situational playbook)
   if (/\bbvn\b/i.test(q) && /(expire|deadline|registr|account|apply|when|yet|don'?t|dont|no\s*bvn)/i.test(q)) {
     return {
       intent: 'current-information',
@@ -649,7 +779,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
       try {
         if (pattern.test(q)) hits += 1
       } catch {
-        /* ignore bad lookbehind on older engines */
+        /* ignore */
       }
     }
     if (hits === 0) continue
@@ -669,7 +799,6 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     }
   }
 
-  // Sticky context: short follow-ups keep prior intent
   const prev = lastUserIntent(history)
   if (prev && prev !== 'unknown' && raw.length < 48) {
     return {
@@ -682,6 +811,9 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
       isTroubleshooting: false,
     }
   }
+
+  const recovered = recoverPilotUnknown(q, entities)
+  if (recovered) return recovered
 
   const lower = q.toLowerCase()
   if (lower.includes('nelfund') && (lower.includes('what') || lower.includes('mean'))) {
