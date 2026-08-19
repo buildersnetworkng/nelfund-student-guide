@@ -79,6 +79,8 @@ export default function AdminAnalytics() {
     void load(input)
   }
 
+  const t = stats?.totals
+
   return (
     <div className="min-h-screen bg-paper">
       <header className="border-b border-forest-100 bg-white/90">
@@ -118,7 +120,7 @@ export default function AdminAnalytics() {
           </form>
         )}
 
-        {stats && (
+        {stats && t && (
           <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-ink/45">
@@ -132,7 +134,7 @@ export default function AdminAnalytics() {
             <section>
               <h2 className="text-sm font-semibold text-ink">Active students</h2>
               <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <StatCard label="Total unique users" value={stats.totals.uniqueUsers} />
+                <StatCard label="Total unique users" value={t.uniqueUsers} />
                 <StatCard label="Today" value={stats.active.today} hint="Daily active users" />
                 <StatCard label="This week" value={stats.active.week} hint="7-day unique" />
                 <StatCard label="This month" value={stats.active.month} hint="30-day unique" />
@@ -142,18 +144,32 @@ export default function AdminAnalytics() {
             <section>
               <h2 className="text-sm font-semibold text-ink">Product usage</h2>
               <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <StatCard label="Sessions" value={stats.totals.sessions} />
-                <StatCard label="Page views" value={stats.totals.pageViews} />
-                <StatCard label="AI conversations" value={stats.totals.aiConversations} />
-                <StatCard label="AI questions" value={stats.totals.aiQuestions} />
-                <StatCard label="Image analyses" value={stats.totals.imageAnalyses} />
-                <StatCard label="FAQ opens" value={stats.totals.faqOpens} />
-                <StatCard label="Unresolved AI" value={stats.totals.unresolvedAi} hint="Low-confidence answers" />
+                <StatCard label="Sessions" value={t.sessions} />
+                <StatCard label="Page views" value={t.pageViews} />
+                <StatCard label="AI conversations" value={t.aiConversations} />
+                <StatCard label="AI questions" value={t.aiQuestions} />
+                <StatCard label="Image analyses" value={t.imageAnalyses} />
+                <StatCard label="FAQ opens" value={t.faqOpens} />
+                <StatCard label="Unresolved AI" value={t.unresolvedAi} hint="Low-confidence answers" />
+                <StatCard label="Unknown AI" value={t.unknownAi ?? 0} hint="Intent not classified" />
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-sm font-semibold text-ink">Pilot quality (exact counters)</h2>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <StatCard
-                  label="Unknown AI"
-                  value={stats.totals.unknownAi ?? 0}
-                  hint="Intent not classified"
+                  label="Resolution closed"
+                  value={t.resolutionClosed ?? 0}
+                  hint="Useful grounded answer"
                 />
+                <StatCard
+                  label="Escalation fired"
+                  value={t.escalationFired ?? 0}
+                  hint="School / NELFUND handoff"
+                />
+                <StatCard label="Thumbs up" value={t.feedbackUp ?? 0} />
+                <StatCard label="Thumbs down" value={t.feedbackDown ?? 0} />
               </div>
             </section>
 
@@ -185,19 +201,15 @@ export default function AdminAnalytics() {
 
             <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <RankList title="Common AI intents / problems" items={stats.topIntents} />
-              <RankList
-                title="Unknown AI topic buckets"
-                items={stats.topUnknownTopics || []}
-              />
+              <RankList title="Unknown AI topic buckets" items={stats.topUnknownTopics || []} />
               <RankList title="Institutions (when provided)" items={stats.topInstitutions} />
               <RankList title="Top pages" items={stats.topPages} />
               <RankList title="Features used" items={stats.topFeatures} />
             </section>
 
             <p className="text-xs leading-relaxed text-ink/45">
-              Metrics use anonymous device IDs and session IDs only. Refreshing the page does not create a new unique
-              user. Free-text questions are never stored — unknown questions only produce coarse topic buckets
-              (e.g. missing-info, jamb, pending-status) so product gaps can be improved safely.
+              Metrics use anonymous device IDs and session IDs only. Free-text questions are never stored. Resolution
+              closed, escalation fired, and thumbs are exact event counters for Pilot #2 reporting.
             </p>
           </div>
         )}
