@@ -9,7 +9,7 @@ import {
 import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai'
 import { useInstitution } from '../context/InstitutionContext'
 import { AnswerCards } from '../components/AnswerCards'
-import { trackAiQuestion } from '../lib/analytics'
+import { trackAiQuestion, trackFeedback } from '../lib/analytics'
 
 const SUGGESTIONS = [
   'Is NELFUND open right now?',
@@ -66,6 +66,18 @@ function shouldShowCards(m: ChatMessage): boolean {
   )
 }
 
+function detectEscalation(m: ChatMessage | undefined): boolean {
+  if (!m?.answer) return false
+  if (m.answer.escalation) return true
+  const t = (m.text || '').toLowerCase()
+  return (
+    t.includes('nelfund.esupport.ng') ||
+    t.includes('ict / registry') ||
+    t.includes('nelfund desk') ||
+    t.includes('contact') && (t.includes('school') || t.includes('support'))
+  )
+}
+
 export default function Ask() {
   const { institutionId } = useInstitution()
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -80,6 +92,7 @@ export default function Ask() {
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
+  const [feedbackById, setFeedbackById] = useState<Record<string, 'up' | 'down'>>({})
 
   const hasConversation = messages.some((m) => m.role === 'user')
 
@@ -160,10 +173,21 @@ export default function Ask() {
 
     const assistantWithAnswer = offline.messages.find((m) => m.role === 'assistant' && m.answer)
     const intent = assistantWithAnswer?.answer?.intent || offline.slots.intent || null
+    const clarifying = (assistantWithAnswer?.answer?.clarifyingQuestions?.length ?? 0) > 0
     const unresolved =
       !assistantWithAnswer?.answer ||
       intent === 'unknown' ||
-      (assistantWithAnswer.answer.clarifyingQuestions?.length ?? 0) > 0
+      clarifying ||
+      offline.slots.awaitingInstitution
+
+    const resolutionClosed =
+      !!assistantWithAnswer?.answer &&
+      intent !== 'unknown' &&
+      !clarifying &&
+      !offline.slots.awaitingInstitution &&
+      (assistantWithAnswer.answer.confidence ?? 0) >= 0.55
+
+    const escalationFired = detectEscalation(assistantWithAnswer)
 
     trackAiQuestion({
       intent: intent || 'unknown',
@@ -172,6 +196,8 @@ export default function Ask() {
       unresolved,
       isNewConversation: !hadUserMessage,
       userText: text || ocrText || '',
+      resolutionClosed,
+      escalationFired,
     })
 
     setSlots(offline.slots)
@@ -180,6 +206,15 @@ export default function Ask() {
     setPendingPreview(null)
     setBusy(false)
     setBusyLabel('Thinking…')
+  }
+
+  function onFeedback(messageId: string, vote: 'up' | 'down', intent?: string | null) {
+    if (feedbackById[messageId]) return
+    setFeedbackById((prev) => ({ ...prev, [messageId]: vote }))
+    trackFeedback(vote, {
+      intent: intent || slots.intent,
+      institutionId: slots.institutionId || institutionId,
+    })
   }
 
   function onSubmit(e: FormEvent) {
@@ -226,6 +261,7 @@ export default function Ask() {
     setInput('')
     setBusy(false)
     setShowAttachMenu(false)
+    setFeedbackById({})
   }
 
   return (
@@ -315,6 +351,37 @@ export default function Ask() {
                       <LinkifiedText text={m.text} />
                     </div>
                     {shouldShowCards(m) && m.answer && <AnswerCards answer={m.answer} />}
+                    <div className="mt-2 flex items-center gap-1">
+                      <button
+                        type="button"
+                        disabled={!!feedbackById[m.id]}
+                        onClick={() => onFeedback(m.id, 'up', m.answer?.intent)}
+                        className={`rounded-lg px-2 py-1 text-sm transition ${
+                          feedbackById[m.id] === 'up'
+                            ? 'bg-forest-50 text-forest-800'
+                            : 'text-ink/40 hover:bg-forest-50 hover:text-ink/70'
+                        } disabled:cursor-default`}
+                        aria-label="Helpful"
+                      >
+                        👍
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!!feedbackById[m.id]}
+                        onClick={() => onFeedback(m.id, 'down', m.answer?.intent)}
+                        className={`rounded-lg px-2 py-1 text-sm transition ${
+                          feedbackById[m.id] === 'down'
+                            ? 'bg-rust-100 text-rust-600'
+                            : 'text-ink/40 hover:bg-forest-50 hover:text-ink/70'
+                        } disabled:cursor-default`}
+                        aria-label="Not helpful"
+                      >
+                        👎
+                      </button>
+                      {feedbackById[m.id] && (
+                        <span className="ml-1 text-[10px] text-ink/40">Thanks for the feedback</span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
