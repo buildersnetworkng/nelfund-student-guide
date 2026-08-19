@@ -3,6 +3,7 @@ export {
   trackSessionStart,
   trackPageView,
   trackAiQuestion,
+  trackFeedback,
   trackFaqOpen,
   trackFeature,
   trackInstitution,
