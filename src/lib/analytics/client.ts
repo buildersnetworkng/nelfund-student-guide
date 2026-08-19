@@ -188,13 +188,13 @@ export function deriveUnknownTopic(text: string | null | undefined): string {
   if (/upkeep|20\s*k|allowance/.test(t)) return 'upkeep'
   if (/fee|tuition|charges/.test(t)) return 'fees'
   if (/repay|gsi|pay\s*back/.test(t)) return 'repayment'
-  if (/open|deadline|window|apply\s*today|latest\s*update/.test(t)) return 'open-status'
+  if (/open|deadline|window|apply\s*today|latest\s*update|expire|bvn/.test(t)) return 'open-status'
   if (/login|password|otp|sign\s*in|portal/.test(t)) return 'login-portal'
   if (/contact|email|phone|who\s*do\s*i/.test(t)) return 'contacts'
   if (/draft|write\s*(an?\s*)?(email|message)/.test(t)) return 'email-draft'
   if (/eligib|qualify|disqualif/.test(t)) return 'eligibility'
   if (/screenshot|error|what\s*does\s*this\s*mean/.test(t)) return 'error-screenshot'
-  if (/hello|hi\b|help|abeg|please/.test(t) && t.length < 40) return 'greeting-vague'
+  if (/hello|hi\b|help|abeg|please|wahala|stuck/.test(t) && t.length < 40) return 'greeting-vague'
   return 'other'
 }
 
@@ -216,8 +216,11 @@ export function trackAiQuestion(opts: {
   hasImage?: boolean
   unresolved?: boolean
   isNewConversation?: boolean
-  /** Optional user text — used only to derive coarse topic; never sent as free text */
   userText?: string | null
+  /** Exact: useful grounded answer with no clarifying loop */
+  resolutionClosed?: boolean
+  /** Exact: response included school/NELFUND handoff */
+  escalationFired?: boolean
 }) {
   const intent = opts.intent || 'unknown'
   const unknown = isUnknownIntent(intent) || !!opts.unresolved
@@ -269,6 +272,27 @@ export function trackAiQuestion(opts: {
       institutionId: opts.institutionId || undefined,
     })
   }
+
+  if (opts.resolutionClosed) {
+    track('ai_resolution_closed', {
+      intent,
+      institutionId: opts.institutionId || undefined,
+    })
+  }
+  if (opts.escalationFired) {
+    track('ai_escalation_fired', {
+      intent,
+      institutionId: opts.institutionId || undefined,
+    })
+  }
+}
+
+export function trackFeedback(vote: 'up' | 'down', opts?: { intent?: string | null; institutionId?: string | null }) {
+  track(vote === 'up' ? 'ai_feedback_up' : 'ai_feedback_down', {
+    intent: opts?.intent || undefined,
+    institutionId: opts?.institutionId || undefined,
+    feature: 'thumbs',
+  })
 }
 
 export function trackFaqOpen(faqId: string) {
