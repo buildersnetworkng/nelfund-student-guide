@@ -1,15 +1,7 @@
 {
-  "cycle": "2025/2026 closed for many institutions; 2026/2027 not yet officially announced",
-  "status": "account_open_loan_window_check_portal",
-  "status_label": "Portal accounts can usually be created; loan/upkeep application windows are cycle-specific — confirm live",
-  "note": "Separate two things: (1) Creating a NELFUND student account on portal.nelf.gov.ng is often available even when a loan application cycle is closed. (2) Loan and upkeep applications only work during an officially open registration window for that session. A yellow notice with past end dates means that session window has closed — it is not the same as account creation closing. BVN is typically needed to complete bank details before disbursement/application steps that require it; students can often start account setup while arranging BVN. Always confirm live dates on nelf.gov.ng and portal.nelf.gov.ng — this guide does not invent opening dates.",
-  "last_checked": "2026-08-18",
-  "as_of": "2026-08-18",
-  "source_urls": [
-    "https://nelf.gov.ng/",
-    "https://portal.nelf.gov.ng/"
-  ],
-  "authority": "curated",
-  "freshness_policy_days": 3,
-  "disclaimer": "Curated guidance only — students must confirm current openness on official channels. Unofficial social media dates are not authoritative."
+  "cycle": "2025/2026 and subsequent cycles",
+  "status": "not_announced",
+  "status_label": "Account creation open — 2026/2027 loan window not yet announced",
+  "note": "NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. Any deadline you may be seeing relates to the previous loan/upkeep application cycle, which has already closed. The 2026/2027 loan and upkeep application window is expected to open soon, but NELFUND has not yet announced the official opening or closing date. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.",
+  "last_checked": "2026-08-20"
 }

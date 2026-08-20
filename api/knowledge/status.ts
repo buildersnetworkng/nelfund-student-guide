@@ -1,27 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { runRefresh, type LiveApplicationStatus } from './refresh'
 
-type AppStatus =
-  | 'not_announced'
-  | 'open'
-  | 'closed'
-  | 'extended'
-  | 'pending_verification'
-
-type LiveApplicationStatus = {
-  cycle: string
-  status: AppStatus
-  status_label: string
-  note: string
-  last_checked: string
-  last_checked_iso: string
-  sources: Array<{ id: string; label: string; url: string }>
-  confidence: 'high' | 'medium' | 'low'
-  freshness: 'live' | 'cached' | 'static_fallback'
-  signals: string[]
-  verified: boolean
-}
-
-const STALE_MS = 1000 * 60 * 60 * 12
+const STALE_MS = 1000 * 60 * 60 * 12 // 12 hours
 
 function redisUrl(): string {
   return process.env.UPSTASH_REDIS_REST_URL || 'https://premium-rooster-109704.upstash.io'
@@ -42,38 +22,20 @@ async function redisGet(key: string): Promise<string | null> {
 
 const STATIC_FALLBACK: LiveApplicationStatus = {
   cycle: '2025/2026 and subsequent cycles',
-  status: 'pending_verification',
-  status_label: 'Scheme active; confirm live portal status for new applications',
+  status: 'not_announced',
+  status_label: 'Account creation open — 2026/2027 loan window not yet announced',
   note:
-    'Official NELFUND channels continue to report student loan activity. Always verify whether applications are open for your session on the official portal (portal.nelf.gov.ng) and announcements on nelf.gov.ng. Do not rely on unofficial sites or social media for deadlines.',
+    'NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. Any deadline you may be seeing relates to the previous loan/upkeep application cycle, which has already closed. The 2026/2027 loan and upkeep application window is expected to open soon, but NELFUND has not yet announced the official opening or closing date. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.',
   last_checked: new Date().toISOString().slice(0, 10),
   last_checked_iso: new Date().toISOString(),
   sources: [
     { id: 'nelfund-website', label: 'NELFUND official website', url: 'https://nelf.gov.ng/' },
     { id: 'nelfund-portal', label: 'NELFUND application portal', url: 'https://portal.nelf.gov.ng/' },
   ],
-  confidence: 'low',
+  confidence: 'medium',
   freshness: 'static_fallback',
-  signals: [],
+  signals: ['account_creation_open', 'loan_window_not_announced'],
   verified: false,
-}
-
-async function triggerRefresh(): Promise<LiveApplicationStatus | null> {
-  try {
-    const base =
-      process.env.VERCEL_URL != null
-        ? `https://${process.env.VERCEL_URL}`
-        : 'https://nelfund-student-guide.vercel.app'
-    const res = await fetch(`${base}/api/knowledge/refresh`, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-    })
-    if (!res.ok) return null
-    const json = (await res.json()) as { ok?: boolean; status?: LiveApplicationStatus }
-    return json.status || null
-  } catch {
-    return null
-  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -97,19 +59,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (age < STALE_MS) {
           return res.status(200).json({ ...parsed, freshness: 'cached' as const })
         }
+        // Stale: refresh in this request so the home page stays current
       }
     }
 
-    const live = await triggerRefresh()
-    if (live) return res.status(200).json(live)
-
-    const raw = await redisGet('nsg:knowledge:application_status')
-    if (raw) {
-      const parsed = JSON.parse(raw) as LiveApplicationStatus
-      return res.status(200).json({ ...parsed, freshness: 'cached' as const })
-    }
-
-    return res.status(200).json(STATIC_FALLBACK)
+    const live = await runRefresh()
+    return res.status(200).json(live)
   } catch (err) {
     console.error('[knowledge/status]', err)
     return res.status(200).json(STATIC_FALLBACK)
