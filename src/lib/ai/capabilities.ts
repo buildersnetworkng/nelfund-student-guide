@@ -51,7 +51,7 @@ export function detectCapabilityOverride(text: string): AgentCapability | null {
   if (/(which\s*(link|url|website).{0,30}(login|application)|continue\s*(my\s*)?application)/i.test(t))
     return 'portal-login'
   if (
-    /(when\s*(was\s*)?nelfund|who\s*(built|created|established|founded)\s*nelfund|purpose\s*of\s*nelfund|history\s*of\s*nelfund|student\s*loans?\s*act|zero\s*interest|how\s*much\s*(can\s*i|loan)|private\s*(uni|university)|guarantor|\bnysc\b)/i.test(
+    /(when\s*(was\s*)?nelfund|who\s*(built|created|established|founded)|purpose\s*of|history\s*of\s*nelfund|student\s*loans?\s*act|zero\s*interest|how\s*much\s*(can\s*i|loan)|private\s*(uni|university)|guarantor|\bnysc\b|10\s*%|eligible|scholarship|what\s*is\s*nelfund|wetin\s*be)/i.test(
       t,
     )
   )
