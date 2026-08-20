@@ -3,6 +3,7 @@
  * Covers the full student question space via semantic clusters.
  * Grounded in official NELFUND FAQ / Act framework. Never invents dates.
  * Follow-ups respect priorIntent; new asks (YouTube, how-to-apply) are never replaced by filler.
+ * FG acceptance: Pidgin apply + repayment-start routing hardened.
  */
 
 import type { IntentId } from './types'
@@ -55,7 +56,7 @@ export function routeByKeywords(text: string): string | null {
     [/private\s*(uni|university|school|poly)|can\s*private/, 'private'],
     [/part[-\s]?time|full[-\s]?time/, 'fulltime'],
     [/citizen|nigerian\s*only|foreign\s*student|must\s*i\s*be\s*nigerian/, 'citizen'],
-    [/\bnysc\b|when\s*(do\s*i|does)\s*repay|repayment\s*start|when\s*is\s*(the\s*)?loan\s*due/, 'nysc'],
+    [/\bnysc\b|when\s*(do\s*i|does)\s*.{0,20}repay|repayment\s*start|when\s*(do\s*i|to)\s*start\s*repay|when\s*is\s*(the\s*)?loan\s*due|start\s*repaying|when\s*repay/, 'nysc'],
     [/10\s*%|ten\s*percent|how\s*much\s*(deduct|repay|monthly)/, 'tenpercent'],
     [/guarantor|surety|sponsor\s*letter/, 'guarantor'],
     [/purpose\s*of|why\s*.{0,20}nelfund|aim\s*of|goal\s*of|mandate|why\s*dem\s*create/, 'purpose'],
@@ -68,7 +69,7 @@ export function routeByKeywords(text: string): string | null {
     [/pending|still\s*wait|nothing\s*(is\s*)?happen/, 'pending'],
     [/reject|declin|not\s*approv/, 'rejected'],
     [/youtube|video\s*(link|guide|tutorial)?|tutorial|walkthrough|step[-\s]?by[-\s]?step|you\s*tube/, 'youtube'],
-    [/how\s*(do\s*i|to)\s*apply|start\s*(my\s*)?application|register\s*(for\s*)?nelfund/, 'apply'],
+    [/how\s*(do\s*i|to|i\s*go|i\s*wan|i\s*will|i\s*fit)\s*apply|start\s*(my\s*)?application|register\s*(for\s*)?nelfund|how\s*i\s*go\s*apply/, 'apply'],
     [/which\s*(link|url|website)|portal\s*link|where\s*(do\s*i|to)\s*login|login\s*link/, 'login'],
     [/jamb/, 'jamb'],
     [/\bnin\b|national\s*identity/, 'nin'],
