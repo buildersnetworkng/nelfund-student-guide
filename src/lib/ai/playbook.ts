@@ -48,8 +48,8 @@ export function routeByKeywords(text: string): string | null {
     [/\bnysc\b|when\s*(do\s*i|does)\s*repay|repayment\s*start|when\s*is\s*(the\s*)?loan\s*due/, 'nysc'],
     [/10\s*%|ten\s*percent|how\s*much\s*(deduct|repay|monthly)/, 'tenpercent'],
     [/guarantor|surety|sponsor\s*letter/, 'guarantor'],
-    [/purpose\s*of|why\s*(was\s*)?nelfund|aim\s*of|goal\s*of|mandate/, 'purpose'],
-    [/when\s*(was\s*)?nelfund|who\s*(built|created|established|founded)|history\s*of\s*nelfund|student\s*loans?\s*act/, 'history'],
+    [/purpose\s*of|why\s*.{0,20}nelfund|aim\s*of|goal\s*of|mandate|why\s*dem\s*create/, 'purpose'],
+    [/when\s*.{0,15}nelfund\s*(start|establish|create|launch)|when\s*(was\s*)?nelfund|who\s*(built|created|established|founded)|history\s*of\s*nelfund|student\s*loans?\s*act/, 'history'],
     [/what\s*is\s*nelfund|wetin\s*be\s*nelfund|about\s*nelfund|meaning\s*of\s*nelfund|nelfund\s*stand\s*for/, 'whatis'],
     [/scholarship|free\s*money|is\s*it\s*a\s*loan|grant\b/, 'loan'],
     [/\bgsi\b|global\s*standing/, 'gsi'],
@@ -66,7 +66,7 @@ export function routeByKeywords(text: string): string | null {
     [/eligible|who\s*can\s*apply|qualify|qualification/, 'eligibility'],
     [/document|what\s*(do\s*i|to)\s*need|requirements?/, 'documents'],
     [/contact|who\s*(do\s*i|should\s*i)\s*(call|email|contact)|support\s*email/, 'contact'],
-    [/open\s*now|still\s*open|deadline|closing|is\s*nelfund\s*(open|closed)|application\s*window/, 'status'],
+    [/open\s*now|still\s*open|deadline|closing|is\s*(nelfund|application)\s*(open|closed)|application\s*(open|window)|is\s*it\s*open/, 'status'],
     [/approv|how\s*(do\s*i\s*)?know.*(status|approv)/, 'approval'],
     [/who\s*(gets|receives)\s*(the\s*)?(money|fees)|paid\s*to\s*(school|me)|disburse/, 'disburse'],
     [/repay|pay\s*back|refund\s*the\s*loan/, 'repay'],
@@ -168,14 +168,12 @@ function clusterAnswer(key: string, ctx: PlaybookContext): string | null {
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   const t = ctx.userText.toLowerCase()
 
-  // 1) Keyword cluster router (covers paraphrases / unknown intent)
   const key = routeByKeywords(ctx.userText || t)
   if (key) {
     const ans = clusterAnswer(key, ctx)
     if (ans) return ans
   }
 
-  // 2) Intent-based fallbacks
   if (intent === 'nelfund-purpose') return clusterAnswer('purpose', ctx)
   if (intent === 'nelfund-history') return clusterAnswer('history', ctx)
   if (intent === 'what-is-nelfund') return clusterAnswer('whatis', ctx)
@@ -194,16 +192,13 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'contact-support' || intent === 'contact-lookup') return clusterAnswer('contact', ctx)
   if (intent === 'guarantor') return clusterAnswer('guarantor', ctx)
   if (intent === 'institution-verification') return clusterAnswer('upload', ctx)
-  if (intent === 'current-information' || intent === 'deadline' || intent === 'academic-session') {
-    return clusterAnswer('status', ctx)
-  }
+  if (intent === 'current-information' || intent === 'deadline' || intent === 'academic-session') return clusterAnswer('status', ctx)
   if (intent === 'school-fees' || intent === 'institutional-charges') return clusterAnswer('disburse', ctx)
   if (intent === 'bank-information') return clusterAnswer('bank', ctx)
   if (intent === 'profile-update') return clusterAnswer('profile', ctx)
   if (intent === 'reapplication') return clusterAnswer('reapply', ctx)
   if (intent === 'email-draft') return clusterAnswer('draft', ctx)
 
-  // 3) Soft NELFUND catch-all (still useful, not a menu)
   if (/nelfund|student\s*loan|nelf\.gov|portal\.nelf/i.test(t)) {
     return `I can help with NELFUND questions — eligibility, how to apply, missing information, upkeep, repayment, portal status, or school contacts.\n\nOfficial links:\n• ${PORTAL}\n• ${SITE}\n• ${ESUPPORT}\n\nTell me what you need in a short sentence (and your school name if it is a portal/school-record issue).`
   }
