@@ -338,7 +338,6 @@ export async function processUserTurn(opts: {
   const capability = resolveCapability(intent, combined || rawUser)
   slots.lastCapability = capability
 
-  // Force earlier institution capture on support flows (pilot fix)
   if (needsInstitutionEarly(intent) && !slots.institutionId) {
     slots.awaitingInstitution = true
     slots.pendingClarify = 'institution'
@@ -383,7 +382,6 @@ export async function processUserTurn(opts: {
 
   if (isShortFollowUp(rawUser) && history.length > 0) {
     const lower = rawUser.trim().toLowerCase()
-
     if (/^(thanks|thank\s*you|ok\s*thanks|na\s*im|done)/i.test(lower)) {
       return finalize(
         userMsg,
@@ -393,7 +391,6 @@ export async function processUserTurn(opts: {
         'conversation',
       )
     }
-
     if (
       /draft|email|message|do\s*it|go\s*ahead|send/i.test(lower) &&
       (slots.institutionId || slots.exactError || /draft|email|message/i.test(prevAsst))
@@ -426,7 +423,6 @@ export async function processUserTurn(opts: {
         /* fall through */
       }
     }
-
     if (/what\s*next|and\s*then|continue|more|tell\s*me\s*more/i.test(lower)) {
       return finalize(
         userMsg,
@@ -443,30 +439,6 @@ export async function processUserTurn(opts: {
           },
           slots.intent || 'unknown',
         ),
-        'conversation',
-      )
-    }
-
-    if (/^(yes|yeah|yep|ok|okay|sure|abeg|ehn)/i.test(lower)) {
-      if (slots.pendingClarify === 'institution' || /which institution|school name/i.test(prevAsst)) {
-        slots.phase = 'clarify'
-        slots.pendingClarify = 'institution'
-        slots.awaitingInstitution = true
-        return finalize(
-          userMsg,
-          slots,
-          slots.intent || 'contact-lookup',
-          institutionAskPrompt(slots.intent),
-          'conversation',
-        )
-      }
-      return finalize(
-        userMsg,
-        slots,
-        slots.intent || 'unknown',
-        slots.problemSummary
-          ? `Understood. We are still on: **${slots.problemSummary}**${slots.institutionName ? ` at **${slots.institutionName}**` : ''}. Tell me the next thing you need — contact, draft email, or another portal message.`
-          : 'Understood. Tell me the next detail (school name, exact portal message, or what you want to do).',
         'conversation',
       )
     }
@@ -559,11 +531,7 @@ export async function processUserTurn(opts: {
     })
     if (pb && !isNearDuplicate(prevAsst, pb)) {
       return finalize(userMsg, slots, intent, pb, 'current-information', {
-        next: [
-          'https://nelf.gov.ng/',
-          'https://portal.nelf.gov.ng/',
-          'https://nelfund.esupport.ng/create',
-        ],
+        next: ['https://nelf.gov.ng/', 'https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
       })
     }
     try {
@@ -578,25 +546,7 @@ export async function processUserTurn(opts: {
       /* fall through */
     }
     if (pb) {
-      return finalize(
-        userMsg,
-        slots,
-        intent,
-        isNearDuplicate(prevAsst, pb)
-          ? nextStepAdvance(
-              {
-                institutionName: slots.institutionName,
-                problemSummary: slots.problemSummary,
-                exactError: slots.exactError,
-                turnIndex,
-                lastAssistant: prevAsst,
-                userText: combined,
-              },
-              intent,
-            )
-          : pb,
-        'current-information',
-      )
+      return finalize(userMsg, slots, intent, pb, 'current-information')
     }
   }
 
@@ -624,17 +574,19 @@ export async function processUserTurn(opts: {
           )
         : pb
       return finalize(userMsg, slots, intent, text, capability, {
-        next: [
-          'https://portal.nelf.gov.ng/',
-          'https://nelf.gov.ng/',
-          'https://nelfund.esupport.ng/create',
-        ],
+        next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
       })
     }
   }
 
+  // Do not trap factual knowledge questions in the troubleshooting menu
+  const looksFactual =
+    /\b(what|when|who|why|how|purpose|history|established|created|founded|mean|meaning|act|interest|repay|eligible|guarantor|nysc|private|amount|loan)\b/i.test(
+      combined,
+    )
   if (
     intent === 'unknown' &&
+    !looksFactual &&
     (combined.trim().length < 40 ||
       /^(help\s*(me)?|nelfund\s*thing|stuck|wahala)\.?$/i.test(combined.trim()))
   ) {
