@@ -73,6 +73,7 @@ export const LIVE_STATUS_INTENTS = new Set([
   'eligibility',
   'academic-session',
   'official-sources',
+  'current-information',
 ])
 
 export function questionNeedsLiveStatus(text: string): boolean {
@@ -81,5 +82,40 @@ export function questionNeedsLiveStatus(text: string): boolean {
     /\b(is\s+(nelfund|it)\s+open|application\s*(window|period|status)|still\s+open|deadline|closing\s+date|opening\s+date|when\s+(can|do)\s+i\s+apply|latest\s+(nelfund\s+)?(update|news|status)|current\s+(status|cycle)|2026\s*\/?\s*2027|2025\s*\/?\s*2026)\b/i.test(
       t,
     ) || /\b(open\s+today|apply\s+today|portal\s+open)\b/i.test(t)
+  )
+}
+
+export type OfficialLookupResult = {
+  ok: boolean
+  query: string
+  snippets: string[]
+  sources: Array<{ id: string; label: string; url: string }>
+  fetchedAt: string
+  pagesReached: number
+  note: string
+}
+
+/** Fetch short grounded snippets from official NELFUND pages for a question. */
+export async function fetchOfficialLookup(query: string): Promise<OfficialLookupResult | null> {
+  const q = query.trim().slice(0, 240)
+  if (!q) return null
+  try {
+    const res = await fetch(`/api/knowledge/lookup?q=${encodeURIComponent(q)}`, {
+      headers: { Accept: 'application/json' },
+    })
+    if (!res.ok) return null
+    return (await res.json()) as OfficialLookupResult
+  } catch {
+    return null
+  }
+}
+
+/** Questions that benefit from a live official-page lookup (beyond status card). */
+export function questionNeedsOfficialLookup(text: string): boolean {
+  const t = text.toLowerCase()
+  return (
+    questionNeedsLiveStatus(t) ||
+    /\b(latest|recent|current|update|announcement|news|today|this\s+week)\b/i.test(t) ||
+    /\b(changed|new\s+rule|policy\s+update)\b/i.test(t)
   )
 }
