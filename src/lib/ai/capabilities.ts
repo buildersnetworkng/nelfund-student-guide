@@ -17,6 +17,8 @@ const CAPABILITY_BY_INTENT: Partial<Record<IntentId, AgentCapability>> = {
   refund: 'troubleshooting',
   'scam-safety': 'troubleshooting',
   'what-is-nelfund': 'verified-knowledge',
+  'nelfund-purpose': 'verified-knowledge',
+  'nelfund-history': 'verified-knowledge',
   eligibility: 'verified-knowledge',
   'how-to-apply': 'verified-knowledge',
   'documents-needed': 'verified-knowledge',
@@ -48,6 +50,13 @@ export function detectCapabilityOverride(text: string): AgentCapability | null {
     return 'current-information'
   if (/(which\s*(link|url|website).{0,30}(login|application)|continue\s*(my\s*)?application)/i.test(t))
     return 'portal-login'
+  // Factual knowledge — never treat as vague troubleshooting
+  if (
+    /(when\s*(was\s*)?nelfund|who\s*(built|created|established|founded)\s*nelfund|purpose\s*of\s*nelfund|history\s*of\s*nelfund|student\s*loans?\s*act)/i.test(
+      t,
+    )
+  )
+    return 'verified-knowledge'
   return null
 }
 
