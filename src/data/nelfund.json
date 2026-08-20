@@ -8,45 +8,35 @@
     "scope": "nelfund-wide",
     "source_id": "nelfund-website",
     "last_verified": "2026-08-20",
-    "related_video_ids": [
-      "vid-general-overview"
-    ],
-    "related_guide_ids": [
-      "guide-how-to-apply"
-    ],
+    "related_video_ids": ["vid-general-overview"],
+    "related_guide_ids": ["guide-how-to-apply"],
     "institution_id": null,
     "institution_tips": []
   },
   {
     "id": "nf-purpose",
     "title": "What is the purpose of NELFUND?",
-    "content": "The purpose of NELFUND is to remove financial barriers to tertiary education for Nigerian students. It gives eligible students access to interest-free loans so they can pay institutional charges and, where applicable, receive upkeep support while studying. The goal is to expand access to higher education and reduce situations where students drop out solely because of school fees.",
+    "content": "The purpose of NELFUND is to remove financial barriers to tertiary education for Nigerian students. It gives eligible students access to interest-free loans so they can pay institutional charges and, where applicable, receive upkeep support while studying.",
     "category": "Getting Started",
     "verification_status": "verified",
     "scope": "nelfund-wide",
     "source_id": "nelfund-website",
     "last_verified": "2026-08-20",
-    "related_video_ids": [
-      "vid-general-overview"
-    ],
-    "related_guide_ids": [
-      "guide-how-to-apply"
-    ],
+    "related_video_ids": ["vid-general-overview"],
+    "related_guide_ids": ["guide-how-to-apply"],
     "institution_id": null,
     "institution_tips": []
   },
   {
     "id": "nf-history-establishment",
     "title": "Who established NELFUND?",
-    "content": "NELFUND was established by the Federal Government of Nigeria through the Student Loans (Access to Higher Education) Act, 2023. It is a government-backed education loan fund, not a private company product. Day-to-day operations are handled by the Nigerian Education Loan Fund as the implementing body. This student guide is independent and was not built by NELFUND itself — always confirm policies on nelf.gov.ng and portal.nelf.gov.ng.",
+    "content": "NELFUND was established by the Federal Government of Nigeria under the Student Loans (Access to Higher Education) Act, 2023. A 2024 re-enactment strengthened NELFUND as a body corporate and refined eligibility and repayment rules. It is a public education-loan fund, not a private company product. Always confirm policies on nelf.gov.ng and portal.nelf.gov.ng.",
     "category": "Getting Started",
     "verification_status": "verified",
     "scope": "nelfund-wide",
     "source_id": "nelfund-website",
     "last_verified": "2026-08-20",
-    "related_video_ids": [
-      "vid-general-overview"
-    ],
+    "related_video_ids": ["vid-general-overview"],
     "related_guide_ids": [],
     "institution_id": null,
     "institution_tips": []
@@ -54,15 +44,13 @@
   {
     "id": "nf-loan-not-scholarship",
     "title": "NELFUND is a loan, not free money",
-    "content": "Funding from NELFUND is a loan with real repayment obligations. Students should not treat it as a scholarship or as free government money. Understanding this before applying helps you plan how you will repay it later.",
+    "content": "Funding from NELFUND is a loan with real repayment obligations. Students should not treat it as a scholarship or as free government money.",
     "category": "Getting Started",
     "verification_status": "verified",
     "scope": "nelfund-wide",
     "source_id": "nelfund-website",
-    "last_verified": "2026-08-11",
-    "related_video_ids": [
-      "vid-general-overview"
-    ],
+    "last_verified": "2026-08-20",
+    "related_video_ids": ["vid-general-overview"],
     "related_guide_ids": [],
     "institution_id": null,
     "institution_tips": []
@@ -75,28 +63,78 @@
     "verification_status": "verified",
     "scope": "nelfund-wide",
     "source_id": "nelfund-website",
-    "last_verified": "2026-08-11",
-    "related_video_ids": [
-      "vid-school-fees-explainer"
-    ],
-    "related_guide_ids": [
-      "guide-how-to-apply"
-    ],
+    "last_verified": "2026-08-20",
+    "related_video_ids": ["vid-school-fees-explainer"],
+    "related_guide_ids": ["guide-how-to-apply"],
     "institution_id": null,
     "institution_tips": []
   },
   {
     "id": "nf-upkeep-amount",
     "title": "How much is the upkeep allowance?",
-    "content": "The currently confirmed upkeep amount is ₦20,000 per month. Figures you may see elsewhere (including ₦25,000) should not be treated as current unless an official NELFUND source confirms a change. Always check the official portal before budgeting around a specific figure.",
+    "content": "The currently confirmed upkeep amount is ₦20,000 per month. Figures you may see elsewhere (including ₦25,000) should not be treated as current unless an official NELFUND source confirms a change.",
     "category": "Upkeep",
     "verification_status": "verified",
     "scope": "nelfund-wide",
     "source_id": "nelfund-website",
-    "last_verified": "2026-08-11",
-    "related_video_ids": [
-      "vid-upkeep-explainer"
-    ],
+    "last_verified": "2026-08-20",
+    "related_video_ids": ["vid-upkeep-explainer"],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-interest-free",
+    "title": "Is NELFUND interest-free?",
+    "content": "Yes. Official NELFUND guidance states that the student loan carries zero interest. You still repay the principal under official repayment rules.",
+    "category": "Loan terms",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": [],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-eligibility-public",
+    "title": "Who is eligible?",
+    "content": "Official FAQ: full-time students who have secured admission into public Nigerian universities, polytechnics, colleges of education, or vocational schools, with proof of admission including name, date of birth, admission, JAMB number, matriculation number, and BVN. New and existing full-time students may be eligible.",
+    "category": "Eligibility",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": [],
+    "related_guide_ids": ["guide-how-to-apply"],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-public-institutions-only",
+    "title": "Are private universities covered?",
+    "content": "NELFUND loans are designed for students in public (government) Nigerian tertiary institutions and covered public vocational pathways as stated in official rules. Confirm coverage only on nelf.gov.ng.",
+    "category": "Eligibility",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": [],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-loan-amount",
+    "title": "How much can I borrow?",
+    "content": "Official FAQ: the amount is determined by the institutional charges of each institution. The loan can cover institutional charges and upkeep if required by the student.",
+    "category": "Loan terms",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": [],
     "related_guide_ids": [],
     "institution_id": null,
     "institution_tips": []
@@ -104,15 +142,41 @@
   {
     "id": "nf-repayment-start",
     "title": "When does repayment begin?",
-    "content": "Current terms indicate that repayment begins two years after completion of NYSC for students who participate in NYSC. Treat this as general guidance on how the structure normally works, and confirm your personal repayment start date through official channels once it is generated for your account.",
+    "content": "Official FAQ: the loan is due for repayment two years after completion of NYSC. Confirm your personal repayment start date through official channels.",
     "category": "Repayment",
-    "verification_status": "may_change",
+    "verification_status": "verified",
     "scope": "nelfund-wide",
     "source_id": "nelfund-website",
-    "last_verified": "2026-08-11",
-    "related_video_ids": [
-      "vid-repayment-explainer"
-    ],
+    "last_verified": "2026-08-20",
+    "related_video_ids": ["vid-repayment-explainer"],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-repayment-10-percent",
+    "title": "How much is repaid monthly?",
+    "content": "Official FAQ: ten percent (10%) of the beneficiary’s salary is deducted at source by the employer. Self-employed beneficiaries remit 10% of monthly profit. You may repay more than 10%.",
+    "category": "Repayment",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": ["vid-repayment-explainer"],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-nysc-repayment",
+    "title": "When does repayment start after NYSC?",
+    "content": "Official FAQ: the loan is due for repayment two years after completion of NYSC.",
+    "category": "Repayment",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": ["vid-repayment-explainer"],
     "related_guide_ids": [],
     "institution_id": null,
     "institution_tips": []
@@ -120,15 +184,13 @@
   {
     "id": "nf-repayment-mechanism",
     "title": "How repayment works",
-    "content": "Repayment terms include deductions from salary where applicable, once a graduate is in formal employment. NELFUND is a real financial obligation, and the repayment structure is designed to recover the loan over time rather than all at once.",
+    "content": "After repayment begins, 10% of the beneficiary’s salary is deducted at source. Self-employed remit 10% of monthly profit. GSI (Global Standing Instruction) may support recovery from linked bank accounts.",
     "category": "Repayment",
-    "verification_status": "may_change",
+    "verification_status": "verified",
     "scope": "nelfund-wide",
     "source_id": "nelfund-website",
-    "last_verified": "2026-08-11",
-    "related_video_ids": [
-      "vid-repayment-explainer"
-    ],
+    "last_verified": "2026-08-20",
+    "related_video_ids": ["vid-repayment-explainer"],
     "related_guide_ids": [],
     "institution_id": null,
     "institution_tips": []
@@ -136,15 +198,83 @@
   {
     "id": "nf-gsi",
     "title": "What is GSI?",
-    "content": "GSI stands for Global Standing Instruction, a mechanism NELFUND can use for loan recovery. It is generally linked to a borrower's bank accounts to support repayment. Treat the exact mechanics as general guidance and confirm specifics through official NELFUND documentation.",
+    "content": "GSI stands for Global Standing Instruction, a mechanism NELFUND can use for loan recovery linked to a borrower's bank accounts.",
     "category": "GSI",
     "verification_status": "may_change",
     "scope": "nelfund-wide",
     "source_id": "nelfund-website",
-    "last_verified": "2026-08-11",
-    "related_video_ids": [
-      "vid-repayment-explainer"
-    ],
+    "last_verified": "2026-08-20",
+    "related_video_ids": ["vid-repayment-explainer"],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-no-guarantor",
+    "title": "Do I need a guarantor?",
+    "content": "Under the updated Student Loans framework (2024 re-enactment), the earlier hard guarantor requirement was removed. Apply subject to identity and verification guidelines on the portal.",
+    "category": "Application",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": [],
+    "related_guide_ids": ["guide-how-to-apply"],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-citizenship",
+    "title": "Must I be a Nigerian citizen?",
+    "content": "Yes. Applicants must be Nigerian citizens. Proof of identity typically includes NIN and BVN.",
+    "category": "Eligibility",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": [],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-approval-status",
+    "title": "How do I know if I was approved?",
+    "content": "Official FAQ: applicants receive a notification and can see loan application status in their profile on the NELFUND portal (portal.nelf.gov.ng).",
+    "category": "Application",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-portal",
+    "last_verified": "2026-08-20",
+    "related_video_ids": [],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-act-2024",
+    "title": "Student Loans Act 2023 and 2024",
+    "content": "NELFUND was established under the Student Loans (Access to Higher Education) Act, 2023. A 2024 re-enactment strengthened the Fund as a body corporate, clarified loans for tuition/charges and upkeep, and removed earlier barriers such as the family income threshold and guarantor requirement.",
+    "category": "Getting Started",
+    "verification_status": "verified",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": [],
+    "related_guide_ids": [],
+    "institution_id": null,
+    "institution_tips": []
+  },
+  {
+    "id": "nf-disbursement",
+    "title": "How is money paid out?",
+    "content": "Institutional charges are paid to the school, not into the student’s pocket. Upkeep (when approved) follows official disbursement rules to the student.",
+    "category": "Disbursement",
+    "verification_status": "guidance",
+    "scope": "nelfund-wide",
+    "source_id": "nelfund-website",
+    "last_verified": "2026-08-20",
+    "related_video_ids": [],
     "related_guide_ids": [],
     "institution_id": null,
     "institution_tips": []
@@ -152,12 +282,12 @@
   {
     "id": "nf-oou-vs-nelfund",
     "title": "NELFUND-wide rules vs institution-specific procedures",
-    "content": "NELFUND sets the general loan rules that apply nationwide. Your institution handles its own layer on top of that: uploading student records, confirming admission and matriculation details, and any local refund or fee reconciliation steps. When something depends on your school, confirm with the office responsible for NELFUND coordination at your institution.",
+    "content": "NELFUND sets the general loan rules that apply nationwide. Your institution handles uploading student records, confirming admission and matriculation details, and local refund or fee reconciliation steps.",
     "category": "Institution verification",
     "verification_status": "guidance",
     "scope": "institution-specific",
     "source_id": "oou-website",
-    "last_verified": "2026-08-11",
+    "last_verified": "2026-08-20",
     "related_video_ids": [],
     "related_guide_ids": [],
     "institution_id": "oou",
