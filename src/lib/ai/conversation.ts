@@ -1,7 +1,7 @@
 /**
  * Offline conversational agent — PRIMARY NELFUND intelligence (no external LLM required).
  * Multi-turn memory via slots + history. Does not invent official dates.
- * Follow-ups stay on the prior topic; off-topic requests get a professional redirect.
+ * Greetings welcome the user; off-topic requests get a professional redirect.
  */
 
 import { getInstitution } from '../data'
@@ -190,10 +190,44 @@ function isShortFollowUp(text: string): boolean {
   ) || (t.length < 25 && /^(and|then|also|but|so)\b/i.test(t))
 }
 
+/** Nigerian + English greetings (not off-topic). */
+function isGreeting(text: string): boolean {
+  const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
+  if (!t || t.length > 80) return false
+  if (
+    /^(hi|hii+|hello|hey|heyy+|hiya|yo|yoo+|sup|howdy|hi\s*there|hello\s*there)(\s+there)?$/i.test(t)
+  )
+    return true
+  if (
+    /^(good\s*)?(morning|afternoon|evening|day|night)(\s*(sir|ma|boss|bro|sis))?$/i.test(t)
+  )
+    return true
+  if (
+    /^(how\s*far|howfar|how\s*fa|howfa|wetin\s*dey|wetin\s*dey\s*happen|how\s*you\s*dey|how\s*una\s*dey|how\s*is\s*it|how\s*are\s*you|how\s*r\s*you|whats?\s*up|what'?s\s*up|wassup|how\s*you|you\s*good|you\s*dey|na\s*how|kedu|bawo|sannu|salam|peace)(\s*(nah|now|o|oh|abeg))?$/i.test(
+      t,
+    )
+  )
+    return true
+  if (/^(thanks|thank\s*you|tenki|merci|bless\s*you)(\s*(you|so\s*much))?$/i.test(t) && t.length < 30)
+    return true
+  if (
+    /^(hi|hello|hey|how\s*far|howfar|good\s*(morning|afternoon|evening))\b/i.test(t) &&
+    t.length < 50 &&
+    !/missing|apply|loan|portal|jamb|nin|bvn|upkeep|reject|pending/i.test(t)
+  )
+    return true
+  return false
+}
+
+function greetingReply(): string {
+  return `How far — welcome.\n\nI am here to help with **NELFUND**: applications, portal issues, eligibility, upkeep, repayment, and school-record problems.\n\nWhat do you need help with today?`
+}
+
 /** True when the message is clearly not about NELFUND / student loans / portal. */
 function isOffTopic(text: string): boolean {
   const t = text.trim().toLowerCase()
   if (!t || t.length < 2) return false
+  if (isGreeting(text)) return false
   if (
     /nelfund|nelf\.gov|portal\.nelf|student\s*loan|upkeep|jamb|\bnin\b|\bbvn\b|matric|missing\s*info|institutional\s*charge|school\s*fees?|guarantor|\bgsi\b|nysc|esupport|polytechnic|university|college\s*of\s*education|tertiary|loan.*school|school.*loan/i.test(
       t,
@@ -270,6 +304,17 @@ export async function processUserTurn(opts: {
     text: rawUser || (ocr ? '[Screenshot uploaded]' : ''),
     imagePreview: opts.imagePreview || null,
     timestamp: Date.now(),
+  }
+
+  // Greetings (howfar, hello, good morning, etc.) — friendly welcome, not off-topic
+  if (!ocr && rawUser && isGreeting(rawUser)) {
+    return finalize(
+      userMsg,
+      { ...opts.slots },
+      opts.slots.intent || 'unknown',
+      greetingReply(),
+      'conversation',
+    )
   }
 
   // Off-topic: professional decline + NELFUND offer (skip if OCR/screenshot present)
@@ -372,7 +417,6 @@ export async function processUserTurn(opts: {
 
   const intentMeta = classifyIntent(combined || rawUser, history)
   let intent: IntentId = intentMeta.intent
-  // Stay on prior topic for short / vague follow-ups (prevents topic drift)
   if (
     priorIntent &&
     priorIntent !== 'unknown' &&
@@ -598,9 +642,7 @@ export async function processUserTurn(opts: {
     } catch {
       /* fall through */
     }
-    if (pb) {
-      return finalize(userMsg, slots, intent, pb, 'current-information')
-    }
+    if (pb) return finalize(userMsg, slots, intent, pb, 'current-information')
   }
 
   {
