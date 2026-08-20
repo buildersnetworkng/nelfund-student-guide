@@ -1,50 +1,42 @@
-export type VerificationStatus = 'verified' | 'may_change' | 'guidance' | 'unverified'
-export type InformationScope = 'nelfund-wide' | 'institution-specific'
+import type { VerificationStatus, InformationScope } from '../types'
 
+/**
+ * Intent taxonomy for the NELFUND support assistant.
+ * Extensible: add new intents here and wire patterns + hints + diagnostic copy.
+ */
 export type IntentId =
   | 'what-is-nelfund'
-  | 'eligibility'
+  | 'nelfund-purpose'
+  | 'nelfund-history'
+  | 'loan-or-scholarship'
   | 'how-to-apply'
+  | 'eligibility'
   | 'documents-needed'
-  | 'jamb-verification'
   | 'nin-verification'
+  | 'jamb-verification'
   | 'missing-information'
   | 'school-not-found'
   | 'institution-verification'
   | 'pending-application'
   | 'rejected-application'
-  | 'refund'
+  | 'profile-update'
+  | 'bank-information'
   | 'upkeep'
-  | 'school-fees'
   | 'institutional-charges'
+  | 'school-fees'
+  | 'refund'
+  | 'reapplication'
   | 'repayment'
   | 'gsi'
-  | 'loan-or-scholarship'
-  | 'bank-information'
-  | 'profile-update'
+  | 'academic-session'
+  | 'deadline'
+  | 'contact-support'
   | 'scam-safety'
   | 'readiness'
   | 'official-sources'
-  | 'portal-login'
   | 'guarantor'
-  | 'email-draft'
-  | 'contact-lookup'
   | 'current-information'
-  | 'contact-support'
-  | 'academic-session'
-  | 'deadline'
-  | 'reapplication'
   | 'unknown'
-
-/** What kind of work the agent should do for this turn. */
-export type AgentCapability =
-  | 'verified-knowledge'
-  | 'troubleshooting'
-  | 'contact-lookup'
-  | 'email-draft'
-  | 'current-information'
-  | 'portal-login'
-  | 'conversation'
 
 export type StudentStage =
   | 'exploring'
@@ -59,42 +51,45 @@ export type StudentStage =
 export interface IntentResult {
   intent: IntentId
   confidence: number
+  /** Normalised topic labels used for retrieval boosts */
   topics: string[]
+  /** Short human-readable problem label */
   problem: string | null
   stage: StudentStage
+  /** Entities detected in the message (jamb, nin, school, fees, upkeep, etc.) */
   entities: string[]
+  /** Whether the message is a troubleshooting symptom vs a pure info question */
   isTroubleshooting: boolean
 }
 
-export interface ConversationTurn {
-  role: 'user' | 'assistant'
-  text: string
-  intent?: IntentId
-}
+export type EvidenceKind = 'faq' | 'fact' | 'troubleshooting' | 'guide' | 'video' | 'source' | 'scam'
 
+/**
+ * A single piece of verified knowledge retrieved for a question.
+ * The answer layer may ONLY state claims present in these records.
+ */
 export interface EvidenceItem {
+  kind: EvidenceKind
   id: string
-  kind: 'faq' | 'fact' | 'troubleshooting' | 'guide' | 'scam' | 'video'
   title: string
+  /** Primary factual text the answer may use */
   body: string
-  score: number
   verification_status: VerificationStatus
+  scope: InformationScope
+  institution_id: string | null
   source_id: string | null
+  last_verified: string | null
+  related_video_ids: string[]
+  /** Optional structured steps (troubleshooting / guide) */
   steps?: string[]
-  avoid?: string[]
-  still_stuck?: string
-  /** Optional metadata used by retrieval ranking (not always shown in UI). */
-  scope?: InformationScope
-  institution_id?: string | null
-  last_verified?: string | null
-  related_video_ids?: string[]
-  path?: string
+  still_stuck?: string | null
+  what_it_usually_means?: string | null
 }
 
 export interface AnswerSource {
   id: string
   label: string
-  url: string | null
+  url: string
   official: boolean
 }
 
@@ -105,46 +100,33 @@ export interface AnswerVideo {
   channel: string
   source_type: string
   verification_status: VerificationStatus
-  warning: string | null
-  freshness_note: string | null
+  warning?: string | null
+  freshness_note?: string | null
 }
 
 export interface EscalationContactView {
-  id: string
-  label: string
-  email: string | null
-  phone: string | null
-  url: string | null
-  why: string
-  priority: string
-  verification_status: VerificationStatus
-  office?: string
-  notes?: string | null
+  name: string
+  role?: string
+  email?: string
+  phone?: string
+  note?: string
 }
 
 export interface EscalationPlanView {
-  needsInstitution: boolean
-  institutionId: string | null
-  institutionName: string | null
-  institutionContacts: EscalationContactView[]
-  nelfundContacts: EscalationContactView[]
-  understanding?: string
-  diagnosis?: string[]
-  contactOrderExplanation?: string | null
-  evidenceChecklist?: string[]
-  screenshotAdvice?: string
-  supportMessage?: { subject: string; body: string } | null
-  followUp?: string | null
+  needed: boolean
+  needsInstitution?: boolean
+  institutionContacts?: EscalationContactView[]
+  nelfundContacts?: EscalationContactView[]
+  supportMessage?: string | null
 }
 
 export interface GroundedAnswer {
   hasEvidence: boolean
   intent: IntentId
   confidence: number
-  responseMode?: AgentCapability
   problem: string | null
   answer: string
-  whatThisMeans: string | null
+  whatThisMeans?: string
   nextActions: string[]
   clarifyingQuestions: string[]
   evidence: EvidenceItem[]
@@ -153,5 +135,10 @@ export interface GroundedAnswer {
   insufficientReason: string | null
   officialFallbackUrl: string
   escalation: EscalationPlanView | null
-  draft?: { subject: string; body: string } | null
+}
+
+export interface ConversationTurn {
+  role: 'user' | 'assistant'
+  text: string
+  intent?: IntentId
 }
