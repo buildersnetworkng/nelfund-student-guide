@@ -2,6 +2,7 @@
  * Offline NELFUND intelligence playbook.
  * Covers the full student question space via semantic clusters.
  * Grounded in official NELFUND FAQ / Act framework. Never invents dates.
+ * Follow-ups respect priorIntent so the chat does not drift.
  */
 
 import type { IntentId } from './types'
@@ -18,6 +19,8 @@ export type PlaybookContext = {
   turnIndex: number
   lastAssistant?: string
   userText: string
+  /** Prior turn intent — used so follow-ups stay on the same topic */
+  priorIntent?: IntentId | null
 }
 
 function instLine(ctx: PlaybookContext): string {
@@ -36,7 +39,6 @@ export function isNearDuplicate(prev: string | undefined, next: string): boolean
   return wb.length > 8 && same / wb.length > 0.65
 }
 
-/** Keyword router: map free text to the best playbook cluster even if intent is unknown. */
 export function routeByKeywords(text: string): string | null {
   const t = text.toLowerCase()
   const rules: [RegExp, string][] = [
@@ -166,38 +168,65 @@ function clusterAnswer(key: string, ctx: PlaybookContext): string | null {
 }
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
-  const t = ctx.userText.toLowerCase()
+  const t = (ctx.userText || '').toLowerCase().trim()
+  const prior = ctx.priorIntent || null
+  const isFollowUp =
+    ctx.turnIndex > 0 &&
+    (t.length < 80 ||
+      /^(yes|yeah|ok|okay|sure|and|then|what\s*next|continue|more|about\s*that|that\s*one|same|still|please|abeg|ehn)/i.test(
+        t,
+      ))
 
-  const key = routeByKeywords(ctx.userText || t)
-  if (key) {
-    const ans = clusterAnswer(key, ctx)
+  // Continuity: on short follow-ups, stay on prior intent unless user clearly switches topic
+  const clearSwitch = routeByKeywords(t)
+  const intentForAnswer: IntentId =
+    isFollowUp && prior && prior !== 'unknown' && (!clearSwitch || t.length < 25)
+      ? prior
+      : intent
+
+  // Keyword route only when first turn, or user clearly names a new topic
+  if (clearSwitch && (!isFollowUp || t.length >= 25 || !prior || prior === 'unknown')) {
+    const ans = clusterAnswer(clearSwitch, ctx)
     if (ans) return ans
   }
 
-  if (intent === 'nelfund-purpose') return clusterAnswer('purpose', ctx)
-  if (intent === 'nelfund-history') return clusterAnswer('history', ctx)
-  if (intent === 'what-is-nelfund') return clusterAnswer('whatis', ctx)
-  if (intent === 'loan-or-scholarship') return clusterAnswer('loan', ctx)
-  if (intent === 'how-to-apply') return clusterAnswer('apply', ctx)
-  if (intent === 'eligibility' || intent === 'documents-needed') return clusterAnswer('eligibility', ctx)
-  if (intent === 'missing-information') return clusterAnswer('missing', ctx)
-  if (intent === 'pending-application') return clusterAnswer('pending', ctx)
-  if (intent === 'rejected-application') return clusterAnswer('rejected', ctx)
-  if (intent === 'upkeep') return clusterAnswer('upkeep', ctx)
-  if (intent === 'repayment' || intent === 'gsi') return clusterAnswer('repay', ctx)
-  if (intent === 'portal-login') return clusterAnswer('login', ctx)
-  if (intent === 'jamb-verification') return clusterAnswer('jamb', ctx)
-  if (intent === 'nin-verification') return clusterAnswer('nin', ctx)
-  if (intent === 'scam-safety') return clusterAnswer('scam', ctx)
-  if (intent === 'contact-support' || intent === 'contact-lookup') return clusterAnswer('contact', ctx)
-  if (intent === 'guarantor') return clusterAnswer('guarantor', ctx)
-  if (intent === 'institution-verification') return clusterAnswer('upload', ctx)
-  if (intent === 'current-information' || intent === 'deadline' || intent === 'academic-session') return clusterAnswer('status', ctx)
-  if (intent === 'school-fees' || intent === 'institutional-charges') return clusterAnswer('disburse', ctx)
-  if (intent === 'bank-information') return clusterAnswer('bank', ctx)
-  if (intent === 'profile-update') return clusterAnswer('profile', ctx)
-  if (intent === 'reapplication') return clusterAnswer('reapply', ctx)
-  if (intent === 'email-draft') return clusterAnswer('draft', ctx)
+  if (intentForAnswer === 'nelfund-purpose') return clusterAnswer('purpose', ctx)
+  if (intentForAnswer === 'nelfund-history') return clusterAnswer('history', ctx)
+  if (intentForAnswer === 'what-is-nelfund') return clusterAnswer('whatis', ctx)
+  if (intentForAnswer === 'loan-or-scholarship') return clusterAnswer('loan', ctx)
+  if (intentForAnswer === 'how-to-apply') return clusterAnswer('apply', ctx)
+  if (intentForAnswer === 'eligibility' || intentForAnswer === 'documents-needed')
+    return clusterAnswer('eligibility', ctx)
+  if (intentForAnswer === 'missing-information') return clusterAnswer('missing', ctx)
+  if (intentForAnswer === 'pending-application') return clusterAnswer('pending', ctx)
+  if (intentForAnswer === 'rejected-application') return clusterAnswer('rejected', ctx)
+  if (intentForAnswer === 'upkeep') return clusterAnswer('upkeep', ctx)
+  if (intentForAnswer === 'repayment' || intentForAnswer === 'gsi') return clusterAnswer('repay', ctx)
+  if (intentForAnswer === 'portal-login') return clusterAnswer('login', ctx)
+  if (intentForAnswer === 'jamb-verification') return clusterAnswer('jamb', ctx)
+  if (intentForAnswer === 'nin-verification') return clusterAnswer('nin', ctx)
+  if (intentForAnswer === 'scam-safety') return clusterAnswer('scam', ctx)
+  if (intentForAnswer === 'contact-support' || intentForAnswer === 'contact-lookup')
+    return clusterAnswer('contact', ctx)
+  if (intentForAnswer === 'guarantor') return clusterAnswer('guarantor', ctx)
+  if (intentForAnswer === 'institution-verification') return clusterAnswer('upload', ctx)
+  if (
+    intentForAnswer === 'current-information' ||
+    intentForAnswer === 'deadline' ||
+    intentForAnswer === 'academic-session'
+  )
+    return clusterAnswer('status', ctx)
+  if (intentForAnswer === 'school-fees' || intentForAnswer === 'institutional-charges')
+    return clusterAnswer('disburse', ctx)
+  if (intentForAnswer === 'bank-information') return clusterAnswer('bank', ctx)
+  if (intentForAnswer === 'profile-update') return clusterAnswer('profile', ctx)
+  if (intentForAnswer === 'reapplication') return clusterAnswer('reapply', ctx)
+  if (intentForAnswer === 'email-draft') return clusterAnswer('draft', ctx)
+
+  if (clearSwitch) {
+    const ans = clusterAnswer(clearSwitch, ctx)
+    if (ans) return ans
+  }
 
   if (/nelfund|student\s*loan|nelf\.gov|portal\.nelf/i.test(t)) {
     return `I can help with NELFUND questions — eligibility, how to apply, missing information, upkeep, repayment, portal status, or school contacts.\n\nOfficial links:\n• ${PORTAL}\n• ${SITE}\n• ${ESUPPORT}\n\nTell me what you need in a short sentence (and your school name if it is a portal/school-record issue).`
