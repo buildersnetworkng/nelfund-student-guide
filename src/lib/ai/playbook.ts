@@ -2,7 +2,7 @@
  * Offline NELFUND intelligence playbook.
  * Covers the full student question space via semantic clusters.
  * Grounded in official NELFUND FAQ / Act framework. Never invents dates.
- * Follow-ups respect priorIntent so the chat does not drift.
+ * Follow-ups respect priorIntent; new asks (YouTube, how-to-apply) are never replaced by filler.
  */
 
 import type { IntentId } from './types'
@@ -19,7 +19,6 @@ export type PlaybookContext = {
   turnIndex: number
   lastAssistant?: string
   userText: string
-  /** Prior turn intent — used so follow-ups stay on the same topic */
   priorIntent?: IntentId | null
 }
 
@@ -28,15 +27,24 @@ function instLine(ctx: PlaybookContext): string {
 }
 
 export function isNearDuplicate(prev: string | undefined, next: string): boolean {
-  if (!prev || prev.length < 40) return false
-  const a = prev.toLowerCase().replace(/\s+/g, ' ').slice(0, 160)
-  const b = next.toLowerCase().replace(/\s+/g, ' ').slice(0, 160)
+  if (!prev || prev.length < 40 || !next || next.length < 40) return false
+  const a = prev.toLowerCase().replace(/\s+/g, ' ').slice(0, 220)
+  const b = next.toLowerCase().replace(/\s+/g, ' ').slice(0, 220)
   if (a === b) return true
   let same = 0
   const wa = new Set(a.split(' ').filter((w) => w.length > 3))
   const wb = b.split(' ').filter((w) => w.length > 3)
+  if (wb.length < 12) return false
   for (const w of wb) if (wa.has(w)) same += 1
-  return wb.length > 8 && same / wb.length > 0.65
+  return same / wb.length > 0.88
+}
+
+/** True when the user is asking something new that must not be replaced by next-step filler. */
+export function isNewUserAsk(text: string): boolean {
+  const t = (text || '').toLowerCase()
+  return /youtube|video|tutorial|link|how\s*to\s*apply|how\s*do\s*i\s*apply|walkthrough|guide|step\s*by\s*step|upkeep|repay|interest|missing|guarantor|eligibility|purpose|history|what\s*is\s*nelfund|contact|draft|open\s*now|deadline|bvn|nin|jamb/i.test(
+    t,
+  )
 }
 
 export function routeByKeywords(text: string): string | null {
@@ -59,6 +67,7 @@ export function routeByKeywords(text: string): string | null {
     [/missing\s*(info|information)|no\s*school\s*info|record\s*not\s*found|e\s*dey\s*show\s*missing/, 'missing'],
     [/pending|still\s*wait|nothing\s*(is\s*)?happen/, 'pending'],
     [/reject|declin|not\s*approv/, 'rejected'],
+    [/youtube|video\s*(link|guide|tutorial)?|tutorial|walkthrough|step[-\s]?by[-\s]?step|you\s*tube/, 'youtube'],
     [/how\s*(do\s*i|to)\s*apply|start\s*(my\s*)?application|register\s*(for\s*)?nelfund/, 'apply'],
     [/which\s*(link|url|website)|portal\s*link|where\s*(do\s*i|to)\s*login|login\s*link/, 'login'],
     [/jamb/, 'jamb'],
@@ -85,6 +94,28 @@ export function routeByKeywords(text: string): string | null {
   return null
 }
 
+function videoLinksFor(key: string): string {
+  const apply = 'https://www.youtube.com/watch?v=XOhro3UuSDE'
+  const upkeep = 'https://www.youtube.com/watch?v=bhj-Lb_1fT8'
+  const map: Record<string, string[]> = {
+    apply: [apply],
+    youtube: [apply, upkeep],
+    whatis: [apply],
+    upkeep: [upkeep],
+    missing: [apply],
+    login: [apply],
+    eligibility: [apply],
+    status: [apply],
+    repay: [apply],
+    purpose: [apply],
+    history: [apply],
+  }
+  const links = map[key]
+  if (!links || !links.length) return ''
+  const lines = links.map((u) => `• ${u}`).join('\n')
+  return `\n\n**Helpful video (educational, not official NELFUND):**\n${lines}\n_Portal screens may look different from the video — always use ${PORTAL}._`
+}
+
 function clusterAnswer(key: string, ctx: PlaybookContext): string | null {
   const inst = instLine(ctx)
   switch (key) {
@@ -109,23 +140,27 @@ function clusterAnswer(key: string, ctx: PlaybookContext): string | null {
     case 'history':
       return `**When / who established NELFUND**\n\nEstablished by the **Federal Government of Nigeria** under the **Student Loans (Access to Higher Education) Act, 2023** (strengthened by the **2024 re-enactment**).\n\n• Public education-loan fund, not a private company product\n• Implemented by the **Nigerian Education Loan Fund**\n• This student guide is independent\n\nConfirm rules on ${SITE} and ${PORTAL}.`
     case 'whatis':
-      return `**NELFUND** is the **Nigerian Education Loan Fund**.\n\nInterest-free loans for eligible students in **public** Nigerian tertiary institutions:\n1. **Institutional charges** (paid to the school)\n2. **Upkeep** (monthly living support when applicable)\n\nIt is a **loan you repay**, not a grant.\n\n• School must have your record in order\n• Login only at ${PORTAL}\n• Apply when the window is officially open (${SITE})\n• Support: ${ESUPPORT}`
+      return `**NELFUND** is the **Nigerian Education Loan Fund**.\n\nInterest-free loans for eligible students in **public** Nigerian tertiary institutions:\n1. **Institutional charges** (paid to the school)\n2. **Upkeep** (monthly living support when applicable)\n\nIt is a **loan you repay**, not a grant.\n\n• School must have your record in order\n• Login only at ${PORTAL}\n• Apply when the window is officially open (${SITE})\n• Support: ${ESUPPORT}` + videoLinksFor('whatis')
     case 'loan':
       return `NELFUND is a **loan**, not a scholarship, grant, or free money. You repay under official rules.\n\n${SITE} · ${FAQ}`
     case 'gsi':
       return `**GSI (Global Standing Instruction)**\n\nA bank-linked mechanism NELFUND can use to support loan recovery from accounts tied to your BVN.\n\nConfirm personal terms only through official channels.\n\n${SITE} · ${PORTAL}`
     case 'upkeep':
-      return `**Upkeep**\n\nLiving support separate from school charges.\n\n• Guide figure: **₦20,000 per month** unless ${SITE} changes it\n• Only when approved\n• Ignore unofficial WhatsApp amounts\n\n${PORTAL} · ${ESUPPORT}`
+      return `**Upkeep**\n\nLiving support separate from school charges.\n\n• Guide figure: **₦20,000 per month** unless ${SITE} changes it\n• Only when approved\n• Ignore unofficial WhatsApp amounts\n\n${PORTAL} · ${ESUPPORT}` + videoLinksFor('upkeep')
     case 'missing':
       return ctx.institutionName
         ? `For **${ctx.institutionName}**, missing information usually means the portal cannot match your student record yet.\n\n1. Contact **ICT / Registry / NELFUND desk**\n2. Retry ${PORTAL}\n3. Still failing after school confirms → ${ESUPPORT}\n\nSay **“draft the email”** for a school message.`
-        : `**Missing information** usually means NELFUND cannot match your details to a school record yet.\n\n**Next**\n1. Tell me your institution\n2. Ask school ICT / Registry / NELFUND desk to confirm upload\n3. Retry ${PORTAL}\n4. Still failing → ${ESUPPORT}\n\nWhich school do you attend?`
+        : `**Missing information** usually means NELFUND cannot match your details to a school record yet.\n\n**Next**\n1. Tell me your institution\n2. Ask school ICT / Registry / NELFUND desk to confirm upload\n3. Retry ${PORTAL}\n4. Still failing → ${ESUPPORT}\n\nWhich school do you attend?` + videoLinksFor('missing')
     case 'pending':
       return `**Pending** usually means still processing — not automatic rejection.\n\n• Exact status on ${PORTAL}\n• School NELFUND desk${inst}\n• Long stuck → ${ESUPPORT}\n\nThere is no single official “X days” number for every case.`
     case 'rejected':
       return `**Rejected / not approved**\n\nRead the exact status text on ${PORTAL}. Common fixes: identity mismatches, school record issues, incomplete profile.\n\n• Confirm details with school desk${inst}\n• Correct profile data on the portal\n• Still unclear → ${ESUPPORT} (no passwords/OTP)`
     case 'apply':
-      return `**How to apply**\n\n1. Admission into a covered **public** institution + IDs (JAMB, NIN; BVN for banking)\n2. Create / sign in only at ${PORTAL}\n3. Complete profile and verification\n4. Apply when the window is **officially open** (${SITE})\n5. Fix missing information with the school first\n\nNo paid agents. No OTP sharing.\n\n${SITE} · ${FAQ} · ${ESUPPORT}`
+    case 'youtube':
+      return (
+        `**How to apply**\n\n1. Admission into a covered **public** institution + IDs (JAMB, NIN; BVN for banking)\n2. Create / sign in only at ${PORTAL}\n3. Complete profile and verification\n4. Apply when the window is **officially open** (${SITE})\n5. Fix missing information with the school first\n\nNo paid agents. No OTP sharing.\n\n${SITE} · ${FAQ} · ${ESUPPORT}` +
+        videoLinksFor('apply')
+      )
     case 'login':
       return `**Official links only**\n\n• Portal: ${PORTAL}\n• Website: ${SITE}\n• Support: ${ESUPPORT}\n\nAvoid random social-media links.`
     case 'jamb':
@@ -177,14 +212,12 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
         t,
       ))
 
-  // Continuity: on short follow-ups, stay on prior intent unless user clearly switches topic
   const clearSwitch = routeByKeywords(t)
   const intentForAnswer: IntentId =
     isFollowUp && prior && prior !== 'unknown' && (!clearSwitch || t.length < 25)
       ? prior
       : intent
 
-  // Keyword route only when first turn, or user clearly names a new topic
   if (clearSwitch && (!isFollowUp || t.length >= 25 || !prior || prior === 'unknown')) {
     const ans = clusterAnswer(clearSwitch, ctx)
     if (ans) return ans
@@ -236,11 +269,17 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 }
 
 export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string {
+  if (/youtube|video|tutorial|walkthrough|how\s*to\s*apply|how\s*do\s*i\s*apply/i.test(ctx.userText || '')) {
+    return (
+      clusterAnswer('apply', ctx) ||
+      `Official apply steps: ${PORTAL}\n\nEducational walkthrough: https://www.youtube.com/watch?v=XOhro3UuSDE`
+    )
+  }
   if (ctx.institutionName && /missing|upload|school/i.test(ctx.problemSummary || ctx.userText || '')) {
     return `Next for **${ctx.institutionName}**: confirm with ICT/Registry that your record was uploaded, then retry ${PORTAL}. If they confirm upload and it still fails, open ${ESUPPORT}.`
   }
   if (intent === 'current-information' || /open|deadline|bvn/i.test(ctx.userText || '')) {
     return `Still: only ${SITE} and ${PORTAL} define whether applications are open. I will not invent a date.`
   }
-  return `Tell me the next detail — school name, exact portal message, or what you want (apply, contact, draft email, status).\n\n${PORTAL} · ${ESUPPORT}`
+  return `What would you like next — how to apply, missing information, upkeep, contacts, or a draft email?\n\n${PORTAL} · ${ESUPPORT}`
 }
