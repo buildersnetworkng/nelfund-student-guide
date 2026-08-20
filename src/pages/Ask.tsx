@@ -1,4 +1,4 @@
-import { FormEvent, ChangeEvent, useEffect, useRef, useState, type ReactNode } from 'react'
+import { FormEvent, ChangeEvent, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   processUserTurn,
@@ -7,92 +7,38 @@ import {
   disposeOcrWorker,
 } from '../lib/ai'
 import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai'
-import { useInstitution } from '../context/InstitutionContext'
+import { useInstitution, OTHER_INSTITUTION } from '../context/InstitutionContext'
+import { institutions } from '../lib/data'
 import { AnswerCards } from '../components/AnswerCards'
-import { trackAiQuestion, trackFeedback } from '../lib/analytics'
+import { trackAiQuestion, trackAiFeedback } from '../lib/analytics'
 
 const SUGGESTIONS = [
-  'Is NELFUND open right now?',
-  'What is NELFUND and how does it work?',
-  'My portal shows missing information',
-  'When will registration expire? I do not have BVN yet',
-  'How do I apply for the student loan?',
+  'My NELFUND application is pending',
+  'My school is not showing on the portal',
+  "I'm seeing Missing Information",
+  'How do I apply for NELFUND?',
+  'The portal is not accepting my JAMB number',
 ]
 
-function uid(prefix: string): string {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-}
-
-function LinkifiedText({ text }: { text: string }) {
-  const parts: ReactNode[] = []
-  const re = /(https?:\/\/[^\s<>\]\)]+)/gi
-  let last = 0
-  let m: RegExpExecArray | null
-  let key = 0
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > last) {
-      parts.push(<span key={key++}>{text.slice(last, m.index)}</span>)
-    }
-    const url = m[1].replace(/[.,;:!?)]+$/, '')
-    const trailing = m[1].slice(url.length)
-    parts.push(
-      <a
-        key={key++}
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="break-all font-medium text-forest-700 underline underline-offset-2 hover:text-forest-900"
-      >
-        {url}
-      </a>,
-    )
-    if (trailing) parts.push(<span key={key++}>{trailing}</span>)
-    last = m.index + m[0].length
-  }
-  if (last < text.length) parts.push(<span key={key++}>{text.slice(last)}</span>)
-  return <span className="whitespace-pre-wrap">{parts}</span>
-}
-
-function shouldShowCards(m: ChatMessage): boolean {
-  const a = m.answer
-  if (!a) return false
-  return Boolean(
-    a.draft ||
-      a.escalation ||
-      a.video ||
-      (a.sources && a.sources.length > 0) ||
-      (a.nextActions && a.nextActions.length > 0) ||
-      a.whatThisMeans,
-  )
-}
-
-function detectEscalation(m: ChatMessage | undefined): boolean {
-  if (!m?.answer) return false
-  if (m.answer.escalation) return true
-  const t = (m.text || '').toLowerCase()
-  return (
-    t.includes('nelfund.esupport.ng') ||
-    t.includes('ict / registry') ||
-    t.includes('nelfund desk') ||
-    t.includes('contact') && (t.includes('school') || t.includes('support'))
-  )
-}
-
 export default function Ask() {
-  const { institutionId } = useInstitution()
+  const { institutionId, institution, setInstitutionId } = useInstitution()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [slots, setSlots] = useState<ConversationSlots>(() => createInitialSlots(institutionId))
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [busyLabel, setBusyLabel] = useState('Thinking…')
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
   const cameraRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const schoolMenuRef = useRef<HTMLDivElement>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
   const [showAttachMenu, setShowAttachMenu] = useState(false)
-  const [feedbackById, setFeedbackById] = useState<Record<string, 'up' | 'down'>>({})
+  const [showSchoolMenu, setShowSchoolMenu] = useState(false)
+  /** messageId → 'up' | 'down' — privacy-safe, session only */
+  const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({})
 
   const hasConversation = messages.some((m) => m.role === 'user')
 
@@ -121,15 +67,45 @@ export default function Ask() {
     el.style.height = `${Math.min(el.scrollHeight, 140)}px`
   }, [input])
 
-  function historyFromMessages(msgs: ChatMessage[]): ConversationTurn[] {
+  useEffect(() => {
+    if (!showSchoolMenu) return
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      const el = schoolMenuRef.current
+      if (el && !el.contains(e.target as Node)) setShowSchoolMenu(false)
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setShowSchoolMenu(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('touchstart', onPointerDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('touchstart', onPointerDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [showSchoolMenu])
+
+  const displaySchoolName =
+    slots.institutionName ||
+    institution?.name ||
+    (institutionId === OTHER_INSTITUTION ? 'Other institution' : null)
+
+  function handleSchoolChange(id: string | null) {
+    setInstitutionId(id)
+    setSlots(createInitialSlots(id))
+    setShowSchoolMenu(false)
+  }
+
+  function historyFromMessages(msgs: ChatMessage[], currentIntent?: string | null): ConversationTurn[] {
     return msgs
       .filter((m) => m.role === 'user' || m.role === 'assistant')
       .map((m) => ({
         role: m.role as 'user' | 'assistant',
         text: m.text,
-        intent: m.answer?.intent,
+        intent: (m.answer?.intent || currentIntent || undefined) as ConversationTurn['intent'],
       }))
-      .slice(-24)
+      .slice(-12)
   }
 
   async function handleTurn(userText: string, file?: File | null) {
@@ -149,20 +125,19 @@ export default function Ask() {
       imagePreview = URL.createObjectURL(file)
       try {
         const ocr = await extractTextFromImage(file)
-        ocrText = ocr.text && ocr.text.trim().length >= 12 ? ocr.text : ocr.lowSignal ? null : ocr.text
+        ocrText = ocr.lowSignal ? null : ocr.text
       } catch {
         ocrText = null
       }
     } else {
-      setBusyLabel('Thinking…')
+      setBusyLabel('Checking verified NELFUND information…')
     }
 
+    await new Promise((r) => setTimeout(r, 40))
+
+    const hist = historyFromMessages(messages, slots.intent)
     const hadUserMessage = messages.some((m) => m.role === 'user')
-    const hist = historyFromMessages(messages)
-
-    setBusyLabel('Thinking…')
-
-    const offline = await processUserTurn({
+    const result = await processUserTurn({
       userText: text,
       ocrText,
       imagePreview,
@@ -171,48 +146,48 @@ export default function Ask() {
       history: hist,
     })
 
-    const assistantWithAnswer = offline.messages.find((m) => m.role === 'assistant' && m.answer)
-    const intent = assistantWithAnswer?.answer?.intent || offline.slots.intent || null
-    const clarifying = (assistantWithAnswer?.answer?.clarifyingQuestions?.length ?? 0) > 0
+    const nextSlots = result.slots
+    const assistantWithAnswer = result.messages.find((m) => m.role === 'assistant' && m.answer)
+    const intent = assistantWithAnswer?.answer?.intent || nextSlots.intent || null
+    const answer = assistantWithAnswer?.answer
     const unresolved =
-      !assistantWithAnswer?.answer ||
+      Boolean(answer?.escalation?.needed) ||
       intent === 'unknown' ||
-      clarifying ||
-      offline.slots.awaitingInstitution
+      intent === 'offline:unknown'
 
-    const resolutionClosed =
-      !!assistantWithAnswer?.answer &&
-      intent !== 'unknown' &&
-      !clarifying &&
-      !offline.slots.awaitingInstitution &&
-      (assistantWithAnswer.answer.confidence ?? 0) >= 0.55
-
-    const escalationFired = detectEscalation(assistantWithAnswer)
+    const resolutionClosed = Boolean(answer && !unresolved && answer.sources?.length)
+    const escalationFired =
+      Boolean(answer?.escalation?.needed) &&
+      ((answer?.escalation?.institutionContacts?.length ?? 0) > 0 ||
+        (answer?.escalation?.nelfundContacts?.length ?? 0) > 0)
 
     trackAiQuestion({
       intent: intent || 'unknown',
-      institutionId: offline.slots.institutionId || institutionId,
-      hasImage: !!file,
-      unresolved,
-      isNewConversation: !hadUserMessage,
-      userText: text || ocrText || '',
+      institutionId: nextSlots.institutionId || institutionId,
       resolutionClosed,
       escalationFired,
+      hadPriorTurns: hadUserMessage,
     })
 
-    setSlots(offline.slots)
-    setMessages((prev) => [...prev, ...offline.messages])
-    setPendingFile(null)
-    setPendingPreview(null)
+    setSlots(nextSlots)
+    setMessages((prev) => [...prev, ...result.messages])
     setBusy(false)
     setBusyLabel('Thinking…')
+    clearPendingImage()
   }
 
-  function onFeedback(messageId: string, vote: 'up' | 'down', intent?: string | null) {
-    if (feedbackById[messageId]) return
-    setFeedbackById((prev) => ({ ...prev, [messageId]: vote }))
-    trackFeedback(vote, {
-      intent: intent || slots.intent,
+  function onFeedback(messageId: string, vote: 'up' | 'down') {
+    setFeedback((prev) => {
+      if (prev[messageId] === vote) {
+        const next = { ...prev }
+        delete next[messageId]
+        return next
+      }
+      return { ...prev, [messageId]: vote }
+    })
+    trackAiFeedback({
+      vote,
+      messageId,
       institutionId: slots.institutionId || institutionId,
     })
   }
@@ -225,24 +200,11 @@ export default function Ask() {
   function onFilePicked(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''
-    setShowAttachMenu(false)
     if (!file) return
-    if (!file.type.startsWith('image/')) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `sys-${Date.now()}`,
-          role: 'assistant',
-          text: 'Please choose an image file (screenshot or photo of the portal error).',
-          isFollowUp: true,
-          timestamp: Date.now(),
-        },
-      ])
-      return
-    }
     if (pendingPreview?.startsWith('blob:')) URL.revokeObjectURL(pendingPreview)
     setPendingFile(file)
     setPendingPreview(URL.createObjectURL(file))
+    setShowAttachMenu(false)
   }
 
   function clearPendingImage() {
@@ -261,11 +223,12 @@ export default function Ask() {
     setInput('')
     setBusy(false)
     setShowAttachMenu(false)
-    setFeedbackById({})
+    setFeedback({})
   }
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col bg-paper">
+      {/* Minimal AI header */}
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-forest-100 bg-paper/95 px-3 backdrop-blur-md sm:h-14 sm:px-5">
         <div className="flex min-w-0 items-center gap-2.5">
           <Link
@@ -275,10 +238,83 @@ export default function Ask() {
           >
             N
           </Link>
-          <div className="min-w-0">
+          <div className="relative min-w-0" ref={schoolMenuRef}>
             <p className="truncate text-sm font-semibold text-ink">NELFUND AI</p>
-            {slots.institutionName && (
-              <p className="truncate text-[11px] text-forest-700">{slots.institutionName}</p>
+            <button
+              type="button"
+              onClick={() => setShowSchoolMenu((v) => !v)}
+              className="group flex max-w-[min(70vw,16rem)] items-center gap-1 truncate text-left text-[11px] font-medium text-forest-700 transition hover:text-forest-900"
+              aria-haspopup="listbox"
+              aria-expanded={showSchoolMenu}
+              aria-label={
+                displaySchoolName
+                  ? `Current school: ${displaySchoolName}. Click to switch school`
+                  : 'Select your school'
+              }
+            >
+              <span className="truncate underline decoration-forest-300/60 underline-offset-2 group-hover:decoration-forest-600">
+                {displaySchoolName || 'Select school'}
+              </span>
+              <svg
+                className={`h-3 w-3 shrink-0 text-forest-600/70 transition group-hover:text-forest-800 ${showSchoolMenu ? 'rotate-180' : ''}`}
+                viewBox="0 0 12 12"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 4.5L6 7.5L9 4.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            {showSchoolMenu && (
+              <div
+                role="listbox"
+                aria-label="Switch school"
+                className="absolute left-0 top-full z-50 mt-1 max-h-64 w-[min(92vw,18rem)] overflow-y-auto rounded-xl border border-forest-100 bg-white py-1 shadow-lg ring-1 ring-black/5"
+              >
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={!institutionId}
+                  onClick={() => handleSchoolChange(null)}
+                  className={`flex w-full px-3 py-2 text-left text-xs transition hover:bg-forest-50 ${
+                    !institutionId ? 'font-semibold text-forest-800' : 'text-ink/80'
+                  }`}
+                >
+                  Not selected
+                </button>
+                {institutions.map((i) => (
+                  <button
+                    key={i.id}
+                    type="button"
+                    role="option"
+                    aria-selected={institutionId === i.id}
+                    onClick={() => handleSchoolChange(i.id)}
+                    className={`flex w-full px-3 py-2 text-left text-xs transition hover:bg-forest-50 ${
+                      institutionId === i.id ? 'font-semibold text-forest-800' : 'text-ink/80'
+                    }`}
+                  >
+                    {i.name}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={institutionId === OTHER_INSTITUTION}
+                  onClick={() => handleSchoolChange(OTHER_INSTITUTION)}
+                  className={`flex w-full border-t border-forest-50 px-3 py-2 text-left text-xs transition hover:bg-forest-50 ${
+                    institutionId === OTHER_INSTITUTION
+                      ? 'font-semibold text-forest-800'
+                      : 'text-ink/80'
+                  }`}
+                >
+                  Other / not listed
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -301,7 +337,8 @@ export default function Ask() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* Conversation / empty state */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {!hasConversation && !busy ? (
           <div className="mx-auto flex h-full max-w-2xl flex-col justify-center px-4 py-10 sm:px-6">
             <div className="fade-in text-center">
@@ -309,8 +346,7 @@ export default function Ask() {
                 How can NELFUND AI help?
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink/55">
-                Ask in your own words — portal errors, login, school contacts, eligibility, BVN timing, or current
-                application status.
+                Guidance on applications, portal errors, school records, and verified support contacts, based on official NELFUND information.
               </p>
             </div>
             <div className="mt-8 flex flex-wrap justify-center gap-2">
@@ -330,157 +366,136 @@ export default function Ask() {
         ) : (
           <div className="mx-auto max-w-2xl space-y-5 px-4 py-6 sm:px-6">
             {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`slide-up flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                {m.role === 'user' ? (
-                  <div className="max-w-[85%] rounded-2xl rounded-br-md bg-forest-700 px-4 py-2.5 text-sm leading-relaxed text-white">
-                    {m.imagePreview && (
-                      <img
-                        src={m.imagePreview}
-                        alt="Uploaded portal screenshot"
-                        className="mb-2 max-h-48 rounded-lg object-contain"
-                      />
-                    )}
-                    <p className="whitespace-pre-wrap">{m.text}</p>
-                  </div>
-                ) : (
-                  <div className="w-full max-w-full text-sm leading-relaxed text-ink">
-                    <div className="text-[15px] leading-relaxed">
-                      <LinkifiedText text={m.text} />
-                    </div>
-                    {shouldShowCards(m) && m.answer && <AnswerCards answer={m.answer} />}
-                    <div className="mt-2 flex items-center gap-1">
-                      <button
-                        type="button"
-                        disabled={!!feedbackById[m.id]}
-                        onClick={() => onFeedback(m.id, 'up', m.answer?.intent)}
-                        className={`rounded-lg px-2 py-1 text-sm transition ${
-                          feedbackById[m.id] === 'up'
-                            ? 'bg-forest-50 text-forest-800'
-                            : 'text-ink/40 hover:bg-forest-50 hover:text-ink/70'
-                        } disabled:cursor-default`}
-                        aria-label="Helpful"
-                      >
-                        👍
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!!feedbackById[m.id]}
-                        onClick={() => onFeedback(m.id, 'down', m.answer?.intent)}
-                        className={`rounded-lg px-2 py-1 text-sm transition ${
-                          feedbackById[m.id] === 'down'
-                            ? 'bg-rust-100 text-rust-600'
-                            : 'text-ink/40 hover:bg-forest-50 hover:text-ink/70'
-                        } disabled:cursor-default`}
-                        aria-label="Not helpful"
-                      >
-                        👎
-                      </button>
-                      {feedbackById[m.id] && (
-                        <span className="ml-1 text-[10px] text-ink/40">Thanks for the feedback</span>
-                      )}
-                    </div>
-                  </div>
-                )}
+              <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
+                <div
+                  className={
+                    m.role === 'user'
+                      ? 'max-w-[85%] rounded-2xl rounded-br-md bg-forest-700 px-3.5 py-2.5 text-sm text-paper'
+                      : 'max-w-[92%] space-y-2'
+                  }
+                >
+                  {m.imagePreview && (
+                    <img
+                      src={m.imagePreview}
+                      alt="Uploaded screenshot"
+                      className="mb-2 max-h-48 rounded-xl border border-forest-100 object-contain"
+                    />
+                  )}
+                  {m.role === 'user' ? (
+                    <p className="whitespace-pre-wrap leading-relaxed">{m.text}</p>
+                  ) : (
+                    <>
+                      <div className="rounded-2xl rounded-bl-md border border-forest-100 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink shadow-sm">
+                        <p className="whitespace-pre-wrap">{m.text}</p>
+                        {m.answer && <AnswerCards answer={m.answer} />}
+                      </div>
+                      <div className="flex items-center gap-1 px-1">
+                        <button
+                          type="button"
+                          onClick={() => onFeedback(m.id, 'up')}
+                          className={`rounded-full px-2 py-1 text-sm transition ${
+                            feedback[m.id] === 'up'
+                              ? 'bg-forest-50 text-forest-800'
+                              : 'text-ink/40 hover:bg-forest-50 hover:text-ink/70'
+                          }`}
+                          aria-label="Helpful"
+                          aria-pressed={feedback[m.id] === 'up'}
+                        >
+                          👍
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onFeedback(m.id, 'down')}
+                          className={`rounded-full px-2 py-1 text-sm transition ${
+                            feedback[m.id] === 'down'
+                              ? 'bg-rust-50 text-rust-700'
+                              : 'text-ink/40 hover:bg-forest-50 hover:text-ink/70'
+                          }`}
+                          aria-label="Not helpful"
+                          aria-pressed={feedback[m.id] === 'down'}
+                        >
+                          👎
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             ))}
-
             {busy && (
-              <div className="flex items-center gap-2 text-sm text-ink/50">
-                <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-forest-600" />
-                {busyLabel}
+              <div className="flex justify-start">
+                <div className="rounded-2xl rounded-bl-md border border-forest-100 bg-white px-3.5 py-2.5 text-sm text-ink/55 shadow-sm">
+                  {busyLabel}
+                </div>
               </div>
             )}
-            <div ref={bottomRef} className="h-4" />
+            <div ref={bottomRef} />
           </div>
         )}
       </div>
 
-      <div
-        className="shrink-0 border-t border-forest-100 bg-paper/95 px-3 pt-2 backdrop-blur-md sm:px-4"
-        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
-      >
-        <div className="mx-auto max-w-2xl">
+      {/* Composer */}
+      <div className="shrink-0 border-t border-forest-100 bg-paper/95 px-3 py-3 backdrop-blur-md sm:px-5">
+        <form onSubmit={onSubmit} className="mx-auto flex max-w-2xl flex-col gap-2">
           {pendingPreview && (
-            <div className="mb-2 flex items-center gap-2 rounded-xl border border-forest-100 bg-white p-2">
-              <img src={pendingPreview} alt="Selected screenshot" className="h-12 w-12 rounded-lg object-cover" />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-ink">Screenshot attached</p>
-                <p className="text-[10px] text-ink/45">Don't include passwords, OTPs, or PINs.</p>
-              </div>
+            <div className="flex items-center gap-2 rounded-xl border border-forest-100 bg-white px-2 py-1.5">
+              <img src={pendingPreview} alt="Pending" className="h-12 w-12 rounded-lg object-cover" />
+              <p className="flex-1 truncate text-xs text-ink/60">Screenshot attached</p>
               <button
                 type="button"
                 onClick={clearPendingImage}
-                className="rounded-full px-2 py-1 text-xs font-medium text-rust-500 hover:bg-rust-100"
+                className="rounded-full px-2 py-1 text-xs font-semibold text-ink/50 hover:bg-forest-50 hover:text-ink"
               >
                 Remove
               </button>
             </div>
           )}
-
-          <form
-            onSubmit={onSubmit}
-            className="flex items-end gap-2 rounded-2xl border border-forest-100 bg-white px-2 py-2 shadow-card"
-          >
-            <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={onFilePicked} />
-            <input
-              ref={cameraRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={onFilePicked}
-            />
-
-            <div className="relative shrink-0">
+          <div className="relative flex items-end gap-2 rounded-2xl border border-forest-100 bg-white px-2 py-1.5 shadow-sm focus-within:border-forest-300 focus-within:ring-2 focus-within:ring-forest-500/20">
+            <div className="relative">
               <button
                 type="button"
-                disabled={busy}
                 onClick={() => setShowAttachMenu((v) => !v)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-forest-700 transition hover:bg-forest-50 disabled:opacity-50"
-                aria-label="Attach photo or screenshot"
-                aria-expanded={showAttachMenu}
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-ink/45 transition hover:bg-forest-50 hover:text-ink"
+                aria-label="Attach screenshot"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path
-                    d="M4 16l4.6-6.1a1 1 0 011.6 0L14 15l1.4-1.9a1 1 0 011.6 0L20 16M4 16h16M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle cx="9" cy="8" r="1.5" fill="currentColor" />
-                </svg>
+                +
               </button>
               {showAttachMenu && (
-                <div className="absolute bottom-12 left-0 z-20 w-44 overflow-hidden rounded-xl border border-forest-100 bg-white shadow-lift">
+                <div className="absolute bottom-full left-0 mb-1 w-40 overflow-hidden rounded-xl border border-forest-100 bg-white py-1 shadow-lg">
                   <button
                     type="button"
-                    className="block w-full px-3 py-2.5 text-left text-sm text-ink hover:bg-forest-50"
                     onClick={() => galleryRef.current?.click()}
+                    className="block w-full px-3 py-2 text-left text-xs text-ink/80 hover:bg-forest-50"
                   >
-                    Choose from gallery
+                    Photo library
                   </button>
                   <button
                     type="button"
-                    className="block w-full border-t border-forest-100 px-3 py-2.5 text-left text-sm text-ink hover:bg-forest-50"
                     onClick={() => cameraRef.current?.click()}
+                    className="block w-full px-3 py-2 text-left text-xs text-ink/80 hover:bg-forest-50"
                   >
-                    Take photo
+                    Camera
                   </button>
                 </div>
               )}
+              <input
+                ref={galleryRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onFilePicked}
+              />
+              <input
+                ref={cameraRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={onFilePicked}
+              />
             </div>
-
-            <label htmlFor="chat-input" className="sr-only">
-              Ask about NELFUND
-            </label>
             <textarea
               ref={textareaRef}
-              id="chat-input"
-              rows={1}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -489,32 +504,21 @@ export default function Ask() {
                   void handleTurn(input, pendingFile)
                 }
               }}
-              placeholder="Ask anything about NELFUND…"
-              className="max-h-[140px] min-h-[40px] flex-1 resize-none bg-transparent px-1 py-2 text-sm text-ink placeholder:text-ink/35 focus:outline-none"
+              rows={1}
+              placeholder="Ask about NELFUND…"
+              className="max-h-[140px] min-h-[36px] flex-1 resize-none bg-transparent py-2 text-sm text-ink outline-none placeholder:text-ink/35"
               disabled={busy}
             />
-
             <button
               type="submit"
               disabled={busy || (!input.trim() && !pendingFile)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-forest-700 text-paper transition hover:bg-forest-900 disabled:opacity-40"
-              aria-label="Send message"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-forest-700 text-sm font-semibold text-paper transition enabled:hover:bg-forest-800 disabled:opacity-40"
+              aria-label="Send"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path
-                  d="M12 19V5M12 5l-6 6M12 5l6 6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              ↑
             </button>
-          </form>
-          <p className="mt-1.5 text-center text-[10px] text-ink/35">
-            Independent student guide · Verify critical details on the official portal
-          </p>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   )
