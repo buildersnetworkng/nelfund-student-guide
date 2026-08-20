@@ -1,6 +1,7 @@
 /**
  * Offline conversational agent — PRIMARY NELFUND intelligence (no external LLM required).
  * Multi-turn memory via slots + history. Does not invent official dates.
+ * Follow-ups stay on the prior topic; off-topic requests get a professional redirect.
  */
 
 import { getInstitution } from '../data'
@@ -174,12 +175,52 @@ function userTurnCount(history: ConversationTurn[]): number {
 
 function isShortFollowUp(text: string): boolean {
   const t = text.trim().toLowerCase()
-  if (t.length > 40) return false
-  if (/\?|bvn|account|open|expire|deadline|apply|nelfund|missing|portal|school|loan/i.test(t))
-    return false
-  return /^(yes|yeah|yep|ok|okay|sure|please|do\s*it|go\s*ahead|draft\s*(it|the\s*email|one)|send\s*it|what\s*next|and\s*then|continue|more|tell\s*me\s*more|thanks|thank\s*you|na\s*im|abeg|ehn|ehe)\.?$/i.test(
-    t,
+  if (t.length > 70) return false
+  if (
+    /\b(what\s*is\s*nelfund|how\s*to\s*apply|missing\s*information|upkeep|repay|guarantor|private\s*uni|interest)\b/i.test(
+      t,
+    ) &&
+    t.length > 25
   )
+    return false
+  if (/\?|bvn|account|open|expire|deadline|apply|nelfund|missing|portal|school|loan/i.test(t) && t.length > 35)
+    return false
+  return /^(yes|yeah|yep|ok|okay|sure|please|do\s*it|go\s*ahead|draft\s*(it|the\s*email|one)|send\s*it|what\s*next|and\s*then|continue|more|tell\s*me\s*more|about\s*that|that\s*one|same\s*issue|still|thanks|thank\s*you|na\s*im|abeg|ehn|ehe|hmm|okay\s*what)\.?$/i.test(
+    t,
+  ) || (t.length < 25 && /^(and|then|also|but|so)\b/i.test(t))
+}
+
+/** True when the message is clearly not about NELFUND / student loans / portal. */
+function isOffTopic(text: string): boolean {
+  const t = text.trim().toLowerCase()
+  if (!t || t.length < 2) return false
+  if (
+    /nelfund|nelf\.gov|portal\.nelf|student\s*loan|upkeep|jamb|\bnin\b|\bbvn\b|matric|missing\s*info|institutional\s*charge|school\s*fees?|guarantor|\bgsi\b|nysc|esupport|polytechnic|university|college\s*of\s*education|tertiary|loan.*school|school.*loan/i.test(
+      t,
+    )
+  ) {
+    return false
+  }
+  if (
+    /\b(weather|football|soccer|nba|movie|netflix|recipe|cook|girlfriend|boyfriend|dating|crypto|bitcoin|forex|game\s*pass|playstation|iphone\s*price|android|whatsapp\s*hack|exam\s*malpractice|assignment\s*write|essay\s*write|poem|joke|riddle|horoscope|lottery|betting|sport\s*bet|politics|election|president|music|song|lyrics|translate\s*this|write\s*code|python\s*script|javascript)\b/i.test(
+      t,
+    )
+  ) {
+    return true
+  }
+  if (
+    t.length > 40 &&
+    !/school|student|loan|fee|portal|apply|admission|university|poly|college|education|nelfund|matric|jamb|nin|bvn/i.test(
+      t,
+    )
+  ) {
+    return true
+  }
+  return false
+}
+
+function offTopicReply(): string {
+  return `I understand your request, but I can only help with **NELFUND** — the Nigerian Education Loan Fund (applications, portal issues, eligibility, upkeep, repayment, and school-record problems).\n\nWould you like help with any of these?\n• How to apply or log in\n• Missing information on the portal\n• Eligibility / documents\n• Upkeep or repayment\n• Contacting your school or NELFUND support\n\nJust tell me what you need in a short sentence.`
 }
 
 function finalize(
@@ -231,6 +272,11 @@ export async function processUserTurn(opts: {
     timestamp: Date.now(),
   }
 
+  // Off-topic: professional decline + NELFUND offer (skip if OCR/screenshot present)
+  if (!ocr && rawUser && isOffTopic(rawUser)) {
+    return finalize(userMsg, { ...opts.slots }, opts.slots.intent || 'unknown', offTopicReply(), 'conversation')
+  }
+
   let slots: ConversationSlots = applyInstitutionToSlots(
     { ...opts.slots, actionsTaken: [...(opts.slots.actionsTaken || [])] },
     combined,
@@ -262,6 +308,7 @@ export async function processUserTurn(opts: {
           turnIndex,
           lastAssistant: prevAsst,
           userText: `${combined} ${slots.problemSummary || ''}`,
+          priorIntent,
         }) ||
         `Thanks — I have **${slots.institutionName}** on this conversation.\n\nFor your issue, start with the school ICT / Registry / NELFUND desk, then use https://nelfund.esupport.ng/create if the portal still fails after the school confirms your record.\n\nPortal: https://portal.nelf.gov.ng/\nSay **“draft the email”** if you want a message for the school.`
       const answer = lightAnswer(resumeIntent, pb, {
@@ -306,6 +353,7 @@ export async function processUserTurn(opts: {
             turnIndex,
             lastAssistant: prevAsst,
             userText: combined,
+            priorIntent,
           },
           screen.kind === 'error' ? 'missing-information' : 'current-information',
         )
@@ -324,11 +372,13 @@ export async function processUserTurn(opts: {
 
   const intentMeta = classifyIntent(combined || rawUser, history)
   let intent: IntentId = intentMeta.intent
+  // Stay on prior topic for short / vague follow-ups (prevents topic drift)
   if (
-    intent === 'unknown' &&
     priorIntent &&
     priorIntent !== 'unknown' &&
-    (rawUser.length < 60 || isShortFollowUp(rawUser))
+    (intent === 'unknown' ||
+      (rawUser.length < 60 && isShortFollowUp(rawUser)) ||
+      (rawUser.length < 40 && intentMeta.confidence < 0.7))
   ) {
     intent = priorIntent
   }
@@ -349,6 +399,7 @@ export async function processUserTurn(opts: {
         turnIndex,
         lastAssistant: prevAsst,
         userText: combined,
+        priorIntent,
       }) || null
     const ask = institutionAskPrompt(intent)
     const firstLine = brief ? brief.split('\n\n')[0] : null
@@ -423,11 +474,11 @@ export async function processUserTurn(opts: {
         /* fall through */
       }
     }
-    if (/what\s*next|and\s*then|continue|more|tell\s*me\s*more/i.test(lower)) {
+    if (/what\s*next|and\s*then|continue|more|tell\s*me\s*more|about\s*that/i.test(lower)) {
       return finalize(
         userMsg,
         slots,
-        slots.intent || 'unknown',
+        slots.intent || priorIntent || 'unknown',
         nextStepAdvance(
           {
             institutionName: slots.institutionName,
@@ -436,8 +487,9 @@ export async function processUserTurn(opts: {
             turnIndex,
             lastAssistant: prevAsst,
             userText: combined,
+            priorIntent,
           },
-          slots.intent || 'unknown',
+          slots.intent || priorIntent || 'unknown',
         ),
         'conversation',
       )
@@ -528,6 +580,7 @@ export async function processUserTurn(opts: {
       turnIndex,
       lastAssistant: prevAsst,
       userText: combined,
+      priorIntent,
     })
     if (pb && !isNearDuplicate(prevAsst, pb)) {
       return finalize(userMsg, slots, intent, pb, 'current-information', {
@@ -558,6 +611,7 @@ export async function processUserTurn(opts: {
       turnIndex,
       lastAssistant: prevAsst,
       userText: combined,
+      priorIntent,
     })
     if (pb) {
       const text = isNearDuplicate(prevAsst, pb)
@@ -569,6 +623,7 @@ export async function processUserTurn(opts: {
               turnIndex,
               lastAssistant: prevAsst,
               userText: combined,
+              priorIntent,
             },
             intent,
           )
@@ -579,9 +634,8 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Do not trap factual knowledge questions in the troubleshooting menu
   const looksFactual =
-    /\b(what|when|who|why|how|purpose|history|established|created|founded|mean|meaning|act|interest|repay|eligible|guarantor|nysc|private|amount|loan)\b/i.test(
+    /\b(what|when|who|why|how|purpose|history|established|created|founded|mean|meaning|act|interest|repay|eligible|guarantor|nysc|private|amount|loan|nelfund|apply|portal|upkeep)\b/i.test(
       combined,
     )
   if (
@@ -603,13 +657,14 @@ export async function processUserTurn(opts: {
   const grounded = answerQuestion(combined || rawUser, slots.institutionId, history)
   let textOut =
     grounded.answer ||
-    playbookAnswer('what-is-nelfund', {
+    playbookAnswer(slots.intent || intent || 'what-is-nelfund', {
       institutionName: slots.institutionName,
       problemSummary: slots.problemSummary,
       exactError: slots.exactError,
       turnIndex,
       lastAssistant: prevAsst,
       userText: combined,
+      priorIntent,
     }) ||
     'Tell me more about what the portal shows, or ask about how to apply, missing information, upkeep, or current status.'
 
@@ -622,6 +677,7 @@ export async function processUserTurn(opts: {
         turnIndex,
         lastAssistant: prevAsst,
         userText: combined,
+        priorIntent,
       },
       grounded.intent || intent,
     )
