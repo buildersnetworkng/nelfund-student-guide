@@ -1,7 +1,7 @@
 /**
  * Offline conversational agent — PRIMARY NELFUND intelligence (no external LLM required).
  * Multi-turn memory via slots + history. Does not invent official dates.
- * Greetings welcome the user; off-topic requests get a professional redirect.
+ * New user asks (YouTube, how-to-apply, etc.) are never replaced by anti-repeat filler.
  */
 
 import { getInstitution } from '../data'
@@ -11,7 +11,7 @@ import { resolveCapability } from './capabilities'
 import { buildCurrentInformationAnswerLive } from './current'
 import { draftSupportEmail, describeContactLookup } from './generate'
 import { classifyIntent } from './intent'
-import { isNearDuplicate, nextStepAdvance, playbookAnswer } from './playbook'
+import { isNearDuplicate, isNewUserAsk, nextStepAdvance, playbookAnswer } from './playbook'
 import { institutionAskPrompt, needsInstitutionEarly } from './supportGates'
 import type {
   AgentCapability,
@@ -190,17 +190,12 @@ function isShortFollowUp(text: string): boolean {
   ) || (t.length < 25 && /^(and|then|also|but|so)\b/i.test(t))
 }
 
-/** Nigerian + English greetings (not off-topic). */
 function isGreeting(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
   if (!t || t.length > 80) return false
-  if (
-    /^(hi|hii+|hello|hey|heyy+|hiya|yo|yoo+|sup|howdy|hi\s*there|hello\s*there)(\s+there)?$/i.test(t)
-  )
+  if (/^(hi|hii+|hello|hey|heyy+|hiya|yo|yoo+|sup|howdy|hi\s*there|hello\s*there)(\s+there)?$/i.test(t))
     return true
-  if (
-    /^(good\s*)?(morning|afternoon|evening|day|night)(\s*(sir|ma|boss|bro|sis))?$/i.test(t)
-  )
+  if (/^(good\s*)?(morning|afternoon|evening|day|night)(\s*(sir|ma|boss|bro|sis))?$/i.test(t))
     return true
   if (
     /^(how\s*far|howfar|how\s*fa|howfa|wetin\s*dey|wetin\s*dey\s*happen|how\s*you\s*dey|how\s*una\s*dey|how\s*is\s*it|how\s*are\s*you|how\s*r\s*you|whats?\s*up|what'?s\s*up|wassup|how\s*you|you\s*good|you\s*dey|na\s*how|kedu|bawo|sannu|salam|peace)(\s*(nah|now|o|oh|abeg))?$/i.test(
@@ -223,13 +218,12 @@ function greetingReply(): string {
   return `How far — welcome.\n\nI am here to help with **NELFUND**: applications, portal issues, eligibility, upkeep, repayment, and school-record problems.\n\nWhat do you need help with today?`
 }
 
-/** True when the message is clearly not about NELFUND / student loans / portal. */
 function isOffTopic(text: string): boolean {
   const t = text.trim().toLowerCase()
   if (!t || t.length < 2) return false
   if (isGreeting(text)) return false
   if (
-    /nelfund|nelf\.gov|portal\.nelf|student\s*loan|upkeep|jamb|\bnin\b|\bbvn\b|matric|missing\s*info|institutional\s*charge|school\s*fees?|guarantor|\bgsi\b|nysc|esupport|polytechnic|university|college\s*of\s*education|tertiary|loan.*school|school.*loan/i.test(
+    /nelfund|nelf\.gov|portal\.nelf|student\s*loan|upkeep|jamb|\bnin\b|\bbvn\b|matric|missing\s*info|institutional\s*charge|school\s*fees?|guarantor|\bgsi\b|nysc|esupport|polytechnic|university|college\s*of\s*education|tertiary|loan.*school|school.*loan|youtube|video|tutorial|apply/i.test(
       t,
     )
   ) {
@@ -244,7 +238,7 @@ function isOffTopic(text: string): boolean {
   }
   if (
     t.length > 40 &&
-    !/school|student|loan|fee|portal|apply|admission|university|poly|college|education|nelfund|matric|jamb|nin|bvn/i.test(
+    !/school|student|loan|fee|portal|apply|admission|university|poly|college|education|nelfund|matric|jamb|nin|bvn|youtube|video/i.test(
       t,
     )
   ) {
@@ -306,18 +300,10 @@ export async function processUserTurn(opts: {
     timestamp: Date.now(),
   }
 
-  // Greetings (howfar, hello, good morning, etc.) — friendly welcome, not off-topic
   if (!ocr && rawUser && isGreeting(rawUser)) {
-    return finalize(
-      userMsg,
-      { ...opts.slots },
-      opts.slots.intent || 'unknown',
-      greetingReply(),
-      'conversation',
-    )
+    return finalize(userMsg, { ...opts.slots }, opts.slots.intent || 'unknown', greetingReply(), 'conversation')
   }
 
-  // Off-topic: professional decline + NELFUND offer (skip if OCR/screenshot present)
   if (!ocr && rawUser && isOffTopic(rawUser)) {
     return finalize(userMsg, { ...opts.slots }, opts.slots.intent || 'unknown', offTopicReply(), 'conversation')
   }
@@ -357,11 +343,7 @@ export async function processUserTurn(opts: {
         }) ||
         `Thanks — I have **${slots.institutionName}** on this conversation.\n\nFor your issue, start with the school ICT / Registry / NELFUND desk, then use https://nelfund.esupport.ng/create if the portal still fails after the school confirms your record.\n\nPortal: https://portal.nelf.gov.ng/\nSay **“draft the email”** if you want a message for the school.`
       const answer = lightAnswer(resumeIntent, pb, {
-        next: [
-          'https://portal.nelf.gov.ng/',
-          'https://nelfund.esupport.ng/create',
-          'https://nelf.gov.ng/',
-        ],
+        next: ['https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create', 'https://nelf.gov.ng/'],
       })
       if (esc) answer.escalation = esc
       slots.intent = resumeIntent
@@ -389,7 +371,7 @@ export async function processUserTurn(opts: {
         slots.errorConfirmed = true
       }
       let explanation = screen.explanation
-      if (isNearDuplicate(prevAsst, explanation)) {
+      if (!isNewUserAsk(combined) && isNearDuplicate(prevAsst, explanation)) {
         explanation = nextStepAdvance(
           {
             institutionName: slots.institutionName,
@@ -424,7 +406,8 @@ export async function processUserTurn(opts: {
       (rawUser.length < 60 && isShortFollowUp(rawUser)) ||
       (rawUser.length < 40 && intentMeta.confidence < 0.7))
   ) {
-    intent = priorIntent
+    // Do not stick to prior when user clearly asks something new (youtube, apply, etc.)
+    if (!isNewUserAsk(rawUser)) intent = priorIntent
   }
   slots.intent = intent
   if (intentMeta.problem) slots.problemSummary = slots.problemSummary || intentMeta.problem
@@ -475,7 +458,7 @@ export async function processUserTurn(opts: {
     })
   }
 
-  if (isShortFollowUp(rawUser) && history.length > 0) {
+  if (isShortFollowUp(rawUser) && history.length > 0 && !isNewUserAsk(rawUser)) {
     const lower = rawUser.trim().toLowerCase()
     if (/^(thanks|thank\s*you|ok\s*thanks|na\s*im|done)/i.test(lower)) {
       return finalize(
@@ -626,14 +609,14 @@ export async function processUserTurn(opts: {
       userText: combined,
       priorIntent,
     })
-    if (pb && !isNearDuplicate(prevAsst, pb)) {
+    if (pb && (isNewUserAsk(combined) || !isNearDuplicate(prevAsst, pb))) {
       return finalize(userMsg, slots, intent, pb, 'current-information', {
         next: ['https://nelf.gov.ng/', 'https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
       })
     }
     try {
       const live = await buildCurrentInformationAnswerLive()
-      if (live?.answer && !isNearDuplicate(prevAsst, live.answer)) {
+      if (live?.answer && (isNewUserAsk(combined) || !isNearDuplicate(prevAsst, live.answer))) {
         return finalize(userMsg, slots, 'current-information', live.answer, 'current-information', {
           next: live.nextActions?.slice(0, 4),
           sources: live.sources as GroundedAnswer['sources'],
@@ -656,20 +639,21 @@ export async function processUserTurn(opts: {
       priorIntent,
     })
     if (pb) {
-      const text = isNearDuplicate(prevAsst, pb)
-        ? nextStepAdvance(
-            {
-              institutionName: slots.institutionName,
-              problemSummary: slots.problemSummary,
-              exactError: slots.exactError,
-              turnIndex,
-              lastAssistant: prevAsst,
-              userText: combined,
-              priorIntent,
-            },
-            intent,
-          )
-        : pb
+      const text =
+        !isNewUserAsk(combined) && isNearDuplicate(prevAsst, pb)
+          ? nextStepAdvance(
+              {
+                institutionName: slots.institutionName,
+                problemSummary: slots.problemSummary,
+                exactError: slots.exactError,
+                turnIndex,
+                lastAssistant: prevAsst,
+                userText: combined,
+                priorIntent,
+              },
+              intent,
+            )
+          : pb
       return finalize(userMsg, slots, intent, text, capability, {
         next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
       })
@@ -677,7 +661,7 @@ export async function processUserTurn(opts: {
   }
 
   const looksFactual =
-    /\b(what|when|who|why|how|purpose|history|established|created|founded|mean|meaning|act|interest|repay|eligible|guarantor|nysc|private|amount|loan|nelfund|apply|portal|upkeep)\b/i.test(
+    /\b(what|when|who|why|how|purpose|history|established|created|founded|mean|meaning|act|interest|repay|eligible|guarantor|nysc|private|amount|loan|nelfund|apply|portal|upkeep|youtube|video)\b/i.test(
       combined,
     )
   if (
@@ -710,7 +694,7 @@ export async function processUserTurn(opts: {
     }) ||
     'Tell me more about what the portal shows, or ask about how to apply, missing information, upkeep, or current status.'
 
-  if (isNearDuplicate(prevAsst, textOut)) {
+  if (!isNewUserAsk(combined) && isNearDuplicate(prevAsst, textOut)) {
     textOut = nextStepAdvance(
       {
         institutionName: slots.institutionName,
