@@ -36,6 +36,9 @@ export type IntentId =
   | 'official-sources'
   | 'guarantor'
   | 'current-information'
+  | 'portal-login'
+  | 'email-draft'
+  | 'contact-lookup'
   | 'unknown'
 
 export type StudentStage =
@@ -135,6 +138,8 @@ export interface GroundedAnswer {
   insufficientReason: string | null
   officialFallbackUrl: string
   escalation: EscalationPlanView | null
+  draft?: { subject: string; body: string }
+  responseMode?: string
 }
 
 export interface ConversationTurn {
@@ -142,3 +147,12 @@ export interface ConversationTurn {
   text: string
   intent?: IntentId
 }
+
+export type AgentCapability =
+  | 'conversation'
+  | 'verified-knowledge'
+  | 'troubleshooting'
+  | 'current-information'
+  | 'contact-lookup'
+  | 'email-draft'
+  | 'portal-login'
