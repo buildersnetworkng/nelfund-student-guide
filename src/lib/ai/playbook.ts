@@ -1,9 +1,6 @@
 /**
  * Offline NELFUND intelligence playbook.
- * Covers the full student question space via semantic clusters.
- * Grounded in official NELFUND FAQ / Act framework. Never invents dates.
- * Follow-ups respect priorIntent; new asks (YouTube, how-to-apply) are never replaced by filler.
- * FG acceptance: Pidgin apply + repayment-start routing hardened.
+ * FG scale-hardened: eligibility phrasing, Pidgin apply, repayment-start, YouTube.
  */
 
 import type { IntentId } from './types'
@@ -40,7 +37,6 @@ export function isNearDuplicate(prev: string | undefined, next: string): boolean
   return same / wb.length > 0.88
 }
 
-/** True when the user is asking something new that must not be replaced by next-step filler. */
 export function isNewUserAsk(text: string): boolean {
   const t = (text || '').toLowerCase()
   return /youtube|video|tutorial|link|how\s*to\s*apply|how\s*do\s*i\s*apply|walkthrough|guide|step\s*by\s*step|upkeep|repay|interest|missing|guarantor|eligibility|purpose|history|what\s*is\s*nelfund|contact|draft|open\s*now|deadline|bvn|nin|jamb/i.test(
@@ -75,10 +71,10 @@ export function routeByKeywords(text: string): string | null {
     [/\bnin\b|national\s*identity/, 'nin'],
     [/\bbvn\b/, 'bvn'],
     [/scam|fraud|\botp\b|pay\s*(an?\s*)?agent|whatsapp\s*agent/, 'scam'],
-    [/eligible|who\s*can\s*apply|qualify|qualification/, 'eligibility'],
+    [/eligible|eligibility|who\s*can\s*apply|qualify|qualification/, 'eligibility'],
     [/document|what\s*(do\s*i|to)\s*need|requirements?/, 'documents'],
     [/contact|who\s*(do\s*i|should\s*i)\s*(call|email|contact)|support\s*email/, 'contact'],
-    [/open\s*now|still\s*open|deadline|closing|is\s*(nelfund|application)\s*(open|closed)|application\s*(open|window)|is\s*it\s*open/, 'status'],
+    [/open\s*now|still\s*open|deadline|closing|is\s*(nelfund|application)\s*(open|closed)|application\s*(open|window)|is\s*it\s*open|account\s*creation/, 'status'],
     [/approv|how\s*(do\s*i\s*)?know.*(status|approv)/, 'approval'],
     [/who\s*(gets|receives)\s*(the\s*)?(money|fees)|paid\s*to\s*(school|me)|disburse/, 'disburse'],
     [/repay|pay\s*back|refund\s*the\s*loan/, 'repay'],
