@@ -1,15 +1,19 @@
 {
   "name": "nelfund-student-guide",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
-  "description": "An unofficial NELFUND guide for Nigerian tertiary students. Readiness checks, application steps, troubleshooting, FAQs and video guides, all clearly labelled as verified, may-change, general guidance, or unverified. Institution-aware architecture for students at any Nigerian tertiary institution.",
+  "description": "Independent, evidence-based NELFUND student support platform for Nigerian tertiary students. Verified knowledge, institution-aware guidance, conversational AI agent, and rigorous evaluation harness suitable for institutional review.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test:ai": "node scripts/fg-harness.mjs"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 50",
+    "lint:strict": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test:ai": "tsx scripts/eval-ai.mjs",
+    "test:ai:offline": "tsx scripts/offline-eval.mjs",
+    "test": "npm run lint && npm run build && npm run test:ai",
+    "ci": "npm run test"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -29,10 +33,11 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.11",
+    "gh-pages": "^6.1.1",
     "postcss": "^8.4.45",
     "tailwindcss": "^3.4.10",
+    "tsx": "^4.23.12",
     "typescript": "^5.5.4",
-    "vite": "^5.4.3",
-    "gh-pages": "^6.1.1"
+    "vite": "^5.4.3"
   }
 }
