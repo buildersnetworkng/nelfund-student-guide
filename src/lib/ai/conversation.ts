@@ -1,6 +1,6 @@
 /**
  * Offline conversational agent — PRIMARY NELFUND intelligence.
- * FG scale-hardened: greetings, off-topic, multi-turn, YouTube new-asks.
+ * Early factual short-circuit; greetings (Wassup); no menu on knowledge questions.
  */
 
 import { getInstitution } from '../data'
@@ -192,12 +192,12 @@ function isShortFollowUp(text: string): boolean {
 function isGreeting(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
   if (!t || t.length > 80) return false
-  if (/^(hi|hii+|hello|hey|heyy+|hiya|yo|yoo+|sup|howdy|hi\s*there|hello\s*there)(\s+there)?$/i.test(t))
+  if (/^(hi|hii+|hello|hey|heyy+|hiya|yo|yoo+|sup|wassup|whatsup|howdy|hi\s*there|hello\s*there)(\s+there)?$/i.test(t))
     return true
   if (/^(good\s*)?(morning|afternoon|evening|day|night)(\s*(sir|ma|boss|bro|sis))?$/i.test(t))
     return true
   if (
-    /^(how\s*far|howfar|how\s*fa|howfa|wetin\s*dey|wetin\s*dey\s*happen|how\s*you\s*dey|how\s*una\s*dey|how\s*is\s*it|how\s*are\s*you|how\s*r\s*you|whats?\s*up|what'?s\s*up|wassup|how\s*you|you\s*good|you\s*dey|na\s*how|kedu|bawo|sannu|salam|peace)(\s*(nah|now|o|oh|abeg))?$/i.test(
+    /^(how\s*far|howfar|how\s*fa|howfa|wetin\s*dey|wetin\s*dey\s*happen|how\s*you\s*dey|how\s*una\s*dey|how\s*is\s*it|how\s*are\s*you|how\s*r\s*you|whats?\s*up|what'?s\s*up|wass?up|what\s*is\s*up|how\s*you|you\s*good|you\s*dey|na\s*how|kedu|bawo|sannu|salam|peace)(\s*(nah|now|o|oh|abeg))?$/i.test(
       t,
     )
   )
@@ -305,6 +305,37 @@ export async function processUserTurn(opts: {
 
   if (!ocr && rawUser && isOffTopic(rawUser)) {
     return finalize(userMsg, { ...opts.slots }, opts.slots.intent || 'unknown', offTopicReply(), 'conversation')
+  }
+
+  // Early factual route: never show troubleshooting menu for clear knowledge questions
+  {
+    const early = playbookAnswer('unknown', {
+      institutionName: opts.slots.institutionName,
+      problemSummary: opts.slots.problemSummary,
+      exactError: opts.slots.exactError,
+      turnIndex,
+      lastAssistant: prevAsst,
+      userText: combined || rawUser,
+      priorIntent: opts.slots.intent,
+    })
+    if (
+      early &&
+      (/\*\*|Official|NELFUND|Portal:|zero interest|Act, 2023|How to apply|Missing information|Upkeep|Repayment|Eligibility|Safety|Guarantor|Private institutions/i.test(
+        early,
+      ) ||
+        early.length > 80)
+    ) {
+      let intentGuess: IntentId = opts.slots.intent || 'unknown'
+      if (/Act, 2023|who established|When \/ who established/i.test(early)) intentGuess = 'nelfund-history'
+      else if (/Purpose of NELFUND/i.test(early)) intentGuess = 'nelfund-purpose'
+      else if (/\*\*NELFUND\*\* is the/i.test(early)) intentGuess = 'what-is-nelfund'
+      else if (/How to apply/i.test(early)) intentGuess = 'how-to-apply'
+      else if (/Missing information/i.test(early)) intentGuess = 'missing-information'
+      else if (/zero interest/i.test(early)) intentGuess = 'what-is-nelfund'
+      return finalize(userMsg, { ...opts.slots, intent: intentGuess }, intentGuess, early, 'conversation', {
+        next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
+      })
+    }
   }
 
   let slots: ConversationSlots = applyInstitutionToSlots(
@@ -659,7 +690,7 @@ export async function processUserTurn(opts: {
   }
 
   const looksFactual =
-    /\b(what|when|who|why|how|purpose|history|established|created|founded|mean|meaning|act|interest|repay|eligible|guarantor|nysc|private|amount|loan|nelfund|apply|portal|upkeep|youtube|video)\b/i.test(
+    /\b(what|when|who|why|how|purpose|history|established|created|founded|started|start|begin|began|mean|meaning|act|interest|repay|eligible|guarantor|nysc|private|amount|loan|nelfund|apply|portal|upkeep|youtube|video)\b/i.test(
       combined,
     )
   if (
