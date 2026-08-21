@@ -1,7 +1,6 @@
 /**
- * Offline conversational agent — PRIMARY NELFUND intelligence (no external LLM required).
- * Multi-turn memory via slots + history. Does not invent official dates.
- * New user asks (YouTube, how-to-apply, etc.) are never replaced by anti-repeat filler.
+ * Offline conversational agent — PRIMARY NELFUND intelligence.
+ * FG scale-hardened: greetings, off-topic, multi-turn, YouTube new-asks.
  */
 
 import { getInstitution } from '../data'
@@ -230,7 +229,7 @@ function isOffTopic(text: string): boolean {
     return false
   }
   if (
-    /\b(weather|football|soccer|nba|movie|netflix|recipe|cook|girlfriend|boyfriend|dating|crypto|bitcoin|forex|game\s*pass|playstation|iphone\s*price|android|whatsapp\s*hack|exam\s*malpractice|assignment\s*write|essay\s*write|poem|joke|riddle|horoscope|lottery|betting|sport\s*bet|politics|election|president|music|song|lyrics|translate\s*this|write\s*code|python\s*script|javascript)\b/i.test(
+    /\b(weather|football|soccer|nba|champions\s*league|premier\s*league|match|score|movie|netflix|recipe|cook|girlfriend|boyfriend|dating|love\s*letter|crypto|bitcoin|forex|game\s*pass|playstation|iphone\s*price|android|whatsapp\s*hack|exam\s*malpractice|assignment\s*write|essay\s*write|poem|joke|riddle|horoscope|lottery|betting|sport\s*bet|politics|election|president|music|song|lyrics|translate\s*this|write\s*code|python\s*script|javascript)\b/i.test(
       t,
     )
   ) {
@@ -406,7 +405,6 @@ export async function processUserTurn(opts: {
       (rawUser.length < 60 && isShortFollowUp(rawUser)) ||
       (rawUser.length < 40 && intentMeta.confidence < 0.7))
   ) {
-    // Do not stick to prior when user clearly asks something new (youtube, apply, etc.)
     if (!isNewUserAsk(rawUser)) intent = priorIntent
   }
   slots.intent = intent
