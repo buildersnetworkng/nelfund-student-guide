@@ -6,7 +6,8 @@
   "description": "An unofficial NELFUND guide for Nigerian tertiary students. Readiness checks, application steps, troubleshooting, FAQs and video guides, all clearly labelled as verified, may-change, general guidance, or unverified. Institution-aware architecture for students at any Nigerian tertiary institution.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "typecheck": "tsc -b",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "eval:ai": "tsx scripts/eval-ai.mjs",
