@@ -10,7 +10,7 @@ import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai
 import { useInstitution, OTHER_INSTITUTION } from '../context/InstitutionContext'
 import { institutions } from '../lib/data'
 import { AnswerCards } from '../components/AnswerCards'
-import { trackAiQuestion, trackAiFeedback } from '../lib/analytics'
+import { trackAiQuestion, trackFeedback } from '../lib/analytics'
 
 const SUGGESTIONS = [
   'My NELFUND application is pending',
@@ -190,7 +190,7 @@ export default function Ask() {
   function onFeedback(messageId: string, vote: 'up' | 'down', intent?: string | null) {
     if (feedback[messageId]) return
     setFeedback((prev) => ({ ...prev, [messageId]: vote }))
-    trackAiFeedback(vote, {
+    trackFeedback(vote, {
       intent: intent || slots.intent,
       institutionId: slots.institutionId || institutionId,
     })
