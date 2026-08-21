@@ -1,6 +1,6 @@
 /**
  * Offline NELFUND intelligence playbook.
- * FG scale-hardened: eligibility phrasing, Pidgin apply, repayment-start, YouTube.
+ * FG hardened: history (how did nelfund started), eligibility, Pidgin, YouTube.
  */
 
 import type { IntentId } from './types'
@@ -39,7 +39,7 @@ export function isNearDuplicate(prev: string | undefined, next: string): boolean
 
 export function isNewUserAsk(text: string): boolean {
   const t = (text || '').toLowerCase()
-  return /youtube|video|tutorial|link|how\s*to\s*apply|how\s*do\s*i\s*apply|walkthrough|guide|step\s*by\s*step|upkeep|repay|interest|missing|guarantor|eligibility|purpose|history|what\s*is\s*nelfund|contact|draft|open\s*now|deadline|bvn|nin|jamb/i.test(
+  return /youtube|video|tutorial|link|how\s*to\s*apply|how\s*do\s*i\s*apply|how\s*did\s*nelfund|how\s*nelfund\s*start|walkthrough|guide|step\s*by\s*step|upkeep|repay|interest|missing|guarantor|eligibility|purpose|history|what\s*is\s*nelfund|contact|draft|open\s*now|deadline|bvn|nin|jamb|started|established|founded/i.test(
     t,
   )
 }
@@ -56,7 +56,7 @@ export function routeByKeywords(text: string): string | null {
     [/10\s*%|ten\s*percent|how\s*much\s*(deduct|repay|monthly)/, 'tenpercent'],
     [/guarantor|surety|sponsor\s*letter/, 'guarantor'],
     [/purpose\s*of|why\s*.{0,20}nelfund|aim\s*of|goal\s*of|mandate|why\s*dem\s*create/, 'purpose'],
-    [/when\s*.{0,15}nelfund\s*(start|establish|create|launch)|when\s*(was\s*)?nelfund|who\s*(built|created|established|founded)|history\s*of\s*nelfund|student\s*loans?\s*act/, 'history'],
+    [/when\s*.{0,15}nelfund\s*(start|establish|create|launch)|how\s*(did|was|is)\s*nelfund\s*(start|started|establish|created|founded|begin|began)|how\s*nelfund\s*(start|started|begin|began)|when\s*(was\s*)?nelfund|who\s*(built|created|established|founded)|history\s*of\s*nelfund|student\s*loans?\s*act|nelfund\s*(start|started|began|begin)/, 'history'],
     [/what\s*is\s*nelfund|wetin\s*be\s*nelfund|about\s*nelfund|meaning\s*of\s*nelfund|nelfund\s*stand\s*for/, 'whatis'],
     [/scholarship|free\s*money|is\s*it\s*a\s*loan|grant\b/, 'loan'],
     [/\bgsi\b|global\s*standing/, 'gsi'],
