@@ -1,36 +1,36 @@
+/**
+ * Early institution capture for support flows (pilot fix).
+ * Ask for school earlier so escalation is accurate — not only when strictly necessary.
+ */
+
 import type { IntentId } from './types'
 
-/** Intents where school name materially improves next steps / escalation. */
-export const SUPPORT_INTENTS_NEED_SCHOOL: IntentId[] = [
+const EARLY_INSTITUTION_INTENTS: IntentId[] = [
   'missing-information',
   'pending-application',
-  'institution-verification',
-  'school-not-found',
-  'jamb-verification',
-  'nin-verification',
   'rejected-application',
-  'bank-information',
-  'refund',
+  'school-data-upload',
   'contact-lookup',
   'email-draft',
-  'reapplication',
+  'portal-error',
+  'disbursement',
+  'approval-status',
 ]
 
-export function needsInstitutionEarly(intent: IntentId | null | undefined): boolean {
+export function needsInstitutionEarly(intent: IntentId | string | null | undefined): boolean {
   if (!intent) return false
-  return SUPPORT_INTENTS_NEED_SCHOOL.includes(intent)
+  return EARLY_INSTITUTION_INTENTS.includes(intent as IntentId)
 }
 
-export function institutionAskPrompt(intent: IntentId | null): string {
+export function institutionAskPrompt(intent?: IntentId | string | null): string {
   const focus =
-    intent === 'pending-application'
-      ? 'pending application'
-      : intent === 'institution-verification'
-        ? 'school data upload'
-        : intent === 'school-not-found'
-          ? 'school not showing on the portal'
-          : intent === 'jamb-verification'
-            ? 'JAMB verification'
-            : 'this portal issue'
-  return `To help with **${focus}**, which institution do you attend?\n\nType the school name (for example OOU, LASU, UNILAG, FUTA, or the full official name). I use it for contacts and next steps — I will not invent email addresses.`
+    intent === 'missing-information'
+      ? 'missing information on the portal'
+      : intent === 'email-draft' || intent === 'contact-lookup'
+        ? 'contacting the right desk'
+        : intent === 'pending-application' || intent === 'rejected-application'
+          ? 'application status'
+          : 'this support issue'
+
+  return `To help accurately with **${focus}**, which school do you attend?\n\nReply with the full institution name (e.g. Lagos State University, OOU, UNILAG, FUTA). This keeps escalation and school-desk advice precise.`
 }
