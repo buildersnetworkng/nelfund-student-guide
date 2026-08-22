@@ -62,6 +62,12 @@ const RULES: IntentRule[] = [
       /as\s*of\s*today/i,
       /current\s*(info|information|status|update)/i,
       /latest\s*(update|news|info|information|announcement)/i,
+      /latest\s*nelfund/i,
+      /nelfund\s*(update|latest|news)/i,
+      /what.?s\s*the\s*latest\s*(on\s*)?nelfund/i,
+      /still\s*accepting\s*(applications?)?/i,
+      /is\s*nelfund\s*still\s*accepting/i,
+      /accepting\s*applications?/i,
       /what.?s\s*new/i,
       /has\s*nelfund\s*announced/i,
       /any\s*latest\s*update/i,
@@ -279,12 +285,14 @@ const RULES: IntentRule[] = [
   {
     intent: 'rejected-application',
     patterns: [
-      /\breject(?:ed|ion)?\b/i,
+      /\bapplication\s*(was\s*)?reject(?:ed|ion)?\b/i,
+      /\breject(?:ed|ion)?\s*(my\s*)?application\b/i,
       /(?<!declined\s)\bdeclined\b(?!\s*loans)/i,
       /not\s*approv/i,
       /failed\s*(verification|application)/i,
       /nelfund\s*rejected\s*me/i,
       /my\s*application\s*was\s*rejected/i,
+      /i\s*got\s*rejected\b/i,
     ],
     topics: ['rejected'],
     problem: 'Application was rejected',
@@ -297,6 +305,9 @@ const RULES: IntentRule[] = [
     intent: 'bank-information',
     patterns: [
       /bank.*(detail|account|info|fail|reject|not)/i,
+      /my\s*bank\s*details/i,
+      /bank\s*details\s*(were\s*)?(reject|fail|not)/i,
+      /bank\s*account\s*(reject|fail|not)/i,
       /bvn.*(fail|reject|not|verif)/i,
       /\bbvn\b/i,
     ],
@@ -305,7 +316,7 @@ const RULES: IntentRule[] = [
     stage: 'applying',
     entities: ['bank'],
     troubleshooting: true,
-    weight: 11,
+    weight: 14,
   },
   {
     intent: 'refund',
@@ -559,6 +570,9 @@ const RULES: IntentRule[] = [
       /tell\s*me\s*about\s*nelfund/i,
       /^nelfund\??$/i,
       /wetin\s*be\s*nelfund/i,
+      /how\s*did\s*nelfund\s*(start|begin|come)/i,
+      /history\s*of\s*nelfund/i,
+      /when\s*was\s*nelfund\s*(created|established|started)/i,
     ],
     topics: ['what is', 'nelfund'],
     problem: 'What NELFUND is',
@@ -627,7 +641,6 @@ function lastUserIntent(history?: ConversationTurn[]): IntentId | null {
   return null
 }
 
-/** Last-resort recovery for pilot free-text that missed RULES. */
 function recoverPilotUnknown(q: string, entities: string[]): IntentResult | null {
   const t = q.toLowerCase()
   if (/missing|no\s*info|record\s*not|e\s*dey\s*show|no\s*dey\s*work|wahala.*(portal|nelfund)/i.test(t)) {
@@ -707,7 +720,7 @@ function recoverPilotUnknown(q: string, entities: string[]): IntentResult | null
       isTroubleshooting: false,
     }
   }
-  if (/what\s*is\s*nelfund|wetin\s*be\s*nelfund|about\s*nelfund/i.test(t)) {
+  if (/what\s*is\s*nelfund|wetin\s*be\s*nelfund|about\s*nelfund|how\s*did\s*nelfund|history\s*of\s*nelfund/i.test(t)) {
     return {
       intent: 'what-is-nelfund',
       confidence: 0.7,
@@ -716,6 +729,28 @@ function recoverPilotUnknown(q: string, entities: string[]): IntentResult | null
       stage: 'exploring',
       entities,
       isTroubleshooting: false,
+    }
+  }
+  if (/latest\s*nelfund|still\s*accepting|accepting\s*applications?/i.test(t)) {
+    return {
+      intent: 'current-information',
+      confidence: 0.75,
+      topics: ['current', 'latest'],
+      problem: 'Current or time-sensitive NELFUND information',
+      stage: 'exploring',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  if (/bank\s*details|bank\s*account.*(reject|fail)/i.test(t)) {
+    return {
+      intent: 'bank-information',
+      confidence: 0.75,
+      topics: ['bank'],
+      problem: 'Bank details or BVN steps',
+      stage: 'applying',
+      entities,
+      isTroubleshooting: true,
     }
   }
   if (/login|portal\s*link|which\s*(site|link)/i.test(t)) {
