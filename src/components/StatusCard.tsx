@@ -16,18 +16,28 @@ const STATUS_DOT: Record<ApplicationCycleStatus, string> = {
 }
 
 function toView(s: LiveApplicationStatus | typeof staticStatus) {
-  return {
+  const asLive: LiveApplicationStatus = {
     cycle: s.cycle,
-    status: s.status as ApplicationCycleStatus,
+    status: s.status as LiveApplicationStatus['status'],
     status_label: s.status_label,
     note: s.note,
-    last_checked:
-      'last_checked_iso' in s && (s as LiveApplicationStatus).last_checked_iso
-        ? formatChecked(s as LiveApplicationStatus)
+    last_checked: s.last_checked,
+    last_checked_iso:
+      'last_checked_iso' in s
+        ? (s as LiveApplicationStatus).last_checked_iso
         : s.last_checked,
     freshness:
       'freshness' in s ? (s as LiveApplicationStatus).freshness : ('static_fallback' as const),
     verified: 'verified' in s ? Boolean((s as LiveApplicationStatus).verified) : false,
+  }
+  return {
+    cycle: asLive.cycle,
+    status: asLive.status as ApplicationCycleStatus,
+    status_label: asLive.status_label,
+    note: asLive.note,
+    last_checked: formatChecked(asLive),
+    freshness: asLive.freshness || ('static_fallback' as const),
+    verified: Boolean(asLive.verified),
   }
 }
 
@@ -42,7 +52,7 @@ export default function StatusCard() {
         const live = await fetchLiveApplicationStatus()
         if (!cancelled && live) setView(toView(live))
       } catch {
-        /* keep static fallback */
+        /* keep static fallback — still shows relative date via formatChecked */
       } finally {
         if (!cancelled) setLoading(false)
       }
