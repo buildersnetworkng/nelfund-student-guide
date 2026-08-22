@@ -1,44 +1,133 @@
-/** Renders assistant/user text with http(s) URLs as clickable links. */
+/**
+ * Renders assistant/user text with:
+ * - http(s) URLs as clickable links
+ * - **bold** and _italic_ lightweight markdown
+ * - Preserved line breaks
+ * Safe (no raw HTML injection).
+ */
 
 const URL_RE = /(https?:\/\/[^\s<>"')\]]+)/gi
 
-export function LinkifiedText({ text, className }: { text: string; className?: string }) {
-  const parts: Array<string | { href: string }> = []
+type Part = string | { type: 'link'; href: string } | { type: 'bold'; text: string } | { type: 'italic'; text: string }
+
+function trimTrailingPunct(href: string): { href: string; trailing: string } {
+  const m = href.match(/^(.*?)([.,;:!?\)\]]+)$/)
+  if (m) return { href: m[1], trailing: m[2] }
+  return { href, trailing: '' }
+}
+
+/** Split a plain string segment into bold/italic/link parts */
+function parseInline(segment: string): Part[] {
+  const out: Part[] = []
   let last = 0
-  const s = text || ''
-  let m: RegExpExecArray | null
   const re = new RegExp(URL_RE)
-  while ((m = re.exec(s)) !== null) {
-    if (m.index > last) parts.push(s.slice(last, m.index))
-    let href = m[1]
-    // Trim trailing punctuation common in prose
-    href = href.replace(/[.,;:!?)]+$/, '')
-    parts.push({ href })
+  let m: RegExpExecArray | null
+  const chunks: Array<string | { href: string; trailing: string }> = []
+  while ((m = re.exec(segment)) !== null) {
+    if (m.index > last) chunks.push(segment.slice(last, m.index))
+    const { href, trailing } = trimTrailingPunct(m[1])
+    chunks.push({ href, trailing })
     last = m.index + m[0].length
-    // If we trimmed, leave trailing punct as plain text
-    if (m[1].length !== href.length) {
-      parts.push(m[1].slice(href.length))
-    }
   }
-  if (last < s.length) parts.push(s.slice(last))
+  if (last < segment.length) chunks.push(segment.slice(last))
+
+  for (const chunk of chunks) {
+    if (typeof chunk !== 'string') {
+      out.push({ type: 'link', href: chunk.href })
+      if (chunk.trailing) out.push(chunk.trailing)
+      continue
+    }
+    const boldRe = /\*\*([^*]+)\*\*/g
+    let bLast = 0
+    let bm: RegExpExecArray | null
+    const afterBold: Part[] = []
+    while ((bm = boldRe.exec(chunk)) !== null) {
+      if (bm.index > bLast) afterBold.push(...parseItalic(chunk.slice(bLast, bm.index)))
+      afterBold.push({ type: 'bold', text: bm[1] })
+      bLast = bm.index + bm[0].length
+    }
+    if (bLast < chunk.length) afterBold.push(...parseItalic(chunk.slice(bLast)))
+    out.push(...afterBold)
+  }
+  return out
+}
+
+function parseItalic(segment: string): Part[] {
+  const out: Part[] = []
+  const italicRe = /_([^_]+)_/g
+  let last = 0
+  let m: RegExpExecArray | null
+  while ((m = italicRe.exec(segment)) !== null) {
+    if (m.index > last) out.push(segment.slice(last, m.index))
+    out.push({ type: 'italic', text: m[1] })
+    last = m.index + m[0].length
+  }
+  if (last < segment.length) out.push(segment.slice(last))
+  return out
+}
+
+function renderParts(parts: Part[], keyPrefix: string) {
+  return parts.map((p, i) => {
+    const key = `${keyPrefix}-${i}`
+    if (typeof p === 'string') return <span key={key}>{p}</span>
+    if (p.type === 'link') {
+      return (
+        <a
+          key={key}
+          href={p.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-forest-700 underline underline-offset-2 break-all hover:text-forest-900"
+        >
+          {p.href}
+        </a>
+      )
+    }
+    if (p.type === 'bold') {
+      return (
+        <strong key={key} className="font-semibold text-ink">
+          {p.text}
+        </strong>
+      )
+    }
+    if (p.type === 'italic') {
+      return (
+        <em key={key} className="italic text-ink/90">
+          {p.text}
+        </em>
+      )
+    }
+    return null
+  })
+}
+
+export function LinkifiedText({ text, className }: { text: string; className?: string }) {
+  const s = text || ''
+  const lines = s.split('\n')
 
   return (
-    <p className={className || 'whitespace-pre-wrap text-[15px] leading-relaxed'}>
-      {parts.map((p, i) =>
-        typeof p === 'string' ? (
-          <span key={i}>{p}</span>
-        ) : (
-          <a
-            key={i}
-            href={p.href}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-forest-700 underline underline-offset-2 break-all"
-          >
-            {p.href}
-          </a>
-        ),
-      )}
-    </p>
+    <div className={className || 'text-[15px] leading-relaxed'}>
+      {lines.map((line, li) => {
+        const trimmed = line.trim()
+        if (/^[-*•]\s+/.test(trimmed) || /^\d+\.\s+/.test(trimmed)) {
+          const content = trimmed.replace(/^[-*•]\s+/, '').replace(/^\d+\.\s+/, '')
+          const prefix = /^\d+\.\s+/.test(trimmed) ? trimmed.match(/^\d+\./)?.[0] + ' ' : '• '
+          return (
+            <p key={li} className="my-0.5 pl-0.5">
+              <span className="text-ink/50">{prefix}</span>
+              {renderParts(parseInline(content), `l${li}`)}
+            </p>
+          )
+        }
+        if (trimmed === '') {
+          return <div key={li} className="h-2" aria-hidden />
+        }
+        return (
+          <p key={li} className="my-0.5 whitespace-pre-wrap">
+            {renderParts(parseInline(line), `l${li}`)}
+          </p>
+        )
+      })}
+    </div>
   )
 }
