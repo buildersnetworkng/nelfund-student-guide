@@ -8,12 +8,20 @@
 
 const URL_RE = /(https?:\/\/[^\s<>"')\]]+)/gi
 
-type Part = string | { type: 'link'; href: string } | { type: 'bold'; text: string } | { type: 'italic'; text: string }
+type Part =
+  | string
+  | { type: 'link'; href: string }
+  | { type: 'bold'; text: string }
+  | { type: 'italic'; text: string }
 
 function trimTrailingPunct(href: string): { href: string; trailing: string } {
-  const m = href.match(/^(.*?)([.,;:!?\)\]]+)$/)
-  if (m) return { href: m[1], trailing: m[2] }
-  return { href, trailing: '' }
+  let trailing = ''
+  const punct = '.,;:!?)'
+  while (href.length > 0 && punct.includes(href[href.length - 1]!)) {
+    trailing = href[href.length - 1]! + trailing
+    href = href.slice(0, -1)
+  }
+  return { href, trailing }
 }
 
 /** Split a plain string segment into bold/italic/link parts */
@@ -111,7 +119,7 @@ export function LinkifiedText({ text, className }: { text: string; className?: s
         const trimmed = line.trim()
         if (/^[-*•]\s+/.test(trimmed) || /^\d+\.\s+/.test(trimmed)) {
           const content = trimmed.replace(/^[-*•]\s+/, '').replace(/^\d+\.\s+/, '')
-          const prefix = /^\d+\.\s+/.test(trimmed) ? trimmed.match(/^\d+\./)?.[0] + ' ' : '• '
+          const prefix = /^\d+\.\s+/.test(trimmed) ? (trimmed.match(/^\d+\./)?.[0] ?? '') + ' ' : '• '
           return (
             <p key={li} className="my-0.5 pl-0.5">
               <span className="text-ink/50">{prefix}</span>
