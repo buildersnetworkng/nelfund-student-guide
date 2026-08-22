@@ -17,8 +17,17 @@ export type LiveApplicationStatus = {
   verified?: boolean
 }
 
-const CACHE_KEY = 'nsg_live_app_status_v1'
-const CACHE_TTL_MS = 1000 * 60 * 10 // 10 minutes browser cache
+const CACHE_KEY = 'nsg_live_app_status_v2'
+const CACHE_TTL_MS = 1000 * 60 * 15 // 15 minutes browser cache
+
+function todayUtc(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function isSameCalendarDay(isoOrDay: string): boolean {
+  const day = isoOrDay.slice(0, 10)
+  return day === todayUtc()
+}
 
 export async function fetchLiveApplicationStatus(opts?: {
   force?: boolean
@@ -28,14 +37,18 @@ export async function fetchLiveApplicationStatus(opts?: {
       const cached = sessionStorage.getItem(CACHE_KEY)
       if (cached) {
         const { at, data } = JSON.parse(cached) as { at: number; data: LiveApplicationStatus }
-        if (Date.now() - at < CACHE_TTL_MS) return data
+        const stillFresh = Date.now() - at < CACHE_TTL_MS
+        const dayOk = isSameCalendarDay(data.last_checked_iso || data.last_checked || '')
+        // Auto-refresh if the stored check is not from today
+        if (stillFresh && dayOk) return data
       }
     }
   } catch {
     /* ignore */
   }
 
-  const q = opts?.force ? '?force=1' : ''
+  // Force server refresh when client has no same-day data
+  const q = opts?.force ? '?force=1' : '?refresh=1'
   const res = await fetch(`/api/knowledge/status${q}`, {
     headers: { Accept: 'application/json' },
   })
@@ -49,20 +62,32 @@ export async function fetchLiveApplicationStatus(opts?: {
   return data
 }
 
-/** Format last_checked for UI — always prefer the server-provided date. */
+/** Format last_checked for UI — "Today", "Yesterday", or a clear date. */
 export function formatChecked(status: LiveApplicationStatus): string {
-  if (status.last_checked_iso) {
-    try {
-      return new Date(status.last_checked_iso).toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
-    } catch {
-      /* fall through */
-    }
+  const raw = status.last_checked_iso || status.last_checked
+  if (!raw) return todayUtc()
+
+  try {
+    const d = new Date(raw.includes('T') ? raw : `${raw}T12:00:00Z`)
+    if (Number.isNaN(d.getTime())) return status.last_checked || todayUtc()
+
+    const now = new Date()
+    const startToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    const startThat = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
+    const diffDays = Math.round((startToday.getTime() - startThat.getTime()) / 86400000)
+
+    if (diffDays === 0) return 'Today'
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays > 1 && diffDays < 7) return `${diffDays} days ago`
+
+    return d.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  } catch {
+    return status.last_checked || todayUtc()
   }
-  return status.last_checked
 }
 
 /** Intents that should pull live application-status knowledge. */
@@ -79,43 +104,8 @@ export const LIVE_STATUS_INTENTS = new Set([
 export function questionNeedsLiveStatus(text: string): boolean {
   const t = text.toLowerCase()
   return (
-    /\b(is\s+(nelfund|it)\s+open|application\s*(window|period|status)|still\s+open|deadline|closing\s+date|opening\s+date|when\s+(can|do)\s+i\s+apply|latest\s+(nelfund\s+)?(update|news|status)|current\s+(status|cycle)|2026\s*\/?\s*2027|2025\s*\/?\s*2026)\b/i.test(
+    /\b(is\s+(nelfund|it)\s+open|application\s*(window|period|status)|still\s+open|deadline|closing\s+date|opening\s+date|when\s+(can|do)\s+i\s+apply|latest\s+(nelfund\s+)?(update|news|status)|current\s+(status|information)|still\s+accepting)/i.test(
       t,
-    ) || /\b(open\s+today|apply\s+today|portal\s+open)\b/i.test(t)
-  )
-}
-
-export type OfficialLookupResult = {
-  ok: boolean
-  query: string
-  snippets: string[]
-  sources: Array<{ id: string; label: string; url: string }>
-  fetchedAt: string
-  pagesReached: number
-  note: string
-}
-
-/** Fetch short grounded snippets from official NELFUND pages for a question. */
-export async function fetchOfficialLookup(query: string): Promise<OfficialLookupResult | null> {
-  const q = query.trim().slice(0, 240)
-  if (!q) return null
-  try {
-    const res = await fetch(`/api/knowledge/lookup?q=${encodeURIComponent(q)}`, {
-      headers: { Accept: 'application/json' },
-    })
-    if (!res.ok) return null
-    return (await res.json()) as OfficialLookupResult
-  } catch {
-    return null
-  }
-}
-
-/** Questions that benefit from a live official-page lookup (beyond status card). */
-export function questionNeedsOfficialLookup(text: string): boolean {
-  const t = text.toLowerCase()
-  return (
-    questionNeedsLiveStatus(t) ||
-    /\b(latest|recent|current|update|announcement|news|today|this\s+week)\b/i.test(t) ||
-    /\b(changed|new\s+rule|policy\s+update)\b/i.test(t)
+    )
   )
 }
