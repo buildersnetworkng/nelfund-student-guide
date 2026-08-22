@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { runRefresh, type LiveApplicationStatus } from './refresh'
 
-const STALE_MS = 1000 * 60 * 60 * 12 // 12 hours
+const STALE_MS = 1000 * 60 * 60 * 6 // 6 hours — auto-refresh for home card
 
 function redisUrl(): string {
   return process.env.UPSTASH_REDIS_REST_URL || 'https://premium-rooster-109704.upstash.io'
@@ -56,7 +56,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const parsed = JSON.parse(raw) as LiveApplicationStatus
         const checkedAt = Date.parse(parsed.last_checked_iso || parsed.last_checked)
         const age = Number.isFinite(checkedAt) ? Date.now() - checkedAt : Number.POSITIVE_INFINITY
-        if (age < STALE_MS) {
+        const checkedDay = (parsed.last_checked_iso || parsed.last_checked || '').slice(0, 10)
+        const today = new Date().toISOString().slice(0, 10)
+        // Refresh when older than STALE_MS or not from today's calendar date
+        if (age < STALE_MS && checkedDay === today) {
           return res.status(200).json({ ...parsed, freshness: 'cached' as const })
         }
         // Stale: refresh in this request so the home page stays current
