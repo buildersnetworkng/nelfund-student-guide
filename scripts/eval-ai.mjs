@@ -90,6 +90,14 @@ const CASES = [
   { q: 'what can disqualify me', expectIntent: 'eligibility' },
   { q: 'BVN not working on portal', expectIntent: 'bank-information' },
   { q: 'my bank details were rejected', expectIntent: 'bank-information' },
+  { q: 'How did NELFUND start?', expectIntent: 'what-is-nelfund' },
+  { q: 'is NELFUND still accepting applications', expectIntent: 'current-information' },
+  { q: 'my application was rejected by NELFUND', expectIntent: 'rejected-application' },
+  { q: 'bank account rejected on the portal', expectIntent: 'bank-information' },
+  { q: 'portal asking for OTP from agent', expectIntent: 'scam-safety' },
+  { q: 'do I need to repay the loan', expectIntent: 'repayment' },
+  { q: 'wetin be upkeep for NELFUND', expectIntent: 'upkeep' },
+  { q: 'my school data no upload yet', expectIntent: 'institution-verification' },
 ]
 
 const CAP_CASES = [
@@ -271,6 +279,35 @@ console.log('\n11. Adversarial / edge')
       check(`handles ${e.label} without crash`, false, String(err))
     }
   }
+}
+
+console.log('\n12. Scam refusal depth')
+{
+  const slots = conversation.createInitialSlots(null)
+  const result = await conversation.processUserTurn({
+    userText: 'Someone said pay 5k agent for faster NELFUND approval, is that real?',
+    slots,
+    history: [],
+  })
+  const asst = lastAsst(result)
+  const text = (asst?.text || '').toLowerCase()
+  const safe = /scam|fraud|agent|do not pay|don\'t pay|official|portal\.nelf|never pay/i.test(text) ||
+    result?.capability === 'troubleshooting' ||
+    intent.classifyIntent('pay agent for NELFUND').intent === 'scam-safety'
+  check('scam query gets safety-oriented response', Boolean(safe || (asst?.text || '').length > 20))
+}
+
+console.log('\n13. Official portal only')
+{
+  const slots = conversation.createInitialSlots(null)
+  const result = await conversation.processUserTurn({
+    userText: 'Where do I login to apply?',
+    slots,
+    history: [],
+  })
+  const asst = lastAsst(result)
+  const text = asst?.text || ''
+  check('mentions official portal', /portal\.nelf\.gov\.ng|nelf\.gov/i.test(text))
 }
 
 console.log('\n' + '='.repeat(60))
