@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 /**
  * Evidence retrieval with intent allowlist + synonym expansion.
  * Abstraction allows swapping keyword scorer for embeddings later.
@@ -29,98 +30,76 @@ export const INTENT_ALLOWLIST: Partial<
     factIds: ['nf-purpose', 'nf-what-is'],
     videoIds: ['vid-general-overview'],
   },
-  'nelfund-history': {
-    faqIds: ['faq-who-established-nelfund', 'faq-what-is-nelfund'],
-    factIds: ['nf-history-establishment', 'nf-act-2024', 'nf-what-is'],
-    videoIds: ['vid-general-overview'],
+  'how-to-apply': {
+    faqIds: ['faq-how-to-apply', 'faq-documents-needed', 'faq-eligibility'],
+    factIds: ['nf-how-to-apply', 'nf-eligibility'],
+    videoIds: ['vid-how-to-apply'],
+  },
+  'upkeep': {
+    faqIds: ['faq-upkeep', 'faq-how-much-loan'],
+    factIds: ['nf-upkeep', 'nf-loan-amount', 'nf-components'],
+  },
+  'school-fees': {
+    faqIds: ['faq-school-fees', 'faq-institutional-charges'],
+    factIds: ['nf-school-fees', 'nf-components'],
+  },
+  'repayment': {
+    faqIds: ['faq-repayment', 'faq-gsi'],
+    factIds: ['nf-repayment', 'nf-gsi'],
+  },
+  'gsi': {
+    faqIds: ['faq-gsi', 'faq-repayment'],
+    factIds: ['nf-gsi', 'nf-repayment'],
+  },
+  'eligibility': {
+    faqIds: ['faq-eligibility', 'faq-who-can-apply'],
+    factIds: ['nf-eligibility'],
   },
   'loan-or-scholarship': {
-    faqIds: ['faq-loan-not-scholarship'],
-    factIds: ['nf-loan-not-scholarship'],
-  },
-  'how-to-apply': {
-    faqIds: ['faq-how-to-apply', 'faq-portal-login', 'faq-documents-needed'],
-    guideIds: ['guide-how-to-apply'],
-  },
-  eligibility: {
-    faqIds: ['faq-eligibility', 'faq-private-school', 'faq-full-time-only', 'faq-disqualification'],
-    factIds: ['nf-eligibility-public', 'nf-public-institutions-only', 'nf-citizenship'],
+    faqIds: ['faq-loan-not-scholarship', 'faq-what-is-nelfund'],
+    factIds: ['nf-loan-not-scholarship', 'nf-what-is'],
   },
   'documents-needed': {
     faqIds: ['faq-documents-needed'],
+    factIds: ['nf-documents'],
   },
-  'nin-verification': {
-    troubleshootingIds: ['ts-nin'],
+  'guarantor': {
+    faqIds: ['faq-guarantor'],
+    factIds: ['nf-guarantor'],
+  },
+  'missing-information': {
+    troubleshootingIds: ['ts-missing-information'],
   },
   'jamb-verification': {
     troubleshootingIds: ['ts-jamb'],
   },
-  'missing-information': {
-    faqIds: ['faq-no-school-info', 'faq-school-not-uploaded'],
-    troubleshootingIds: ['ts-missing-information'],
+  'nin-verification': {
+    troubleshootingIds: ['ts-nin'],
   },
   'school-not-found': {
-    faqIds: ['faq-no-school-info'],
     troubleshootingIds: ['ts-school-not-found'],
   },
-  'institution-verification': {
-    faqIds: ['faq-school-not-uploaded'],
-    factIds: ['nf-oou-vs-nelfund'],
-  },
   'pending-application': {
-    faqIds: ['faq-pending', 'faq-approval-notification'],
+    troubleshootingIds: ['ts-pending'],
   },
   'rejected-application': {
-    faqIds: ['faq-rejected'],
+    troubleshootingIds: ['ts-rejected'],
   },
-  upkeep: {
-    faqIds: ['faq-upkeep-amount'],
-    factIds: ['nf-upkeep-amount', 'nf-components'],
-    videoIds: ['vid-upkeep-explainer'],
-  },
-  'school-fees': {
-    faqIds: ['faq-fees-payment'],
-    factIds: ['nf-components'],
-  },
-  'institutional-charges': {
-    faqIds: ['faq-fees-payment'],
-    factIds: ['nf-components', 'nf-disbursement'],
-  },
-  repayment: {
-    faqIds: ['faq-repayment', 'faq-repayment-percent', 'faq-gsi'],
-    factIds: ['nf-repayment-start', 'nf-nysc-repayment', 'nf-repayment-10-percent', 'nf-repayment-mechanism', 'nf-gsi'],
-    videoIds: ['vid-repayment-explainer'],
-  },
-  gsi: {
-    faqIds: ['faq-gsi'],
-    factIds: ['nf-gsi'],
+  'bank-information': {
+    troubleshootingIds: ['ts-bank'],
   },
   'scam-safety': {
-    faqIds: ['faq-scam'],
-  },
-  'contact-support': {
-    faqIds: ['faq-contact'],
-  },
-  guarantor: {
-    faqIds: ['faq-guarantor'],
-    factIds: ['nf-no-guarantor'],
-  },
-  'portal-login': {
-    faqIds: ['faq-portal-login', 'faq-how-to-apply'],
-  },
-  'current-information': {
-    faqIds: ['faq-how-to-apply', 'faq-portal-login'],
+    faqIds: ['faq-scam-safety'],
+    factIds: ['nf-scam-safety'],
   },
 }
-
-// Remaining retrieval helpers retained from production module — keyword score + assemble evidence.
-// (Full implementation restored from last good commit structure.)
 
 export function retrieveEvidence(
   intent: IntentId,
   question: string,
   institutionId?: string | null,
 ): EvidenceItem[] {
+  void institutionId
   const allow = INTENT_ALLOWLIST[intent]
   const items: EvidenceItem[] = []
   const q = (question || '').toLowerCase()
@@ -161,7 +140,6 @@ export function retrieveEvidence(
   if (allow?.faqIds) for (const id of allow.faqIds) pushFaq(id)
   if (allow?.factIds) for (const id of allow.factIds) pushFact(id)
 
-  // Light keyword boost from full FAQ/fact corpus for open questions
   if (!allow || items.length < 2) {
     for (const f of faqs as any[]) {
       if (items.some((i) => i.id === f.id)) continue
@@ -177,6 +155,7 @@ export function retrieveEvidence(
 }
 
 export function retrieveRelevantVideo(intent: IntentId, question: string) {
+  void question
   const allow = INTENT_ALLOWLIST[intent]
   const id = allow?.videoIds?.[0]
   if (!id) return null
