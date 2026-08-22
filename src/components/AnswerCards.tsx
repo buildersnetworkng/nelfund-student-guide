@@ -1,5 +1,6 @@
 import type { GroundedAnswer, EscalationContactView } from '../lib/ai'
 import TrustBadge from './TrustBadge'
+import { LinkifiedText } from './LinkifiedText'
 
 function statusLabel(status: string): 'verified' | 'may_change' | 'guidance' | 'unverified' {
   if (status === 'verified' || status === 'may_change' || status === 'guidance' || status === 'unverified') {
@@ -107,16 +108,18 @@ export function AnswerCards({ answer }: { answer: GroundedAnswer }) {
       {answer.whatThisMeans && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">What this means</p>
-          <p className="mt-0.5 text-sm text-ink/75">{answer.whatThisMeans}</p>
+          <LinkifiedText text={answer.whatThisMeans} className="mt-0.5 text-sm text-ink/75" />
         </div>
       )}
 
       {answer.nextActions.length > 0 && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">What to do next</p>
-          <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm text-ink/80">
+          <ol className="mt-1 list-decimal space-y-1.5 pl-5 text-sm text-ink/80">
             {answer.nextActions.slice(0, 5).map((a) => (
-              <li key={a}>{a}</li>
+              <li key={a}>
+                <LinkifiedText text={a} className="text-sm leading-snug text-ink/80" />
+              </li>
             ))}
           </ol>
         </div>
