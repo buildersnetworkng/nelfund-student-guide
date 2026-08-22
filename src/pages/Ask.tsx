@@ -10,6 +10,7 @@ import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai
 import { useInstitution, OTHER_INSTITUTION } from '../context/InstitutionContext'
 import { institutions } from '../lib/data'
 import { AnswerCards } from '../components/AnswerCards'
+import { LinkifiedText } from '../components/LinkifiedText'
 import { trackAiQuestion, trackFeedback } from '../lib/analytics'
 
 const SUGGESTIONS = [
@@ -38,7 +39,8 @@ export default function Ask() {
   const [showAttachMenu, setShowAttachMenu] = useState(false)
   const [showSchoolMenu, setShowSchoolMenu] = useState(false)
   /** messageId → 'up' | 'down' — privacy-safe, session only */
-  const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({})
+  const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({
+})
 
   const hasConversation = messages.some((m) => m.role === 'user')
 
@@ -389,7 +391,7 @@ export default function Ask() {
                   ) : (
                     <>
                       <div className="rounded-2xl rounded-bl-md border border-forest-100 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink shadow-sm">
-                        <p className="whitespace-pre-wrap">{m.text}</p>
+                        <LinkifiedText text={m.text} className="text-sm leading-relaxed text-ink" />
                         {m.answer && <AnswerCards answer={m.answer} />}
                       </div>
                       <div className="flex items-center gap-1 px-1">
