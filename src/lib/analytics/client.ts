@@ -130,6 +130,18 @@ export function trackPageView(path: string) {
   track('page_view', { path: path.slice(0, 120) })
 }
 
+export function trackSessionStart() {
+  track('session_start', {})
+}
+
+export async function flushAnalytics(): Promise<boolean> {
+  const queue = loadQueue()
+  if (!queue.length) return true
+  const ok = await flush(queue)
+  if (ok) saveQueue([])
+  return ok
+}
+
 /** Coarse topic buckets only — never stores the student question text. */
 export function deriveUnknownTopic(text: string | null | undefined): string {
   if (!text || !text.trim()) return 'empty'
