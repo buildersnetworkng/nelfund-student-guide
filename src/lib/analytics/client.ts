@@ -88,29 +88,21 @@ function saveQueue(events: AnalyticsEventPayload[]) {
 async function flush(events: AnalyticsEventPayload[]): Promise<boolean> {
   if (!events.length) return true
   if (typeof window === 'undefined') return false
-
   const body: TrackBody = {
     uid: getAnonymousUserId(),
     sid: getSessionId(),
-    events,
+    events: events.map((e) => ({
+      ...e,
+      ts: e.ts || new Date().toISOString(),
+      path: e.path || window.location.pathname,
+      meta: sanitizeMeta(e.meta),
+    })),
   }
-
-  const payload = JSON.stringify(body)
-
-  try {
-    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-      const ok = navigator.sendBeacon('/api/analytics/track', new Blob([payload], { type: 'application/json' }))
-      if (ok) return true
-    }
-  } catch {
-    /* fall through */
-  }
-
   try {
     const res = await fetch('/api/analytics/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: payload,
+      body: JSON.stringify(body),
       keepalive: true,
     })
     return res.ok
@@ -119,55 +111,18 @@ async function flush(events: AnalyticsEventPayload[]): Promise<boolean> {
   }
 }
 
-let flushTimer: ReturnType<typeof setTimeout> | null = null
-
-function scheduleFlush() {
-  if (flushTimer) return
-  flushTimer = setTimeout(() => {
-    flushTimer = null
-    const q = loadQueue()
-    if (!q.length) return
-    void flush(q).then((ok) => {
-      if (ok) saveQueue([])
-    })
-  }, 600)
-}
-
-export function track(name: AnalyticsEventName, partial: Omit<AnalyticsEventPayload, 'name' | 'ts'> = {}) {
-  if (typeof window === 'undefined') return
-
+export function track(name: AnalyticsEventName, payload: Omit<AnalyticsEventPayload, 'name'> = {}) {
   const event: AnalyticsEventPayload = {
     name,
     ts: new Date().toISOString(),
-    path: partial.path,
-    intent: partial.intent ? String(partial.intent).slice(0, 64) : undefined,
-    institutionId: partial.institutionId ? String(partial.institutionId).slice(0, 64) : undefined,
-    feature: partial.feature ? String(partial.feature).slice(0, 64) : undefined,
-    faqId: partial.faqId ? String(partial.faqId).slice(0, 64) : undefined,
-    unresolved: partial.unresolved,
-    hasImage: partial.hasImage,
-    topic: partial.topic ? String(partial.topic).slice(0, 48) : undefined,
-    meta: sanitizeMeta(partial.meta),
+    path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+    ...payload,
   }
-
-  if (event.meta && 'text' in event.meta) delete event.meta.text
-  if (event.meta && 'question' in event.meta) delete event.meta.question
-
-  const q = loadQueue()
-  q.push(event)
-  saveQueue(q)
-  scheduleFlush()
-}
-
-let sessionStarted = false
-
-export function trackSessionStart() {
-  if (sessionStarted) return
-  sessionStarted = true
-  getAnonymousUserId()
-  getSessionId()
-  track('session_start', {
-    path: typeof window !== 'undefined' ? window.location.hash || window.location.pathname : '/',
+  const queue = loadQueue()
+  queue.push(event)
+  saveQueue(queue)
+  void flush(queue).then((ok) => {
+    if (ok) saveQueue([])
   })
 }
 
@@ -195,6 +150,10 @@ export function deriveUnknownTopic(text: string | null | undefined): string {
   if (/eligib|qualify|disqualif/.test(t)) return 'eligibility'
   if (/screenshot|error|what\s*does\s*this\s*mean/.test(t)) return 'error-screenshot'
   if (/hello|hi\b|help|abeg|please|wahala|stuck/.test(t) && t.length < 40) return 'greeting-vague'
+  if (/disburse|payment|money\s*enter|when\s*will\s*i\s*get/.test(t)) return 'disbursement'
+  if (/account\s*creat|create\s*account|register|sign\s*up/.test(t)) return 'account-create'
+  if (/password|reset\s*password|forgot/.test(t)) return 'password-reset'
+  if (/approv|not\s*yet\s*approv/.test(t)) return 'approval'
   return 'other'
 }
 
@@ -217,14 +176,14 @@ export function trackAiQuestion(opts: {
   unresolved?: boolean
   isNewConversation?: boolean
   userText?: string | null
-  /** Exact: useful grounded answer with no clarifying loop */
   resolutionClosed?: boolean
-  /** Exact: response included school/NELFUND handoff */
   escalationFired?: boolean
 }) {
   const intent = opts.intent || 'unknown'
-  const unknown = isUnknownIntent(intent) || !!opts.unresolved
-  const topic = unknown ? deriveUnknownTopic(opts.userText) : undefined
+  // Only pure unknown intents count as unknown — clarifying questions (e.g. ask school)
+  // are unresolved but classified; counting them as unknown inflated Pilot #2 rates.
+  const unknown = isUnknownIntent(intent)
+  const topic = unknown || opts.unresolved ? deriveUnknownTopic(opts.userText) : undefined
 
   if (opts.isNewConversation) {
     track('ai_conversation_start', {
@@ -317,19 +276,4 @@ export async function fetchAnalyticsStats(adminKey: string): Promise<AnalyticsSt
   } catch {
     return null
   }
-}
-
-export function flushAnalytics() {
-  const q = loadQueue()
-  if (!q.length) return
-  void flush(q).then((ok) => {
-    if (ok) saveQueue([])
-  })
-}
-
-if (typeof window !== 'undefined') {
-  window.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') flushAnalytics()
-  })
-  window.addEventListener('pagehide', () => flushAnalytics())
 }
