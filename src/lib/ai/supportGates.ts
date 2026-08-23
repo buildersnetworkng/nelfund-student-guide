@@ -9,12 +9,15 @@ const EARLY_INSTITUTION_INTENTS: IntentId[] = [
   'missing-information',
   'pending-application',
   'rejected-application',
-  'school-data-upload',
+  'school-not-found',
+  'jamb-verification',
+  'nin-verification',
+  'institution-verification',
+  'bank-information',
   'contact-lookup',
   'email-draft',
-  'portal-error',
-  'disbursement',
-  'approval-status',
+  'profile-update',
+  'reapplication',
 ]
 
 export function needsInstitutionEarly(intent: IntentId | string | null | undefined): boolean {
@@ -30,7 +33,11 @@ export function institutionAskPrompt(intent?: IntentId | string | null): string 
         ? 'contacting the right desk'
         : intent === 'pending-application' || intent === 'rejected-application'
           ? 'application status'
-          : 'this support issue'
+          : intent === 'school-not-found'
+            ? 'your school not showing on the portal'
+            : intent === 'jamb-verification' || intent === 'nin-verification'
+              ? 'verification issues'
+              : 'this support issue'
 
-  return `To help accurately with **${focus}**, which school do you attend?\n\nReply with the full institution name (e.g. Lagos State University, OOU, UNILAG, FUTA). This keeps escalation and school-desk advice precise.`
+  return `To help accurately with **${focus}**, which school do you attend?\n\nReply with the full institution name (e.g. Lagos State University, OOU, UNILAG, FUTA). You can also use **Select school** at the top of this screen.`
 }
