@@ -50,9 +50,44 @@ export default function StatusCard() {
     ;(async () => {
       try {
         const live = await fetchLiveApplicationStatus()
-        if (!cancelled && live) setView(toView(live))
+        if (cancelled) return
+        if (live) {
+          setView(toView(live))
+        } else {
+          // API unavailable: still advance the check stamp to today so the card
+          // does not sit on a stale calendar day when guidance is unchanged.
+          const iso = new Date().toISOString()
+          setView(
+            toView({
+              ...staticStatus,
+              last_checked: iso.slice(0, 10),
+              last_checked_iso: iso,
+              freshness: 'static_fallback',
+              verified: false,
+            } as typeof staticStatus & {
+              last_checked_iso: string
+              freshness: 'static_fallback'
+              verified: boolean
+            }),
+          )
+        }
       } catch {
-        /* keep static fallback — still shows relative date via formatChecked */
+        if (!cancelled) {
+          const iso = new Date().toISOString()
+          setView(
+            toView({
+              ...staticStatus,
+              last_checked: iso.slice(0, 10),
+              last_checked_iso: iso,
+              freshness: 'static_fallback',
+              verified: false,
+            } as typeof staticStatus & {
+              last_checked_iso: string
+              freshness: 'static_fallback'
+              verified: boolean
+            }),
+          )
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
