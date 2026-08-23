@@ -107,6 +107,11 @@ const RULES: IntentRule[] = [
       /\blogin\b/i,
       /log\s*in/i,
       /sign\s*in/i,
+      /forgot\s*(my\s*)?password/i,
+      /reset\s*(my\s*)?password/i,
+      /password\s*(not\s*work|reset|issue)/i,
+      /can.?t\s*(login|log\s*in|sign\s*in)/i,
+      /unable\s*to\s*(login|log\s*in)/i,
       /which\s*(link|url|site).{0,40}(login|log\s*in|sign\s*in)/i,
       /(login|log\s*in|sign\s*in).{0,40}(link|url|portal)/i,
       /not\s*(that\s*)?i\s*(just\s*)?want\s*to\s*fill/i,
@@ -265,6 +270,12 @@ const RULES: IntentRule[] = [
       /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)/i,
       /application\s*(is\s*)?pending/i,
       /status\s*(is\s*)?pending/i,
+      /under\s*review/i,
+      /still\s*under\s*review/i,
+      /not\s*yet\s*approv/i,
+      /when\s*will\s*(my\s*)?(application|loan)\s*(be\s*)?approv/i,
+      /approval\s*status/i,
+      /e\s*still\s*dey\s*pending/i,
       /still\s*(waiting|processing)(?!\s*loans)/i,
       /submitted.*(still|nothing|pending)/i,
       /nothing\s*is\s*happening/i,
@@ -359,6 +370,11 @@ const RULES: IntentRule[] = [
       /get\s*(the\s*)?20k/i,
       /when\s*will\s*i\s*(get|receive).*(money|upkeep|allowance|20k)/i,
       /disburse/i,
+      /when\s*(will|dey).*money\s*(enter|come)/i,
+      /money\s*(never|no)\s*(enter|come|show)/i,
+      /payment\s*(status|not\s*received|delayed)/i,
+      /have\s*(they|dem)\s*pay/i,
+      /dem\s*never\s*pay/i,
     ],
     topics: ['upkeep', '20k'],
     problem: 'Upkeep allowance amount or access',
@@ -468,6 +484,14 @@ const RULES: IntentRule[] = [
       /how\s*nelfund\s*works/i,
       /how\s*to\s*register/i,
       /steps?\s*to\s*apply/i,
+      /create\s*(an?\s*)?account/i,
+      /create\s*(?:[\w']+\s+){0,3}account/i,
+      /account\s*creation/i,
+      /sign\s*up\s*(for\s*)?nelfund/i,
+      /how\s*(do\s*i|to)\s*(create|open)\s*(an?\s*)?account/i,
+      /i\s*want\s*to\s*apply/i,
+      /help\s*me\s*apply/i,
+      /abeg\s*how\s*(i\s*)?(go|to)\s*apply/i,
     ],
     topics: ['apply'],
     problem: 'How to apply for NELFUND',
@@ -753,13 +777,57 @@ function recoverPilotUnknown(q: string, entities: string[]): IntentResult | null
       isTroubleshooting: true,
     }
   }
-  if (/login|portal\s*link|which\s*(site|link)/i.test(t)) {
+  if (/login|portal\s*link|which\s*(site|link)|forgot\s*password|reset\s*password/i.test(t)) {
     return {
       intent: 'portal-login',
       confidence: 0.68,
       topics: ['login'],
       problem: 'Official link to login or continue an existing application',
       stage: 'applying',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  if (/create\s*(?:[\w']+\s+){0,3}account|account\s*creation|sign\s*up|i\s*want\s*to\s*apply|help\s*me\s*apply/i.test(t)) {
+    return {
+      intent: 'how-to-apply',
+      confidence: 0.7,
+      topics: ['apply'],
+      problem: 'How to apply for NELFUND',
+      stage: 'preparing',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  if (/when\s*will.*(money|pay|disburse)|money\s*(never|no)\s*(enter|come)|dem\s*never\s*pay/i.test(t)) {
+    return {
+      intent: 'upkeep',
+      confidence: 0.7,
+      topics: ['upkeep', 'disbursement'],
+      problem: 'Upkeep allowance amount or access',
+      stage: 'exploring',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  if (/under\s*review|approval\s*status|not\s*yet\s*approv/i.test(t)) {
+    return {
+      intent: 'pending-application',
+      confidence: 0.72,
+      topics: ['pending'],
+      problem: 'Application is still pending',
+      stage: 'waiting',
+      entities,
+      isTroubleshooting: true,
+    }
+  }
+  if (/hello|hi\b|good\s*(morning|afternoon|evening)|abeg|help\s*me|i\s*need\s*help|wetin|please\s*help/i.test(t) && t.length < 48) {
+    return {
+      intent: 'how-to-apply',
+      confidence: 0.55,
+      topics: ['greeting', 'help'],
+      problem: 'How to apply for NELFUND',
+      stage: 'preparing',
       entities,
       isTroubleshooting: false,
     }
