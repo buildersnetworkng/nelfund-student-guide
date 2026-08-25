@@ -325,12 +325,12 @@ const RULES: Rule[] = [
   },
   {
     intent: 'what-is-nelfund',
-    re: /what\s*is\s*nelfund|explain\s*nelfund|about\s*nelfund|tell\s*me\s*about\s*nelfund|^nelfund\??$/i,
+    re: /what\s*is\s*nelfund|explain\s*nelfund|about\s*nelfund|tell\s*me\s*about\s*nelfund|help\s*me\s*understand\s*nelfund|understand\s*nelfund|what\s*does\s*nelfund\s*(mean|do|stand)|meaning\s*of\s*nelfund|^nelfund\??$/i,
     problem: 'What NELFUND is',
     stage: 'exploring',
     troubleshooting: false,
     topics: ['what is'],
-    weight: 7,
+    weight: 12,
   },
   {
     intent: 'what-is-nelfund',
@@ -339,7 +339,7 @@ const RULES: Rule[] = [
     stage: 'exploring',
     troubleshooting: false,
     topics: ['what is'],
-    weight: 7,
+    weight: 12,
   },
   {
     intent: 'academic-session',
@@ -434,8 +434,9 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     }
   }
   if (
-    /hello|hi\b|good\s*(morning|afternoon|evening)|abeg|help\s*me|please\s*help/i.test(t) &&
-    t.length < 48
+    /hello|hi\b|good\s*(morning|afternoon|evening)|abeg|please\s*help/i.test(t) &&
+    t.length < 48 &&
+    !/understand|explain|about\s*nelfund|what\s*is/i.test(t)
   ) {
     return {
       intent: 'how-to-apply',
