@@ -169,7 +169,7 @@ const TOOLS = [
     function: {
       name: 'get_current_status',
       description: 'Summarize current application window guidance (no invented dates)',
-      parameters: { type: 'object', properties: {} },
+      parameters: { type: 'object', properties: {}, additionalProperties: false },
     },
   },
 ]
@@ -239,21 +239,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const started = Date.now()
     let reply = ''
     for (let round = 0; round < 3; round++) {
-      const r = await fetch(`${cfg.base}/chat/completions`, {
+      const bodyWithTools = {
+        model: cfg.model,
+        messages,
+        temperature: 0.3,
+        tools: TOOLS,
+        tool_choice: 'auto' as const,
+      }
+      const bodyPlain = {
+        model: cfg.model,
+        messages,
+        temperature: 0.3,
+      }
+      let r = await fetch(`${cfg.base}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${cfg.key}`,
         },
-        body: JSON.stringify({
-          model: cfg.model,
-          messages,
-          temperature: 0.3,
-          tools: TOOLS,
-          tool_choice: 'auto',
-        }),
+        body: JSON.stringify(round === 0 ? bodyWithTools : bodyPlain),
       })
-      const data = (await r.json().catch(() => ({}))) as {
+      let data = (await r.json().catch(() => ({}))) as {
         choices?: {
           message?: {
             content?: string
@@ -261,6 +267,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         }[]
         error?: { message?: string }
+      }
+      // Retry once without tools if provider rejects tool schema (common 400)
+      if (!r.ok && round === 0) {
+        r = await fetch(`${cfg.base}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${cfg.key}`,
+          },
+          body: JSON.stringify(bodyPlain),
+        })
+        data = (await r.json().catch(() => ({}))) as typeof data
       }
       if (!r.ok) {
         return res.status(502).json({
