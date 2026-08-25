@@ -154,7 +154,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'nin-verification',
-    re: /nin.*(not|isn'?t|no|keep|reject|invalid|fail|verify|work|mismatch)|(not|isn'?t|no|keep|reject|invalid|fail|mismatch).*nin|fix\s*(my\s*)?nin|nin\s*issue/i,
+    re: /\bnin\b.*(not|isn'?t|no|keep|reject|invalid|fail|verify|work|mismatch)|(not|isn'?t|no|keep|reject|invalid|fail|mismatch).*\bnin\b|fix\s*(my\s*)?\bnin\b|\bnin\b\s*issue/i,
     problem: 'NIN verification',
     stage: 'applying',
     troubleshooting: true,
@@ -199,7 +199,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'pending-application',
-    re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*under\s*review|not\s*yet\s*approv|e\s*still\s*dey\s*pending|still\s*(waiting|processing)|nothing\s*is\s*happening|status\s*no\s*dey\s*change/i,
+    re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*under\s*review|not\s*yet\s*approv|e\s*still\s*dey\s*pending|still\s*(waiting|processing)|nothing\s*is\s*happening|nothing\s*dey\s*happen|status\s*no\s*dey\s*change|after\s*i\s*submitted/i,
     problem: 'Application still pending',
     stage: 'waiting',
     troubleshooting: true,
@@ -419,7 +419,10 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   }
 
   const t = q.toLowerCase()
-  if (/^(ok|okay|yes|yeah|thanks|thank\s*you|ty|alright|fine)\.?$/i.test(t.trim())) {
+  if (
+    /^(ok|okay|yes|yeah|yep|thanks|thank\s*you|ty|alright|fine)[!.?]*$/i.test(t.trim()) ||
+    (/^(ok|okay|yes|thanks)\b/i.test(t.trim()) && t.trim().length < 24)
+  ) {
     return {
       intent: 'official-sources',
       confidence: 0.45,
