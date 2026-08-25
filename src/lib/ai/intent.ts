@@ -145,7 +145,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'jamb-verification',
-    re: /jamb.*(not|isn'?t|no|keep|reject|invalid|fail|accept|work|go)|(not|isn'?t|no|keep|reject|invalid|fail).*jamb|no\s*dey\s*accept\s*my\s*jamb|jamb.*(no\s*dey|won'?t)|problem\s*with\s*(my\s*)?jamb/i,
+    re: /jamb.*(not|isn'?t|no|keep|reject|invalid|fail|accept|work|go)|(not|isn'?t|no|keep|reject|invalid|fail).*jamb|no\s*dey\s*accept\s*my\s*jamb|jamb.*(no\s*dey|won'?t)|problem\s*with\s*(my\s*)?jamb|jamb\s*issue/i,
     problem: 'JAMB verification',
     stage: 'applying',
     troubleshooting: true,
@@ -172,7 +172,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'school-not-found',
-    re: /school.*(not|isn'?t|no\s*dey|no).*(show|appear|come|list|found)|(not|isn'?t|no\s*dey).*(show|appear).*school|my\s*school\s*(no\s*dey|not\s*showing)|can'?t\s*find\s*(my\s*)?school|school\s*not\s*on\s*(the\s*)?(list|portal)/i,
+    re: /school.*(not|isn'?t|no\s*dey|no).*(show|appear|come|list|found)|(not|isn'?t|no\s*dey).*(show|appear).*school|my\s*school\s*(no\s*dey|not\s*showing)|can'?t\s*find\s*(my\s*)?school|school\s*not\s*on\s*(the\s*)?(list|portal)|institution\s*not\s*found|institution\s*(not|isn'?t)\s*(on|in|show|list|found)/i,
     problem: 'School not showing',
     stage: 'applying',
     troubleshooting: true,
@@ -199,7 +199,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'pending-application',
-    re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*under\s*review|not\s*yet\s*approv|e\s*still\s*dey\s*pending|still\s*(waiting|processing)|nothing\s*is\s*happening|nothing\s*dey\s*happen|status\s*no\s*dey\s*change|after\s*i\s*submitted/i,
+    re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*under\s*review|not\s*yet\s*approv|approval\s*status|e\s*still\s*dey\s*pending|still\s*(waiting|processing)|nothing\s*is\s*happening|nothing\s*dey\s*happen|status\s*no\s*dey\s*change|after\s*i\s*submitted/i,
     problem: 'Application still pending',
     stage: 'waiting',
     troubleshooting: true,
