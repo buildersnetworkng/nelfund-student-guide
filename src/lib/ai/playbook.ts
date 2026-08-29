@@ -71,7 +71,7 @@ export function routeByKeywords(text: string): string | null {
     [/\bnin\b|national\s*identity/, 'nin'],
     [/\bbvn\b/, 'bvn'],
     [/scam|fraud|\botp\b|pay\s*(an?\s*)?agent|whatsapp\s*agent/, 'scam'],
-    [/eligible|eligibility|who\s*can\s*apply|qualify|qualification/, 'eligibility'],
+    [/eligible|eligibility|who\s*can\s*apply|qualify|qualification|100\s*-?\s*level|\d{2,3}\s*-?\s*level|year\s*(one|1)|fresher|freshman|as\s*(an?\s*)?\d{2,3}\s*level/, 'eligibility'],
     [/document|what\s*(do\s*i|to)\s*need|requirements?/, 'documents'],
     [/contact|who\s*(do\s*i|should\s*i)\s*(call|email|contact)|support\s*email/, 'contact'],
     [/open\s*now|still\s*open|deadline|closing|is\s*(nelfund|application)\s*(open|closed)|application\s*(open|window)|is\s*it\s*open|account\s*creation/, 'status'],
@@ -169,9 +169,9 @@ function clusterAnswer(key: string, ctx: PlaybookContext): string | null {
     case 'scam':
       return `**Safety**\n\n• Never pay an agent to “process” or “speed up” NELFUND\n• Never share OTP, password, or full bank login\n• Apply only on ${PORTAL}\n• Tickets: ${ESUPPORT}`
     case 'eligibility':
-      return `**Eligibility (official FAQ)**\n\n• Nigerian citizen\n• Admission into a **public** university, polytechnic, college of education, or vocational school\n• Full-time (per official FAQ)\n• Admission proof + JAMB, matric, NIN, BVN as required on the portal\n\nExact checklist: ${PORTAL} · ${SITE}\n\nThis guide does not invent individual approval decisions.`
+      return `**Eligibility (official FAQ)**\n\n• Nigerian citizen\n• Admission into a **public** university, polytechnic, college of education, or vocational school\n• **Full-time** students — including **100-level / new** students with valid admission\n\n**Before you apply, confirm you have all required details ready:**\n• **Matriculation number** (very important — your school must have issued and uploaded it)\n• JAMB registration number\n• NIN\n• BVN and your own bank account details\n• Admission letter / proof of admission\n• Name and date of birth matching across NIN, JAMB, and school records\n\nBeing 100-level does **not** by itself block you. What blocks many students is **missing or unmatched school data** — especially **matric number** not yet on the portal.\n\nIf matric is not ready, ask your school ICT / Registry / NELFUND desk to upload your record first, then retry ${PORTAL}.\n\nExact checklist for the open cycle: ${PORTAL} · ${SITE}\n\nThis guide does not invent individual approval decisions.`
     case 'documents':
-      return `**Documents / requirements**\n\nCommonly needed: NIN, JAMB registration number, admission details, matriculation number, bank account, BVN — with consistent name matching.\n\nConfirm the exact checklist on ${PORTAL}.`
+      return `**Documents / requirements**\n\nHave these ready before you apply (names must match across records):\n• **Matriculation number** (priority — school must issue and upload it)\n• JAMB registration number\n• NIN\n• BVN + your bank account\n• Admission letter / proof of admission\n\nMissing matric or mismatched details is a common reason for “missing information” on the portal. Confirm the exact checklist on ${PORTAL}.`
     case 'contact':
       return `**Contact**\n\n• NELFUND support tickets: ${ESUPPORT}\n• Official site: ${SITE}\n• School-record issues: ICT / Registry / NELFUND desk at your institution${inst}\n\nPortal: ${PORTAL}`
     case 'status':
@@ -258,7 +258,6 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     if (ans) return ans
   }
 
-  // Generic menu only for vague pings — not understand/explain/what-is style asks
   if (
     /nelfund|student\s*loan|nelf\.gov|portal\.nelf/i.test(t) &&
     !/understand|explain|what\s*is|wetin\s*be|about\s*nelfund|meaning|how\s*to|apply|missing|upkeep|pending|jamb|nin|scam|login|repay/i.test(t)
