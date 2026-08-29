@@ -1,3 +1,4 @@
+import { getCurrentAcademicCycle } from '../lib/academicCycle'
 import { useEffect, useState } from 'react'
 import { applicationStatus as staticStatus } from '../lib/data'
 import {
@@ -31,7 +32,7 @@ function toView(s: LiveApplicationStatus | typeof staticStatus) {
     verified: 'verified' in s ? Boolean((s as LiveApplicationStatus).verified) : false,
   }
   return {
-    cycle: asLive.cycle,
+    cycle: getCurrentAcademicCycle(),
     status: asLive.status as ApplicationCycleStatus,
     status_label: asLive.status_label,
     note: asLive.note,
@@ -54,8 +55,6 @@ export default function StatusCard() {
         if (live) {
           setView(toView(live))
         } else {
-          // API unavailable: still advance the check stamp to today so the card
-          // does not sit on a stale calendar day when guidance is unchanged.
           const iso = new Date().toISOString()
           setView(
             toView({
