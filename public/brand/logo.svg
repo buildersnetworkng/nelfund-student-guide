@@ -1,37 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="NELFUND Student Guide">
-  <!-- Deep green rounded square — matches generated logo exactly -->
   <rect width="128" height="128" rx="28" fill="#0A4F2E"/>
-  <!--
-    Stylized N:
-    - Left stem (top→bottom)
-    - Diagonal (top of left → bottom of right area)
-    - Right stem rising into an upward-right arrow
-  -->
+  <!-- Stylized N with upward-right arrow (matches generated logo) -->
   <path fill="#FFFFFF" d="
-    M25 27
-    h19
-    l31 52
-    V27
-    h17
-    v45
-    l14 -14
-    9 9
-    -28 28
-    H67
-    L36 52
-    V101
-    H25
+    M24 26
+    H44
+    L74 76
+    V26
+    H92
+    V70
+    L106 56
+    L116 66
+    L92 90
+    V102
+    H74
+    L44 52
+    V102
+    H24
     Z
   "/>
-  <!-- Open book under the N (two pages, center spine) -->
+  <!-- Open book: left page + right page -->
   <path fill="#FFFFFF" d="
-    M34 97
-    C42 88 51 84 64 84
-    C77 84 86 88 94 97
-    L89 102
-    C83 94 74 90 64 90
-    C54 90 45 94 39 102
+    M38 96
+    C46 87 54 83 64 83
+    C74 83 82 87 90 96
+    L86 101
+    C80 93 72 89 64 89
+    C56 89 48 93 42 101
     Z
   "/>
-  <path stroke="#0A4F2E" stroke-width="2.8" stroke-linecap="round" d="M64 86 v14"/>
+  <!-- Center spine of book -->
+  <path stroke="#0A4F2E" stroke-width="3" stroke-linecap="round" d="M64 85 V100"/>
 </svg>
