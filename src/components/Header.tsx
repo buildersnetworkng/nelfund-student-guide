@@ -27,7 +27,7 @@ export default function Header() {
             aria-hidden="true"
           />
           <span className="text-sm tracking-tight sm:text-[15px]">
-            NELFUND <span className="hidden font-medium text-ink/45 sm:inline">Student Guide</span>
+            NELFUND <span className="font-medium text-ink/45">Guide</span>
           </span>
         </NavLink>
 
