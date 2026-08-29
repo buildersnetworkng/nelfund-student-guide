@@ -26,8 +26,8 @@ export default function Header() {
             className="h-8 w-8 rounded-xl shadow-sm"
             aria-hidden="true"
           />
-          <span className="text-sm tracking-tight sm:text-[15px]">
-            NELFUND <span className="font-medium text-ink/45">Guide</span>
+          <span className="text-sm font-semibold tracking-tight text-forest-700 sm:text-[15px]">
+            NELFUND GUIDE
           </span>
         </NavLink>
 
