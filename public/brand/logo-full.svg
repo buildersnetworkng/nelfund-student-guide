@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 380" fill="none" role="img" aria-label="NELFUND Student Guide">
+  <rect x="96" y="12" width="128" height="128" rx="28" fill="#0A4F2E"/>
+  <path fill="#FFFFFF" d="
+    M121 39
+    h19
+    l31 52
+    V39
+    h17
+    v45
+    l14 -14
+    9 9
+    -28 28
+    H163
+    L132 64
+    V113
+    H121
+    Z
+  "/>
+  <path fill="#FFFFFF" d="
+    M130 109
+    C138 100 147 96 160 96
+    C173 96 182 100 190 109
+    L185 114
+    C179 106 170 102 160 102
+    C150 102 141 106 135 114
+    Z
+  "/>
+  <path stroke="#0A4F2E" stroke-width="2.8" stroke-linecap="round" d="M160 98 v14"/>
+  <text x="160" y="200" text-anchor="middle" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-weight="700" font-size="44" fill="#0A4F2E">NELFUND</text>
+  <text x="160" y="238" text-anchor="middle" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-weight="400" font-size="20" fill="#4A4A4A" letter-spacing="0.06em">Student Guide</text>
+</svg>

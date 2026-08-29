@@ -1,9 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="NELFUND Support">
-  <rect width="128" height="128" rx="28" fill="#0F5132"/>
+  <rect width="128" height="128" rx="28" fill="#0A4F2E"/>
+  <!-- Chat bubble -->
   <path fill="#FFFFFF" d="M26 36c0-8 7-14 16-14h44c9 0 16 6 16 14v32c0 8-7 14-16 14H60l-18 16v-16h0c-9 0-16-6-16-14V36Z"/>
-  <circle cx="50" cy="52" r="5.5" fill="#0F5132"/>
-  <circle cx="64" cy="52" r="5.5" fill="#0F5132"/>
-  <circle cx="78" cy="52" r="5.5" fill="#0F5132"/>
+  <circle cx="50" cy="52" r="5.5" fill="#0A4F2E"/>
+  <circle cx="64" cy="52" r="5.5" fill="#0A4F2E"/>
+  <circle cx="78" cy="52" r="5.5" fill="#0A4F2E"/>
+  <!-- Brand N badge -->
   <rect x="82" y="86" width="30" height="30" rx="9" fill="#C4A35A"/>
-  <path fill="#0F5132" d="M90 93h5l7 12V93h5v20h-5l-7-12v12h-5V93Z"/>
+  <path fill="#0A4F2E" d="M89 93h5.5l7.5 12.5V93H107v20h-5.5L94 100.5V113H89V93Z"/>
 </svg>
