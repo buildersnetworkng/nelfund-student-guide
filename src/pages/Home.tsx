@@ -102,7 +102,7 @@ export default function Home() {
 
           <div className="slide-up mt-8 flex flex-wrap gap-3">
             <Link to="/ask" className="btn-gold shadow-md hover:shadow-lg">
-              Ask the support AI
+              Ask support
             </Link>
             <Link
               to="/apply"
@@ -138,7 +138,7 @@ export default function Home() {
         <div className="flex items-end justify-between gap-3">
           <div>
             <h2 className="section-title">Solve a problem</h2>
-            <p className="section-sub">Start with the AI, or jump to a focused guide.</p>
+            <p className="section-sub">Start with support, or jump to a focused guide.</p>
           </div>
         </div>
 
@@ -155,7 +155,7 @@ export default function Home() {
             </span>
             <div>
               <p className="font-display text-base font-semibold text-ink group-hover:text-forest-700">
-                Talk to the support AI
+                Ask support
               </p>
               <p className="mt-1 text-sm leading-relaxed text-ink/60">
                 Describe the issue in your own words, attach a screenshot, and get step-by-step help.
@@ -206,7 +206,7 @@ export default function Home() {
               Official links
             </Link>
             <Link to="/ask" className="chip">
-              Ask the AI
+              Ask support
             </Link>
           </div>
         </div>
