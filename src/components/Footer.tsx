@@ -15,13 +15,16 @@ export default function Footer() {
       <div className="container-page">
         <div className="grid gap-8 sm:grid-cols-2">
           <div>
-            <p className="font-display text-sm font-semibold text-paper">NELFUND Student Guide</p>
+            <div className="flex items-center gap-2.5">
+              <img src="/brand/logo.svg" alt="" width={28} height={28} className="h-7 w-7 rounded-lg" aria-hidden="true" />
+              <p className="font-display text-sm font-semibold text-paper">NELFUND Student Guide</p>
+            </div>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-paper/60">
               An independent guide for Nigerian tertiary students. Not produced or endorsed by NELFUND or any
               institution. Always confirm important decisions on the official portal.
             </p>
             <Link to="/ask" className="mt-4 inline-flex text-sm font-semibold text-gold-300 hover:text-gold-100">
-              Ask the support AI →
+              Ask support →
             </Link>
           </div>
           <div>
