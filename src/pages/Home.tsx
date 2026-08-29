@@ -4,7 +4,7 @@ import StatusCard from '../components/StatusCard'
 import StaySafe from '../components/StaySafe'
 import InstitutionSelect from '../components/InstitutionSelect'
 import { QuickActionCard } from '../components/Card'
-import { applicationStatus } from '../lib/data'
+import { getCurrentAcademicCycle } from '../lib/academicCycle'
 
 const PROBLEM_SHORTCUTS = [
   { to: '/ask', label: 'Missing information' },
@@ -83,7 +83,7 @@ export default function Home() {
 
         <div className="container-page relative">
           <p className="fade-in text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-300">
-            NELFUND · {applicationStatus.cycle}
+            NELFUND · {getCurrentAcademicCycle()}
           </p>
 
           <h1 className="slide-up mt-4 max-w-xl text-balance font-display text-3xl font-semibold leading-[1.18] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
