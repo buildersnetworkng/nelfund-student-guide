@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 const LINKS = [
   { to: '/', label: 'Home' },
-  { to: '/ask', label: 'Ask AI' },
+  { to: '/ask', label: 'Ask support' },
   { to: '/apply', label: 'Apply' },
   { to: '/troubleshooting', label: 'Problems' },
   { to: '/faq', label: 'FAQ' },
@@ -18,12 +18,14 @@ export default function Header() {
           to="/"
           className="flex items-center gap-2.5 font-display font-semibold text-forest-700 transition hover:opacity-90"
         >
-          <span
+          <img
+            src="/brand/logo.svg"
+            alt=""
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-xl shadow-sm"
             aria-hidden="true"
-            className="flex h-8 w-8 items-center justify-center rounded-xl bg-forest-700 text-xs font-bold text-gold-300 shadow-sm"
-          >
-            N
-          </span>
+          />
           <span className="text-sm tracking-tight sm:text-[15px]">
             NELFUND <span className="hidden font-medium text-ink/45 sm:inline">Student Guide</span>
           </span>
@@ -51,7 +53,7 @@ export default function Header() {
           to="/ask"
           className="inline-flex min-h-[36px] items-center justify-center rounded-full bg-forest-700 px-3.5 py-1.5 text-xs font-semibold text-paper shadow-sm transition duration-150 hover:bg-forest-900 hover:shadow-md active:scale-[0.98] sm:hidden"
         >
-          Ask AI
+          Ask support
         </NavLink>
       </div>
     </header>
