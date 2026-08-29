@@ -103,7 +103,7 @@ function ProgressRing({ value, total }: { value: number; total: number }) {
         cy="32"
         r="26"
         fill="none"
-        stroke="#0F5132"
+        stroke="#0A4F2E"
         strokeWidth="7"
         strokeLinecap="round"
         strokeDasharray={circumference}
