@@ -17,7 +17,7 @@ export default function Troubleshooting() {
       <p className="eyebrow">Problems</p>
       <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">What problem are you having?</h1>
       <p className="section-sub max-w-xl">
-        Pick the closest issue for verified guidance — or describe it to the support AI if nothing matches.
+        Pick the closest issue for verified guidance — or describe it to Ask support if nothing matches.
       </p>
       <div className="mt-3">
         <InstitutionNotice />
@@ -28,13 +28,18 @@ export default function Troubleshooting() {
           to="/ask"
           className="card-interactive flex items-center gap-3 border-forest-700/15 bg-forest-50/60 p-4"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-forest-700 text-sm font-bold text-paper">
-            AI
-          </span>
+          <img
+            src="/brand/logo-ai.svg"
+            alt=""
+            width={40}
+            height={40}
+            className="h-10 w-10 rounded-xl shadow-sm"
+            aria-hidden="true"
+          />
           <div>
             <p className="text-sm font-semibold text-ink">Not sure which problem it is?</p>
             <p className="text-xs text-ink/60">
-              Describe it or upload a screenshot — the support AI will guide you.
+              Describe it or upload a screenshot — Ask support will guide you.
             </p>
           </div>
         </Link>

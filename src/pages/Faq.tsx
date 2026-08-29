@@ -32,7 +32,7 @@ export default function Faq() {
     <div className="container-page py-8 sm:py-10">
       <p className="eyebrow">FAQ</p>
       <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Frequently asked questions</h1>
-      <p className="section-sub max-w-xl">Short, verified answers. For a specific portal error, use the support AI.</p>
+      <p className="section-sub max-w-xl">Short, verified answers. For a specific portal error, use Ask support.</p>
       <div className="mt-2">
         <InstitutionNotice />
       </div>
@@ -40,7 +40,7 @@ export default function Faq() {
       <div className="mt-4 rounded-2xl border border-forest-700/10 bg-forest-50/50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
         <p className="text-sm text-ink/70">Can&apos;t find your problem?</p>
         <Link to="/ask" className="btn-primary mt-3 px-4 py-2 text-xs sm:mt-0">
-          Ask the AI
+          Ask support
         </Link>
       </div>
 
@@ -58,70 +58,90 @@ export default function Faq() {
         />
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {(['All', ...categories] as const).map((cat) => (
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+        <button
+          type="button"
+          onClick={() => setActiveCategory('All')}
+          className={`chip whitespace-nowrap ${
+            activeCategory === 'All' ? 'bg-forest-700 text-paper' : ''
+          }`}
+        >
+          All
+        </button>
+        {categories.map((c) => (
           <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-              activeCategory === cat ? 'bg-forest-700 text-paper' : 'bg-forest-50 text-forest-700'
+            key={c}
+            type="button"
+            onClick={() => setActiveCategory(c)}
+            className={`chip whitespace-nowrap ${
+              activeCategory === c ? 'bg-forest-700 text-paper' : ''
             }`}
           >
-            {cat}
+            {c}
           </button>
         ))}
       </div>
 
-      <ul className="mt-5 space-y-3">
+      <ul className="mt-6 space-y-3">
         {filtered.map((f) => {
           const isOpen = openId === f.id
-          const related = getRelevantContent(getFaqsByIds(f.related_faq_ids), institutionId)
-
           return (
-            <li key={f.id} id={f.id} className="card">
+            <li key={f.id} className="card overflow-hidden">
               <button
+                type="button"
+                className="flex w-full items-start gap-3 p-4 text-left"
                 onClick={() => {
-                  if (!isOpen) trackFaqOpen(f.id)
                   setOpenId(isOpen ? null : f.id)
+                  if (!isOpen) trackFaqOpen(f.id)
                 }}
-                className="flex w-full items-start justify-between gap-3 text-left"
                 aria-expanded={isOpen}
               >
-                <span className="font-display text-sm font-semibold text-ink">{f.title}</span>
-                <span aria-hidden="true" className="text-forest-700">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink">{f.title}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <ScopeBadge scope={f.scope} />
+                    <TrustBadge trust={f.trust} />
+                  </div>
+                </div>
+                <span className="mt-0.5 text-ink/40" aria-hidden="true">
                   {isOpen ? '−' : '+'}
                 </span>
               </button>
-
               {isOpen && (
-                <div className="mt-3 space-y-3 border-t border-forest-700/10 pt-3">
-                  <p className="text-sm leading-relaxed text-ink/70">{f.content}</p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <TrustBadge status={f.verification_status} sourceId={f.source_id} lastVerified={f.last_verified} />
-                    <ScopeBadge scope={f.scope} institutionId={f.institution_id} />
-                  </div>
-                  <RecommendedVideo videoIds={f.related_video_ids} topicLabel={f.title.toLowerCase()} />
-                  <InstitutionTip tips={f.institution_tips} />
-                  {related.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {related.map((r) => (
-                        <button
-                          key={r.id}
-                          onClick={() => setOpenId(r.id)}
-                          className="rounded-full border border-forest-700/20 px-3 py-1 text-xs text-forest-700 hover:bg-forest-50"
-                        >
-                          {r.title}
-                        </button>
-                      ))}
+                <div className="border-t border-forest-700/10 px-4 pb-4 pt-3">
+                  <p className="text-sm leading-relaxed text-ink/75">{f.content}</p>
+                  {f.institution_tips && f.institution_tips.length > 0 && (
+                    <InstitutionTip tips={f.institution_tips} />
+                  )}
+                  {f.related_faq_ids && f.related_faq_ids.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">Related</p>
+                      <ul className="mt-1 space-y-1">
+                        {getFaqsByIds(f.related_faq_ids).map((r) => (
+                          <li key={r.id}>
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-forest-700 hover:underline"
+                              onClick={() => {
+                                setOpenId(r.id)
+                                trackFaqOpen(r.id)
+                              }}
+                            >
+                              {r.title}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
+                  {f.video_id && <RecommendedVideo videoId={f.video_id} className="mt-3" />}
                 </div>
               )}
             </li>
           )
         })}
         {filtered.length === 0 && (
-          <p className="text-sm text-ink/60">No FAQs match this search. Try the troubleshooting section instead.</p>
+          <p className="py-8 text-center text-sm text-ink/55">No FAQs match this search. Try the troubleshooting section instead.</p>
         )}
       </ul>
     </div>
