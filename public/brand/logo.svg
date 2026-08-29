@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="NELFUND Student Guide">
+  <rect width="128" height="128" rx="28" fill="#0F5132"/>
+  <path fill="#FFFFFF" d="M30 28h18l26 46V28h16v72H72L46 54v46H30V28Z"/>
+  <path fill="#FFFFFF" d="M78 88c10-4 20-12 28-22l-9-7c-6 8-14 14-20 16v13Z"/>
+  <path fill="#FFFFFF" d="M94 52l20-16v11l-11 9 11 9v11L94 60V52Z"/>
+  <path fill="#FFFFFF" d="M38 98h52c3 0 5 2 5 4 0 1-1 2-2 3-12 7-26 11-29 11s-17-4-29-11c-1-1-2-2-2-3 0-2 2-4 5-4Z"/>
+</svg>
