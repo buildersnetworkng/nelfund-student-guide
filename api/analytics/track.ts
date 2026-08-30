@@ -26,11 +26,11 @@ function dayKey(d = new Date()): string {
 }
 
 function redisUrl(): string {
-  return process.env.UPSTASH_REDIS_REST_URL || 'https://premium-rooster-109704.upstash.io'
+  return process.env.UPSTASH_REDIS_REST_URL || ''
 }
 
 function redisToken(): string {
-  return process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAayIAQIgcDE2YWZkNzllZDIxN2I0MjA5YWIwNDQ1OGFjNTY0MGUzNg'
+  return process.env.UPSTASH_REDIS_REST_TOKEN || ''
 }
 
 function redisConfigured(): boolean {
@@ -190,16 +190,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         else memIncr(`unknown_topic:${topic}`)
       }
     }
-    // Dedicated unknown conversation tracking
-    if (name === 'ai_unknown' || (ev.intent && /unknown/i.test(ev.intent))) {
+    // Unknown session tracking only. Counter for ai_unknown is already incremented above
+    // when name === 'ai_unknown' (client sends a dedicated event). Do not double-count.
+    if (name === 'ai_unknown') {
       if (useRedis) {
-        commands.push(['INCR', 'nsg:counters:ai_unknown'])
-        commands.push(['INCR', `nsg:day:${today}:ai_unknown`])
         commands.push(['SADD', `nsg:unknown_sessions:${today}`, sid])
         commands.push(['EXPIRE', `nsg:unknown_sessions:${today}`, 60 * 60 * 24 * 400])
-      } else {
-        memIncr('ai_unknown')
-        memIncr(`day:${today}:ai_unknown`)
       }
     }
   }
