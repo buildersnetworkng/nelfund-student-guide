@@ -39,7 +39,7 @@ export function isNearDuplicate(prev: string | undefined, next: string): boolean
 
 export function isNewUserAsk(text: string): boolean {
   const t = (text || '').toLowerCase()
-  return /youtube|video|tutorial|link|how\s*to\s*apply|how\s*do\s*i\s*apply|how\s*did\s*nelfund|how\s*nelfund\s*start|walkthrough|guide|step\s*by\s*step|upkeep|repay|interest|missing|guarantor|eligibility|purpose|history|what\s*is\s*nelfund|understand\s*nelfund|help\s*me\s*understand|contact|draft|open\s*now|deadline|bvn|nin|jamb|started|established|founded/i.test(
+  return /youtube|video|tutorial|link|how\s*to\s*apply|how\s*do\s*i\s*apply|how\s*did\s*nelfund|how\s*nelfund\s*start|walkthrough|guide|step\s*by\s*step|upkeep|repay|interest|missing|guarantor|eligibility|purpose|history|what\s*is\s*nelfund|understand\s*nelfund|help\s*me\s*understand|contact|draft|open\s*now|deadline|bvn|nin|jamb|started|established|founded|currently\s*open|when\s*will|still\s*apply|application\s*window|official\s*(email|website|site)|which\s*(website|site)|scam|pay\s*\d+|agent|otp|matric|document|checklist/i.test(
     t,
   )
 }
@@ -60,21 +60,21 @@ export function routeByKeywords(text: string): string | null {
     [/what\s*is\s*nelfund|wetin\s*be\s*nelfund|about\s*nelfund|meaning\s*of\s*nelfund|nelfund\s*stand\s*for|help\s*me\s*understand\s*nelfund|understand\s*nelfund|explain\s*nelfund|tell\s*me\s*about\s*nelfund/, 'whatis'],
     [/scholarship|free\s*money|is\s*it\s*a\s*loan|grant\b/, 'loan'],
     [/\bgsi\b|global\s*standing/, 'gsi'],
+    [/scam|fraud|\botp\b|(pay|send(\s*money)?|transfer|give).{0,40}(agent|them|him|her|am|whatsapp)|(agent|whatsapp).{0,30}(pay|money|otp)|make\s*i\s*pay|pay\s*\d+\s*k|pay\s*\d{3,}|whatsapp\s*man|someone\s*say\s*pay|pay\s*to\s*(get|process|approve)/, 'scam'],
     [/upkeep|20\s*k|₦?\s*20,?000|allowance|monthly\s*(money|pay)/, 'upkeep'],
     [/missing\s*(info|information)|no\s*school\s*info|record\s*not\s*found|e\s*dey\s*show\s*missing/, 'missing'],
     [/pending|still\s*wait|nothing\s*(is\s*)?happen/, 'pending'],
     [/reject|declin|not\s*approv/, 'rejected'],
     [/youtube|video\s*(link|guide|tutorial)?|tutorial|walkthrough|step[-\s]?by[-\s]?step|you\s*tube/, 'youtube'],
     [/how\s*(do\s*i|to|i\s*go|i\s*wan|i\s*will|i\s*fit)\s*apply|start\s*(my\s*)?application|register\s*(for\s*)?nelfund|how\s*i\s*go\s*apply/, 'apply'],
-    [/which\s*(link|url|website)|portal\s*link|where\s*(do\s*i|to)\s*login|login\s*link/, 'login'],
+    [/which\s*(link|url|website|site)|portal\s*link|where\s*(do\s*i|to)\s*login|login\s*link|how\s*(do\s*i|to)\s*login|official\s*(website|site|portal)|how\s*(to|do\s*i)\s*(enter|access)\s*(the\s*)?portal|abeg\s*which\s*site|link\s*to\s*apply|where\s*to\s*register|continue\s*(my\s*)?application/, 'login'],
     [/jamb/, 'jamb'],
     [/\bnin\b|national\s*identity/, 'nin'],
     [/\bbvn\b/, 'bvn'],
-    [/scam|fraud|\botp\b|pay\s*(an?\s*)?agent|whatsapp\s*agent/, 'scam'],
     [/eligible|eligibility|who\s*can\s*apply|qualify|qualification|100\s*-?\s*level|\d{2,3}\s*-?\s*level|year\s*(one|1)|fresher|freshman|as\s*(an?\s*)?\d{2,3}\s*level/, 'eligibility'],
-    [/document|what\s*(do\s*i|to)\s*need|requirements?/, 'documents'],
-    [/contact|who\s*(do\s*i|should\s*i)\s*(call|email|contact)|support\s*email/, 'contact'],
-    [/open\s*now|still\s*open|deadline|closing|is\s*(nelfund|application)\s*(open|closed)|application\s*(open|window)|is\s*it\s*open|account\s*creation/, 'status'],
+    [/document|what\s*(do\s*i|to)\s*need|requirements?|checklist|matric(ulation)?\s*number|i\s*(don'?t|do\s*not|no)\s*have\s*matric|no\s*matric|papers?\s*need/, 'documents'],
+    [/contact|who\s*(do\s*i|should\s*i)\s*(call|email|contact)|support\s*email|official\s*email|nelfund\s*email|email\s*of\s*nelfund|esupport|open\s*(a\s*)?ticket|customer\s*care|helpline/, 'contact'],
+    [/open\s*now|still\s*open|deadline|closing|is\s*(nelfund|application)\s*(open|closed|currently)|application\s*(open|window)|is\s*it\s*open|when\s*will\s*nelfund\s*open|account\s*creation|currently\s*open|registration\s*open|loan\s*window/, 'status'],
     [/approv|how\s*(do\s*i\s*)?know.*(status|approv)/, 'approval'],
     [/who\s*(gets|receives)\s*(the\s*)?(money|fees)|paid\s*to\s*(school|me)|disburse/, 'disburse'],
     [/repay|pay\s*back|refund\s*the\s*loan/, 'repay'],
@@ -281,7 +281,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intentForAnswer === 'rejected-application') return clusterAnswer('rejected', ctx)
   if (intentForAnswer === 'upkeep') return clusterAnswer('upkeep', ctx)
   if (intentForAnswer === 'repayment' || intentForAnswer === 'gsi') return clusterAnswer('repay', ctx)
-  if (intentForAnswer === 'portal-login') return clusterAnswer('login', ctx)
+  if (intentForAnswer === 'portal-login' || intentForAnswer === 'official-sources') return clusterAnswer('login', ctx)
   if (intentForAnswer === 'jamb-verification') return clusterAnswer('jamb', ctx)
   if (intentForAnswer === 'nin-verification') return clusterAnswer('nin', ctx)
   if (intentForAnswer === 'scam-safety') return clusterAnswer('scam', ctx)
