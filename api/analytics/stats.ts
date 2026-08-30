@@ -16,11 +16,11 @@ function daysBack(n: number): string[] {
 }
 
 function redisUrl(): string {
-  return process.env.UPSTASH_REDIS_REST_URL || 'https://premium-rooster-109704.upstash.io'
+  return process.env.UPSTASH_REDIS_REST_URL || ''
 }
 
 function redisToken(): string {
-  return process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAayIAQIgcDE2YWZkNzllZDIxN2I0MjA5YWIwNDQ1OGFjNTY0MGUzNg'
+  return process.env.UPSTASH_REDIS_REST_TOKEN || ''
 }
 
 function redisConfigured(): boolean {
@@ -69,7 +69,8 @@ function memStore() {
 }
 
 function adminAuthorized(req: VercelRequest): boolean {
-  const expected = process.env.ANALYTICS_ADMIN_KEY || 'nelfund-admin-2026'
+  const expected = process.env.ANALYTICS_ADMIN_KEY
+  if (!expected || expected.length < 16) return false
   const provided = req.headers['x-admin-key']
   return typeof provided === 'string' && provided.length > 0 && provided === expected
 }
@@ -165,6 +166,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         dailyCmds.push(['SCARD', `nsg:dau:${d}`])
         dailyCmds.push(['SCARD', `nsg:sessions:${d}`])
         dailyCmds.push(['GET', `nsg:day:${d}:ai_question`])
+        dailyCmds.push(['GET', `nsg:day:${d}:ai_unknown`])
       }
       const dailyRaw = await redisPipeline(dailyCmds)
       const daily = last7
@@ -172,9 +174,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .reverse()
         .map((date, i) => ({
           date,
-          users: Number(dailyRaw[i * 3] || 0),
-          sessions: Number(dailyRaw[i * 3 + 1] || 0),
-          aiQuestions: Number(dailyRaw[i * 3 + 2] || 0),
+          users: Number(dailyRaw[i * 4] || 0),
+          sessions: Number(dailyRaw[i * 4 + 1] || 0),
+          aiQuestions: Number(dailyRaw[i * 4 + 2] || 0),
+          unknownAi: Number(dailyRaw[i * 4 + 3] || 0),
         }))
 
       const toPairs = (arr: unknown): Array<{ key: string; count: number }> => {
@@ -239,7 +242,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         daily: last7
           .slice()
           .reverse()
-          .map((date) => ({ date, users: 0, sessions: 0, aiQuestions: 0 })),
+          .map((date) => ({ date, users: 0, sessions: 0, aiQuestions: 0, unknownAi: 0 })),
         storage: 'unavailable',
       })
     }
@@ -298,6 +301,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           users: s.dau.get(date)?.size || 0,
           sessions: [...s.sessions].filter((x) => x.startsWith(`${date}:`)).length,
           aiQuestions: get(`day:${date}:ai_question`),
+          unknownAi: get(`day:${date}:ai_unknown`),
         })),
       storage: 'memory',
     })
@@ -307,4 +311,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-// deploy-marker: pilot-quality-counters 2026-08-19
+// deploy-marker: pilot-security-admin-key 2026-08-30
