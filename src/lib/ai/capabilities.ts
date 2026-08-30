@@ -4,7 +4,7 @@ const CAPABILITY_BY_INTENT: Partial<Record<IntentId, AgentCapability>> = {
   'email-draft': 'email-draft',
   'contact-lookup': 'contact-lookup',
   'current-information': 'current-information',
-  'contact-support': 'contact-lookup',
+  'contact-support': 'verified-knowledge',
   'missing-information': 'troubleshooting',
   'school-not-found': 'troubleshooting',
   'jamb-verification': 'troubleshooting',
