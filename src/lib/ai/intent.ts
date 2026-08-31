@@ -100,7 +100,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'eligibility',
-    re: /eligib|can\s*i\s*apply|am\s*i\s*(eligible|qualified)|who\s*can\s*apply|cgpa|disqualif|who\s*(cannot|can'?t)\s*apply|ineligib|100\s*-?\s*level|\d{2,3}\s*-?\s*level|year\s*(one|1|two|2)|fresher|freshman|as\s*(an?\s*)?(\d{2,3}\s*-?\s*level|new\s*student|undergraduate)|new\s*student\s*(can|apply)|can\s*(a\s*)?(100|new)|apply\s*as\s*(a\s*)?(100|fresher|new)/i,
+    re: /eligib|can\s*i\s*apply|am\s*i\s*(eligible|qualified)|who\s*can\s*apply|qualify\s*(for\s*)?(student\s*)?loan|cgpa|disqualif|who\s*(cannot|can'?t)\s*apply|ineligib|100\s*-?\s*level|\d{2,3}\s*-?\s*level|year\s*(one|1|two|2)|fresher|freshman|as\s*(an?\s*)?(\d{2,3}\s*-?\s*level|new\s*student|undergraduate)|new\s*student\s*(can|apply)|can\s*(a\s*)?(100|new)|apply\s*as\s*(a\s*)?(100|fresher|new)|polytechnic\s*students?\s*(can|apply)|can\s*polytechnic/i,
     problem: 'Eligibility',
     stage: 'exploring',
     troubleshooting: false,
@@ -109,7 +109,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'current-information',
-    re: /as\s*of\s*today|current\s*(info|information|status|update)|latest\s*(update|news|info|nelfund)|still\s*accepting|is\s*nelfund\s*still|is\s*nelfund\s*(currently\s*)?open|is\s*(the\s*)?nelfund\s*(loan|application|portal)?\s*(currently\s*)?(still\s*)?open|accepting\s*applications|has\s*2026|is\s*(the\s*)?(application|portal|loan\s*portal)\s*(still\s*)?open|can\s*i\s*still\s*apply|still\s*can\s*(i\s*)?apply|don'?t\s*have\s*(a\s*)?bvn|no\s*bvn\s*yet|them\s*never\s*open|dem\s*never\s*open|window\s*(still\s*)?(open|close)|portal\s*(no|not|never)\s*(dey\s*)?(open|work)|when\s*dem\s*(go|will)\s*open|when\s*(will|is|does).{0,40}(expire|close|end|open)|what.?s\s*the\s*latest|any\s*latest\s*update|nelfund\s*still\s*open|application\s*still\s*open|dem\s*open|loan\s*window|registration\s*(still\s*)?open|still\s*accepting/i,
+    re: /as\s*of\s*today|current\s*(info|information|status|update)|latest\s*(update|news|info|nelfund)|still\s*accepting|is\s*nelfund\s*still|is\s*nelfund\s*(currently\s*)?open|is\s*(the\s*)?nelfund\s*(loan|application|portal)?\s*(currently\s*)?(still\s*)?open|accepting\s*applications|has\s*2026|is\s*(the\s*)?(application|portal|loan\s*portal)\s*(still\s*)?open|can\s*i\s*still\s*apply|still\s*can\s*(i\s*)?apply|don'?t\s*have\s*(a\s*)?bvn|no\s*bvn\s*yet|them\s*never\s*open|dem\s*never\s*open|window\s*(still\s*)?(open|close)|portal\s*(no|not|never)\s*(dey\s*)?(open|work)|when\s*dem\s*(go|will)\s*open|when\s*(will|is|does).{0,40}(expire|close|end|open)|what.?s\s*the\s*latest|any\s*latest\s*update|nelfund\s*still\s*open|application\s*still\s*open|dem\s*open|loan\s*window|registration\s*(still\s*)?open|still\s*accepting|application\s*window\s*(status|open|close)?|window\s*status/i,
     problem: 'Current or time-sensitive information',
     stage: 'exploring',
     troubleshooting: false,
@@ -163,7 +163,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'missing-information',
-    re: /missing\s*(info|information|data)|no\s*school\s*(info|information)|showing\s*missing|information\s*not\s*found|no\s*information\s*found|keeps?\s*saying\s*(no|missing)|e\s*dey\s*show\s*missing|record\s*not\s*found|no\s*dey\s*show\s*(my\s*)?(info|information)|portal\s*no\s*dey\s*work|e\s*no\s*dey\s*work|wahala\s*(with\s*)?(missing|info)/i,
+    re: /missing\s*(info|information|data|school)|no\s*school\s*(info|information)|showing\s*missing|information\s*not\s*found|no\s*information\s*found|keeps?\s*saying\s*(no|missing)|e\s*dey\s*show\s*missing|record\s*not\s*found|no\s*dey\s*show\s*(my\s*)?(info|information)|portal\s*no\s*dey\s*work|e\s*no\s*dey\s*work|wahala\s*(with\s*)?(missing|info)/i,
     problem: 'Missing information on portal',
     stage: 'applying',
     troubleshooting: true,
@@ -190,7 +190,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'scam-safety',
-    re: /scam|fraud|\botp\b|(pay|send(\s*money)?|transfer|give).{0,40}(agent|them|him|her|am|whatsapp)|(agent|whatsapp).{0,30}(pay|money|otp)|make\s*i\s*pay|pay\s*\d+\s*k|pay\s*\d{3,}|whatsapp\s*man|someone\s*say\s*pay|pay\s*to\s*(get|process|approve)/i,
+    re: /scam|fraud|\botp\b|(pay|send(\s*money)?|transfer|give).{0,40}(agent|them|him|her|am|whatsapp|approval)|(agent|whatsapp).{0,40}(pay|money|otp|password|passwd)|(transfer|send).{0,30}(money|fund).{0,20}(approval|approve|process)|make\s*i\s*pay|pay\s*\d+\s*k|pay\s*\d{3,}|whatsapp\s*man|someone\s*say\s*(pay|transfer)|pay\s*to\s*(get|process|approve)/i,
     problem: 'Scam or safety concern',
     stage: 'unknown',
     troubleshooting: true,
@@ -307,12 +307,12 @@ const RULES: Rule[] = [
   },
   {
     intent: 'contact-support',
-    re: /official\s*email|nelfund\s*email|email\s*of\s*nelfund|support\s*email|contact\s*(nelfund|support)|customer\s*(care|service)|helpline|esupport|open\s*(a\s*)?ticket/i,
+    re: /official\s*email|nelfund\s*(support\s*)?email|email\s*of\s*nelfund|support\s*email|nelfund\s*support|contact\s*(nelfund|support)|customer\s*(care|service)|helpline|esupport|open\s*(a\s*)?ticket/i,
     problem: 'Contact NELFUND support',
     stage: 'unknown',
     troubleshooting: false,
     topics: ['contact'],
-    weight: 10,
+    weight: 14,
   },
   {
     intent: 'readiness',
@@ -325,7 +325,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'what-is-nelfund',
-    re: /what\s*is\s*nelfund|explain\s*nelfund|about\s*nelfund|tell\s*me\s*about\s*nelfund|help\s*me\s*understand\s*nelfund|understand\s*nelfund|what\s*does\s*nelfund\s*(mean|do|stand)|meaning\s*of\s*nelfund|^nelfund\??$/i,
+    re: /what\s*is\s*nelfund(?!\s*support)|explain\s*nelfund|about\s*nelfund|tell\s*me\s*about\s*nelfund|help\s*me\s*understand\s*nelfund|understand\s*nelfund|what\s*does\s*nelfund\s*(mean|do|stand)|meaning\s*of\s*nelfund|^nelfund\??$/i,
     problem: 'What NELFUND is',
     stage: 'exploring',
     troubleshooting: false,
