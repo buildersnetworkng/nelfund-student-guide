@@ -57,7 +57,7 @@ export function routeByKeywords(text: string): string | null {
     [/guarantor|surety|sponsor\s*letter/, 'guarantor'],
     [/purpose\s*of|why\s*.{0,20}nelfund|aim\s*of|goal\s*of|mandate|why\s*dem\s*create/, 'purpose'],
     [/when\s*.{0,15}nelfund\s*(start|establish|create|launch)|how\s*(did|was|is)\s*nelfund\s*(start|started|establish|created|founded|begin|began)|how\s*nelfund\s*(start|started|begin|began)|when\s*(was\s*)?nelfund|who\s*(built|created|established|founded)|history\s*of\s*nelfund|student\s*loans?\s*act|nelfund\s*(start|started|began|begin)/, 'history'],
-    [/what\s*is\s*nelfund|wetin\s*be\s*nelfund|about\s*nelfund|meaning\s*of\s*nelfund|nelfund\s*stand\s*for|help\s*me\s*understand\s*nelfund|understand\s*nelfund|explain\s*nelfund|tell\s*me\s*about\s*nelfund/, 'whatis'],
+    [/what\s*is\s*nelfund|what'?s\s*nelfund(\s+all)?\s*about|nelfund\s*(all\s*)?about|all\s*about\s*nelfund|wetin\s*be\s*nelfund|about\s*nelfund|meaning\s*of\s*nelfund|nelfund\s*stand\s*for|help\s*me\s*understand\s*nelfund|understand\s*nelfund|explain\s*nelfund|tell\s*me\s*about\s*nelfund/, 'whatis'],
     [/scholarship|free\s*money|is\s*it\s*a\s*loan|grant\b/, 'loan'],
     [/\bgsi\b|global\s*standing/, 'gsi'],
     [/scam|fraud|\botp\b|(pay|send(\s*money)?|transfer|give).{0,40}(agent|them|him|her|am|whatsapp|approval)|(agent|whatsapp).{0,40}(pay|money|otp|password|passwd)|(transfer|send).{0,30}(money|fund).{0,20}(approval|approve|process)|make\s*i\s*pay|pay\s*\d+\s*k|pay\s*\d{3,}|whatsapp\s*man|someone\s*say\s*(pay|transfer)|pay\s*to\s*(get|process|approve)/, 'scam'],
