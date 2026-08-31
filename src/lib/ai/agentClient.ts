@@ -1,6 +1,6 @@
 /**
- * Optional LLM agent client (/api/chat).
- * Offline processUserTurn is the primary path. This is a silent enhancement only.
+ * NELFUND AI agent client — primary path is /api/chat (LLM + tools + evidence).
+ * Offline processUserTurn is fallback when the model is unconfigured or errors.
  * Never surfaces "limited mode" or status banners to the UI.
  */
 import type { ConversationTurn } from './types'
