@@ -325,12 +325,12 @@ const RULES: Rule[] = [
   },
   {
     intent: 'what-is-nelfund',
-    re: /what\s*is\s*nelfund(?!\s*support)|what'?s\s*nelfund(\s+all)?\s*about|nelfund\s*(all\s*)?about|all\s*about\s*nelfund|explain\s*nelfund|about\s*nelfund|tell\s*me\s*about\s*nelfund|help\s*me\s*understand\s*nelfund|understand\s*nelfund|what\s*does\s*nelfund\s*(mean|do|stand)|meaning\s*of\s*nelfund|^nelfund\??$/i,
+    re: /what\s*is\s*nelfund(?!\s*support)|what'?s\s*nelfund(\s+all)?\s*about|nelfund\s*(all\s*)?about|all\s*about\s*(this\s+)?nelfund|explain(\s+\w+){0,6}\s+(this\s+)?nelfund|explain\s+everything.{0,40}nelfund|tell\s*me\s*everything.{0,40}nelfund|everything\s+about\s+(this\s+)?nelfund|about\s+(this\s+)?nelfund|tell\s*me\s*about\s+(this\s+)?nelfund|help\s*me\s*understand\s*nelfund|understand\s*nelfund|what\s*does\s*nelfund\s*(mean|do|stand)|meaning\s*of\s*nelfund|break\s*down\s*nelfund|overview\s*of\s*nelfund|^nelfund\??$/i,
     problem: 'What NELFUND is',
     stage: 'exploring',
     troubleshooting: false,
     topics: ['what is'],
-    weight: 12,
+    weight: 14,
   },
   {
     intent: 'what-is-nelfund',
