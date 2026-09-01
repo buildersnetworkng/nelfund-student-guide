@@ -1,7 +1,7 @@
 /**
- * NELFUND AI agent client — primary path is /api/chat (LLM + tools + evidence).
- * Offline processUserTurn is fallback when the model is unconfigured or errors.
- * Never surfaces "limited mode" or status banners to the UI.
+ * Optional external-model client (/api/chat). Not required for NELFUND AI.
+ * Primary product intelligence is processUserTurn (owned NELFUND AI).
+ * Never surfaces provider status banners to students.
  */
 import type { ConversationTurn } from './types'
 import { extractSlotsFromText } from './slots'

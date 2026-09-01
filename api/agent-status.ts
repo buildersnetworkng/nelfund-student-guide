@@ -1,6 +1,7 @@
 /**
- * Public health check: is a model provider configured?
+ * Public health check: is an optional external model configured?
  * Never returns secrets. Not used for user-facing banners.
+ * Default product mode is NELFUND AI (owned in-app intelligence).
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
@@ -33,20 +34,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const configured = Boolean(cfg)
 
     return res.status(200).json({
-      agent: configured ? 'ready' : 'unconfigured',
-      mode: configured ? 'llm-agent' : 'offline',
+      agent: configured ? 'ready' : 'nelfund-ai',
+      mode: configured ? 'external-model' : 'nelfund-ai',
       provider: cfg?.provider ?? null,
       model: cfg?.model ?? null,
       message: configured
-        ? 'Model provider configured.'
-        : 'Offline agent active (no external model key required).',
+        ? 'Optional external model configured.'
+        : 'NELFUND AI active (owned in-app intelligence; no external model required).',
       checkedAt: new Date().toISOString(),
     })
   } catch (e) {
     console.error('[agent-status]', e)
     return res.status(500).json({
-      agent: 'unconfigured',
-      mode: 'offline',
+      agent: 'nelfund-ai',
+      mode: 'nelfund-ai',
       error: 'status_failed',
       message: e instanceof Error ? e.message : 'unknown',
     })
