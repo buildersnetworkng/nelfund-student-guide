@@ -28,15 +28,71 @@ export async function processUserTurn(opts: {
 
   const screen = understandPortalText(combined)
   const allowErrorScreen = !!(ocr && ocr.trim().length >= 8)
-
-  // Screenshot-first: if OCR looks like a portal error, force that path
-  if (allowErrorScreen && screen.kind !== 'unknown' && screen.kind !== 'dashboard') {
-    const enriched = {
-      ...opts,
-      userText: rawUser || `[Portal screenshot: ${screen.kind}]`,
-      ocrText: ocr,
+  if (
+    screen &&
+    (screen.kind === 'dashboard' ||
+      screen.kind === 'login' ||
+      (screen.kind === 'error' && allowErrorScreen))
+  ) {
+    const slots: ConversationSlots = {
+      ...opts.slots,
+      actionsTaken: [...(opts.slots.actionsTaken || [])],
     }
-    return processUserTurnCore(enriched)
+    if (screen.exactError) {
+      slots.exactError = screen.exactError
+      slots.problemSummary = screen.exactError
+      slots.errorConfirmed = true
+    } else if (screen.kind === 'dashboard') {
+      slots.problemSummary = slots.problemSummary || 'portal_dashboard'
+    }
+    slots.phase = 'resolve'
+
+    const answer: GroundedAnswer = {
+      hasEvidence: true,
+      intent: screen.kind === 'error' ? 'missing-information' : 'current-information',
+      confidence: 0.88,
+      responseMode: 'conversation',
+      problem: screen.exactError || screen.kind,
+      answer: screen.explanation,
+      whatThisMeans: null,
+      nextActions: screen.nextActions.slice(0, 4),
+      clarifyingQuestions: [],
+      evidence: [],
+      sources: [
+        {
+          id: 'portal',
+          label: 'NELFUND portal',
+          url: 'https://portal.nelf.gov.ng/',
+          official: true,
+        },
+      ],
+      video: null,
+      insufficientReason: null,
+      officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+      escalation: null,
+    }
+
+    return {
+      messages: [
+        {
+          id: uid('user'),
+          role: 'user',
+          text: rawUser || (ocr ? '[Screenshot uploaded]' : ''),
+          imagePreview: opts.imagePreview || null,
+          timestamp: Date.now(),
+        },
+        {
+          id: uid('asst'),
+          role: 'assistant',
+          text: answer.answer,
+          answer,
+          timestamp: Date.now(),
+        },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
   }
 
   return processUserTurnCore(opts)
@@ -47,4 +103,9 @@ export {
   createWelcomeMessage,
   extractErrorSignals,
 } from './conversation'
-export type { ConversationSlots, ChatMessage, AgentTurnResult, ConversationPhase } from './conversation'
+export type {
+  ConversationSlots,
+  ChatMessage,
+  AgentTurnResult,
+  ConversationPhase,
+} from './conversation'
