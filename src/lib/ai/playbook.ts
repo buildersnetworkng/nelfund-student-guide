@@ -4,6 +4,7 @@
  */
 
 import type { IntentId } from './types'
+import { eligibilityAnswer } from './eligibilityAnswer'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -176,18 +177,8 @@ function clusterAnswer(key: string, ctx: PlaybookContext): string | null {
       return `**BVN**\n\n• Sort BVN with your **bank**\n• You can often still create/prepare an account on ${PORTAL}\n• Loan application window opens only when NELFUND announces it on ${SITE}\n\nThis guide does not invent registration or loan deadlines.`
     case 'scam':
       return `**Safety**\n\n• Never pay an agent to “process” or “speed up” NELFUND\n• Never share OTP, password, or full bank login\n• Apply only on ${PORTAL}\n• Tickets: ${ESUPPORT}`
-    case 'eligibility': {
-      const raw = (ctx.userText || '').toLowerCase()
-      const levelMatch =
-        raw.match(/\b(\d{2,3})\s*-?\s*level\b/) || raw.match(/\byear\s*(one|1|two|2|three|3|four|4|five|5)\b/)
-      let levelNote = ''
-      if (levelMatch) {
-        levelNote = `\n\nYou mentioned **${levelMatch[0]}**. Eligibility still depends on official rules (public institution, identity checks, school record). Confirm any level-specific rule only on ${SITE}.`
-      }
-      return (
-        `**Eligibility (core)**\n\n• Nigerian citizen\n• Admitted into a covered **public** tertiary institution\n• Valid identity (typically **JAMB**, **NIN**, **BVN** for banking)\n• School record available for verification\n\n**Documents often needed:** admission/registration details, JAMB reg number, NIN, BVN, and **matriculation number** when your school has issued it.${levelNote}\n\n${PORTAL} · ${SITE}` + videoLinksFor('eligibility')
-      )
-    }
+    case 'eligibility':
+      return eligibilityAnswer(ctx)
     case 'documents':
       return clusterAnswer('eligibility', ctx)
     case 'contact':
