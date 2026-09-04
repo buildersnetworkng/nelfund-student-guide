@@ -32,6 +32,7 @@ export async function processUserTurn(opts: {
     screen &&
     (screen.kind === 'dashboard' ||
       screen.kind === 'login' ||
+      screen.kind === 'website' ||
       (screen.kind === 'error' && allowErrorScreen))
   ) {
     const slots: ConversationSlots = {
