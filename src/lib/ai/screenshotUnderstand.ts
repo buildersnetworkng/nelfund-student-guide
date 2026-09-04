@@ -263,6 +263,27 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
 
   const s = collectSignals(t)
 
+  // Invalid JAMB number format (red portal banner)
+  if (/invalid\s*jamb\s*(number\s*)?format|jamb\s*number\s*format|e\.g\.?\s*\d{4}\s*\d{2}[A-Za-z]{2}/i.test(t)) {
+    return {
+      kind: 'error',
+      exactError: 'Invalid JAMB number format',
+      explanation:
+        `The portal is showing **Invalid JAMB number format** (example style: **0000 00AA**).\n\n` +
+        `**What this means**\n` +
+        `• The JAMB Registration Number you typed does **not** match the format NELFUND expects\n` +
+        `• Common issues: extra spaces, missing letters, wrong length, lowercase vs uppercase, or a typo\n\n` +
+        `**What to do**\n` +
+        `1. Open your **official JAMB profile / admission letter** and copy the **exact** Registration Number\n` +
+        `2. Enter it **exactly** as JAMB shows it (no extra spaces; use the same letters/case the portal accepts)\n` +
+        `3. Confirm **Date of birth** matches your JAMB record\n` +
+        `4. Tap **Verify JAMB Profile** again\n\n` +
+        `If the number is correct on JAMB but the portal still rejects the format → use **${ESUPPORT}** with a screenshot (hide secrets).\n\n` +
+        `Portal: **${PORTAL}** · Website: **${SITE}**`,
+      nextActions: [PORTAL, ESUPPORT, SITE],
+    }
+  }
+
   if (s.missingInfo) {
     return {
       kind: 'error',
@@ -375,6 +396,23 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         `This is a **NELFUND create account / sign-up** step on **portal.nelf.gov.ng**.\n\n` +
         `• Sign up / apply: **${PORTAL}**\n• Existing account login: same portal\n• Support: **${ESUPPORT}**`,
       nextActions: [PORTAL, SITE, ESUPPORT],
+    }
+  }
+
+  // JAMB Profile Verification form (without format error already handled above)
+  if (/jamb\s*profile\s*verification|enter\s*jamb\s*registration|verify\s*jamb\s*profile/i.test(t)) {
+    return {
+      kind: 'apply-flow',
+      exactError: null,
+      explanation:
+        `This is the **JAMB Profile Verification** step on **portal.nelf.gov.ng**.\n\n` +
+        `**What to enter**\n` +
+        `• **JAMB Registration Number** — exact number from your JAMB profile (correct format)\n` +
+        `• **Date of birth** — must match JAMB\n` +
+        `• Then tap **Verify JAMB Profile**\n\n` +
+        `If you see a red **Invalid JAMB number format** banner, fix the registration number format first (copy exactly from JAMB).\n\n` +
+        `• Portal: **${PORTAL}**\n• Support: **${ESUPPORT}**\n• Website: **${SITE}**`,
+      nextActions: [PORTAL, ESUPPORT, SITE],
     }
   }
 
