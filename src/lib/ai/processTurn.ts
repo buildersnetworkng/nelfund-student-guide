@@ -34,6 +34,7 @@ export async function processUserTurn(opts: {
       screen.kind === 'login' ||
       screen.kind === 'website' ||
       screen.kind === 'portal-landing' ||
+      screen.kind === 'eligibility-form' ||
       (screen.kind === 'error' && allowErrorScreen))
   ) {
     const slots: ConversationSlots = {
