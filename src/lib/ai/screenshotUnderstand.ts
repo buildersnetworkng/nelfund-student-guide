@@ -217,15 +217,15 @@ function applyFlowExplanation(s: Signals): string {
       : ''
 
   return (
-    `This is a **NELFUND apply / eligibility step** on **portal.nelf.gov.ng** (application flow), not the public marketing homepage.\n\n` +
+    `This is a **NELFUND apply / eligibility step** on portal.nelf.gov.ng (application flow), not the public marketing homepage.\n\n` +
     `**What the image shows**\n` +
     bullets.map((b) => `• ${b}`).join('\n') +
     seen +
     `\n\n**What to do**\n` +
     `• Answer each question truthfully and complete verification in order\n` +
-    `• Stay only on **${PORTAL}** — never pay an agent to “pass” these steps\n` +
-    `• If a step fails or is stuck → **${ESUPPORT}**\n` +
-    `• Public site: **${SITE}**`
+    `• Stay only on ${PORTAL} — never pay an agent to “pass” these steps\n` +
+    `• If a step fails or is stuck → ${ESUPPORT}\n` +
+    `• Public site: ${SITE}`
   )
 }
 
@@ -246,9 +246,9 @@ function alwaysUsefulFromOcr(s: Signals, _raw: string): ScreenUnderstanding {
       `This looks like a **NELFUND-related screen** from your screenshot.` +
       snippet +
       `\n\n**What to do next**\n` +
-      `• Continue only on the official portal: **${PORTAL}**\n` +
-      `• Public website: **${SITE}**\n` +
-      `• Support tickets: **${ESUPPORT}**\n` +
+      `• Continue only on the official portal: ${PORTAL}\n` +
+      `• Public website: ${SITE}\n` +
+      `• Support tickets: ${ESUPPORT}\n` +
       `• Never share password, OTP, or NIN with agents\n\n` +
       `If you tell me what you are trying to do (login, apply, verify JAMB, fix an error, check status), I will give the exact next step.`,
     nextActions: [PORTAL, SITE, ESUPPORT],
@@ -276,8 +276,8 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         `2. Enter it **exactly** as JAMB shows it (no extra spaces; use the same letters/case the portal accepts)\n` +
         `3. Confirm **Date of birth** matches your JAMB record\n` +
         `4. Tap **Verify JAMB Profile** again\n\n` +
-        `If the number is correct on JAMB but the portal still rejects the format → use **${ESUPPORT}** with a screenshot (hide secrets).\n\n` +
-        `Portal: **${PORTAL}** · Website: **${SITE}**`,
+        `If the number is correct on JAMB but the portal still rejects the format → use ${ESUPPORT} with a screenshot (hide secrets).\n\n` +
+        `Portal: ${PORTAL} · Website: ${SITE}`,
       nextActions: [PORTAL, ESUPPORT, SITE],
     }
   }
@@ -312,16 +312,16 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       kind: 'login',
       exactError: null,
       explanation:
-        `This is the **NELFUND student loan portal login page** (**portal.nelf.gov.ng**).\n\n` +
+        `This is the **NELFUND student loan portal login page** (portal.nelf.gov.ng).\n\n` +
         `**What you are seeing**\n` +
         `• **Email** and **Password** fields to sign in\n` +
         `• **Log In** button\n` +
         (s.resetPassword ? `• **Reset password** via Email or NIN\n` : '') +
         (s.createAccount ? `• **Create New Account** if you do not have one yet\n` : '') +
         `\n**Official links**\n` +
-        `• Portal (login / apply): **${PORTAL}**\n` +
-        `• Public website: **${SITE}**\n` +
-        `• Support: **${ESUPPORT}**\n\n` +
+        `• Portal (login / apply): ${PORTAL}\n` +
+        `• Public website: ${SITE}\n` +
+        `• Support: ${ESUPPORT}\n\n` +
         `Never share your password or OTP with anyone claiming to be an agent.`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
@@ -332,9 +332,9 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       kind: 'login',
       exactError: null,
       explanation:
-        `This is the **NELFUND portal login** screen (**portal.nelf.gov.ng**).\n\n` +
+        `This is the **NELFUND portal login** screen (portal.nelf.gov.ng).\n\n` +
         `Enter your **email** and **password**, then **Log In**.\n\n` +
-        `• Portal: **${PORTAL}**\n• Website: **${SITE}**\n• Support: **${ESUPPORT}**\n\n` +
+        `• Portal: ${PORTAL}\n• Website: ${SITE}\n• Support: ${ESUPPORT}\n\n` +
         `Never share password or OTP with agents.`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
@@ -345,9 +345,9 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       kind: 'portal-landing',
       exactError: null,
       explanation:
-        `This is the **official NELFUND application portal landing page** (**portal.nelf.gov.ng**).\n\n` +
+        `This is the **official NELFUND application portal landing page** (portal.nelf.gov.ng).\n\n` +
         `Use it to **sign up / create account** and start the loan application flow.\n\n` +
-        `• Portal: **${PORTAL}**\n• Website: **${SITE}**\n• Support: **${ESUPPORT}**`,
+        `• Portal: ${PORTAL}\n• Website: ${SITE}\n• Support: ${ESUPPORT}`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
   }
@@ -366,9 +366,9 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       kind: 'website',
       exactError: null,
       explanation:
-        `This is the **official NELFUND website homepage** (**nelf.gov.ng**).\n\n` +
-        `• **LOGIN** → log in / sign in at **${SITE}**\n` +
-        `• **APPLY NOW** → sign up / apply at **${PORTAL}**\n\n` +
+        `This is the **official NELFUND website homepage** (nelf.gov.ng).\n\n` +
+        `• **LOGIN** → log in / sign in at ${SITE}\n` +
+        `• **APPLY NOW** → sign up / apply at ${PORTAL}\n\n` +
         `Always use only these official domains.`,
       nextActions: [SITE, PORTAL, ESUPPORT],
     }
@@ -381,7 +381,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       explanation:
         `This looks like a **NELFUND portal profile / personal details** screen.\n\n` +
         `Keep NIN, JAMB, name, and school details accurate and matching your records.\n\n` +
-        `• Portal: **${PORTAL}**\n• Support: **${ESUPPORT}**`,
+        `• Portal: ${PORTAL}\n• Support: ${ESUPPORT}`,
       nextActions: [PORTAL, ESUPPORT, SITE],
     }
   }
@@ -391,8 +391,8 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       kind: 'signup',
       exactError: null,
       explanation:
-        `This is a **NELFUND create account / sign-up** step on **portal.nelf.gov.ng**.\n\n` +
-        `• Sign up / apply: **${PORTAL}**\n• Existing account login: same portal\n• Support: **${ESUPPORT}**`,
+        `This is a **NELFUND create account / sign-up** step on portal.nelf.gov.ng.\n\n` +
+        `• Sign up / apply: ${PORTAL}\n• Existing account login: same portal\n• Support: ${ESUPPORT}`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
   }
@@ -403,7 +403,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       kind: 'apply-flow',
       exactError: null,
       explanation:
-        `This is the **JAMB Profile Verification** step on **portal.nelf.gov.ng**.\n\n` +
+        `This is the **JAMB Profile Verification** step on portal.nelf.gov.ng.\n\n` +
         `**What to enter**\n` +
         `• **JAMB Registration Number** — copy **exactly** from your official JAMB profile / admission letter (same digits and letters; no extra spaces)\n` +
         `• **Date of birth** — must match JAMB\n` +
@@ -412,8 +412,8 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         `• That means the number you typed does **not** match the format the portal expects\n` +
         `• Re-copy the number carefully from JAMB (check uppercase letters, no spaces unless JAMB shows them)\n` +
         `• Confirm DOB matches, then verify again\n` +
-        `• Still failing with a correct number → **${ESUPPORT}** (screenshot, hide secrets)\n\n` +
-        `• Portal: **${PORTAL}**\n• Support: **${ESUPPORT}**\n• Website: **${SITE}**`,
+        `• Still failing with a correct number → ${ESUPPORT} (screenshot, hide secrets)\n\n` +
+        `• Portal: ${PORTAL}\n• Support: ${ESUPPORT}\n• Website: ${SITE}`,
       nextActions: [PORTAL, ESUPPORT, SITE],
     }
   }
