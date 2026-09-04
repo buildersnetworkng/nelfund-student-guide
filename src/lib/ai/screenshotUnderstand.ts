@@ -178,7 +178,7 @@ function dashboardExplanation(t: string): string {
   lines.push('1. Keep your profile, NIN, JAMB, and school record complete while you wait')
   lines.push('2. Do **not** pay anyone to “activate” or “speed up” a loan')
   lines.push(`3. Watch ${PORTAL} / ${SITE} for the next official application window`)
-  lines.push(`4. Stuck on a portal error → ${ESUPPORT}`)
+  lines.push(`4. Portal error that will not clear → report to NELFUND support: ${ESUPPORT}`)
   return lines.join('\n')
 }
 
@@ -224,7 +224,7 @@ function applyFlowExplanation(s: Signals): string {
     `\n\n**What to do**\n` +
     `• Answer each question truthfully and complete verification in order\n` +
     `• Stay only on ${PORTAL} — never pay an agent to “pass” these steps\n` +
-    `• If a step fails or is stuck → ${ESUPPORT}\n` +
+    `• If a step keeps failing → report it to NELFUND support: ${ESUPPORT}\n` +
     `• Public site: ${SITE}`
   )
 }
@@ -248,7 +248,7 @@ function alwaysUsefulFromOcr(s: Signals, _raw: string): ScreenUnderstanding {
       `\n\n**What to do next**\n` +
       `• Continue only on the official portal: ${PORTAL}\n` +
       `• Public website: ${SITE}\n` +
-      `• Support tickets: ${ESUPPORT}\n` +
+      `• Need help from NELFUND? Report the issue here: ${ESUPPORT}\n` +
       `• Never share password, OTP, or NIN with agents\n\n` +
       `If you tell me what you are trying to do (login, apply, verify JAMB, fix an error, check status), I will give the exact next step.`,
     nextActions: [PORTAL, SITE, ESUPPORT],
@@ -261,23 +261,32 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
 
   const s = collectSignals(t)
 
-  // Invalid JAMB number / format (red portal banner OR student says "invalid jamb")
-  if (/invalid\s*jamb|jamb\s*(number|reg(istration)?)\s*(is\s*)?(invalid|wrong|incorrect|format)|jamb\s*number\s*format|e\.g\.?\s*\d{4}\s*\d{2}[A-Za-z]{2}/i.test(t)) {
+  // Invalid JAMB number / format (red banner, student text, or common OCR misreads)
+  if (
+    /in\.?valid\s*jamb|lnvalid\s*jamb|jamb\s*(number|reg(istration)?)\s*(is\s*)?(invalid|wrong|incorrect|format)|jamb\s*number\s*format|e\.?\s*g\.?\s*\d{4}\s*\d{0,2}\s*[A-Za-z]{0,2}|0000\s*00\s*AA/i.test(
+      t,
+    )
+  ) {
     return {
       kind: 'error',
       exactError: 'Invalid JAMB number format',
       explanation:
-        `The portal is showing **Invalid JAMB number format** (example style: **0000 00AA**).\n\n` +
-        `**What this means**\n` +
-        `• The JAMB Registration Number you typed does **not** match the format NELFUND expects\n` +
-        `• Common issues: extra spaces, missing letters, wrong length, lowercase vs uppercase, or a typo\n\n` +
-        `**What to do**\n` +
-        `1. Open your **official JAMB profile / admission letter** and copy the **exact** Registration Number\n` +
-        `2. Enter it **exactly** as JAMB shows it (no extra spaces; use the same letters/case the portal accepts)\n` +
-        `3. Confirm **Date of birth** matches your JAMB record\n` +
-        `4. Tap **Verify JAMB Profile** again\n\n` +
-        `If the number is correct on JAMB but the portal still rejects the format → use ${ESUPPORT} with a screenshot (hide secrets).\n\n` +
-        `Portal: ${PORTAL} · Website: ${SITE}`,
+        `The portal is showing this error: **Invalid JAMB number format** (example on the banner looks like **0000 00AA**).\n\n` +
+        `**What it means**\n` +
+        `NELFUND did **not** accept the JAMB Registration Number you typed. It is usually a typing or format problem — not that you are banned from the loan.\n\n` +
+        `**Fix it yourself first**\n` +
+        `1. Open your **JAMB profile** or admission letter on a reliable device\n` +
+        `2. Copy the **JAMB Registration Number exactly** as JAMB shows it (every digit and letter)\n` +
+        `3. Paste it into the portal — avoid extra spaces; match capital/small letters if JAMB shows them that way\n` +
+        `4. Check that **Date of birth** is the same as on JAMB\n` +
+        `5. Tap **Verify JAMB Profile** again\n\n` +
+        `**If it still says invalid after you copied correctly**\n` +
+        `Report the problem to **NELFUND official support** (not agents on WhatsApp):\n` +
+        `• Open a ticket here: ${ESUPPORT}\n` +
+        `• Tell them: “JAMB Profile Verification shows Invalid JAMB number format”\n` +
+        `• Attach a screenshot of the red error (you can cover your password if any)\n` +
+        `• Include your JAMB reg number and school name in the ticket\n\n` +
+        `Portal: ${PORTAL}\nWebsite: ${SITE}`,
       nextActions: [PORTAL, ESUPPORT, SITE],
     }
   }
@@ -287,7 +296,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       kind: 'error',
       exactError: 'Missing information / verification failed',
       explanation:
-        '**Missing information / verification problem** usually means the portal cannot match your details (name, NIN, JAMB, matric, or school record) yet.\n\nThis is **not** automatically a permanent rejection.\n\n**Next**\n1. Tell me your institution\n2. Ask school ICT / Registry / NELFUND desk to confirm upload\n3. Retry the portal after they confirm\n4. Still failing → eSupport',
+        '**Missing information / verification problem** usually means the portal cannot match your details (name, NIN, JAMB, matric, or school record) yet.\n\nThis is **not** automatically a permanent rejection.\n\n**Next**\n1. Tell me your institution\n2. Ask school ICT / Registry / NELFUND desk to confirm upload\n3. Retry the portal after they confirm\n4. Still failing → report to NELFUND support: https://nelfund.esupport.ng/create',
       nextActions: [PORTAL, ESUPPORT, SITE, 'Share your school name'],
     }
   }
@@ -412,7 +421,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         `• That means the number you typed does **not** match the format the portal expects\n` +
         `• Re-copy the number carefully from JAMB (check uppercase letters, no spaces unless JAMB shows them)\n` +
         `• Confirm DOB matches, then verify again\n` +
-        `• Still failing with a correct number → ${ESUPPORT} (screenshot, hide secrets)\n\n` +
+        `• Still failing after correct copy → report it to NELFUND support at ${ESUPPORT} (attach screenshot of the error; do not send your password)\n\n` +
         `• Portal: ${PORTAL}\n• Support: ${ESUPPORT}\n• Website: ${SITE}`,
       nextActions: [PORTAL, ESUPPORT, SITE],
     }
