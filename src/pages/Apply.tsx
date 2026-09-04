@@ -15,6 +15,29 @@ export default function Apply() {
       <p className="mt-2 max-w-xl text-sm text-ink/65">{guide.summary}</p>
       <div className="mt-2"><InstitutionNotice /></div>
 
+      <div className="mt-6 grid gap-2 sm:grid-cols-2">
+        <a
+          href="https://nelf.gov.ng/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="card flex flex-col gap-1 border-forest-700/25 p-4 transition hover:border-forest-700/50"
+        >
+          <span className="text-xs font-semibold uppercase tracking-wide text-forest-700">Log in / sign in</span>
+          <span className="text-sm font-medium text-ink">nelf.gov.ng</span>
+          <span className="text-xs text-ink/55">Existing account — official website</span>
+        </a>
+        <a
+          href="https://portal.nelf.gov.ng/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="card flex flex-col gap-1 border-forest-700/25 p-4 transition hover:border-forest-700/50"
+        >
+          <span className="text-xs font-semibold uppercase tracking-wide text-forest-700">Sign up / apply</span>
+          <span className="text-sm font-medium text-ink">portal.nelf.gov.ng</span>
+          <span className="text-xs text-ink/55">Create account & application portal</span>
+        </a>
+      </div>
+
       <ol className="mt-8 space-y-4">
         {guide.steps.map((step) => {
           const source = getSource(step.source_id)
