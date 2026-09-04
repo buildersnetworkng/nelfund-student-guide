@@ -7,7 +7,7 @@ import {
   type ConversationSlots,
 } from './conversation'
 import type { ConversationTurn } from './types'
-import { understandPortalText } from './screenshotUnderstand'
+import { understandPortalText, dashboardFollowUpExplanation } from './screenshotUnderstand'
 import type { GroundedAnswer } from './types'
 
 function uid(prefix: string): string {
@@ -78,6 +78,76 @@ export async function processUserTurn(opts: {
           id: uid('user'),
           role: 'user',
           text: rawUser || (ocr ? '[Screenshot uploaded]' : ''),
+          imagePreview: opts.imagePreview || null,
+          timestamp: Date.now(),
+        },
+        {
+          id: uid('asst'),
+          role: 'assistant',
+          text: answer.answer,
+          answer,
+          timestamp: Date.now(),
+        },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
+  // Follow-up after dashboard: "what does it mean" must not jump to generic open/close
+  const hist = opts.history || []
+  const prevAsst = [...hist].reverse().find((h) => h.role === 'assistant')?.text || ''
+  if (
+    /what\s*does\s*(this|it|that)\s*mean|wetin\s*(this|e|am)\s*mean|explain\s*(this|it|the\s*screen|the\s*dashboard)|mean\s*say/i.test(
+      rawUser,
+    ) &&
+    (/dashboard|student loan portal|total\s*loans|pending\s*loans|approved\s*loans|session registration|welcome to student loan|successfully signed in/i.test(
+      prevAsst,
+    ) ||
+      opts.slots.problemSummary === 'portal_dashboard')
+  ) {
+    const slots: ConversationSlots = {
+      ...opts.slots,
+      problemSummary: opts.slots.problemSummary || 'portal_dashboard',
+      phase: 'resolve',
+      actionsTaken: [...(opts.slots.actionsTaken || [])],
+    }
+    const text = dashboardFollowUpExplanation()
+    const answer: GroundedAnswer = {
+      hasEvidence: true,
+      intent: 'current-information',
+      confidence: 0.9,
+      responseMode: 'conversation',
+      problem: 'portal_dashboard',
+      answer: text,
+      whatThisMeans: null,
+      nextActions: [
+        'https://portal.nelf.gov.ng/',
+        'https://nelf.gov.ng/',
+        'https://nelfund.esupport.ng/create',
+      ],
+      clarifyingQuestions: [],
+      evidence: [],
+      sources: [
+        {
+          id: 'portal',
+          label: 'NELFUND portal',
+          url: 'https://portal.nelf.gov.ng/',
+          official: true,
+        },
+      ],
+      video: null,
+      insufficientReason: null,
+      officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+      escalation: null,
+    }
+    return {
+      messages: [
+        {
+          id: uid('user'),
+          role: 'user',
+          text: rawUser,
           imagePreview: opts.imagePreview || null,
           timestamp: Date.now(),
         },
