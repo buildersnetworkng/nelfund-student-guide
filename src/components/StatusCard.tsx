@@ -126,20 +126,20 @@ export default function StatusCard() {
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         <a
-          href="https://portal.nelf.gov.ng/"
+          href="https://nelf.gov.ng/"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex min-h-[36px] items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-paper ring-1 ring-white/20 transition hover:bg-white/15"
         >
-          Open official portal
+          Log in / sign in
         </a>
         <a
-          href="https://nelf.gov.ng/"
+          href="https://portal.nelf.gov.ng/"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex min-h-[36px] items-center rounded-full px-3 py-1.5 text-xs font-semibold text-gold-300/90 transition hover:text-gold-300"
         >
-          nelf.gov.ng
+          Sign up / apply
         </a>
       </div>
     </div>
