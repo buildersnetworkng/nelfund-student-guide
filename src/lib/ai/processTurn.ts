@@ -26,6 +26,69 @@ export async function processUserTurn(opts: {
   const ocr = opts.ocrText || null
   const combined = [rawUser, ocr].filter(Boolean).join('\n')
 
+  // Student text about invalid JAMB — answer format error even if OCR missed the red banner
+  if (/invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format|not\s*correct)/i.test(rawUser) ||
+      /invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format)/i.test(ocr || '')) {
+    const forced = understandPortalText(
+      [rawUser, ocr, 'Invalid jamb number format, e.g 0000 00AA', 'Jamb Profile Verification'].filter(Boolean).join('\n'),
+    )
+    if (forced && forced.kind === 'error') {
+      const slots: ConversationSlots = {
+        ...opts.slots,
+        exactError: forced.exactError,
+        problemSummary: forced.exactError || 'invalid_jamb_format',
+        errorConfirmed: true,
+        phase: 'resolve',
+        actionsTaken: [...(opts.slots.actionsTaken || [])],
+      }
+      const answer: GroundedAnswer = {
+        hasEvidence: true,
+        intent: 'missing-information',
+        confidence: 0.92,
+        responseMode: 'conversation',
+        problem: forced.exactError,
+        answer: forced.explanation,
+        whatThisMeans: null,
+        nextActions: forced.nextActions.slice(0, 4),
+        clarifyingQuestions: [],
+        evidence: [],
+        sources: [
+          {
+            id: 'portal',
+            label: 'NELFUND portal',
+            url: 'https://portal.nelf.gov.ng/',
+            official: true,
+          },
+        ],
+        video: null,
+        insufficientReason: null,
+        officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+        escalation: null,
+      }
+      return {
+        messages: [
+          {
+            id: uid('user'),
+            role: 'user',
+            text: rawUser || (ocr ? '[Screenshot uploaded]' : ''),
+            imagePreview: opts.imagePreview || null,
+            timestamp: Date.now(),
+          },
+          {
+            id: uid('asst'),
+            role: 'assistant',
+            text: answer.answer,
+            answer,
+            timestamp: Date.now(),
+          },
+        ],
+        slots,
+        diagnosed: true,
+        capability: 'conversation',
+      }
+    }
+  }
+
   const screen = understandPortalText(combined)
   // Any recognized screen from OCR / text — do not whitelist kinds
   if (screen) {
