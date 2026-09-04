@@ -173,8 +173,8 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     return {
       kind: 'login',
       exactError: null,
-      explanation: `Use only the official portal: ${PORTAL}\n\nDo not enter passwords or OTP on any other site or with any agent.`,
-      nextActions: [PORTAL, SITE],
+      explanation: `**Log in / sign in:** ${SITE}\n\n**Sign up** (create account / application portal): ${PORTAL}\n\nDo not enter passwords or OTP on any other site or with any agent.`,
+      nextActions: [SITE, PORTAL, ESUPPORT],
     }
   }
 
