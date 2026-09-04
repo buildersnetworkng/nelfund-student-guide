@@ -31,12 +31,21 @@ export async function extractTextFromImage(file: Blob): Promise<OcrResult> {
       data: { text, confidence },
     } = await worker.recognize(file)
 
+    // Preserve line breaks so form labels and apply steps stay structured
     const cleaned = (text || '')
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-–—.,:()%/]/g, ' ')
+      .replace(/\r/g, '')
+      .split('\n')
+      .map((line) =>
+        line
+          .replace(/[^\w\s\-–—.,:()%/₦?]/g, ' ')
+          .replace(/[ \t]+/g, ' ')
+          .trim(),
+      )
+      .filter(Boolean)
+      .join('\n')
       .trim()
 
-    // Keep usable portal dashboard text even when confidence is mediocre
+    // Keep usable portal text even when confidence is mediocre
     const lowSignal = cleaned.length < 12 || (confidence < 25 && cleaned.length < 40)
 
     return {
