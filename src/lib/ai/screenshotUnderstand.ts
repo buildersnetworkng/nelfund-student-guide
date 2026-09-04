@@ -101,7 +101,9 @@ function collectSignals(raw: string): Signals {
     websiteHero: /increasing\s*access\s*to\s*(all\s*)?education|simple\s*steps\s*to\s*secure\s*your\s*student\s*loan/i.test(t),
     applyNowLogin: /apply\s*now/i.test(t) && /\blogin\b/i.test(t),
     missingInfo: /missing\s*information|record\s*not\s*found|no\s*school\s*info|student\s*record\s*not/i.test(t),
-    loginForm: /sign\s*in|log\s*in|create\s*(an?\s*)?account|password|email\s*address/i.test(t),
+    loginForm:
+      /password/i.test(t) &&
+      (/\blog\s*in\b|sign\s*in|email/i.test(t) || /kindly\s*provide.*login|required\s*details.*login/i.test(t)),
     visibleLines: lines,
   }
 }
@@ -297,6 +299,27 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
+  // Portal login form (Email + Password) — before welcome→dashboard
+  if (s.loginForm && (s.nelfundBrand || s.portalWelcome)) {
+    return {
+      kind: 'login',
+      exactError: null,
+      explanation:
+        `This is the **NELFUND student loan portal login page** (**portal.nelf.gov.ng**).\n\n` +
+        `**What you are seeing**\n` +
+        `• **Email** and **Password** fields to sign in to an existing account\n` +
+        `• **Log In** button\n` +
+        `• **Reset password** via Email or NIN (if shown)\n` +
+        `• **Create New Account** if you do not have one yet\n\n` +
+        `**Official links**\n` +
+        `• Portal (this login / apply): **${PORTAL}**\n` +
+        `• Public website: **${SITE}**\n` +
+        `• Support: **${ESUPPORT}**\n\n` +
+        `Never share your password or OTP with anyone claiming to be an agent.`,
+      nextActions: [PORTAL, SITE, ESUPPORT],
+    }
+  }
+
   if (s.portalWelcome && s.interestFreeMarketing) {
     return {
       kind: 'portal-landing',
@@ -316,7 +339,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
-  if ((s.loanCounters || s.sessionNotice || s.portalWelcome) && !s.interestFreeMarketing) {
+  if ((s.loanCounters || s.sessionNotice || (s.portalWelcome && !s.loginForm)) && !s.interestFreeMarketing) {
     return {
       kind: 'dashboard',
       exactError: null,
@@ -336,15 +359,6 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         `• **APPLY NOW** → sign up / apply on the application portal **${PORTAL}**\n\n` +
         `“Simple Steps to Secure Your Student Loan” is the marketing steps section on the public site.\n\n` +
         `Always use only these official domains — never random WhatsApp/agent links.`,
-      nextActions: [SITE, PORTAL, ESUPPORT],
-    }
-  }
-
-  if (s.loginForm && s.nelfundBrand) {
-    return {
-      kind: 'login',
-      exactError: null,
-      explanation: `**Log in / sign in:** ${SITE}\n\n**Sign up** (create account / application portal): ${PORTAL}\n\nDo not enter passwords or OTP on any other site or with any agent.`,
       nextActions: [SITE, PORTAL, ESUPPORT],
     }
   }
