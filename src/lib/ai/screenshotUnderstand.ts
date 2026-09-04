@@ -3,7 +3,14 @@
  * Maps common NELFUND portal phrases to structured hints.
  */
 
-export type ScreenKind = 'dashboard' | 'error' | 'login' | 'website' | 'portal-landing' | 'unknown'
+export type ScreenKind =
+  | 'dashboard'
+  | 'error'
+  | 'login'
+  | 'website'
+  | 'portal-landing'
+  | 'eligibility-form'
+  | 'unknown'
 
 export interface ScreenUnderstanding {
   kind: ScreenKind
@@ -153,6 +160,33 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       explanation:
         '**Missing information** usually means the portal cannot match your details to a school record yet (name, NIN, JAMB, or matric).\n\nThis is **not** automatically a permanent rejection.\n\n**Next**\n1. Tell me your institution\n2. Ask school ICT / Registry / NELFUND desk to confirm upload\n3. Retry the portal after they confirm\n4. Still failing → eSupport',
       nextActions: [PORTAL, ESUPPORT, SITE, 'Share your school name'],
+    }
+  }
+
+  // Application eligibility questionnaire (portal.nelf.gov.ng)
+  if (
+    /are\s*you\s*a\s*nigerian|get\s*started\s*with\s*answering|yes,?\s*i\s*am\s*a\s*nigerian|verify\s*(your\s*)?educational\s*information|verify\s*(with\s*)?jamb|verify\s*(your\s*)?student\s*status/i.test(
+      t,
+    )
+  ) {
+    return {
+      kind: 'eligibility-form',
+      exactError: null,
+      explanation:
+        `This is the **NELFUND application eligibility questionnaire** on **portal.nelf.gov.ng** — the first steps after you start applying.\n\n` +
+        `**What you are seeing**\n` +
+        `1. **Are you a Nigerian?** — citizenship check (NELFUND is for Nigerian citizens)\n` +
+        `2. **Verify your educational information** — school / admission details\n` +
+        `3. **Verify your student status** — often **Verify with JAMB**\n\n` +
+        `**What to do**\n` +
+        `• Answer truthfully: **Yes, I am a Nigerian** only if that is correct\n` +
+        `• Complete educational verification and JAMB verification when the steps unlock\n` +
+        `• Use only this official portal — never pay an agent to “pass” these questions\n\n` +
+        `**Links**\n` +
+        `• Continue on portal: **${PORTAL}**\n` +
+        `• Support if a step fails: **${ESUPPORT}**\n` +
+        `• Public site: **${SITE}**`,
+      nextActions: [PORTAL, ESUPPORT, SITE],
     }
   }
 
