@@ -27,17 +27,8 @@ export async function processUserTurn(opts: {
   const combined = [rawUser, ocr].filter(Boolean).join('\n')
 
   const screen = understandPortalText(combined)
-  const allowErrorScreen = !!(ocr && ocr.trim().length >= 8)
-  if (
-    screen &&
-    (screen.kind === 'dashboard' ||
-      screen.kind === 'login' ||
-      screen.kind === 'website' ||
-      screen.kind === 'portal-landing' ||
-      screen.kind === 'eligibility-form' ||
-      screen.kind === 'apply-flow' ||
-      (screen.kind === 'error' && allowErrorScreen))
-  ) {
+  // Any recognized screen from OCR / text — do not whitelist kinds
+  if (screen) {
     const slots: ConversationSlots = {
       ...opts.slots,
       actionsTaken: [...(opts.slots.actionsTaken || [])],
@@ -96,6 +87,63 @@ export async function processUserTurn(opts: {
       slots,
       diagnosed: true,
       capability: 'conversation',
+    }
+  }
+
+  // Screenshot uploaded but no hard screen match — still answer from OCR text
+  if (ocr && ocr.trim().length >= 8 && !rawUser) {
+    const forced = understandPortalText(ocr)
+    if (forced) {
+      const slots: ConversationSlots = {
+        ...opts.slots,
+        phase: 'resolve',
+        actionsTaken: [...(opts.slots.actionsTaken || [])],
+      }
+      const answer: GroundedAnswer = {
+        hasEvidence: true,
+        intent: 'current-information',
+        confidence: 0.75,
+        responseMode: 'conversation',
+        problem: forced.kind,
+        answer: forced.explanation,
+        whatThisMeans: null,
+        nextActions: forced.nextActions.slice(0, 4),
+        clarifyingQuestions: [],
+        evidence: [],
+        sources: [
+          {
+            id: 'portal',
+            label: 'NELFUND portal',
+            url: 'https://portal.nelf.gov.ng/',
+            official: true,
+          },
+        ],
+        video: null,
+        insufficientReason: null,
+        officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+        escalation: null,
+      }
+      return {
+        messages: [
+          {
+            id: uid('user'),
+            role: 'user',
+            text: rawUser || '[Screenshot uploaded]',
+            imagePreview: opts.imagePreview || null,
+            timestamp: Date.now(),
+          },
+          {
+            id: uid('asst'),
+            role: 'assistant',
+            text: answer.answer,
+            answer,
+            timestamp: Date.now(),
+          },
+        ],
+        slots,
+        diagnosed: true,
+        capability: 'conversation',
+      }
     }
   }
 
