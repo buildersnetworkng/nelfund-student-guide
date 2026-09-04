@@ -6,7 +6,7 @@
  * Safe (no raw HTML injection).
  */
 
-const URL_RE = /(https?:\/\/[^\s<>"')\]]+)/gi
+const URL_RE = /(https?:\/\/[^\s<>"')\]*]+)/gi
 
 type Part =
   | string
@@ -16,7 +16,8 @@ type Part =
 
 function trimTrailingPunct(href: string): { href: string; trailing: string } {
   let trailing = ''
-  const punct = '.,;:!?)'
+  // Also strip markdown bold markers so **https://.../** does not become a broken href
+  const punct = '.,;:!?)*_'
   while (href.length > 0 && punct.includes(href[href.length - 1]!)) {
     trailing = href[href.length - 1]! + trailing
     href = href.slice(0, -1)
@@ -85,57 +86,27 @@ function renderParts(parts: Part[], keyPrefix: string) {
           href={p.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-forest-700 underline underline-offset-2 break-all hover:text-forest-900"
+          className="font-medium text-forest-700 underline decoration-forest-300 underline-offset-2 break-all"
         >
           {p.href}
         </a>
       )
     }
-    if (p.type === 'bold') {
-      return (
-        <strong key={key} className="font-semibold text-ink">
-          {p.text}
-        </strong>
-      )
-    }
-    if (p.type === 'italic') {
-      return (
-        <em key={key} className="italic text-ink/90">
-          {p.text}
-        </em>
-      )
-    }
+    if (p.type === 'bold') return <strong key={key}>{p.text}</strong>
+    if (p.type === 'italic') return <em key={key}>{p.text}</em>
     return null
   })
 }
 
 export function LinkifiedText({ text, className }: { text: string; className?: string }) {
-  const s = text || ''
-  const lines = s.split('\n')
-
+  const lines = (text || '').split('\n')
   return (
-    <div className={className || 'text-[15px] leading-relaxed'}>
-      {lines.map((line, li) => {
-        const trimmed = line.trim()
-        if (/^[-*•]\s+/.test(trimmed) || /^\d+\.\s+/.test(trimmed)) {
-          const content = trimmed.replace(/^[-*•]\s+/, '').replace(/^\d+\.\s+/, '')
-          const prefix = /^\d+\.\s+/.test(trimmed) ? (trimmed.match(/^\d+\./)?.[0] ?? '') + ' ' : '• '
-          return (
-            <p key={li} className="my-0.5 pl-0.5">
-              <span className="text-ink/50">{prefix}</span>
-              {renderParts(parseInline(content), `l${li}`)}
-            </p>
-          )
-        }
-        if (trimmed === '') {
-          return <div key={li} className="h-2" aria-hidden />
-        }
-        return (
-          <p key={li} className="my-0.5 whitespace-pre-wrap">
-            {renderParts(parseInline(line), `l${li}`)}
-          </p>
-        )
-      })}
+    <div className={className}>
+      {lines.map((line, li) => (
+        <p key={li} className={li > 0 ? 'mt-1' : undefined}>
+          {line.trim() === '' ? '\u00a0' : renderParts(parseInline(line), `l${li}`)}
+        </p>
+      ))}
     </div>
   )
 }
