@@ -223,7 +223,7 @@ export async function processUserTurn(opts: {
       actionsTaken: [...(opts.slots.actionsTaken || [])],
     }
     const text =
-      '**Log in / sign in**\n\nUse: https://nelf.gov.ng/\n\n**Sign up** (create account / apply on the portal):\nhttps://portal.nelf.gov.ng/\n\nSupport tickets: https://nelfund.esupport.ng/create\n\nAvoid random social-media links. Never share OTP or password.'
+      '**Log in / sign in**\n\nUse: https://nelf.gov.ng/\n\n**Sign up** (create account / apply on the portal):\nhttps://portal.nelf.gov.ng/\n\nReport portal problems to NELFUND support: https://nelfund.esupport.ng/create\n\nAvoid random social-media links. Never share OTP or password.'
     const answer: GroundedAnswer = {
       hasEvidence: true,
       intent: 'portal-login',
