@@ -330,7 +330,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         `\n**Official links**\n` +
         `• Portal (login / apply): ${PORTAL}\n` +
         `• Public website: ${SITE}\n` +
-        `• Support: ${ESUPPORT}\n\n` +
+        `• Report issues to NELFUND support: ${ESUPPORT}\n\n` +
         `Never share your password or OTP with anyone claiming to be an agent.`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
@@ -343,7 +343,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       explanation:
         `This is the **NELFUND portal login** screen (portal.nelf.gov.ng).\n\n` +
         `Enter your **email** and **password**, then **Log In**.\n\n` +
-        `• Portal: ${PORTAL}\n• Website: ${SITE}\n• Support: ${ESUPPORT}\n\n` +
+        `• Portal: ${PORTAL}\n• Website: ${SITE}\n• Report issues to NELFUND support: ${ESUPPORT}\n\n` +
         `Never share password or OTP with agents.`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
@@ -356,7 +356,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       explanation:
         `This is the **official NELFUND application portal landing page** (portal.nelf.gov.ng).\n\n` +
         `Use it to **sign up / create account** and start the loan application flow.\n\n` +
-        `• Portal: ${PORTAL}\n• Website: ${SITE}\n• Support: ${ESUPPORT}`,
+        `• Portal: ${PORTAL}\n• Website: ${SITE}\n• Report issues to NELFUND support: ${ESUPPORT}`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
   }
@@ -390,7 +390,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       explanation:
         `This looks like a **NELFUND portal profile / personal details** screen.\n\n` +
         `Keep NIN, JAMB, name, and school details accurate and matching your records.\n\n` +
-        `• Portal: ${PORTAL}\n• Support: ${ESUPPORT}`,
+        `• Portal: ${PORTAL}\n• Report issues to NELFUND support: ${ESUPPORT}`,
       nextActions: [PORTAL, ESUPPORT, SITE],
     }
   }
@@ -401,7 +401,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       exactError: null,
       explanation:
         `This is a **NELFUND create account / sign-up** step on portal.nelf.gov.ng.\n\n` +
-        `• Sign up / apply: ${PORTAL}\n• Existing account login: same portal\n• Support: ${ESUPPORT}`,
+        `• Sign up / apply: ${PORTAL}\n• Existing account login: same portal\n• Report issues to NELFUND support: ${ESUPPORT}`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
   }
@@ -422,7 +422,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         `• Re-copy the number carefully from JAMB (check uppercase letters, no spaces unless JAMB shows them)\n` +
         `• Confirm DOB matches, then verify again\n` +
         `• Still failing after correct copy → report it to NELFUND support at ${ESUPPORT} (attach screenshot of the error; do not send your password)\n\n` +
-        `• Portal: ${PORTAL}\n• Support: ${ESUPPORT}\n• Website: ${SITE}`,
+        `• Portal: ${PORTAL}\n• Report issues to NELFUND support: ${ESUPPORT}\n• Website: ${SITE}`,
       nextActions: [PORTAL, ESUPPORT, SITE],
     }
   }
