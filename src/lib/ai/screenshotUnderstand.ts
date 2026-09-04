@@ -3,7 +3,7 @@
  * Maps common NELFUND portal phrases to structured hints.
  */
 
-export type ScreenKind = 'dashboard' | 'error' | 'login' | 'unknown'
+export type ScreenKind = 'dashboard' | 'error' | 'login' | 'website' | 'unknown'
 
 export interface ScreenUnderstanding {
   kind: ScreenKind
@@ -166,6 +166,27 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       exactError: null,
       explanation: dashboardExplanation(t),
       nextActions: [PORTAL, SITE, ESUPPORT],
+    }
+  }
+
+  // Official NELFUND public website homepage (nelf.gov.ng) — before login (OCR often contains LOGIN)
+  if (
+    /increasing\s*access\s*to\s*(all\s*)?education|simple\s*steps\s*to\s*secure\s*your\s*student\s*loan|apply\s*now|nigerian\s*education\s*loan\s*fund/i.test(
+      t,
+    ) &&
+    /nelfund|login|apply/i.test(t)
+  ) {
+    return {
+      kind: 'website',
+      exactError: null,
+      explanation:
+        `This is the **official NELFUND website homepage** (**nelf.gov.ng**), not the student loan portal dashboard.\n\n` +
+        `**What the buttons mean**\n` +
+        `• **LOGIN** → log in / sign in at **${SITE}**\n` +
+        `• **APPLY NOW** → sign up / apply on the application portal **${PORTAL}**\n\n` +
+        `“Simple Steps to Secure Your Student Loan” is the marketing steps section on the public site.\n\n` +
+        `Always use only these official domains — never random WhatsApp/agent links.`,
+      nextActions: [SITE, PORTAL, ESUPPORT],
     }
   }
 
