@@ -1,7 +1,7 @@
 /**
  * Portal / website screenshot understanding from OCR text.
  * Flexible signal scoring — not locked to one exact layout.
- * Works when copy, order, or OCR noise varies across similar pages.
+ * When a screenshot is present, always try to name the screen and next step.
  */
 
 export type ScreenKind =
@@ -12,6 +12,8 @@ export type ScreenKind =
   | 'portal-landing'
   | 'eligibility-form'
   | 'apply-flow'
+  | 'signup'
+  | 'profile'
   | 'unknown'
 
 export interface ScreenUnderstanding {
@@ -38,18 +40,8 @@ Declined Loans 0
 `
 
 const MONTHS: Record<string, number> = {
-  january: 0,
-  february: 1,
-  march: 2,
-  april: 3,
-  may: 4,
-  june: 5,
-  july: 6,
-  august: 7,
-  september: 8,
-  october: 9,
-  november: 10,
-  december: 11,
+  january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+  july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
 }
 
 function parsePortalDate(s: string | undefined): Date | null {
@@ -76,6 +68,11 @@ type Signals = {
   applyNowLogin: boolean
   missingInfo: boolean
   loginForm: boolean
+  signupForm: boolean
+  profileForm: boolean
+  resetPassword: boolean
+  createAccount: boolean
+  bvnNinFields: boolean
   visibleLines: string[]
 }
 
@@ -85,25 +82,41 @@ function collectSignals(raw: string): Signals {
     .split(/\n+/)
     .map((l) => l.trim())
     .filter((l) => l.length > 2)
-    .slice(0, 24)
+    .slice(0, 30)
 
   return {
     nelfundBrand: /nelfund|nigerian\s*education\s*loan|nelf\.gov|portal\.nelf/i.test(t),
     citizenshipQ: /are\s*you\s*a\s*nigerian|yes,?\s*i\s*am\s*a\s*nigerian|no,?\s*i\s*am\s*not/i.test(t),
     educationalVerify: /verify\s*(your\s*)?educational|educational\s*information/i.test(t),
-    jambVerify: /verify\s*(with\s*)?jamb|jamb\s*(verification|reg)/i.test(t),
+    jambVerify: /verify\s*(with\s*)?jamb|jamb\s*(verification|reg|number)/i.test(t),
     studentStatus: /verify\s*(your\s*)?student\s*status|student\s*status/i.test(t),
     getStartedQuestions: /get\s*started\s*with\s*answering|answering\s*these\s*questions/i.test(t),
     loanCounters: /total\s*loans|approved\s*loans|pending\s*loans|declined\s*loans/i.test(t),
-    sessionNotice: /session\s*registration|starts?\s+[A-Za-z]+\s+\d{1,2}|ends?\s+[A-Za-z]+\s+\d{1,2}|20\d{2}\s*\/\s*20\d{2}/i.test(t),
+    sessionNotice:
+      /session\s*registration|starts?\s+[A-Za-z]+\s+\d{1,2}|ends?\s+[A-Za-z]+\s+\d{1,2}|20\d{2}\s*\/\s*20\d{2}/i.test(
+        t,
+      ),
     portalWelcome: /welcome\s+to\s+(the\s+)?student\s+loan\s+portal/i.test(t),
-    interestFreeMarketing: /interest\s*free|fast\s*&\s*easy|safe\s*&\s*secure|15\s*-\s*30\s*minutes|no\s*hidden\s*charges/i.test(t),
-    websiteHero: /increasing\s*access\s*to\s*(all\s*)?education|simple\s*steps\s*to\s*secure\s*your\s*student\s*loan/i.test(t),
+    interestFreeMarketing:
+      /interest\s*free|fast\s*&\s*easy|safe\s*&\s*secure|15\s*-\s*30\s*minutes|no\s*hidden\s*charges/i.test(t),
+    websiteHero:
+      /increasing\s*access\s*to\s*(all\s*)?education|simple\s*steps\s*to\s*secure\s*your\s*student\s*loan/i.test(t),
     applyNowLogin: /apply\s*now/i.test(t) && /\blogin\b/i.test(t),
-    missingInfo: /missing\s*information|record\s*not\s*found|no\s*school\s*info|student\s*record\s*not/i.test(t),
+    missingInfo:
+      /missing\s*information|record\s*not\s*found|no\s*school\s*info|student\s*record\s*not|unable\s*to\s*verify|invalid\s*(nin|jamb|bvn|credentials)/i.test(
+        t,
+      ),
     loginForm:
       /password/i.test(t) &&
-      (/\blog\s*in\b|sign\s*in|email/i.test(t) || /kindly\s*provide.*login|required\s*details.*login/i.test(t)),
+      (/\blog\s*in\b|sign\s*in|email/i.test(t) ||
+        /kindly\s*provide.*login|required\s*details.*login/i.test(t)),
+    signupForm:
+      /create\s*(a\s*)?(new\s*)?account|sign\s*up|register\s*(now|here)?/i.test(t) &&
+      !/password/i.test(t),
+    profileForm: /update\s*profile|personal\s*details|edit\s*profile|my\s*profile/i.test(t),
+    resetPassword: /reset\s*(your\s*)?password|forgot\s*password/i.test(t),
+    createAccount: /don'?t\s*have\s*an?\s*account|create\s*new\s*account/i.test(t),
+    bvnNinFields: /\bbvn\b|\bnin\b|bank\s*verification|national\s*identity/i.test(t),
     visibleLines: lines,
   }
 }
@@ -127,7 +140,6 @@ function dashboardExplanation(t: string): string {
   const now = new Date()
 
   const lines: string[] = []
-
   if (hasWelcome) {
     lines.push(
       'Good news: that screen means you **successfully signed in** to the **NELFUND student loan portal** (your account is working).',
@@ -135,35 +147,26 @@ function dashboardExplanation(t: string): string {
   } else {
     lines.push('That is the **NELFUND student loan portal dashboard**.')
   }
-
   lines.push('')
-
   if (hasZeros) {
     lines.push(
       '**Total / Approved / Pending / Declined = 0** means you do **not** yet have a loan or upkeep application counted on this dashboard. That is normal if you have only created the account and have **not** submitted a loan application for an open window.',
     )
     lines.push('')
   }
-
   if (sessionLabel || startsRaw || endsRaw) {
     lines.push('**What the Notice means**')
-    if (sessionLabel) {
-      lines.push(`• It refers to the **${sessionLabel}** registration / loan window on the portal.`)
-    }
-    if (startsRaw && endsRaw) {
-      lines.push(`• Official notice dates: **${startsRaw}** → **${endsRaw}**.`)
-    }
+    if (sessionLabel) lines.push(`• It refers to the **${sessionLabel}** registration / loan window on the portal.`)
+    if (startsRaw && endsRaw) lines.push(`• Official notice dates: **${startsRaw}** → **${endsRaw}**.`)
     if (endDate && now.getTime() > endDate.getTime()) {
       lines.push(
-        `• Relative to today, that **${sessionLabel || 'session'}** apply window has **already ended** (after the end date the portal says you cannot apply for that session).`,
+        `• Relative to today, that **${sessionLabel || 'session'}** apply window has **already ended**.`,
       )
       lines.push(
-        '• **Loan / upkeep application for a newer session (e.g. 2026/2027)** is **not** shown as open on this notice — wait for NELFUND to publish the next window on the official sites. Do not pay any agent “to open” it.',
+        '• **Loan / upkeep for a newer session (e.g. 2026/2027)** only opens when NELFUND publishes it — do not pay any agent “to open” it.',
       )
     } else if (startDate && now.getTime() < startDate.getTime()) {
-      lines.push(
-        `• Relative to today, that window has **not started yet** (opens **${startsRaw}** per the notice).`,
-      )
+      lines.push(`• Relative to today, that window has **not started yet** (opens **${startsRaw}** per the notice).`)
     } else if (startDate && endDate && now.getTime() >= startDate.getTime() && now.getTime() <= endDate.getTime()) {
       lines.push(
         `• Relative to today, that notice window is **within** **${startsRaw}** → **${endsRaw}** — still confirm live status only on the official portal.`,
@@ -171,49 +174,46 @@ function dashboardExplanation(t: string): string {
     }
     lines.push('')
     lines.push(`Always re-check the same banner on ${PORTAL} or ${SITE}; dates can change.`)
-  } else {
-    lines.push(
-      'If a yellow **Notice** shows session registration start/end dates, that is the apply window text — not the zero counters.',
-    )
   }
-
   lines.push('')
   lines.push('**What you should do**')
   lines.push('1. Keep your profile, NIN, JAMB, and school record complete while you wait')
   lines.push('2. Do **not** pay anyone to “activate” or “speed up” a loan')
   lines.push(`3. Watch ${PORTAL} / ${SITE} for the next official application window`)
   lines.push(`4. Stuck on a portal error → ${ESUPPORT}`)
-
   return lines.join('\n')
 }
 
-/** Short follow-up when the student asks “what does this mean” after a dashboard reply. */
 export function dashboardFollowUpExplanation(): string {
   return (
     'In plain terms:\n\n' +
-    '1. **You already have a NELFUND portal account** — the “Welcome to Student Loan Portal” screen means login worked.\n' +
-    '2. **Zeros (Total / Approved / Pending / Declined)** mean you have **not** submitted a loan/upkeep application that the dashboard is counting yet — not that you are banned.\n' +
-    '3. The **Notice** (e.g. 2025/2026 registration **March 5 → June 5 2026**) is about that session’s apply window. After the end date, you generally **cannot** apply for that session. A **2026/2027** (or next) loan window only opens when NELFUND announces it on the official site — this guide will not invent that date.\n\n' +
+    '1. **You already have a NELFUND portal account** — login worked.\n' +
+    '2. **Zeros** mean no loan/upkeep application is counted yet — not that you are banned.\n' +
+    '3. Session **Notice** dates are that window only; a newer session opens only when NELFUND announces it.\n\n' +
     `Check live notices only at ${PORTAL} and ${SITE}.`
   )
 }
 
 function applyFlowExplanation(s: Signals): string {
   const bullets: string[] = []
-  if (s.citizenshipQ) bullets.push('**Citizenship** question (e.g. “Are you a Nigerian?”) — NELFUND is for Nigerian citizens')
+  if (s.citizenshipQ)
+    bullets.push('**Citizenship** question (e.g. “Are you a Nigerian?”) — NELFUND is for Nigerian citizens')
   if (s.educationalVerify) bullets.push('**Educational information** verification')
   if (s.jambVerify || s.studentStatus) bullets.push('**Student status / JAMB** verification')
   if (s.getStartedQuestions) bullets.push('“Get started with answering these questions” apply wizard')
-  if (bullets.length === 0) {
-    bullets.push('An **application / verification step** on the official portal')
-  }
+  if (s.bvnNinFields) bullets.push('Identity fields (NIN / BVN) may be required on this step')
+  if (bullets.length === 0) bullets.push('An **application / verification step** on the official portal')
 
   const seen =
     s.visibleLines.length > 0
       ? '\n\n**Text visible on the screen (from the image):**\n' +
         s.visibleLines
-          .filter((l) => /nigerian|verify|jamb|education|student|question|yes|no|back|help|nelfund/i.test(l))
-          .slice(0, 8)
+          .filter((l) =>
+            /nigerian|verify|jamb|education|student|question|yes|no|back|help|nelfund|password|email|login|loan|pending|approved/i.test(
+              l,
+            ),
+          )
+          .slice(0, 10)
           .map((l) => `• ${l}`)
           .join('\n')
       : ''
@@ -231,55 +231,44 @@ function applyFlowExplanation(s: Signals): string {
   )
 }
 
-function flexiblePortalFallback(s: Signals, _raw: string): ScreenUnderstanding | null {
-  const applyScore =
-    (s.citizenshipQ ? 3 : 0) +
-    (s.educationalVerify ? 2 : 0) +
-    (s.jambVerify ? 2 : 0) +
-    (s.studentStatus ? 1 : 0) +
-    (s.getStartedQuestions ? 2 : 0)
+function describeVisible(s: Signals): string {
+  if (!s.visibleLines.length) return ''
+  return (
+    '\n\n**Readable lines from the screenshot:**\n' +
+    s.visibleLines.slice(0, 10).map((l) => `• ${l}`).join('\n')
+  )
+}
 
-  if (applyScore >= 2) {
-    return {
-      kind: applyScore >= 4 ? 'eligibility-form' : 'apply-flow',
-      exactError: null,
-      explanation: applyFlowExplanation(s),
-      nextActions: [PORTAL, ESUPPORT, SITE],
-    }
+function alwaysUsefulFromOcr(s: Signals, _raw: string): ScreenUnderstanding {
+  const snippet = describeVisible(s)
+  return {
+    kind: 'apply-flow',
+    exactError: null,
+    explanation:
+      `This looks like a **NELFUND-related screen** from your screenshot.` +
+      snippet +
+      `\n\n**What to do next**\n` +
+      `• Continue only on the official portal: **${PORTAL}**\n` +
+      `• Public website: **${SITE}**\n` +
+      `• Support tickets: **${ESUPPORT}**\n` +
+      `• Never share password, OTP, or NIN with agents\n\n` +
+      `If you tell me what you are trying to do (login, apply, verify JAMB, fix an error, check status), I will give the exact next step.`,
+    nextActions: [PORTAL, SITE, ESUPPORT],
   }
-
-  if (s.nelfundBrand && s.visibleLines.length >= 3) {
-    const snippet = s.visibleLines.slice(0, 6).map((l) => `• ${l}`).join('\n')
-    return {
-      kind: 'apply-flow',
-      exactError: null,
-      explanation:
-        `This looks like a **NELFUND portal screen** (from the image text).\n\n` +
-        `**Readable lines from the screenshot:**\n${snippet}\n\n` +
-        `**Typical next steps on the portal**\n` +
-        `• Continue only on **${PORTAL}**\n` +
-        `• Log in / public site: **${SITE}**\n` +
-        `• Stuck or error → **${ESUPPORT}**\n\n` +
-        `Tell me what you are trying to do on this page (apply, verify JAMB, fix an error, check status) if you need a more specific next step.`,
-      nextActions: [PORTAL, SITE, ESUPPORT],
-    }
-  }
-
-  return null
 }
 
 export function understandPortalText(text: string): ScreenUnderstanding | null {
   const t = (text || '').trim()
-  if (!t || t.length < 8) return null
+  if (!t || t.length < 6) return null
 
   const s = collectSignals(t)
 
   if (s.missingInfo) {
     return {
       kind: 'error',
-      exactError: 'Missing information / record not found',
+      exactError: 'Missing information / verification failed',
       explanation:
-        '**Missing information** usually means the portal cannot match your details to a school record yet (name, NIN, JAMB, or matric).\n\nThis is **not** automatically a permanent rejection.\n\n**Next**\n1. Tell me your institution\n2. Ask school ICT / Registry / NELFUND desk to confirm upload\n3. Retry the portal after they confirm\n4. Still failing → eSupport',
+        '**Missing information / verification problem** usually means the portal cannot match your details (name, NIN, JAMB, matric, or school record) yet.\n\nThis is **not** automatically a permanent rejection.\n\n**Next**\n1. Tell me your institution\n2. Ask school ICT / Registry / NELFUND desk to confirm upload\n3. Retry the portal after they confirm\n4. Still failing → eSupport',
       nextActions: [PORTAL, ESUPPORT, SITE, 'Share your school name'],
     }
   }
@@ -299,23 +288,35 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
-  // Portal login form (Email + Password) — before welcome→dashboard
-  if (s.loginForm && (s.nelfundBrand || s.portalWelcome)) {
+  if (s.loginForm && (s.nelfundBrand || s.portalWelcome || s.resetPassword || s.createAccount)) {
     return {
       kind: 'login',
       exactError: null,
       explanation:
         `This is the **NELFUND student loan portal login page** (**portal.nelf.gov.ng**).\n\n` +
         `**What you are seeing**\n` +
-        `• **Email** and **Password** fields to sign in to an existing account\n` +
+        `• **Email** and **Password** fields to sign in\n` +
         `• **Log In** button\n` +
-        `• **Reset password** via Email or NIN (if shown)\n` +
-        `• **Create New Account** if you do not have one yet\n\n` +
-        `**Official links**\n` +
-        `• Portal (this login / apply): **${PORTAL}**\n` +
+        (s.resetPassword ? `• **Reset password** via Email or NIN\n` : '') +
+        (s.createAccount ? `• **Create New Account** if you do not have one yet\n` : '') +
+        `\n**Official links**\n` +
+        `• Portal (login / apply): **${PORTAL}**\n` +
         `• Public website: **${SITE}**\n` +
         `• Support: **${ESUPPORT}**\n\n` +
         `Never share your password or OTP with anyone claiming to be an agent.`,
+      nextActions: [PORTAL, SITE, ESUPPORT],
+    }
+  }
+
+  if (/password/i.test(t) && s.nelfundBrand && /email|log\s*in|sign\s*in/i.test(t)) {
+    return {
+      kind: 'login',
+      exactError: null,
+      explanation:
+        `This is the **NELFUND portal login** screen (**portal.nelf.gov.ng**).\n\n` +
+        `Enter your **email** and **password**, then **Log In**.\n\n` +
+        `• Portal: **${PORTAL}**\n• Website: **${SITE}**\n• Support: **${ESUPPORT}**\n\n` +
+        `Never share password or OTP with agents.`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
   }
@@ -325,16 +326,9 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       kind: 'portal-landing',
       exactError: null,
       explanation:
-        `This is the **official NELFUND application portal landing page** (**portal.nelf.gov.ng**), not the public marketing site (nelf.gov.ng).\n\n` +
-        `**What this page is for**\n` +
-        `• Start **sign up / create account** and the loan application flow\n` +
-        `• “Interest Free Loan”, “Fast & Easy”, “Safe & Secure” are portal marketing points — not your personal loan decision\n` +
-        `• **Having Trouble? Get Help** is the portal’s help entry\n\n` +
-        `**Where to go next**\n` +
-        `• Continue on this portal: **${PORTAL}**\n` +
-        `• Public website (info / some login routes): **${SITE}**\n` +
-        `• Support tickets: **${ESUPPORT}**\n\n` +
-        `Never share OTP or password with agents.`,
+        `This is the **official NELFUND application portal landing page** (**portal.nelf.gov.ng**).\n\n` +
+        `Use it to **sign up / create account** and start the loan application flow.\n\n` +
+        `• Portal: **${PORTAL}**\n• Website: **${SITE}**\n• Support: **${ESUPPORT}**`,
       nextActions: [PORTAL, SITE, ESUPPORT],
     }
   }
@@ -353,15 +347,53 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       kind: 'website',
       exactError: null,
       explanation:
-        `This is the **official NELFUND website homepage** (**nelf.gov.ng**), not the student loan portal dashboard.\n\n` +
-        `**What the buttons mean**\n` +
+        `This is the **official NELFUND website homepage** (**nelf.gov.ng**).\n\n` +
         `• **LOGIN** → log in / sign in at **${SITE}**\n` +
-        `• **APPLY NOW** → sign up / apply on the application portal **${PORTAL}**\n\n` +
-        `“Simple Steps to Secure Your Student Loan” is the marketing steps section on the public site.\n\n` +
-        `Always use only these official domains — never random WhatsApp/agent links.`,
+        `• **APPLY NOW** → sign up / apply at **${PORTAL}**\n\n` +
+        `Always use only these official domains.`,
       nextActions: [SITE, PORTAL, ESUPPORT],
     }
   }
 
-  return flexiblePortalFallback(s, t)
+  if (s.profileForm && s.nelfundBrand) {
+    return {
+      kind: 'profile',
+      exactError: null,
+      explanation:
+        `This looks like a **NELFUND portal profile / personal details** screen.\n\n` +
+        `Keep NIN, JAMB, name, and school details accurate and matching your records.\n\n` +
+        `• Portal: **${PORTAL}**\n• Support: **${ESUPPORT}**`,
+      nextActions: [PORTAL, ESUPPORT, SITE],
+    }
+  }
+
+  if (s.signupForm && s.nelfundBrand) {
+    return {
+      kind: 'signup',
+      exactError: null,
+      explanation:
+        `This is a **NELFUND create account / sign-up** step on **portal.nelf.gov.ng**.\n\n` +
+        `• Sign up / apply: **${PORTAL}**\n• Existing account login: same portal\n• Support: **${ESUPPORT}**`,
+      nextActions: [PORTAL, SITE, ESUPPORT],
+    }
+  }
+
+  if (s.jambVerify || s.educationalVerify || s.citizenshipQ || s.getStartedQuestions) {
+    return {
+      kind: 'apply-flow',
+      exactError: null,
+      explanation: applyFlowExplanation(s),
+      nextActions: [PORTAL, ESUPPORT, SITE],
+    }
+  }
+
+  if (s.nelfundBrand || /student\s*loan|portal|loan\s*fund/i.test(t)) {
+    return alwaysUsefulFromOcr(s, t)
+  }
+
+  if (s.visibleLines.length >= 4) {
+    return alwaysUsefulFromOcr(s, t)
+  }
+
+  return null
 }
