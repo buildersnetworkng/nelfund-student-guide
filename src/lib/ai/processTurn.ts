@@ -95,6 +95,77 @@ export async function processUserTurn(opts: {
     }
   }
 
+  // Official login / sign-up links (product rule)
+  if (
+    /\blogin\b|log\s*in|loggin'?g\s*in|sign\s*in|sign\s*up|create\s*(an?\s*)?account|register\s*(for\s*)?nelfund|link\s*(for\s*)?(to\s*)?(log|sign)/i.test(
+      rawUser,
+    ) &&
+    !/missing|pending|upkeep|eligibility|scam|otp|pay\s*agent/i.test(rawUser)
+  ) {
+    const slots: ConversationSlots = {
+      ...opts.slots,
+      phase: 'resolve',
+      actionsTaken: [...(opts.slots.actionsTaken || [])],
+    }
+    const text =
+      '**Log in / sign in**\n\nUse: **https://nelf.gov.ng/**\n\n**Sign up** (create account / apply on the portal):\n**https://portal.nelf.gov.ng/**\n\nSupport tickets: https://nelfund.esupport.ng/create\n\nAvoid random social-media links. Never share OTP or password.'
+    const answer: GroundedAnswer = {
+      hasEvidence: true,
+      intent: 'portal-login',
+      confidence: 0.92,
+      responseMode: 'conversation',
+      problem: 'Official link to login',
+      answer: text,
+      whatThisMeans: null,
+      nextActions: [
+        'https://nelf.gov.ng/',
+        'https://portal.nelf.gov.ng/',
+        'https://nelfund.esupport.ng/create',
+      ],
+      clarifyingQuestions: [],
+      evidence: [],
+      sources: [
+        {
+          id: 'site',
+          label: 'NELFUND website (log in / sign in)',
+          url: 'https://nelf.gov.ng/',
+          official: true,
+        },
+        {
+          id: 'portal',
+          label: 'NELFUND portal (sign up / apply)',
+          url: 'https://portal.nelf.gov.ng/',
+          official: true,
+        },
+      ],
+      video: null,
+      insufficientReason: null,
+      officialFallbackUrl: 'https://nelf.gov.ng/',
+      escalation: null,
+    }
+    return {
+      messages: [
+        {
+          id: uid('user'),
+          role: 'user',
+          text: rawUser,
+          imagePreview: opts.imagePreview || null,
+          timestamp: Date.now(),
+        },
+        {
+          id: uid('asst'),
+          role: 'assistant',
+          text: answer.answer,
+          answer,
+          timestamp: Date.now(),
+        },
+      ],
+      slots,
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
   // Follow-up after dashboard: "what does it mean" must not jump to generic open/close
   const hist = opts.history || []
   const prevAsst = [...hist].reverse().find((h) => h.role === 'assistant')?.text || ''
