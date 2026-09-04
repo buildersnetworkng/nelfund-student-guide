@@ -3,7 +3,7 @@
  * Maps common NELFUND portal phrases to structured hints.
  */
 
-export type ScreenKind = 'dashboard' | 'error' | 'login' | 'website' | 'unknown'
+export type ScreenKind = 'dashboard' | 'error' | 'login' | 'website' | 'portal-landing' | 'unknown'
 
 export interface ScreenUnderstanding {
   kind: ScreenKind
@@ -53,7 +53,7 @@ function parsePortalDate(s: string | undefined): Date | null {
 }
 
 function dashboardExplanation(t: string): string {
-  const hasWelcome = /welcome\s+to\s+student\s+loan\s+portal/i.test(t)
+  const hasWelcome = /welcome\s+to\s+(the\s+)?student\s+loan\s+portal/i.test(t)
   const hasZeros =
     /total\s*loans[\s\S]{0,40}\b0\b/i.test(t) ||
     /approved\s*loans[\s\S]{0,40}\b0\b/i.test(t) ||
@@ -156,10 +156,34 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
+  // Application portal landing (portal.nelf.gov.ng) — not dashboard, not nelf.gov.ng homepage
   if (
-    /welcome\s+to\s+student\s+loan\s+portal|pending\s*loans|approved\s*loans|total\s*loans|declined\s*loans/i.test(
+    /welcome\s+to\s+(the\s+)?student\s+loan\s+portal/i.test(t) &&
+    /interest\s*free|fast\s*&\s*easy|safe\s*&\s*secure|get\s*help|15\s*-\s*30\s*minutes|no\s*hidden\s*charges/i.test(t)
+  ) {
+    return {
+      kind: 'portal-landing',
+      exactError: null,
+      explanation:
+        `This is the **official NELFUND application portal landing page** (**portal.nelf.gov.ng**), not the public marketing site (nelf.gov.ng).\n\n` +
+        `**What this page is for**\n` +
+        `• Start **sign up / create account** and the loan application flow\n` +
+        `• “Interest Free Loan”, “Fast & Easy”, “Safe & Secure” are portal marketing points — not your personal loan decision\n` +
+        `• **Having Trouble? Get Help** is the portal’s help entry\n\n` +
+        `**Where to go next**\n` +
+        `• Continue on this portal: **${PORTAL}**\n` +
+        `• Public website (info / some login routes): **${SITE}**\n` +
+        `• Support tickets: **${ESUPPORT}**\n\n` +
+        `Never share OTP or password with agents.`,
+      nextActions: [PORTAL, SITE, ESUPPORT],
+    }
+  }
+
+  if (
+    /pending\s*loans|approved\s*loans|total\s*loans|declined\s*loans|welcome\s+to\s+(the\s+)?student\s+loan\s+portal/i.test(
       t,
-    )
+    ) &&
+    !/interest\s*free\s*loan|fast\s*&\s*easy|safe\s*&\s*secure/i.test(t)
   ) {
     return {
       kind: 'dashboard',
@@ -169,12 +193,15 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
-  // Official NELFUND public website homepage (nelf.gov.ng) — before login (OCR often contains LOGIN)
+  // Official NELFUND public website homepage (nelf.gov.ng) — require homepage-specific copy
   if (
-    /increasing\s*access\s*to\s*(all\s*)?education|simple\s*steps\s*to\s*secure\s*your\s*student\s*loan|apply\s*now|nigerian\s*education\s*loan\s*fund/i.test(
-      t,
+    (
+      /increasing\s*access\s*to\s*(all\s*)?education/i.test(t) ||
+      /simple\s*steps\s*to\s*secure\s*your\s*student\s*loan/i.test(t) ||
+      (/apply\s*now/i.test(t) && /\blogin\b/i.test(t))
     ) &&
-    /nelfund|login|apply/i.test(t)
+    !/welcome\s+to\s+(the\s+)?student\s+loan\s+portal/i.test(t) &&
+    !/interest\s*free\s*loan|fast\s*&\s*easy|safe\s*&\s*secure/i.test(t)
   ) {
     return {
       kind: 'website',
