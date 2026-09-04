@@ -1,6 +1,7 @@
 /**
- * Lightweight portal-text / OCR understanding (no external vision API).
- * Maps common NELFUND portal phrases to structured hints.
+ * Portal / website screenshot understanding from OCR text.
+ * Flexible signal scoring — not locked to one exact layout.
+ * Works when copy, order, or OCR noise varies across similar pages.
  */
 
 export type ScreenKind =
@@ -10,6 +11,7 @@ export type ScreenKind =
   | 'website'
   | 'portal-landing'
   | 'eligibility-form'
+  | 'apply-flow'
   | 'unknown'
 
 export interface ScreenUnderstanding {
@@ -57,6 +59,51 @@ function parsePortalDate(s: string | undefined): Date | null {
   const month = MONTHS[m[1].toLowerCase()]
   if (month == null) return null
   return new Date(Date.UTC(Number(m[3]), month, Number(m[2])))
+}
+
+type Signals = {
+  nelfundBrand: boolean
+  citizenshipQ: boolean
+  educationalVerify: boolean
+  jambVerify: boolean
+  studentStatus: boolean
+  getStartedQuestions: boolean
+  loanCounters: boolean
+  sessionNotice: boolean
+  portalWelcome: boolean
+  interestFreeMarketing: boolean
+  websiteHero: boolean
+  applyNowLogin: boolean
+  missingInfo: boolean
+  loginForm: boolean
+  visibleLines: string[]
+}
+
+function collectSignals(raw: string): Signals {
+  const t = raw.replace(/\s+/g, ' ').trim()
+  const lines = raw
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 2)
+    .slice(0, 24)
+
+  return {
+    nelfundBrand: /nelfund|nigerian\s*education\s*loan|nelf\.gov|portal\.nelf/i.test(t),
+    citizenshipQ: /are\s*you\s*a\s*nigerian|yes,?\s*i\s*am\s*a\s*nigerian|no,?\s*i\s*am\s*not/i.test(t),
+    educationalVerify: /verify\s*(your\s*)?educational|educational\s*information/i.test(t),
+    jambVerify: /verify\s*(with\s*)?jamb|jamb\s*(verification|reg)/i.test(t),
+    studentStatus: /verify\s*(your\s*)?student\s*status|student\s*status/i.test(t),
+    getStartedQuestions: /get\s*started\s*with\s*answering|answering\s*these\s*questions/i.test(t),
+    loanCounters: /total\s*loans|approved\s*loans|pending\s*loans|declined\s*loans/i.test(t),
+    sessionNotice: /session\s*registration|starts?\s+[A-Za-z]+\s+\d{1,2}|ends?\s+[A-Za-z]+\s+\d{1,2}|20\d{2}\s*\/\s*20\d{2}/i.test(t),
+    portalWelcome: /welcome\s+to\s+(the\s+)?student\s+loan\s+portal/i.test(t),
+    interestFreeMarketing: /interest\s*free|fast\s*&\s*easy|safe\s*&\s*secure|15\s*-\s*30\s*minutes|no\s*hidden\s*charges/i.test(t),
+    websiteHero: /increasing\s*access\s*to\s*(all\s*)?education|simple\s*steps\s*to\s*secure\s*your\s*student\s*loan/i.test(t),
+    applyNowLogin: /apply\s*now/i.test(t) && /\blogin\b/i.test(t),
+    missingInfo: /missing\s*information|record\s*not\s*found|no\s*school\s*info|student\s*record\s*not/i.test(t),
+    loginForm: /sign\s*in|log\s*in|create\s*(an?\s*)?account|password|email\s*address/i.test(t),
+    visibleLines: lines,
+  }
 }
 
 function dashboardExplanation(t: string): string {
@@ -149,11 +196,83 @@ export function dashboardFollowUpExplanation(): string {
   )
 }
 
+function applyFlowExplanation(s: Signals): string {
+  const bullets: string[] = []
+  if (s.citizenshipQ) bullets.push('**Citizenship** question (e.g. “Are you a Nigerian?”) — NELFUND is for Nigerian citizens')
+  if (s.educationalVerify) bullets.push('**Educational information** verification')
+  if (s.jambVerify || s.studentStatus) bullets.push('**Student status / JAMB** verification')
+  if (s.getStartedQuestions) bullets.push('“Get started with answering these questions” apply wizard')
+  if (bullets.length === 0) {
+    bullets.push('An **application / verification step** on the official portal')
+  }
+
+  const seen =
+    s.visibleLines.length > 0
+      ? '\n\n**Text visible on the screen (from the image):**\n' +
+        s.visibleLines
+          .filter((l) => /nigerian|verify|jamb|education|student|question|yes|no|back|help|nelfund/i.test(l))
+          .slice(0, 8)
+          .map((l) => `• ${l}`)
+          .join('\n')
+      : ''
+
+  return (
+    `This is a **NELFUND apply / eligibility step** on **portal.nelf.gov.ng** (application flow), not the public marketing homepage.\n\n` +
+    `**What the image shows**\n` +
+    bullets.map((b) => `• ${b}`).join('\n') +
+    seen +
+    `\n\n**What to do**\n` +
+    `• Answer each question truthfully and complete verification in order\n` +
+    `• Stay only on **${PORTAL}** — never pay an agent to “pass” these steps\n` +
+    `• If a step fails or is stuck → **${ESUPPORT}**\n` +
+    `• Public site: **${SITE}**`
+  )
+}
+
+function flexiblePortalFallback(s: Signals, _raw: string): ScreenUnderstanding | null {
+  const applyScore =
+    (s.citizenshipQ ? 3 : 0) +
+    (s.educationalVerify ? 2 : 0) +
+    (s.jambVerify ? 2 : 0) +
+    (s.studentStatus ? 1 : 0) +
+    (s.getStartedQuestions ? 2 : 0)
+
+  if (applyScore >= 2) {
+    return {
+      kind: applyScore >= 4 ? 'eligibility-form' : 'apply-flow',
+      exactError: null,
+      explanation: applyFlowExplanation(s),
+      nextActions: [PORTAL, ESUPPORT, SITE],
+    }
+  }
+
+  if (s.nelfundBrand && s.visibleLines.length >= 3) {
+    const snippet = s.visibleLines.slice(0, 6).map((l) => `• ${l}`).join('\n')
+    return {
+      kind: 'apply-flow',
+      exactError: null,
+      explanation:
+        `This looks like a **NELFUND portal screen** (from the image text).\n\n` +
+        `**Readable lines from the screenshot:**\n${snippet}\n\n` +
+        `**Typical next steps on the portal**\n` +
+        `• Continue only on **${PORTAL}**\n` +
+        `• Log in / public site: **${SITE}**\n` +
+        `• Stuck or error → **${ESUPPORT}**\n\n` +
+        `Tell me what you are trying to do on this page (apply, verify JAMB, fix an error, check status) if you need a more specific next step.`,
+      nextActions: [PORTAL, SITE, ESUPPORT],
+    }
+  }
+
+  return null
+}
+
 export function understandPortalText(text: string): ScreenUnderstanding | null {
   const t = (text || '').trim()
   if (!t || t.length < 8) return null
 
-  if (/missing\s*information|record\s*not\s*found|no\s*school\s*info|student\s*record\s*not/i.test(t)) {
+  const s = collectSignals(t)
+
+  if (s.missingInfo) {
     return {
       kind: 'error',
       exactError: 'Missing information / record not found',
@@ -163,38 +282,22 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
-  // Application eligibility questionnaire (portal.nelf.gov.ng)
-  if (
-    /are\s*you\s*a\s*nigerian|get\s*started\s*with\s*answering|yes,?\s*i\s*am\s*a\s*nigerian|verify\s*(your\s*)?educational\s*information|verify\s*(with\s*)?jamb|verify\s*(your\s*)?student\s*status/i.test(
-      t,
-    )
-  ) {
+  const applyScore =
+    (s.citizenshipQ ? 3 : 0) +
+    (s.educationalVerify ? 2 : 0) +
+    (s.jambVerify ? 2 : 0) +
+    (s.studentStatus ? 1 : 0) +
+    (s.getStartedQuestions ? 2 : 0)
+  if (applyScore >= 2) {
     return {
-      kind: 'eligibility-form',
+      kind: applyScore >= 4 ? 'eligibility-form' : 'apply-flow',
       exactError: null,
-      explanation:
-        `This is the **NELFUND application eligibility questionnaire** on **portal.nelf.gov.ng** — the first steps after you start applying.\n\n` +
-        `**What you are seeing**\n` +
-        `1. **Are you a Nigerian?** — citizenship check (NELFUND is for Nigerian citizens)\n` +
-        `2. **Verify your educational information** — school / admission details\n` +
-        `3. **Verify your student status** — often **Verify with JAMB**\n\n` +
-        `**What to do**\n` +
-        `• Answer truthfully: **Yes, I am a Nigerian** only if that is correct\n` +
-        `• Complete educational verification and JAMB verification when the steps unlock\n` +
-        `• Use only this official portal — never pay an agent to “pass” these questions\n\n` +
-        `**Links**\n` +
-        `• Continue on portal: **${PORTAL}**\n` +
-        `• Support if a step fails: **${ESUPPORT}**\n` +
-        `• Public site: **${SITE}**`,
+      explanation: applyFlowExplanation(s),
       nextActions: [PORTAL, ESUPPORT, SITE],
     }
   }
 
-  // Application portal landing (portal.nelf.gov.ng) — not dashboard, not nelf.gov.ng homepage
-  if (
-    /welcome\s+to\s+(the\s+)?student\s+loan\s+portal/i.test(t) &&
-    /interest\s*free|fast\s*&\s*easy|safe\s*&\s*secure|get\s*help|15\s*-\s*30\s*minutes|no\s*hidden\s*charges/i.test(t)
-  ) {
+  if (s.portalWelcome && s.interestFreeMarketing) {
     return {
       kind: 'portal-landing',
       exactError: null,
@@ -213,12 +316,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
-  if (
-    /pending\s*loans|approved\s*loans|total\s*loans|declined\s*loans|welcome\s+to\s+(the\s+)?student\s+loan\s+portal/i.test(
-      t,
-    ) &&
-    !/interest\s*free\s*loan|fast\s*&\s*easy|safe\s*&\s*secure/i.test(t)
-  ) {
+  if ((s.loanCounters || s.sessionNotice || s.portalWelcome) && !s.interestFreeMarketing) {
     return {
       kind: 'dashboard',
       exactError: null,
@@ -227,16 +325,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
-  // Official NELFUND public website homepage (nelf.gov.ng) — require homepage-specific copy
-  if (
-    (
-      /increasing\s*access\s*to\s*(all\s*)?education/i.test(t) ||
-      /simple\s*steps\s*to\s*secure\s*your\s*student\s*loan/i.test(t) ||
-      (/apply\s*now/i.test(t) && /\blogin\b/i.test(t))
-    ) &&
-    !/welcome\s+to\s+(the\s+)?student\s+loan\s+portal/i.test(t) &&
-    !/interest\s*free\s*loan|fast\s*&\s*easy|safe\s*&\s*secure/i.test(t)
-  ) {
+  if ((s.websiteHero || s.applyNowLogin) && !s.portalWelcome && !s.interestFreeMarketing) {
     return {
       kind: 'website',
       exactError: null,
@@ -251,7 +340,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
-  if (/login|sign\s*in|create\s*(an?\s*)?account|register/i.test(t) && /portal|nelfund|nelf\.gov/i.test(t)) {
+  if (s.loginForm && s.nelfundBrand) {
     return {
       kind: 'login',
       exactError: null,
@@ -260,5 +349,5 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
-  return null
+  return flexiblePortalFallback(s, t)
 }
