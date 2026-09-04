@@ -1,42 +1,30 @@
 [
   {
     "id": "nelfund-website",
-    "label": "NELFUND official website",
+    "label": "NELFUND website (log in / sign in)",
     "url": "https://nelf.gov.ng/",
-    "official": true,
-    "scope": "nelfund-wide",
-    "institution_id": null
+    "type": "official",
+    "notes": "Official site for logging in / signing in."
   },
   {
     "id": "nelfund-portal",
-    "label": "NELFUND application portal",
+    "label": "NELFUND application portal (sign up / apply)",
     "url": "https://portal.nelf.gov.ng/",
-    "official": true,
-    "scope": "nelfund-wide",
-    "institution_id": null
+    "type": "official",
+    "notes": "Official portal for signing up and applying."
   },
   {
-    "id": "oou-website",
-    "label": "OOU official website",
-    "url": "https://oouagoiwoye.edu.ng/",
-    "official": true,
-    "scope": "institution-specific",
-    "institution_id": "oou"
+    "id": "nelfund-esupport",
+    "label": "NELFUND eSupport",
+    "url": "https://nelfund.esupport.ng/create",
+    "type": "official",
+    "notes": "Official support ticket channel."
   },
   {
     "id": "oou-student-portal",
     "label": "OOU student portal",
     "url": "https://stdportal.oouagoiwoye.edu.ng/",
-    "official": true,
-    "scope": "institution-specific",
-    "institution_id": "oou"
-  },
-  {
-    "id": "prompt-seed",
-    "label": "Verified facts provided when this guide was built (August 2026)",
-    "url": "",
-    "official": false,
-    "scope": "nelfund-wide",
-    "institution_id": null
+    "type": "institution",
+    "notes": "Institution student portal (example)."
   }
 ]
