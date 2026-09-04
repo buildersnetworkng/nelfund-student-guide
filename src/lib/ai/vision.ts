@@ -1,5 +1,5 @@
 /**
- * Client-side screenshot analysis for NELFUND portal errors / dashboard.
+ * Client-side screenshot analysis for NELFUND portal / website screens.
  * Uses Tesseract.js OCR in the browser. No image is uploaded to any server.
  */
 
@@ -24,6 +24,9 @@ async function getWorker() {
   return workerPromise
 }
 
+const PORTAL_HINT =
+  /nelfund|nelf\.gov|portal\.nelf|student\s*loan|jamb|nigerian|password|log\s*in|sign\s*in|apply|pending|approved|matric|bvn|nin|upkeep|eligibility|verify|loan\s*portal/i
+
 export async function extractTextFromImage(file: Blob): Promise<OcrResult> {
   try {
     const worker = await getWorker()
@@ -37,7 +40,7 @@ export async function extractTextFromImage(file: Blob): Promise<OcrResult> {
       .split('\n')
       .map((line) =>
         line
-          .replace(/[^\w\s\-–—.,:()%/₦?]/g, ' ')
+          .replace(/[^\w\s\-–—.,:()%/₦?@]/g, ' ')
           .replace(/[ \t]+/g, ' ')
           .trim(),
       )
@@ -45,12 +48,15 @@ export async function extractTextFromImage(file: Blob): Promise<OcrResult> {
       .join('\n')
       .trim()
 
-    // Keep usable portal text even when confidence is mediocre
-    const lowSignal = cleaned.length < 12 || (confidence < 25 && cleaned.length < 40)
+    const conf = typeof confidence === 'number' ? confidence : 0
+    // Never treat portal-related OCR as empty signal — keep it for analysis
+    const hasPortalHint = PORTAL_HINT.test(cleaned)
+    const lowSignal =
+      cleaned.length < 8 || (!hasPortalHint && conf < 20 && cleaned.length < 30)
 
     return {
-      text: cleaned.slice(0, 2000),
-      confidence: typeof confidence === 'number' ? confidence : 0,
+      text: cleaned.slice(0, 2500),
+      confidence: conf,
       lowSignal,
     }
   } catch {
