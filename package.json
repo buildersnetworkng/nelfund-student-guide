@@ -11,8 +11,9 @@
     "lint:strict": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test:ai": "tsx scripts/eval-ai.mjs",
     "test:ai:offline": "tsx scripts/offline-eval.mjs",
+    "test:perfection": "tsx scripts/perfection-suite.mjs",
     "test:stress": "tsx scripts/eval-stress.mjs",
-    "test:all": "npm run test:ai && npm run test:stress",
+    "test:all": "npm run test:ai && npm run test:perfection",
     "test": "npm run lint && npm run build && npm run test:ai",
     "ci": "npm run test"
   },
