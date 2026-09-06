@@ -39,6 +39,7 @@ export async function processUserTurn(opts: {
         problemSummary: forced.exactError || 'invalid_jamb_format',
         errorConfirmed: true,
         phase: 'resolve',
+        awaitingInstitution: opts.slots.institutionId ? opts.slots.awaitingInstitution : true,
         actionsTaken: [...(opts.slots.actionsTaken || [])],
       }
       const answer: GroundedAnswer = {
@@ -90,7 +91,6 @@ export async function processUserTurn(opts: {
   }
 
   const screen = understandPortalText(combined)
-  // Any recognized screen from OCR / text — do not whitelist kinds
   if (screen) {
     const slots: ConversationSlots = {
       ...opts.slots,
@@ -100,6 +100,7 @@ export async function processUserTurn(opts: {
       slots.exactError = screen.exactError
       slots.problemSummary = screen.exactError
       slots.errorConfirmed = true
+      if (!slots.institutionId) slots.awaitingInstitution = true
     } else if (screen.kind === 'dashboard') {
       slots.problemSummary = slots.problemSummary || 'portal_dashboard'
     }
@@ -153,7 +154,6 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Screenshot uploaded but no hard screen match — still answer from OCR text
   if (ocr && ocr.trim().length >= 8 && !rawUser) {
     const forced = understandPortalText(ocr)
     if (forced) {
@@ -210,7 +210,6 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Official login / sign-up links (product rule)
   if (
     /\blogin\b|log\s*in|loggin'?g\s*in|sign\s*in|sign\s*up|create\s*(an?\s*)?account|register\s*(for\s*)?nelfund|link\s*(for\s*)?(to\s*)?(log|sign)/i.test(
       rawUser,
@@ -281,7 +280,6 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Follow-up after dashboard: "what does it mean" must not jump to generic open/close
   const hist = opts.history || []
   const prevAsst = [...hist].reverse().find((h) => h.role === 'assistant')?.text || ''
   if (
