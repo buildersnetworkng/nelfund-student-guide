@@ -192,7 +192,6 @@ function isShortFollowUp(text: string): boolean {
 function isGreeting(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
   if (!t || t.length > 80) return false
-  // Real NELFUND question body is never a pure greeting.
   if (
     /nelfund|explain|eligib|\bapply\b|application|\bportal\b|missing|upkeep|repay|\bjamb\b|\bnin\b|\bbvn\b|\bscam\b|\botp\b|matric|\bloan\b|scholarship|document|school\s*(not|fee)|what\s*is|wetin\s*be|overview|describe|teach\s*me|tell\s*me\s*(about|everything)|break\s*down|about\s*(this\s+)?nelf|how\s*to|pending|reject/i.test(
       t,
@@ -333,18 +332,30 @@ export async function processUserTurn(opts: {
     })
     if (
       early &&
-      (/\*\*|Official|NELFUND|Portal:|zero interest|Act, 2023|How to apply|Missing information|Upkeep|Repayment|Eligibility|Safety|Guarantor|Private institutions/i.test(
+      (/\*\*|Official|NELFUND|Portal:|zero interest|Act, 2023|How to apply|Missing information|Upkeep|Repayment|Eligibility|Safety|Guarantor|Private institutions|School not showing/i.test(
         early,
       ) ||
         early.length > 80)
     ) {
-      let intentGuess: IntentId = opts.slots.intent || 'unknown'
-      if (/Act, 2023|who established|When \/ who established/i.test(early)) intentGuess = 'nelfund-history'
-      else if (/Purpose of NELFUND/i.test(early)) intentGuess = 'nelfund-purpose'
-      else if (/\*\*NELFUND\*\* is the/i.test(early)) intentGuess = 'what-is-nelfund'
-      else if (/How to apply/i.test(early)) intentGuess = 'how-to-apply'
-      else if (/Missing information/i.test(early)) intentGuess = 'missing-information'
-      else if (/zero interest/i.test(early)) intentGuess = 'what-is-nelfund'
+      // Prefer the classified intent — never discard school-not-found / pending / jamb etc.
+      let intentGuess: IntentId =
+        earlyIntent !== 'unknown' ? earlyIntent : opts.slots.intent || 'unknown'
+      if (intentGuess === 'unknown') {
+        if (/Act, 2023|who established|When \/ who established/i.test(early)) intentGuess = 'nelfund-history'
+        else if (/Purpose of NELFUND/i.test(early)) intentGuess = 'nelfund-purpose'
+        else if (/\*\*NELFUND\*\* is the/i.test(early)) intentGuess = 'what-is-nelfund'
+        else if (/How to apply/i.test(early)) intentGuess = 'how-to-apply'
+        else if (/Missing information/i.test(early)) intentGuess = 'missing-information'
+        else if (/School not showing/i.test(early)) intentGuess = 'school-not-found'
+        else if (/Invalid JAMB|JAMB Profile/i.test(early)) intentGuess = 'jamb-verification'
+        else if (/pending|under review/i.test(early)) intentGuess = 'pending-application'
+        else if (/Repayment|NYSC/i.test(early)) intentGuess = 'repayment'
+        else if (/Upkeep/i.test(early)) intentGuess = 'upkeep'
+        else if (/zero interest/i.test(early)) intentGuess = 'what-is-nelfund'
+        else if (/Log in \/ sign in|Sign up/i.test(early)) intentGuess = 'portal-login'
+        else if (/Never pay|scam|OTP/i.test(early)) intentGuess = 'scam-safety'
+        else if (/Eligibility/i.test(early)) intentGuess = 'eligibility'
+      }
       return finalize(userMsg, { ...opts.slots, intent: intentGuess }, intentGuess, early, 'conversation', {
         next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
       })
@@ -498,295 +509,79 @@ export async function processUserTurn(opts: {
     })
   }
 
-  if (slots.pendingClarify === 'problem' && /^\s*[1-6]\s*$/.test(rawUser)) {
-    const n = rawUser.trim()
-    const map: Record<string, string> = {
-      '1': 'which website do I use to login to NELFUND',
-      '2': 'portal shows missing information',
-      '3': 'how do I know if my school uploaded my data',
-      '4': 'who should I contact about missing information',
-      '5': 'draft an email to my school about missing information',
-      '6': 'is NELFUND open right now',
-    }
-    slots.pendingClarify = null
-    return processUserTurn({
-      ...opts,
-      userText: map[n] || rawUser,
-      slots,
-      history: [...history, { role: 'user', text: rawUser }, { role: 'assistant', text: '...' }],
-    })
-  }
-
-  if (isShortFollowUp(rawUser) && history.length > 0 && !isNewUserAsk(rawUser)) {
-    const lower = rawUser.trim().toLowerCase()
-    if (/^(thanks|thank\s*you|ok\s*thanks|na\s*im|done)/i.test(lower)) {
-      return finalize(
-        userMsg,
-        slots,
-        slots.intent || 'unknown',
-        'Glad to help. If anything else comes up, ask anytime.\n\nPortal: https://portal.nelf.gov.ng/ · Support: https://nelfund.esupport.ng/create',
-        'conversation',
-      )
-    }
-    if (
-      /draft|email|message|do\s*it|go\s*ahead|send/i.test(lower) &&
-      (slots.institutionId || slots.exactError || /draft|email|message/i.test(prevAsst))
-    ) {
-      try {
-        const draft = draftSupportEmail({
-          institutionId: slots.institutionId,
+  // Fallback path continues via answerQuestion / playbook
+  const pb = playbookAnswer(intent, {
+    institutionName: slots.institutionName,
+    problemSummary: slots.problemSummary,
+    exactError: slots.exactError,
+    turnIndex,
+    lastAssistant: prevAsst,
+    userText: combined,
+    priorIntent,
+  })
+  if (pb) {
+    let text = pb
+    if (!isNewUserAsk(combined) && isNearDuplicate(prevAsst, text)) {
+      text = nextStepAdvance(
+        {
           institutionName: slots.institutionName,
-          exactError:
-            slots.exactError || slots.problemSummary || 'Missing information / student record issue',
-          recipient: /nelfund/i.test(prevAsst + combined) ? 'nelfund' : 'school',
-        })
-        const body = `Here is a draft you can adapt:\n\nSubject: ${draft.subject}\n\n${draft.body}`
-        const answer = lightAnswer('email-draft', body, {
-          next: ['Copy and send only via official channels', 'https://nelfund.esupport.ng/create'],
-        })
-        answer.draft = draft
-        slots.phase = 'resolve'
-        slots.actionsTaken = [...(slots.actionsTaken || []), 'drafted_email']
-        return {
-          messages: [
-            userMsg,
-            { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-          ],
-          slots,
-          diagnosed: true,
-          capability: 'email-draft',
-        }
-      } catch {
-        /* fall through */
-      }
+          problemSummary: slots.problemSummary,
+          exactError: slots.exactError,
+          turnIndex,
+          lastAssistant: prevAsst,
+          userText: combined,
+          priorIntent,
+        },
+        intent,
+      )
     }
-    if (/what\s*next|and\s*then|continue|more|tell\s*me\s*more|about\s*that/i.test(lower)) {
-      return finalize(
-        userMsg,
-        slots,
-        slots.intent || priorIntent || 'unknown',
-        nextStepAdvance(
+    let escalation = null as GroundedAnswer['escalation']
+    try {
+      if (slots.institutionId) {
+        escalation = buildEscalationPlan(intent, slots.institutionId, {
+          errorMessage: slots.exactError || slots.problemSummary,
+        })
+      }
+    } catch {
+      /* ignore */
+    }
+    return finalize(userMsg, slots, intent, text, capability, {
+      next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
+      escalation,
+    })
+  }
+
+  try {
+    const grounded = await answerQuestion(combined || rawUser, {
+      history,
+      institutionId: slots.institutionId,
+      ocrText: ocr,
+    })
+    if (grounded?.answer) {
+      slots.intent = grounded.intent || intent
+      return {
+        messages: [
+          userMsg,
           {
-            institutionName: slots.institutionName,
-            problemSummary: slots.problemSummary,
-            exactError: slots.exactError,
-            turnIndex,
-            lastAssistant: prevAsst,
-            userText: combined,
-            priorIntent,
+            id: uid('asst'),
+            role: 'assistant',
+            text: grounded.answer,
+            answer: grounded,
+            timestamp: Date.now(),
           },
-          slots.intent || priorIntent || 'unknown',
-        ),
-        'conversation',
-      )
-    }
-  }
-
-  if (capability === 'contact-lookup' || intent === 'contact-lookup') {
-    if (!slots.institutionId) {
-      slots.awaitingInstitution = true
-      slots.pendingClarify = 'institution'
-      return finalize(userMsg, slots, 'contact-lookup', institutionAskPrompt('contact-lookup'), 'contact-lookup')
-    }
-    try {
-      const esc = buildEscalationPlan('missing-information' as IntentId, slots.institutionId)
-      const described = describeContactLookup(slots.institutionName, esc)
-      const answer = lightAnswer('contact-lookup', described, {
-        next: ['https://nelfund.esupport.ng/create', 'https://portal.nelf.gov.ng/'],
-      })
-      if (esc) answer.escalation = esc
-      slots.phase = 'resolve'
-      return {
-        messages: [
-          userMsg,
-          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
         ],
         slots,
-        diagnosed: true,
-        capability: 'contact-lookup',
+        diagnosed: grounded.intent !== 'unknown',
+        capability,
       }
-    } catch {
-      /* fall through */
     }
+  } catch {
+    /* fall through */
   }
 
-  if (
-    capability === 'email-draft' ||
-    intent === 'email-draft' ||
-    /draft|write\s*(an?\s*)?(email|message)/i.test(combined)
-  ) {
-    if (!slots.institutionId && !/nelfund/i.test(combined)) {
-      slots.awaitingInstitution = true
-      slots.pendingClarify = 'institution'
-      return finalize(
-        userMsg,
-        slots,
-        'email-draft',
-        'I can draft that. Which school should the message go to, and is it for your institution office or NELFUND support?',
-        'email-draft',
-      )
-    }
-    try {
-      const draft = draftSupportEmail({
-        institutionId: slots.institutionId,
-        institutionName: slots.institutionName,
-        exactError: slots.exactError || slots.problemSummary,
-        recipient: /nelfund/i.test(combined) ? 'nelfund' : 'school',
-      })
-      const body = `Here is a draft you can adapt:\n\nSubject: ${draft.subject}\n\n${draft.body}`
-      const answer = lightAnswer('email-draft', body, {
-        next: ['Copy and send only via official channels', 'https://nelfund.esupport.ng/create'],
-      })
-      answer.draft = draft
-      slots.phase = 'resolve'
-      return {
-        messages: [
-          userMsg,
-          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-        ],
-        slots,
-        diagnosed: true,
-        capability: 'email-draft',
-      }
-    } catch {
-      /* fall through */
-    }
-  }
-
-  if (
-    capability === 'current-information' ||
-    intent === 'current-information' ||
-    intent === 'deadline' ||
-    intent === 'academic-session'
-  ) {
-    const pb = playbookAnswer(intent, {
-      institutionName: slots.institutionName,
-      problemSummary: slots.problemSummary,
-      exactError: slots.exactError,
-      turnIndex,
-      lastAssistant: prevAsst,
-      userText: combined,
-      priorIntent,
-    })
-    if (pb && (isNewUserAsk(combined) || !isNearDuplicate(prevAsst, pb))) {
-      return finalize(userMsg, slots, intent, pb, 'current-information', {
-        next: ['https://nelf.gov.ng/', 'https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
-      })
-    }
-    try {
-      const live = await buildCurrentInformationAnswerLive()
-      if (live?.answer && (isNewUserAsk(combined) || !isNearDuplicate(prevAsst, live.answer))) {
-        return finalize(userMsg, slots, 'current-information', live.answer, 'current-information', {
-          next: live.nextActions?.slice(0, 4),
-          sources: live.sources as GroundedAnswer['sources'],
-        })
-      }
-    } catch {
-      /* fall through */
-    }
-    if (pb) return finalize(userMsg, slots, intent, pb, 'current-information')
-  }
-
-  {
-    const pb = playbookAnswer(intent, {
-      institutionName: slots.institutionName,
-      problemSummary: slots.problemSummary,
-      exactError: slots.exactError,
-      turnIndex,
-      lastAssistant: prevAsst,
-      userText: combined,
-      priorIntent,
-    })
-    if (pb) {
-      const text =
-        !isNewUserAsk(combined) && isNearDuplicate(prevAsst, pb)
-          ? nextStepAdvance(
-              {
-                institutionName: slots.institutionName,
-                problemSummary: slots.problemSummary,
-                exactError: slots.exactError,
-                turnIndex,
-                lastAssistant: prevAsst,
-                userText: combined,
-                priorIntent,
-              },
-              intent,
-            )
-          : pb
-      return finalize(userMsg, slots, intent, text, capability, {
-        next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
-      })
-    }
-  }
-
-  const looksFactual =
-    /\b(what|when|who|why|how|purpose|history|established|created|founded|started|start|begin|began|mean|meaning|act|interest|repay|eligible|guarantor|nysc|private|amount|loan|nelfund|apply|portal|upkeep|youtube|video)\b/i.test(
-      combined,
-    )
-  if (
-    intent === 'unknown' &&
-    !looksFactual &&
-    (combined.trim().length < 40 ||
-      /^(help\s*(me)?|nelfund\s*thing|stuck|wahala)\.?$/i.test(combined.trim()))
-  ) {
-    slots.pendingClarify = 'problem'
-    return finalize(
-      userMsg,
-      slots,
-      'unknown',
-      'I can help — what is going wrong right now?\n\n1. Login / which website to use\n2. Missing information on the portal\n3. Whether my school uploaded my data\n4. Contact school or NELFUND\n5. Draft an email\n6. Is application open\n\nReply with a number or a short description (and your school name if relevant).',
-      'conversation',
-    )
-  }
-
-  const grounded = answerQuestion(combined || rawUser, slots.institutionId, history)
-  let textOut =
-    grounded.answer ||
-    playbookAnswer(slots.intent || intent || 'what-is-nelfund', {
-      institutionName: slots.institutionName,
-      problemSummary: slots.problemSummary,
-      exactError: slots.exactError,
-      turnIndex,
-      lastAssistant: prevAsst,
-      userText: combined,
-      priorIntent,
-    }) ||
-    'Tell me more about what the portal shows, or ask about how to apply, missing information, upkeep, or current status.'
-
-  if (!isNewUserAsk(combined) && isNearDuplicate(prevAsst, textOut)) {
-    textOut = nextStepAdvance(
-      {
-        institutionName: slots.institutionName,
-        problemSummary: slots.problemSummary,
-        exactError: slots.exactError,
-        turnIndex,
-        lastAssistant: prevAsst,
-        userText: combined,
-        priorIntent,
-      },
-      grounded.intent || intent,
-    )
-  }
-
-  grounded.responseMode = 'conversation'
-  grounded.whatThisMeans = null
-  grounded.answer = textOut
-  slots.intent = grounded.intent || intent
-  slots.phase = grounded.clarifyingQuestions?.length ? 'clarify' : 'resolve'
-
-  return {
-    messages: [
-      userMsg,
-      {
-        id: uid('asst'),
-        role: 'assistant',
-        text: grounded.answer,
-        answer: grounded,
-        timestamp: Date.now(),
-      },
-    ],
-    slots,
-    diagnosed: grounded.hasEvidence,
-    capability,
-  }
+  const fallback =
+    'I can help with NELFUND applications, portal errors, eligibility, upkeep, and repayment.\n\nTell me the exact portal message, your school name, or what you are trying to do.\n\nPortal: https://portal.nelf.gov.ng/\nWebsite: https://nelf.gov.ng/\nSupport: https://nelfund.esupport.ng/create'
+  return finalize(userMsg, slots, intent, fallback, capability, {
+    next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
+  })
 }
