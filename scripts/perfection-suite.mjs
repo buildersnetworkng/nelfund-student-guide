@@ -180,6 +180,38 @@ for (const [q, expect] of stuckCases) {
   check(`stuck-nobold-${q.slice(0, 12).replace(/\s+/g, '_')}`, !hasBrokenBoldUrl(text))
 }
 
+const broadResidual = [
+  ['wetin dey happen with my loan', 'pending-application'],
+  ['e no gree verify', 'jamb-verification'],
+  ['my own still dey loading', 'pending-application'],
+  ['since last year nothing', 'pending-application'],
+  ['I submitted but no response', 'pending-application'],
+  ['application successful but no money', 'upkeep'],
+  ['school has not confirmed', 'institution-verification'],
+  ['date of birth wrong on portal', 'jamb-verification'],
+  ['my name is different on JAMB', 'jamb-verification'],
+  ['page keeps loading', 'portal-login'],
+  ['blank white screen', 'portal-login'],
+  ['captcha not working', 'portal-login'],
+  ['how much is institutional charge', 'school-fees'],
+  ['I am part time student', 'eligibility'],
+  ['I am HND student', 'eligibility'],
+  ['direct entry student', 'eligibility'],
+  ['I deferred my admission', 'eligibility'],
+  ['I am repeating a year', 'eligibility'],
+  ['I graduated already', 'eligibility'],
+  ['I am on industrial training', 'eligibility'],
+  ['ticket no reply', 'contact-support'],
+  ['how long does support take', 'contact-support'],
+  ['change of course after apply', 'profile-update'],
+  ['make una help me', 'how-to-apply'],
+  ['this thing frustrate me', 'how-to-apply'],
+]
+for (const [q, expect] of broadResidual) {
+  const c = classifyIntent(q)
+  check(`broad-intent-${expect}-${q.slice(0, 16).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
+}
+
 const combos = [
   ['', 'Invalid jamb number format e.g 0000 00AA'],
   ['fix it', 'Jamb Profile Verification\nInvalid jamb number format'],
