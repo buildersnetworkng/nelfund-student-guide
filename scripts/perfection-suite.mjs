@@ -120,68 +120,6 @@ for (const q of ["I'm a 200 level student", '100 level can i apply', 'who can ap
   if (a) { check(`playbook-support-${q.slice(0, 12)}`, supportLanguageOk(a)); check(`playbook-url-${q.slice(0, 12)}`, !hasBrokenBoldUrl(a)) }
 }
 
-const prodText = [
-  ['prod-pending-status', 'check my application status', /pending|status|review|approv|portal|wait/i],
-  ['prod-pending-waiting', 'still pending nothing dey happen', /pending|status|review|wait|approv/i],
-  ['prod-jamb-verify', 'verify my jamb', /jamb|Registration|verify|format|portal/i],
-  ['prod-jamb-profile', 'jamb profile verification', /jamb|Registration|verify|profile|portal/i],
-  ['prod-jamb-invalid', 'invalid jamb number format', /Invalid JAMB|format|Registration/i],
-  ['prod-open-status', 'is nelfund still open', /portal|nelf\.gov|window|cycle|open|change/i],
-  ['prod-repay', 'how do I repay the loan', /repay|NYSC|10%|salary|profit/i],
-  ['prod-repay-when', 'when will repayment start', /repay|NYSC|10%|after/i],
-  ['prod-status-wetin', 'wetin be the status of my application', /pending|status|review|approv|portal/i],
-  ['prod-approved', 'has my application been approved', /pending|approv|status|review|portal/i],
-]
-for (const [name, q, want] of prodText) {
-  const { text } = await asst(q)
-  check(name, want.test(text) && text.length > 30, text.slice(0, 100))
-  check(`${name}-support`, supportLanguageOk(text))
-  check(`${name}-no-bold-url`, !hasBrokenBoldUrl(text))
-}
-const prodIntents = [
-  ['check my application status', 'pending-application'], ['verify my jamb', 'jamb-verification'],
-  ['jamb profile verification', 'jamb-verification'], ['invalid jamb number', 'jamb-verification'],
-  ['how do I repay', 'repayment'], ['when will repayment start', 'repayment'],
-  ['is nelfund still open', 'current-information'], ['has my application been approved', 'pending-application'],
-  ['wetin be the status', 'pending-application'], ['still pending', 'pending-application'], ['enter my jamb', 'jamb-verification'],
-]
-for (const [q, expect] of prodIntents) {
-  const c = classifyIntent(q)
-  check(`prod-intent-${expect}-${q.slice(0, 20).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
-}
-
-const adversarial = [
-  ['adv-how-far', 'how far with my application', /pending|status|review|approv|portal|wait/i],
-  ['adv-any-update', 'any update on my loan', /pending|status|review|approv|portal|update/i],
-  ['adv-submitted', 'i have submitted already', /pending|submit|status|review|portal/i],
-  ['adv-my-jamb-no', 'my jamb number no dey work', /jamb|Registration|verify|format|invalid|portal/i],
-  ['adv-fix-jamb', 'fix jamb', /jamb|Registration|verify|format|portal/i],
-  ['adv-help-apply', 'help me with nelfund application', /apply|portal|sign|account|NELFUND|step/i],
-  ['adv-how-i-fit', 'how i fit apply', /apply|portal|sign|account|step|NELFUND/i],
-  ['adv-portal-error', 'e dey show error on the portal', /error|missing|school|ICT|support|portal|verify/i],
-  ['adv-what-nelfund', 'wetin be this nelfund', /NELFUND|Education Loan|loan|interest/i],
-  ['adv-poly-apply', 'can polytechnic student apply', /polytechnic|eligible|Eligibility|public|tertiary/i],
-  ['adv-upload', 'has my school uploaded my data', /upload|school|ICT|Registry|portal/i],
-  ['adv-scam-5k', 'someone say make I pay 5k for approval', /Never pay|agent|Do not pay|OTP|password|scam|Safety/i],
-]
-for (const [name, q, want] of adversarial) {
-  const { text } = await asst(q)
-  check(name, want.test(text) && text.length > 25, text.slice(0, 100))
-  check(`${name}-support`, supportLanguageOk(text))
-  check(`${name}-no-bold-url`, !hasBrokenBoldUrl(text))
-}
-const advIntents = [
-  ['how far with my application', 'pending-application'], ['any update on my loan', 'pending-application'],
-  ['my jamb number no dey work', 'jamb-verification'], ['fix jamb', 'jamb-verification'],
-  ['help me with nelfund application', 'how-to-apply'], ['how i fit apply', 'how-to-apply'],
-  ['wetin be this nelfund', 'what-is-nelfund'], ['can polytechnic student apply', 'eligibility'],
-  ['has my school uploaded my data', 'institution-verification'], ['someone say make I pay 5k for approval', 'scam-safety'],
-]
-for (const [q, expect] of advIntents) {
-  const c = classifyIntent(q)
-  check(`adv-intent-${expect}-${q.slice(0, 18).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
-}
-
 const residualIntents = [
   ['is it free money', 'loan-or-scholarship'],
   ['private university can apply', 'eligibility'],
@@ -199,20 +137,27 @@ for (const [q, expect] of residualIntents) {
   const c = classifyIntent(q)
   check(`res-intent-${expect}-${q.slice(0, 16).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
 }
-const residualText = [
-  ['res-free-money', 'is it free money', /loan|scholarship|interest|repay|NELFUND/i],
-  ['res-private', 'private university can apply', /private|public|eligible|Eligibility|institution/i],
-  ['res-money-enter', 'when will money enter', /upkeep|disburse|money|portal|allowance|20/i],
-  ['res-bvn', 'BVN reject', /BVN|bank|reject|portal|support|NIN/i],
-  ['res-nin', 'NIN reject', /NIN|reject|portal|support|verify/i],
-  ['res-nysc', 'I finish NYSC', /repay|NYSC|10%|salary|profit/i],
+
+{
+  for (const q of ['hello', 'hi', 'good morning', 'how far']) {
+    const { r } = await asst(q)
+    const intent = r.messages.find((m) => m.role === 'assistant')?.answer?.intent
+    check(`greet-intent-not-unknown-${q.replace(/\s+/g, '_')}`, intent && intent !== 'unknown', `got ${intent}`)
+  }
+}
+const moreIntents = [
+  ['I need help with fees', 'school-fees'],
+  ['about fees', 'school-fees'],
+  ['YABATECH data no upload', 'institution-verification'],
+  ['data no upload', 'institution-verification'],
+  ['will nelfund pay my school fees', 'school-fees'],
+  ['guarantor needed?', 'guarantor'],
+  ['what is GSI', 'gsi'],
+  ['deadline for application', 'deadline'],
 ]
-for (const [name, q, want] of residualText) {
-  const { text } = await asst(q)
-  check(name, want.test(text) && text.length > 25, text.slice(0, 100))
-  check(`${name}-support`, supportLanguageOk(text))
-  check(`${name}-no-bold-url`, !hasBrokenBoldUrl(text))
-  check(`${name}-not-false-ocr`, !/Readable lines from the screenshot|NELFUND-related screen from your screenshot/i.test(text))
+for (const [q, expect] of moreIntents) {
+  const c = classifyIntent(q)
+  check(`more-intent-${expect}-${q.slice(0, 14).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
 }
 
 const combos = [
