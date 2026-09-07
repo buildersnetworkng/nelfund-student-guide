@@ -82,7 +82,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'school-fees',
-    re: /school\s*fees|institutional\s*charges|will\s*nelfund\s*pay|pay\s*(my\s*)?fees|does\s*nelfund\s*pay\s*(school|fees)|apply\s*for\s*(school\s*)?fees|fees\s*and\s*(upkeep|allowance)/i,
+    re: /school\s*fees|institutional\s*charges|will\s*nelfund\s*pay|pay\s*(my\s*)?fees|does\s*nelfund\s*pay\s*(school|fees)|apply\s*for\s*(school\s*)?fees|fees\s*and\s*(upkeep|allowance)|help\s*(me\s*)?(with\s*)?(school\s*)?fees|about\s*(school\s*)?fees|\bfees\b/i,
     problem: 'School fees payment',
     stage: 'exploring',
     troubleshooting: false,
@@ -118,7 +118,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'portal-login',
-    re: /\blogin\b|log\s*in|loggin'?g\s*in|loggin'?g\s*into|sign\s*in|forgot\s*(my\s*)?password|reset\s*(my\s*)?password|password\s*(not\s*work|reset|issue)|can.?t\s*(login|log\s*in)|portal\s*link|where\s*(i\s*)?(go|enter|open)\s*(the\s*)?(portal|site)|existing\s*(account|application)|already\s*(have|created)\s*(an?\s*)?account|which\s*(website|site|link|url)|official\s*(website|site|portal|link)|how\s*(to|do\s*i)\s*(enter|access)\s*(the\s*)?portal|link\s*(for\s*)?(to\s*)?(loggin'?g\s*in|login|log\s*in)|link\s*to\s*apply|where\s*to\s*register|continue\s*(my\s*)?application/i,
+    re: /\blogin\b|log\s*in|loggin'?g\s*in|loggin'?g\s*into|sign\s*in|forgot\s*(my\s*)?password|reset\s*(my\s*)?password|password\s*(not\s*work|reset|issue)|can.?t\s*(login|log\s*in)|portal\s*link|where\s*(i\s*)?(go|enter|open)\s*(the\s*)?(portal|site)|existing\s*(account|application)|already\s*(have|created)\s*(an?\s*)?account|which\s*(website|site|link|url)|official\s*(website|site|portal|link)|how\s*(to|do\s*i)\s*(enter|access)\s*(the\s*)?portal|link\s*(for\s*)?(to\s*)?(loggin'?g\s*in|login|log\s*in)|link\s*to\s*apply|where\s*to\s*register|continue\s*(my\s*)?application|portal\s*stuck|stuck\s*on\s*(the\s*)?portal|account\s*suspend|suspend(ed)?\s*(account|my)|unable\s*to\s*(log|sign)|cannot\s*(log|sign)/i,
     problem: 'Official link to login',
     stage: 'applying',
     troubleshooting: false,
@@ -127,7 +127,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'institution-verification',
-    re: /institutional\s*verif|school\s*verif|verif.*(institution|school)|data\s*(been\s*)?uploaded|uploaded\s*(to\s*)?(nelfund|portal)|school\s*(has\s*)?uploaded|know\s*if\s*(my\s*)?(data|record|school).{0,40}upload|my\s*school\s*(never|no)\s*upload|school\s*data\s*no\s*upload/i,
+    re: /institutional\s*verif|school\s*verif|verif.*(institution|school)|data\s*(been\s*)?uploaded|uploaded\s*(to\s*)?(nelfund|portal)|school\s*(has\s*)?uploaded|know\s*if\s*(my\s*)?(data|record|school).{0,40}upload|my\s*school\s*(never|no)\s*upload|school\s*data\s*no\s*upload|data\s*no\s*upload|no\s*upload|never\s*upload|upload\s*(my\s*)?(data|record)/i,
     problem: 'Institution upload status',
     stage: 'waiting',
     troubleshooting: true,
@@ -172,7 +172,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'school-not-found',
-    re: /school.*(not|isn'?t|no\s*dey|no).*(show|appear|come|list|found)|(not|isn'?t|no\s*dey).*(show|appear).*school|my\s*school\s*(no\s*dey|not\s*showing)|can'?t\s*find\s*(my\s*)?school|school\s*not\s*on\s*(the\s*)?(list|portal)|institution\s*not\s*found|institution\s*(not|isn'?t)\s*(on|in|show|list|found)/i,
+    re: /school.*(not|isn'?t|no\s*dey|no).*(show|appear|come|list|found)|(not|isn'?t|no\s*dey).*(show|appear).*school|my\s*school\s*(no\s*dey|not\s*showing)|can'?t\s*find\s*(my\s*)?school|school\s*not\s*on\s*(the\s*)?(list|portal)|institution\s*not\s*found|institution\s*(not|isn'?t)\s*(on|in|show|list|found)|wrong\s*school\s*selected|selected\s*wrong\s*(school|institution)|change\s*(my\s*)?(school|institution)|wrong\s*institution/i,
     problem: 'School not showing',
     stage: 'applying',
     troubleshooting: true,
@@ -226,7 +226,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'repayment',
-    re: /repay|pay\s*(this\s*)?(money\s*)?back|do\s*i\s*(have\s*to|must)\s*pay|when\s*do\s*i\s*(start\s*)?pay|after\s*school.*(pay|repay)|loan\s*repayment|do I need to repay|how\s*(do\s*i|to)\s*repay|repayment\s*(plan|schedule|start)|when\s*will\s*(i|repayment)\s*start|must\s*i\s*pay\s*back|is\s*it\s*(a\s*)?loan\s*i\s*(must|have\s*to)\s*pay/i,
+    re: /repay|pay\s*(this\s*)?(money\s*)?back|do\s*i\s*(have\s*to|must)\s*pay|when\s*do\s*i\s*(start\s*)?pay|after\s*school.*(pay|repay)|loan\s*repayment|do I need to repay|how\s*(do\s*i|to)\s*repay|repayment\s*(plan|schedule|start)|when\s*will\s*(i|repayment)\s*start|must\s*i\s*pay\s*back|is\s*(it\s*)?a?\s*loan\s*i\s*(must|have\s*to)\s*pay/i,
     problem: 'Repayment',
     stage: 'repaying',
     troubleshooting: false,
@@ -424,7 +424,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'nin-verification',
-    re: /nin\s*(reject|fail|invalid|not\s*work|mismatch)|reject.*\bnin\b|\bnin\b.*reject/i,
+    re: /nin\s*(reject|fail|invalid|not\s*work|mismatch)|reject.*nin|nin.*reject/i,
     problem: 'NIN problem',
     stage: 'applying',
     troubleshooting: true,
@@ -432,17 +432,8 @@ const RULES: Rule[] = [
     weight: 13,
   },
   {
-    intent: 'documents-needed',
-    re: /\bmatric(ulation)?\s*(number|no)\b|admission\s*letter|what\s*documents|documents?\s*required/i,
-    problem: 'Documents needed',
-    stage: 'preparing',
-    troubleshooting: false,
-    topics: ['documents'],
-    weight: 11,
-  },
-  {
     intent: 'portal-login',
-    re: /account\s*(no|not|never)\s*(open|work|login)|cannot\s*(create|open)\s*account|create\s*account\s*(fail|error|no\s*work)/i,
+    re: /account\s*(no|not|never)\s*(open|work|login)|cannot\s*(create|open)\s*account|create\s*account\s*(fail|error|no\s*work)|account\s*suspend|suspend(ed)?\s*(account|my)|portal\s*stuck|stuck\s*on\s*(the\s*)?portal/i,
     problem: 'Account access',
     stage: 'applying',
     troubleshooting: true,
@@ -458,20 +449,24 @@ const RULES: Rule[] = [
     topics: ['session'],
     weight: 8,
   },
+  {
+    intent: 'documents-needed',
+    re: /admission\s*letter|matric\s*(number|no)|waec|neco|result\s*upload/i,
+    problem: 'Documents / results',
+    stage: 'preparing',
+    troubleshooting: false,
+    topics: ['documents'],
+    weight: 11,
+  },
 ]
 
-export const QUERY_SYNONYMS: Record<string, string[]> = {
-  school: ['institution', 'university', 'poly', 'polytechnic', 'college'],
-  apply: ['application', 'register', 'registration'],
-  upkeep: ['20k', '20000', 'allowance'],
-}
-
 export function classifyIntent(question: string, history?: ConversationTurn[]): IntentResult {
-  const raw = question.trim()
-  if (!raw) {
+  const expanded = expandWithContext(question, history)
+  const q = expanded.trim()
+  if (!q) {
     return {
       intent: 'unknown',
-      confidence: 0,
+      confidence: 0.2,
       topics: [],
       problem: null,
       stage: 'unknown',
@@ -479,91 +474,62 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
       isTroubleshooting: false,
     }
   }
-  const q = expandWithContext(raw, history)
-  const entities = detectEntities(q)
 
-  if (isLoanCounterNoise(q)) {
+  if (isLoanCounterNoise(q) && q.length < 220) {
     return {
       intent: 'current-information',
-      confidence: 0.8,
-      topics: ['dashboard'],
-      problem: 'Portal dashboard',
-      stage: 'applying',
-      entities: Array.from(new Set([...entities, 'portal'])),
+      confidence: 0.75,
+      topics: ['current'],
+      problem: 'Portal dashboard counters',
+      stage: 'waiting',
+      entities: detectEntities(q),
       isTroubleshooting: false,
     }
   }
 
-  let best: { rule: Rule; score: number } | null = null
+  let best: Rule | null = null
+  let bestScore = 0
   for (const rule of RULES) {
-    if (rule.re.test(q)) {
-      const score = rule.weight
-      if (!best || score > best.score) best = { rule, score }
+    if (!rule.re.test(q)) continue
+    const score = rule.weight + (rule.troubleshooting ? 0.5 : 0)
+    if (score > bestScore) {
+      bestScore = score
+      best = rule
     }
   }
+
   if (best) {
     return {
-      intent: best.rule.intent,
-      confidence: Math.min(0.95, 0.7 + best.rule.weight * 0.01),
-      topics: best.rule.topics,
-      problem: best.rule.problem,
-      stage: best.rule.stage,
-      entities,
-      isTroubleshooting: best.rule.troubleshooting,
+      intent: best.intent,
+      confidence: Math.min(0.95, 0.55 + best.weight / 40),
+      topics: best.topics,
+      problem: best.problem,
+      stage: best.stage,
+      entities: detectEntities(q),
+      isTroubleshooting: best.troubleshooting,
     }
   }
 
-  const prev = lastUserIntent(history)
-  if (prev && prev !== 'unknown' && raw.length < 48) {
+  const prior = lastUserIntent(history)
+  if (prior && prior !== 'unknown' && q.length < 60) {
     return {
-      intent: prev,
+      intent: prior,
       confidence: 0.55,
-      topics: ['follow-up'],
+      topics: [],
       problem: null,
       stage: 'unknown',
-      entities,
-      isTroubleshooting: false,
-    }
-  }
-
-  const t = q.toLowerCase()
-  if (
-    /^(ok|okay|yes|yeah|yep|thanks|thank\s*you|ty|alright|fine)[!.?]*$/i.test(t.trim()) ||
-    (/^(ok|okay|yes|thanks)\b/i.test(t.trim()) && t.trim().length < 24)
-  ) {
-    return {
-      intent: 'official-sources',
-      confidence: 0.45,
-      topics: ['ack'],
-      problem: 'Official links',
-      stage: 'exploring',
-      entities,
-      isTroubleshooting: false,
-    }
-  }
-  if (
-    /hello|hi\b|good\s*(morning|afternoon|evening)|abeg|please\s*help/i.test(t) &&
-    t.length < 48 &&
-    !/understand|explain|about\s*nelfund|what\s*is|nelfund|describe|teach|overview/i.test(t)
-  ) {
-    return {
-      intent: 'how-to-apply',
-      confidence: 0.55,
-      topics: ['greeting'],
-      problem: 'How to apply for NELFUND',
-      stage: 'preparing',
-      entities,
+      entities: detectEntities(q),
       isTroubleshooting: false,
     }
   }
 
   return {
     intent: 'unknown',
-    confidence: 0.2,
-    topics: t.split(/[^a-z0-9]+/).filter((x) => x.length > 2).slice(0, 8),
+    confidence: 0.35,
+    topics: [],
     problem: null,
     stage: 'unknown',
-    entities,
+    entities: detectEntities(q),
     isTroubleshooting: false,
   }
 }
