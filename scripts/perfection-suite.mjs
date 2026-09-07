@@ -1,11 +1,8 @@
 #!/usr/bin/env node
 /**
  * NELFUND AI perfection suite — finds regressions before students do.
+ * Driven in part by live admin analytics (unknown topics, intents).
  * Run: npx tsx scripts/perfection-suite.mjs
- *
- * Covers: screenshot OCR paths, error banners, support language quality,
- * login/signup links, no bold-wrapped URLs, multi-turn institution resume,
- * pidgin, scam, eligibility levels, dashboard, apply flow.
  */
 import { processUserTurn, createInitialSlots } from '../src/lib/ai/processTurn.ts'
 import { understandPortalText } from '../src/lib/ai/screenshotUnderstand.ts'
@@ -50,7 +47,6 @@ async function asst(userText, ocrText = null, slots = null, history = []) {
   return { text, slots: r.slots, r }
 }
 
-// ---------- Screenshot / OCR understanding (no user text) ----------
 const ocrCases = [
   {
     name: 'ocr-invalid-jamb-banner',
@@ -200,6 +196,46 @@ for (const q of ["I'm a 200 level student", '100 level can i apply', 'who can ap
     check(`playbook-support-${q.slice(0, 12)}`, supportLanguageOk(a))
     check(`playbook-url-${q.slice(0, 12)}`, !hasBrokenBoldUrl(a))
   }
+}
+
+// Production admin-driven cases (live unknown topics)
+const prodText = [
+  ['prod-pending-status', 'check my application status', /pending|status|review|approv|portal|wait/i],
+  ['prod-pending-waiting', 'still pending nothing dey happen', /pending|status|review|wait|approv/i],
+  ['prod-jamb-verify', 'verify my jamb', /jamb|Registration|verify|format|portal/i],
+  ['prod-jamb-profile', 'jamb profile verification', /jamb|Registration|verify|profile|portal/i],
+  ['prod-jamb-invalid', 'invalid jamb number format', /Invalid JAMB|format|Registration/i],
+  ['prod-open-status', 'is nelfund still open', /portal|nelf\.gov|window|cycle|open|change/i],
+  ['prod-repay', 'how do I repay the loan', /repay|NYSC|10%|salary|profit/i],
+  ['prod-repay-when', 'when will repayment start', /repay|NYSC|10%|after/i],
+  ['prod-status-wetin', 'wetin be the status of my application', /pending|status|review|approv|portal/i],
+  ['prod-approved', 'has my application been approved', /pending|approv|status|review|portal/i],
+]
+
+for (const [name, q, want] of prodText) {
+  const { text } = await asst(q)
+  check(name, want.test(text) && text.length > 30, text.slice(0, 100))
+  check(`${name}-support`, supportLanguageOk(text))
+  check(`${name}-no-bold-url`, !hasBrokenBoldUrl(text))
+}
+
+const prodIntents = [
+  ['check my application status', 'pending-application'],
+  ['verify my jamb', 'jamb-verification'],
+  ['jamb profile verification', 'jamb-verification'],
+  ['invalid jamb number', 'jamb-verification'],
+  ['how do I repay', 'repayment'],
+  ['when will repayment start', 'repayment'],
+  ['is nelfund still open', 'current-information'],
+  ['has my application been approved', 'pending-application'],
+  ['wetin be the status', 'pending-application'],
+  ['still pending', 'pending-application'],
+  ['enter my jamb', 'jamb-verification'],
+]
+
+for (const [q, expect] of prodIntents) {
+  const c = classifyIntent(q)
+  check(`prod-intent-${expect}-${q.slice(0, 20).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
 }
 
 const combos = [
