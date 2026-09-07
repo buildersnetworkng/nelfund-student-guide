@@ -145,12 +145,12 @@ const RULES: Rule[] = [
   },
   {
     intent: 'jamb-verification',
-    re: /jamb.*(not|isn'?t|no|keep|reject|invalid|fail|accept|work|go)|(not|isn'?t|no|keep|reject|invalid|fail).*jamb|no\s*dey\s*accept\s*my\s*jamb|jamb.*(no\s*dey|won'?t)|problem\s*with\s*(my\s*)?jamb|jamb\s*issue/i,
+    re: /jamb.*(not|isn'?t|no|keep|reject|invalid|fail|accept|work|go|verif|profile|format|number|reg)|(not|isn'?t|no|keep|reject|invalid|fail).*jamb|no\s*dey\s*accept\s*my\s*jamb|jamb.*(no\s*dey|won'?t)|problem\s*with\s*(my\s*)?jamb|jamb\s*issue|verify\s*(my\s*)?jamb|jamb\s*profile|invalid\s*jamb|enter\s*(my\s*)?jamb/i,
     problem: 'JAMB verification',
     stage: 'applying',
     troubleshooting: true,
     topics: ['jamb'],
-    weight: 12,
+    weight: 13,
   },
   {
     intent: 'nin-verification',
@@ -199,7 +199,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'pending-application',
-    re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*under\s*review|not\s*yet\s*approv|approval\s*status|e\s*still\s*dey\s*pending|still\s*(waiting|processing)|nothing\s*is\s*happening|nothing\s*dey\s*happen|status\s*no\s*dey\s*change|after\s*i\s*submitted/i,
+    re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*under\s*review|not\s*yet\s*approv|approval\s*status|e\s*still\s*dey\s*pending|still\s*(waiting|processing)|nothing\s*is\s*happening|nothing\s*dey\s*happen|status\s*no\s*dey\s*change|after\s*i\s*submitted|check\s*(my\s*)?(application\s*)?status|my\s*application\s*status|wetin\s*be\s*(the\s*)?status|how\s*far\s*(with\s*)?(my\s*)?(application|loan)|has\s*(my\s*)?(application|loan)\s*been\s*approv/i,
     problem: 'Application still pending',
     stage: 'waiting',
     troubleshooting: true,
@@ -226,7 +226,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'repayment',
-    re: /repay|pay\s*(this\s*)?(money\s*)?back|do\s*i\s*(have\s*to|must)\s*pay|when\s*do\s*i\s*(start\s*)?pay|after\s*school.*(pay|repay)|loan\s*repayment|do I need to repay/i,
+    re: /repay|pay\s*(this\s*)?(money\s*)?back|do\s*i\s*(have\s*to|must)\s*pay|when\s*do\s*i\s*(start\s*)?pay|after\s*school.*(pay|repay)|loan\s*repayment|do I need to repay|how\s*(do\s*i|to)\s*repay|repayment\s*(plan|schedule|start)|when\s*will\s*(i|repayment)\s*start|must\s*i\s*pay\s*back|is\s*it\s*(a\s*)?loan\s*i\s*(must|have\s*to)\s*pay/i,
     problem: 'Repayment',
     stage: 'repaying',
     troubleshooting: false,
@@ -262,7 +262,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'documents-needed',
-    re: /what\s*(documents?|do\s*i\s*need)|documents?\s*need|requirements?|what\s*do\s*i\s*need\s*(to\s*)?(apply|upload|submit)|checklist|matric(ulation)?\s*number|i\s*(don'?t|do\s*not|no)\s*have\s*matric|no\s*matric|papers?\s*(do\s*i\s*)?need/i,
+    re: /what\s*(documents?|do\s*i\s*need)|documents?\s*need|requirements?|what\s*do\s*i\s*(need\s*)?(to\s*)?(apply|upload|submit)|checklist|matric(ulation)?\s*number|i\s*(don'?t|do\s*not|no)\s*have\s*matric|no\s*matric|papers?\s*(do\s*i\s*)?need/i,
     problem: 'Documents required',
     stage: 'preparing',
     troubleshooting: false,
