@@ -160,6 +160,26 @@ for (const [q, expect] of moreIntents) {
   check(`more-intent-${expect}-${q.slice(0, 14).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
 }
 
+const stuckCases = [
+  ['portal stuck', 'portal-login'],
+  ['I am stuck on portal', 'portal-login'],
+  ['account suspended', 'portal-login'],
+  ['stuck on the portal', 'portal-login'],
+  ['wrong school selected', 'school-not-found'],
+  ['I selected wrong institution', 'school-not-found'],
+]
+for (const [q, expect] of stuckCases) {
+  const c = classifyIntent(q)
+  check(`stuck-intent-${expect}-${q.slice(0, 18).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
+}
+for (const [q, expect] of stuckCases) {
+  const { text, r } = await asst(q)
+  const intent = r.messages.find((m) => m.role === 'assistant')?.answer?.intent
+  check(`stuck-turn-${q.slice(0, 14).replace(/\s+/g, '_')}`, intent === expect || (text && text.length > 30), `intent=${intent}`)
+  check(`stuck-support-${q.slice(0, 12).replace(/\s+/g, '_')}`, supportLanguageOk(text))
+  check(`stuck-nobold-${q.slice(0, 12).replace(/\s+/g, '_')}`, !hasBrokenBoldUrl(text))
+}
+
 const combos = [
   ['', 'Invalid jamb number format e.g 0000 00AA'],
   ['fix it', 'Jamb Profile Verification\nInvalid jamb number format'],
