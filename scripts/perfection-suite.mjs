@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** NELFUND AI perfection suite — admin-driven + adversarial. Run: npx tsx scripts/perfection-suite.mjs */
+/** NELFUND AI perfection suite — admin-driven. Run: npx tsx scripts/perfection-suite.mjs */
 import { processUserTurn, createInitialSlots } from '../src/lib/ai/processTurn.ts'
 import { understandPortalText } from '../src/lib/ai/screenshotUnderstand.ts'
 import { classifyIntent } from '../src/lib/ai/intent.ts'
@@ -180,6 +180,39 @@ const advIntents = [
 for (const [q, expect] of advIntents) {
   const c = classifyIntent(q)
   check(`adv-intent-${expect}-${q.slice(0, 18).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
+}
+
+const residualIntents = [
+  ['is it free money', 'loan-or-scholarship'],
+  ['private university can apply', 'eligibility'],
+  ['when will money enter', 'upkeep'],
+  ['dem never pay me', 'upkeep'],
+  ['I finish NYSC', 'repayment'],
+  ['BVN reject', 'bank-information'],
+  ['NIN reject', 'nin-verification'],
+  ['matric number', 'documents-needed'],
+  ['admission letter', 'documents-needed'],
+  ['my account no open', 'portal-login'],
+  ['cannot create account', 'portal-login'],
+]
+for (const [q, expect] of residualIntents) {
+  const c = classifyIntent(q)
+  check(`res-intent-${expect}-${q.slice(0, 16).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
+}
+const residualText = [
+  ['res-free-money', 'is it free money', /loan|scholarship|interest|repay|NELFUND/i],
+  ['res-private', 'private university can apply', /private|public|eligible|Eligibility|institution/i],
+  ['res-money-enter', 'when will money enter', /upkeep|disburse|money|portal|allowance|20/i],
+  ['res-bvn', 'BVN reject', /BVN|bank|reject|portal|support|NIN/i],
+  ['res-nin', 'NIN reject', /NIN|reject|portal|support|verify/i],
+  ['res-nysc', 'I finish NYSC', /repay|NYSC|10%|salary|profit/i],
+]
+for (const [name, q, want] of residualText) {
+  const { text } = await asst(q)
+  check(name, want.test(text) && text.length > 25, text.slice(0, 100))
+  check(`${name}-support`, supportLanguageOk(text))
+  check(`${name}-no-bold-url`, !hasBrokenBoldUrl(text))
+  check(`${name}-not-false-ocr`, !/Readable lines from the screenshot|NELFUND-related screen from your screenshot/i.test(text))
 }
 
 const combos = [
