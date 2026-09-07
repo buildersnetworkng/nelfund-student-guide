@@ -1,8 +1,6 @@
 /**
  * Privacy-conscious analytics client.
- *
- * - Anonymous user id in localStorage (survives refresh; not a new user each load)
- * - Session id in sessionStorage (new tab/session = new session)
+ * - Anonymous user id / session id
  * - Never sends passwords, OTPs, BVN, NIN, bank details, or free-text questions
  * - Only coarse intents, paths, feature names, institution ids, topic buckets
  */
@@ -57,11 +55,8 @@ function sanitizeMeta(
   const out: Record<string, string | number | boolean | null> = {}
   for (const [k, v] of Object.entries(meta)) {
     if (typeof v === 'string' && SENSITIVE.test(v)) continue
-    if (typeof v === 'string' && v.length > 80) {
-      out[k] = v.slice(0, 80)
-    } else {
-      out[k] = v
-    }
+    if (typeof v === 'string' && v.length > 80) out[k] = v.slice(0, 80)
+    else out[k] = v
   }
   return out
 }
@@ -275,6 +270,20 @@ export function trackFaqOpen(faqId: string) {
 
 export function trackFeature(feature: string, meta?: Record<string, string | number | boolean | null>) {
   track('feature_use', { feature, meta })
+}
+
+/** Flush queued analytics events immediately (e.g. before unload). */
+export async function flushAnalytics(): Promise<boolean> {
+  if (flushTimer) {
+    clearTimeout(flushTimer)
+    flushTimer = null
+  }
+  try {
+    await flushQueue()
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function trackInstitution(institutionId: string) {
