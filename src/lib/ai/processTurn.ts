@@ -27,10 +27,14 @@ export async function processUserTurn(opts: {
   const combined = [rawUser, ocr].filter(Boolean).join('\n')
 
   // Student text about invalid JAMB — answer format error even if OCR missed the red banner
-  if (/invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format|not\s*correct)/i.test(rawUser) ||
-      /invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format)/i.test(ocr || '')) {
+  if (
+    /invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format|not\s*correct)/i.test(rawUser) ||
+    /invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format)/i.test(ocr || '')
+  ) {
     const forced = understandPortalText(
-      [rawUser, ocr, 'Invalid jamb number format, e.g 0000 00AA', 'Jamb Profile Verification'].filter(Boolean).join('\n'),
+      [rawUser, ocr, 'Invalid jamb number format, e.g 0000 00AA', 'Jamb Profile Verification']
+        .filter(Boolean)
+        .join('\n'),
     )
     if (forced && forced.kind === 'error') {
       const slots: ConversationSlots = {
@@ -90,8 +94,22 @@ export async function processUserTurn(opts: {
     }
   }
 
+  // Prefer OCR when present; for plain chat only accept strong screen/error matches
+  const ocrish =
+    Boolean(ocr && ocr.trim().length >= 8) ||
+    /\n/.test(combined) ||
+    /invalid\s*jamb|missing\s*information|total\s*loans|student\s*loan\s*portal|verify\s*jamb\s*profile|kindly\s*provide.*login/i.test(
+      combined,
+    )
   const screen = understandPortalText(combined)
-  if (screen) {
+  const screenOk =
+    screen &&
+    (ocrish ||
+      screen.kind === 'error' ||
+      screen.kind === 'dashboard' ||
+      screen.kind === 'login' ||
+      screen.exactError != null)
+  if (screenOk && screen) {
     const slots: ConversationSlots = {
       ...opts.slots,
       actionsTaken: [...(opts.slots.actionsTaken || [])],
@@ -151,62 +169,6 @@ export async function processUserTurn(opts: {
       slots,
       diagnosed: true,
       capability: 'conversation',
-    }
-  }
-
-  if (ocr && ocr.trim().length >= 8 && !rawUser) {
-    const forced = understandPortalText(ocr)
-    if (forced) {
-      const slots: ConversationSlots = {
-        ...opts.slots,
-        phase: 'resolve',
-        actionsTaken: [...(opts.slots.actionsTaken || [])],
-      }
-      const answer: GroundedAnswer = {
-        hasEvidence: true,
-        intent: 'current-information',
-        confidence: 0.75,
-        responseMode: 'conversation',
-        problem: forced.kind,
-        answer: forced.explanation,
-        whatThisMeans: null,
-        nextActions: forced.nextActions.slice(0, 4),
-        clarifyingQuestions: [],
-        evidence: [],
-        sources: [
-          {
-            id: 'portal',
-            label: 'NELFUND portal',
-            url: 'https://portal.nelf.gov.ng/',
-            official: true,
-          },
-        ],
-        video: null,
-        insufficientReason: null,
-        officialFallbackUrl: 'https://portal.nelf.gov.ng/',
-        escalation: null,
-      }
-      return {
-        messages: [
-          {
-            id: uid('user'),
-            role: 'user',
-            text: rawUser || '[Screenshot uploaded]',
-            imagePreview: opts.imagePreview || null,
-            timestamp: Date.now(),
-          },
-          {
-            id: uid('asst'),
-            role: 'assistant',
-            text: answer.answer,
-            answer,
-            timestamp: Date.now(),
-          },
-        ],
-        slots,
-        diagnosed: true,
-        capability: 'conversation',
-      }
     }
   }
 
