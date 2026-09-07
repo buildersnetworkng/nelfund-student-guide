@@ -85,68 +85,66 @@ function saveQueue(events: AnalyticsEventPayload[]) {
   }
 }
 
-async function flush(events: AnalyticsEventPayload[]): Promise<boolean> {
-  if (!events.length) return true
-  if (typeof window === 'undefined') return false
-  const body: TrackBody = {
-    uid: getAnonymousUserId(),
-    sid: getSessionId(),
-    events: events.map((e) => ({
-      ...e,
-      ts: e.ts || new Date().toISOString(),
-      path: e.path || window.location.pathname,
-      meta: sanitizeMeta(e.meta),
-    })),
-  }
+let flushTimer: ReturnType<typeof setTimeout> | null = null
+
+async function flushQueue() {
+  const events = loadQueue()
+  if (!events.length) return
+  saveQueue([])
   try {
+    const body: TrackBody = {
+      uid: getAnonymousUserId(),
+      sid: getSessionId(),
+      events,
+    }
     const res = await fetch('/api/analytics/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
       keepalive: true,
     })
-    return res.ok
+    if (!res.ok) {
+      const existing = loadQueue()
+      saveQueue([...events, ...existing].slice(-MAX_QUEUE))
+    }
   } catch {
-    return false
+    const existing = loadQueue()
+    saveQueue([...events, ...existing].slice(-MAX_QUEUE))
   }
 }
 
-export function track(name: AnalyticsEventName, payload: Omit<AnalyticsEventPayload, 'name'> = {}) {
+function scheduleFlush() {
+  if (flushTimer) clearTimeout(flushTimer)
+  flushTimer = setTimeout(() => {
+    flushTimer = null
+    void flushQueue()
+  }, 1200)
+}
+
+export function track(name: AnalyticsEventName, payload: Omit<AnalyticsEventPayload, 'name' | 'ts'> = {}) {
   const event: AnalyticsEventPayload = {
     name,
     ts: new Date().toISOString(),
-    path: typeof window !== 'undefined' ? window.location.pathname : undefined,
-    ...payload,
+    path: payload.path || (typeof location !== 'undefined' ? location.pathname : undefined),
+    intent: payload.intent,
+    institutionId: payload.institutionId,
+    feature: payload.feature,
+    faqId: payload.faqId,
+    unresolved: payload.unresolved,
+    hasImage: payload.hasImage,
+    topic: payload.topic,
+    meta: sanitizeMeta(payload.meta),
   }
-  const queue = loadQueue()
-  queue.push(event)
-  saveQueue(queue)
-  void flush(queue).then((ok) => {
-    if (ok) saveQueue([])
-  })
-}
-
-export function trackPageView(path: string) {
-  track('page_view', { path: path.slice(0, 120) })
-}
-
-export function trackSessionStart() {
-  track('session_start', {})
-}
-
-export async function flushAnalytics(): Promise<boolean> {
-  const queue = loadQueue()
-  if (!queue.length) return true
-  const ok = await flush(queue)
-  if (ok) saveQueue([])
-  return ok
+  const q = loadQueue()
+  q.push(event)
+  saveQueue(q)
+  scheduleFlush()
 }
 
 /** Coarse topic buckets only — never stores the student question text. */
-export function deriveUnknownTopic(text: string | null | undefined): string {
-  if (!text || !text.trim()) return 'empty'
-  const t = text.toLowerCase()
-  if (/missing|no\s*info|record\s*not\s*found/.test(t)) return 'missing-info'
+export function deriveUnknownTopic(userText?: string | null): string {
+  const t = (userText || '').toLowerCase().trim()
+  if (!t || t.length < 2) return 'empty'
   if (/jamb/.test(t)) return 'jamb'
   if (/nin/.test(t)) return 'nin'
   if (/pending|status|under\s*review/.test(t)) return 'pending-status'
@@ -166,6 +164,15 @@ export function deriveUnknownTopic(text: string | null | undefined): string {
   if (/account\s*creat|create\s*account|register|sign\s*up/.test(t)) return 'account-create'
   if (/password|reset\s*password|forgot/.test(t)) return 'password-reset'
   if (/approv|not\s*yet\s*approv/.test(t)) return 'approval'
+  if (/matric|admission\s*letter|documents?|paper/.test(t)) return 'documents'
+  if (/level|fresher|100|200|300|400|undergraduate|poly/.test(t)) return 'eligibility-level'
+  if (/what\s*is|wetin\s*be|explain|about\s*nelfund|understand/.test(t)) return 'what-is'
+  if (/upload|school\s*data|institution\s*verif/.test(t)) return 'upload'
+  if (/dashboard|total\s*loans|signed\s*in|welcome\s*to\s*student/.test(t)) return 'dashboard'
+  if (/scam|agent|whatsapp|pay\s*\d/.test(t)) return 'scam-safety'
+  if (/unilag|lasu|oou|school\s*name|my\s*school/.test(t)) return 'institution'
+  if (/how\s*to\s*apply|steps?\s*to|register/.test(t)) return 'how-to-apply'
+  if (t.length < 3) return 'empty'
   return 'other'
 }
 
@@ -192,8 +199,6 @@ export function trackAiQuestion(opts: {
   escalationFired?: boolean
 }) {
   const intent = opts.intent || 'unknown'
-  // Only pure unknown intents count as unknown — clarifying questions (e.g. ask school)
-  // are unresolved but classified; counting them as unknown inflated Pilot #2 rates.
   const unknown = isUnknownIntent(intent)
   const topic = unknown || opts.unresolved ? deriveUnknownTopic(opts.userText) : undefined
 
@@ -220,31 +225,18 @@ export function trackAiQuestion(opts: {
   }
   if (unknown) {
     track('ai_unknown', {
-      intent: intent === 'llm-agent' ? 'llm-agent' : 'unknown',
-      institutionId: opts.institutionId || undefined,
-      hasImage: !!opts.hasImage,
-      unresolved: true,
-      topic: topic || 'other',
-    })
-    track('ai_unresolved', {
       intent,
       institutionId: opts.institutionId || undefined,
       topic,
-    })
-  } else if (opts.unresolved) {
-    track('ai_unresolved', {
-      intent,
-      institutionId: opts.institutionId || undefined,
-      topic,
-    })
-  } else {
-    track('ai_resolved', {
-      intent,
-      institutionId: opts.institutionId || undefined,
     })
   }
-
-  if (opts.resolutionClosed) {
+  if (opts.unresolved || unknown) {
+    track('ai_unresolved', {
+      intent,
+      institutionId: opts.institutionId || undefined,
+      topic,
+    })
+  } else if (opts.resolutionClosed) {
     track('ai_resolution_closed', {
       intent,
       institutionId: opts.institutionId || undefined,
@@ -258,7 +250,10 @@ export function trackAiQuestion(opts: {
   }
 }
 
-export function trackFeedback(vote: 'up' | 'down', opts?: { intent?: string | null; institutionId?: string | null }) {
+export function trackFeedback(
+  vote: 'up' | 'down',
+  opts?: { intent?: string | null; institutionId?: string | null },
+) {
   track(vote === 'up' ? 'ai_feedback_up' : 'ai_feedback_down', {
     intent: opts?.intent || undefined,
     institutionId: opts?.institutionId || undefined,
@@ -266,12 +261,20 @@ export function trackFeedback(vote: 'up' | 'down', opts?: { intent?: string | nu
   })
 }
 
+export function trackPageView(path?: string) {
+  track('page_view', { path: path || (typeof location !== 'undefined' ? location.pathname : '/') })
+}
+
+export function trackSessionStart() {
+  track('session_start')
+}
+
 export function trackFaqOpen(faqId: string) {
   track('faq_open', { faqId, feature: 'faq' })
 }
 
-export function trackFeature(feature: string, path?: string) {
-  track('feature_use', { feature, path })
+export function trackFeature(feature: string, meta?: Record<string, string | number | boolean | null>) {
+  track('feature_use', { feature, meta })
 }
 
 export function trackInstitution(institutionId: string) {
