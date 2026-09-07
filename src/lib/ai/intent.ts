@@ -82,7 +82,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'school-fees',
-    re: /school\s*fees|institutional\s*charges|will\s*nelfund\s*pay|pay\s*(my\s*)?fees|does\s*nelfund\s*pay\s*(school|fees)|apply\s*for\s*(school\s*)?fees|fees\s*and\s*(upkeep|allowance)|help\s*(me\s*)?(with\s*)?(school\s*)?fees|about\s*(school\s*)?fees|\bfees\b/i,
+    re: /school\s*fees|institutional\s*charges|institutional\s*charge|will\s*nelfund\s*pay|pay\s*(my\s*)?fees|does\s*nelfund\s*pay\s*(school|fees)|apply\s*for\s*(school\s*)?fees|fees\s*and\s*(upkeep|allowance)|help\s*(me\s*)?(with\s*)?(school\s*)?fees|about\s*(school\s*)?fees|\bfees\b|how\s*much\s*(is\s*)?(institutional|school)/i,
     problem: 'School fees payment',
     stage: 'exploring',
     troubleshooting: false,
@@ -100,7 +100,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'eligibility',
-    re: /eligib|can\s*i\s*apply|am\s*i\s*(eligible|qualified)|who\s*can\s*apply|qualify\s*(for\s*)?(student\s*)?loan|cgpa|disqualif|who\s*(cannot|can'?t)\s*apply|ineligib|100\s*-?\s*level|\d{2,3}\s*-?\s*level|year\s*(one|1|two|2)|fresher|freshman|as\s*(an?\s*)?(\d{2,3}\s*-?\s*level|new\s*student|undergraduate)|new\s*student\s*(can|apply)|can\s*(a\s*)?(100|new)|apply\s*as\s*(a\s*)?(100|fresher|new)|polytechnic\s*students?\s*(can|apply)|can\s*polytechnic/i,
+    re: /eligib|can\s*i\s*apply|am\s*i\s*(eligible|qualified)|who\s*can\s*apply|qualify\s*(for\s*)?(student\s*)?loan|cgpa|disqualif|who\s*(cannot|can'?t)\s*apply|ineligib|100\s*-?\s*level|\d{2,3}\s*-?\s*level|year\s*(one|1|two|2)|fresher|freshman|as\s*(an?\s*)?(\d{2,3}\s*-?\s*level|new\s*student|undergraduate)|new\s*student\s*(can|apply)|can\s*(a\s*)?(100|new)|apply\s*as\s*(a\s*)?(100|fresher|new)|polytechnic\s*students?\s*(can|apply)|can\s*polytechnic|part\s*-?\s*time|full\s*-?\s*time|hnd\s*student|direct\s*entry|deferred?\s*(my\s*)?admission|repeating\s*(a\s*)?year|industrial\s*training|on\s*(my\s*)?IT\b|SIWES|graduated\s*already|sandwich/i,
     problem: 'Eligibility',
     stage: 'exploring',
     troubleshooting: false,
@@ -118,7 +118,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'portal-login',
-    re: /\blogin\b|log\s*in|loggin'?g\s*in|loggin'?g\s*into|sign\s*in|forgot\s*(my\s*)?password|reset\s*(my\s*)?password|password\s*(not\s*work|reset|issue)|can.?t\s*(login|log\s*in)|portal\s*link|where\s*(i\s*)?(go|enter|open)\s*(the\s*)?(portal|site)|existing\s*(account|application)|already\s*(have|created)\s*(an?\s*)?account|which\s*(website|site|link|url)|official\s*(website|site|portal|link)|how\s*(to|do\s*i)\s*(enter|access)\s*(the\s*)?portal|link\s*(for\s*)?(to\s*)?(loggin'?g\s*in|login|log\s*in)|link\s*to\s*apply|where\s*to\s*register|continue\s*(my\s*)?application|portal\s*stuck|stuck\s*on\s*(the\s*)?portal|account\s*suspend|suspend(ed)?\s*(account|my)|unable\s*to\s*(log|sign)|cannot\s*(log|sign)/i,
+    re: /\blogin\b|log\s*in|loggin'?g\s*in|loggin'?g\s*into|sign\s*in|forgot\s*(my\s*)?password|reset\s*(my\s*)?password|password\s*(not\s*work|reset|issue)|can.?t\s*(login|log\s*in)|portal\s*link|where\s*(i\s*)?(go|enter|open)\s*(the\s*)?(portal|site)|existing\s*(account|application)|already\s*(have|created)\s*(an?\s*)?account|which\s*(website|site|link|url)|official\s*(website|site|portal|link)|how\s*(to|do\s*i)\s*(enter|access)\s*(the\s*)?portal|link\s*(for\s*)?(to\s*)?(loggin'?g\s*in|login|log\s*in)|link\s*to\s*apply|where\s*to\s*register|continue\s*(my\s*)?application|portal\s*stuck|stuck\s*on\s*(the\s*)?portal|account\s*suspend|suspend(ed)?\s*(account|my)|unable\s*to\s*(log|sign)|cannot\s*(log|sign)|page\s*keeps?\s*loading|blank\s*(white\s*)?screen|captcha|session\s*expired|white\s*screen|keeps?\s*loading/i,
     problem: 'Official link to login',
     stage: 'applying',
     troubleshooting: false,
@@ -127,7 +127,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'institution-verification',
-    re: /institutional\s*verif|school\s*verif|verif.*(institution|school)|data\s*(been\s*)?uploaded|uploaded\s*(to\s*)?(nelfund|portal)|school\s*(has\s*)?uploaded|know\s*if\s*(my\s*)?(data|record|school).{0,40}upload|my\s*school\s*(never|no)\s*upload|school\s*data\s*no\s*upload|data\s*no\s*upload|no\s*upload|never\s*upload|upload\s*(my\s*)?(data|record)/i,
+    re: /institutional\s*verif|school\s*verif|verif.*(institution|school)|data\s*(been\s*)?uploaded|uploaded\s*(to\s*)?(nelfund|portal)|school\s*(has\s*)?uploaded|know\s*if\s*(my\s*)?(data|record|school).{0,40}upload|my\s*school\s*(never|no)\s*upload|school\s*data\s*no\s*upload|data\s*no\s*upload|no\s*upload|never\s*upload|upload\s*(my\s*)?(data|record)|school\s*(has\s*)?not\s*confirm|school\s*confirmation|not\s*confirm(ed)?/i,
     problem: 'Institution upload status',
     stage: 'waiting',
     troubleshooting: true,
@@ -145,7 +145,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'jamb-verification',
-    re: /jamb.*(not|isn'?t|no|keep|reject|invalid|fail|accept|work|go|verif|profile|format|number|reg)|(not|isn'?t|no|keep|reject|invalid|fail).*jamb|no\s*dey\s*accept\s*my\s*jamb|jamb.*(no\s*dey|won'?t)|problem\s*with\s*(my\s*)?jamb|jamb\s*issue|verify\s*(my\s*)?jamb|jamb\s*profile|invalid\s*jamb|enter\s*(my\s*)?jamb/i,
+    re: /jamb.*(not|isn'?t|no|keep|reject|invalid|fail|accept|work|go|verif|profile|format|number|reg)|(not|isn'?t|no|keep|reject|invalid|fail).*jamb|no\s*dey\s*accept\s*my\s*jamb|jamb.*(no\s*dey|won'?t)|problem\s*with\s*(my\s*)?jamb|jamb\s*issue|verify\s*(my\s*)?jamb|jamb\s*profile|invalid\s*jamb|enter\s*(my\s*)?jamb|name\s*(is\s*)?(different|wrong|mismatch).*jamb|jamb.*name\s*(different|wrong|mismatch)|date\s*of\s*birth\s*(wrong|mismatch|different)|dob\s*(wrong|mismatch)|e\s*no\s*gree\s*verify/i,
     problem: 'JAMB verification',
     stage: 'applying',
     troubleshooting: true,
@@ -199,7 +199,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'pending-application',
-    re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*under\s*review|not\s*yet\s*approv|approval\s*status|e\s*still\s*dey\s*pending|still\s*(waiting|processing)|nothing\s*is\s*happening|nothing\s*dey\s*happen|status\s*no\s*dey\s*change|after\s*i\s*submitted|check\s*(my\s*)?(application\s*)?status|my\s*application\s*status|wetin\s*be\s*(the\s*)?status|how\s*far\s*(with\s*)?(my\s*)?(application|loan)|has\s*(my\s*)?(application|loan)\s*been\s*approv/i,
+    re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*under\s*review|not\s*yet\s*approv|approval\s*status|e\s*still\s*dey\s*pending|still\s*(waiting|processing)|nothing\s*is\s*happening|nothing\s*dey\s*happen|status\s*no\s*dey\s*change|after\s*i\s*submitted|check\s*(my\s*)?(application\s*)?status|my\s*application\s*status|wetin\s*be\s*(the\s*)?status|how\s*far\s*(with\s*)?(my\s*)?(application|loan)|has\s*(my\s*)?(application|loan)\s*been\s*approv|wetin\s*dey\s*happen|no\s*response|submitted\s*but|still\s*dey\s*loading|since\s*last\s*year|nothing\s*(since|happen)/i,
     problem: 'Application still pending',
     stage: 'waiting',
     troubleshooting: true,
@@ -217,7 +217,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'upkeep',
-    re: /\bupkeep\b|how\s*much.*(allowance|monthly|upkeep|20k|20000)|20,?000|monthly\s*allowance|get\s*(the\s*)?20k|when\s*will\s*(i\s*)?(get|receive|the\s*money).*(money|upkeep|allowance|20k|enter|account)?|when\s*will\s*the\s*money\s*enter|disburse|money\s*(never|no)\s*(enter|come)|dem\s*never\s*pay|have\s*(they|dem)\s*pay|wetin\s*be\s*upkeep/i,
+    re: /\bupkeep\b|how\s*much.*(allowance|monthly|upkeep|20k|20000)|20,?000|monthly\s*allowance|get\s*(the\s*)?20k|when\s*will\s*(i\s*)?(get|receive|the\s*money).*(money|upkeep|allowance|20k|enter|account)?|when\s*will\s*the\s*money\s*enter|disburse|money\s*(never|no)\s*(enter|come)|dem\s*never\s*pay|have\s*(they|dem)\s*pay|wetin\s*be\s*upkeep|successful\s*but\s*no\s*money|approved\s*but\s*(no|not)\s*(money|paid|pay)|no\s*money\s*(yet|enter)/i,
     problem: 'Upkeep allowance',
     stage: 'exploring',
     troubleshooting: false,
@@ -253,7 +253,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'profile-update',
-    re: /edit\s*(my\s*)?(profile|account|information)|update\s*(my\s*)?(profile|account|details)|change\s*(my\s*)?(name|details|information|bank)/i,
+    re: /edit\s*(my\s*)?(profile|account|information)|update\s*(my\s*)?(profile|account|details)|change\s*(my\s*)?(name|details|information|bank|course)|change\s*of\s*course/i,
     problem: 'Update profile',
     stage: 'applying',
     troubleshooting: true,
@@ -271,7 +271,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'how-to-apply',
-    re: /how\s*(do\s*i|to)\s*apply|application\s*steps?|start\s*(my\s*)?application|register\s*(for|on)\s*nelfund|fill\s*(my\s*)?(information|application|form)|new\s*application|how\s*(does|do)\s*(nelfund|it)\s*work|how\s*to\s*register|steps?\s*to\s*apply|create\s*(an?\s*)?account|create\s*(?:[\w']+\s+){0,3}account|account\s*creation|sign\s*up|i\s*want\s*to\s*apply|help\s*me\s*apply|abeg\s*how\s*(i\s*)?(go|to)\s*apply/i,
+    re: /how\s*(do\s*i|to)\s*apply|application\s*steps?|start\s*(my\s*)?application|register\s*(for|on)\s*nelfund|fill\s*(my\s*)?(information|application|form)|new\s*application|how\s*(does|do)\s*(nelfund|it)\s*work|how\s*to\s*register|steps?\s*to\s*apply|create\s*(an?\s*)?account|create\s*(?:[\w']+\s+){0,3}account|account\s*creation|sign\s*up|i\s*want\s*to\s*apply|help\s*me\s*apply|abeg\s*how\s*(i\s*)?(go|to)\s*apply|make\s*una\s*help|frustrate\s*me|help\s*me\s*(abeg|please)|abeg\s*help/i,
     problem: 'How to apply',
     stage: 'preparing',
     troubleshooting: false,
@@ -307,7 +307,7 @@ const RULES: Rule[] = [
   },
   {
     intent: 'contact-support',
-    re: /official\s*email|nelfund\s*(support\s*)?email|email\s*of\s*nelfund|support\s*email|nelfund\s*support|contact\s*(nelfund|support)|customer\s*(care|service)|helpline|esupport|open\s*(a\s*)?ticket/i,
+    re: /official\s*email|nelfund\s*(support\s*)?email|email\s*of\s*nelfund|support\s*email|nelfund\s*support|contact\s*(nelfund|support)|customer\s*(care|service)|helpline|esupport|open\s*(a\s*)?ticket|ticket\s*(no|not)\s*reply|how\s*long\s*(does\s*)?support|support\s*(take|reply|respond)/i,
     problem: 'Contact NELFUND support',
     stage: 'unknown',
     troubleshooting: false,
