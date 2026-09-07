@@ -311,11 +311,11 @@ export async function processUserTurn(opts: {
   }
 
   if (!ocr && rawUser && isGreeting(rawUser)) {
-    return finalize(userMsg, { ...opts.slots }, opts.slots.intent || 'unknown', greetingReply(), 'conversation')
+    return finalize(userMsg, { ...opts.slots }, 'official-sources', greetingReply(), 'conversation')
   }
 
   if (!ocr && rawUser && isOffTopic(rawUser)) {
-    return finalize(userMsg, { ...opts.slots }, opts.slots.intent || 'unknown', offTopicReply(), 'conversation')
+    return finalize(userMsg, { ...opts.slots }, 'official-sources', offTopicReply(), 'conversation')
   }
 
   // Early factual route: never show troubleshooting menu for clear knowledge questions
@@ -337,7 +337,6 @@ export async function processUserTurn(opts: {
       ) ||
         early.length > 80)
     ) {
-      // Prefer the classified intent — never discard school-not-found / pending / jamb etc.
       let intentGuess: IntentId =
         earlyIntent !== 'unknown' ? earlyIntent : opts.slots.intent || 'unknown'
       if (intentGuess === 'unknown') {
@@ -509,7 +508,6 @@ export async function processUserTurn(opts: {
     })
   }
 
-  // Fallback path continues via answerQuestion / playbook
   const pb = playbookAnswer(intent, {
     institutionName: slots.institutionName,
     problemSummary: slots.problemSummary,
