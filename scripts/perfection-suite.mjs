@@ -252,6 +252,16 @@ for (const q of ['pls help', 'sir', 'hmm', 'okay thanks']) {
   const intent = r.messages.find((m) => m.role === 'assistant')?.answer?.intent
   check(`soft-greet-not-unknown-${q.replace(/\s+/g, '_')}`, intent && intent !== 'unknown', `got ${intent}`)
 }
+const moreSoft = [
+  ['school list no complete', 'school-not-found'],
+  ['private uni nelfund', 'eligibility'],
+  ['I no get BVN', 'bank-information'],
+  ['apply for my brother', 'how-to-apply'],
+]
+for (const [q, expect] of moreSoft) {
+  const c = classifyIntent(q)
+  check(`moresoft-${expect}-${q.slice(0, 14).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
+}
 
 const combos = [
   ['', 'Invalid jamb number format e.g 0000 00AA'],
