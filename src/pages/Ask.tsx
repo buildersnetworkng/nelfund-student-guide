@@ -13,12 +13,16 @@ import { AnswerCards } from '../components/AnswerCards'
 import { LinkifiedText } from '../components/LinkifiedText'
 import { trackAiQuestion, trackFeedback } from '../lib/analytics'
 
+// Driven by production unknown topics + top intents (admin analytics)
 const SUGGESTIONS = [
   'My NELFUND application is pending',
-  'My school is not showing on the portal',
+  "It's showing invalid JAMB number",
   "I'm seeing Missing Information",
+  'Is NELFUND currently open?',
   'How do I apply for NELFUND?',
-  'The portal is not accepting my JAMB number',
+  'My school is not showing on the portal',
+  'When do I start repayment?',
+  'How do I log in to NELFUND?',
 ]
 
 export default function Ask() {
@@ -125,7 +129,6 @@ export default function Ask() {
       imagePreview = URL.createObjectURL(file)
       try {
         const ocr = await extractTextFromImage(file)
-        // Keep any readable OCR — even low confidence — so screen analysis can run
         ocrText = ocr.text && ocr.text.trim().length >= 8 ? ocr.text : null
       } catch {
         ocrText = null
@@ -178,7 +181,7 @@ export default function Ask() {
       isNewConversation: !hadUserMessage,
       resolutionClosed,
       escalationFired,
-      userText: text,
+      userText: text || (ocrText ? ocrText.slice(0, 200) : null),
     })
 
     setSlots(nextSlots)
@@ -381,13 +384,14 @@ export default function Ask() {
               </p>
             )}
             <div className="mt-8 flex flex-wrap justify-center gap-2">
-              {SUGGESTIONS.map((s) => (
+              {SUGGESTIONS.map((s, i) => (
                 <button
                   key={s}
                   type="button"
                   disabled={busy}
                   onClick={() => void handleTurn(s)}
-                  className="rounded-full border border-forest-100 bg-white px-3.5 py-2 text-left text-xs font-medium text-ink/75 shadow-sm transition hover:border-forest-300 hover:text-ink sm:text-sm"
+                  className="chip-in rounded-full border border-forest-100 bg-white px-3.5 py-2 text-left text-xs font-medium text-ink/75 shadow-sm transition hover:border-forest-300 hover:bg-forest-50 hover:text-ink hover:shadow-md active:scale-[0.98] sm:text-sm"
+                  style={{ animationDelay: `${80 + i * 45}ms` }}
                 >
                   {s}
                 </button>
@@ -397,7 +401,7 @@ export default function Ask() {
         ) : (
           <div className="mx-auto max-w-2xl space-y-5 px-4 py-6 sm:px-6">
             {messages.map((m) => (
-              <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
+              <div key={m.id} className={`msg-in ${m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}`}>
                 <div
                   className={
                     m.role === 'user'
@@ -455,9 +459,16 @@ export default function Ask() {
               </div>
             ))}
             {busy && (
-              <div className="flex justify-start">
+              <div className="msg-in flex justify-start">
                 <div className="rounded-2xl rounded-bl-md border border-forest-100 bg-white px-3.5 py-2.5 text-sm text-ink/55 shadow-sm">
-                  {busyLabel}
+                  <span className="inline-flex items-center gap-2">
+                    <span className="typing-dots" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                    <span>{busyLabel}</span>
+                  </span>
                 </div>
               </div>
             )}
