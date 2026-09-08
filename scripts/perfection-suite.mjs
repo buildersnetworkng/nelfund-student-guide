@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** NELFUND AI perfection suite — admin-driven. Run: npx tsx scripts/perfection-suite.mjs */
+/** NELFUND AI perfection suite. Run: npx tsx scripts/perfection-suite.mjs */
 import { processUserTurn, createInitialSlots } from '../src/lib/ai/processTurn.ts'
 import { understandPortalText } from '../src/lib/ai/screenshotUnderstand.ts'
 import { classifyIntent } from '../src/lib/ai/intent.ts'
@@ -210,6 +210,28 @@ const broadResidual = [
 for (const [q, expect] of broadResidual) {
   const c = classifyIntent(q)
   check(`broad-intent-${expect}-${q.slice(0, 16).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
+}
+
+const deepResidual = [
+  ['abeg wetin be the next step', 'how-to-apply'],
+  ['I don try several times', 'pending-application'],
+  ['I need money for accommodation', 'upkeep'],
+  ['I am postgraduate student', 'eligibility'],
+  ['I am distance learning', 'eligibility'],
+  ['I changed bank after apply', 'bank-information'],
+  ['application is on hold', 'pending-application'],
+  ['why is my application on hold', 'pending-application'],
+  ['processing for 6 months', 'pending-application'],
+  ['do I need birth certificate', 'documents-needed'],
+  ['statement of result enough?', 'documents-needed'],
+  ['portal problem', 'portal-login'],
+  ['help with application', 'how-to-apply'],
+  ['MSc can I apply', 'eligibility'],
+  ['PhD student eligible?', 'eligibility'],
+]
+for (const [q, expect] of deepResidual) {
+  const c = classifyIntent(q)
+  check(`deep-intent-${expect}-${q.slice(0, 16).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
 }
 
 const combos = [
