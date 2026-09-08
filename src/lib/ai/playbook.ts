@@ -86,7 +86,7 @@ function clusterAnswer(key: string, ctx: PlaybookContext): string | null {
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   const intentForAnswer = intent
   if (intentForAnswer === 'eligibility') {
-    return eligibilityAnswer(ctx.userText || '')
+    return eligibilityAnswer({ userText: ctx.userText || '' })
   }
   if (intentForAnswer === 'nelfund-history') return clusterAnswer('history', ctx)
   if (intentForAnswer === 'nelfund-purpose') return clusterAnswer('purpose', ctx)
