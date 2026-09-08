@@ -6,11 +6,14 @@ import InstitutionSelect from '../components/InstitutionSelect'
 import { QuickActionCard } from '../components/Card'
 import { getCurrentAcademicCycle } from '../lib/academicCycle'
 
+// Driven by production top pages + unknown topics (admin analytics)
 const PROBLEM_SHORTCUTS = [
-  { to: '/ask', label: 'Missing information' },
-  { to: '/ask', label: 'JAMB number rejected' },
-  { to: '/ask', label: 'School not showing' },
   { to: '/ask', label: 'Application pending' },
+  { to: '/ask', label: 'Invalid JAMB number' },
+  { to: '/ask', label: 'Is NELFUND open?' },
+  { to: '/ask', label: 'Missing information' },
+  { to: '/ask', label: 'School not showing' },
+  { to: '/ask', label: 'How to apply' },
 ]
 
 function useReveal() {
@@ -48,7 +51,7 @@ function RevealSection({
 }) {
   const ref = useReveal()
   return (
-    <section id={id} ref={ref} className={`reveal ${className}`}>
+    <section ref={ref} id={id} className={`reveal ${className}`}>
       {children}
     </section>
   )
@@ -58,23 +61,21 @@ export default function Home() {
   const location = useLocation()
 
   useEffect(() => {
-    if (location.hash === '#institution') {
-      document.getElementById('institution')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (location.hash) {
+      const id = location.hash.slice(1)
+      const el = document.getElementById(id)
+      if (el) {
+        requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+      }
     }
   }, [location.hash])
 
   return (
-    <div className="pb-2">
-      <section
-        className="relative overflow-hidden pb-16 pt-10 sm:pt-14"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 60% at 90% -10%, rgba(200,155,60,0.12), transparent 55%), radial-gradient(ellipse 70% 50% at 0% 100%, rgba(46,130,89,0.35), transparent 50%), linear-gradient(165deg, #0a3a24 0%, #0f5132 42%, #1e6b45 100%)',
-        }}
-      >
+    <div className="pb-16">
+      <section className="relative overflow-hidden bg-forest-900 pb-16 pt-10 sm:pb-20 sm:pt-14">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-gold-500/15 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-gold-500/20 blur-3xl"
         />
         <div
           aria-hidden
@@ -158,61 +159,56 @@ export default function Home() {
                 Ask support
               </p>
               <p className="mt-1 text-sm leading-relaxed text-ink/60">
-                Describe the issue in your own words, attach a screenshot, and get step-by-step help.
+                Describe the issue in your own words, or upload a portal screenshot for guided next
+                steps.
               </p>
             </div>
           </Link>
 
-          <Link to="/troubleshooting" className="card-interactive flex items-start gap-4 p-5">
-            <span
-              aria-hidden
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gold-100 text-lg"
-            >
-              ⚠
-            </span>
-            <div>
-              <p className="font-display text-base font-semibold text-ink">Common problems</p>
-              <p className="mt-1 text-sm leading-relaxed text-ink/60">
-                Missing records, school not listed, pending applications, and portal errors.
-              </p>
-            </div>
+          <QuickActionCard
+            to="/troubleshooting"
+            title="Troubleshooting"
+            description="Common portal errors and how students usually resolve them."
+          />
+          <QuickActionCard
+            to="/apply"
+            title="How to apply"
+            description="Official steps, links, and what you need before you start."
+          />
+          <QuickActionCard
+            to="/readiness"
+            title="Am I ready?"
+            description="Quick checklist before you open the portal."
+          />
+        </div>
+      </RevealSection>
+
+      <RevealSection className="container-page mt-12">
+        <h2 className="section-title">Also useful</h2>
+        <p className="section-sub">Fees, upkeep, FAQs, and verified videos.</p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Link to="/fees" className="tag">
+            Fees
+          </Link>
+          <Link to="/upkeep" className="tag">
+            Upkeep
+          </Link>
+          <Link to="/faq" className="tag">
+            FAQ
+          </Link>
+          <Link to="/videos" className="tag">
+            Videos
+          </Link>
+          <Link to="/sources" className="tag">
+            Official sources
+          </Link>
+          <Link to="/ask" className="tag">
+            Ask support
           </Link>
         </div>
       </RevealSection>
 
-      <RevealSection className="container-page mt-12">
-        <h2 className="section-title">Explore the guide</h2>
-        <p className="section-sub">Verified information for every stage of the process.</p>
-
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <QuickActionCard to="/apply" icon="📝" title="How to apply" description="Clear steps from start to submit." />
-          <QuickActionCard to="/readiness" icon="✓" title="Am I ready?" description="Quick checklist before you apply." />
-          <QuickActionCard to="/fees" icon="₦" title="School fees" description="How institutional charges work." />
-          <QuickActionCard to="/upkeep" icon="↗" title="Upkeep" description="What the allowance covers." />
-          <QuickActionCard to="/faq" icon="?" title="FAQs" description="Short answers to common questions." />
-          <QuickActionCard to="/videos" icon="▶" title="Videos" description="Tutorials organised by topic." />
-        </div>
-      </RevealSection>
-
-      <RevealSection className="container-page mt-12">
-        <div className="card border-forest-100 bg-forest-50/60">
-          <p className="text-sm font-semibold text-forest-700">Built for trust</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-ink/70">
-            Answers are grounded in verified NELFUND information and official sources. Changing details
-            are labelled clearly. Always confirm critical dates on the official portal before you act.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link to="/sources" className="chip">
-              Official links
-            </Link>
-            <Link to="/ask" className="chip">
-              Ask support
-            </Link>
-          </div>
-        </div>
-      </RevealSection>
-
-      <RevealSection className="container-page mt-8 pb-8">
+      <RevealSection className="container-page mt-14">
         <StaySafe />
       </RevealSection>
     </div>
