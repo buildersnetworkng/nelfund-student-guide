@@ -265,6 +265,18 @@ for (const [q, expect] of moreSoft) {
   check(`moresoft-${expect}-${q.slice(0, 14).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
 }
 
+const ultraSoft = [
+  ['help me', null],
+  ['portal', 'portal-login'],
+  ['nothing has changed on my status', 'pending-application'],
+  ['has the portal opened for 2026', 'current-information'],
+]
+for (const [q, expect] of ultraSoft) {
+  const c = classifyIntent(q)
+  if (expect) check(`ultra-${expect}-${q.slice(0, 14).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
+  else check(`ultra-not-unknown-${q.replace(/\s+/g, '_')}`, c.intent !== 'unknown', `got ${c.intent}`)
+}
+
 const combos = [
   ['', 'Invalid jamb number format e.g 0000 00AA'],
   ['fix it', 'Jamb Profile Verification\nInvalid jamb number format'],
