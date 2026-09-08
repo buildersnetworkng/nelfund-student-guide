@@ -257,6 +257,8 @@ const moreSoft = [
   ['private uni nelfund', 'eligibility'],
   ['I no get BVN', 'bank-information'],
   ['apply for my brother', 'how-to-apply'],
+  ['my portal showing 0 loans', 'current-information'],
+  ['ticket not responding', 'contact-support'],
 ]
 for (const [q, expect] of moreSoft) {
   const c = classifyIntent(q)
