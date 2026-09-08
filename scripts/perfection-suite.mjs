@@ -234,6 +234,25 @@ for (const [q, expect] of deepResidual) {
   check(`deep-intent-${expect}-${q.slice(0, 16).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
 }
 
+const softResidual = [
+  ['abeg open the portal', 'current-information'],
+  ['dem don open?', 'current-information'],
+  ['e no gree me', 'missing-information'],
+  ['I wan apply for loan', 'how-to-apply'],
+  ['UNILAG not on the list', 'school-not-found'],
+  ['loan status', 'pending-application'],
+  ['application status please', 'pending-application'],
+]
+for (const [q, expect] of softResidual) {
+  const c = classifyIntent(q)
+  check(`soft-intent-${expect}-${q.slice(0, 16).replace(/\s+/g, '_')}`, c.intent === expect, `got ${c.intent}`)
+}
+for (const q of ['pls help', 'sir', 'hmm', 'okay thanks']) {
+  const { r } = await asst(q)
+  const intent = r.messages.find((m) => m.role === 'assistant')?.answer?.intent
+  check(`soft-greet-not-unknown-${q.replace(/\s+/g, '_')}`, intent && intent !== 'unknown', `got ${intent}`)
+}
+
 const combos = [
   ['', 'Invalid jamb number format e.g 0000 00AA'],
   ['fix it', 'Jamb Profile Verification\nInvalid jamb number format'],
