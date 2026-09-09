@@ -1,15 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="NELFUND Support">
-  <defs>
-    <linearGradient id="gai" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0A5C36"/>
-      <stop offset="100%" stop-color="#063D24"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="16" fill="url(#gai)"/>
-  <path fill="#FFFFFF" d="M14 20c0-4.4 3.6-8 8-8h20c4.4 0 8 3.6 8 8v16c0 4.4-3.6 8-8 8H30l-10 9v-9h0c-4.4 0-8-3.6-8-8V20Z"/>
-  <circle cx="26" cy="28" r="3" fill="#0A4F2E"/>
-  <circle cx="32" cy="28" r="3" fill="#0A4F2E"/>
-  <circle cx="38" cy="28" r="3" fill="#0A4F2E"/>
-  <rect x="40" y="42" width="16" height="16" rx="5" fill="#C4A35A"/>
-  <path fill="#0A4F2E" d="M43.2 45.2h3.2L50.8 53V45.2H54V56h-3.2L46.4 48.2V56h-3.2V45.2Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="NELFUND">
+  <rect width="512" height="512" rx="108" fill="#0A4F2E"/>
+  <path fill="#FFFFFF" d="M80 350c45-50 105-70 176-70s131 20 176 70v58c-48-38-105-52-176-52s-128 14-176 52v-58z"/>
+  <path fill="#FFFFFF" fill-rule="nonzero" d="
+    M115 115
+    h72
+    v155
+    L305 115
+    h72
+    v55
+    h-36
+    v40
+    L420 115
+    h55
+    v95
+    h-40
+    v55
+    L335 365
+    h-72
+    v-95
+    L187 365
+    h-72
+    V115
+    z
+  "/>
 </svg>
