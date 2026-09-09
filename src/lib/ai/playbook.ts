@@ -1,6 +1,7 @@
 /**
  * NELFUND AI answer playbook — verified reply clusters for student goals.
  * FG hardened: history, eligibility, Pidgin, school-not-found, YouTube, safety.
+ * Always returns an answer — never null silence for residual / unknown intents.
  */
 
 import type { IntentId } from './types'
@@ -130,7 +131,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intentForAnswer === 'readiness') {
     return `**Before you apply**\n\n• School listed and record uploaded\n• JAMB + NIN consistent\n• Bank / BVN ready\n• Apply only on ${PORTAL}\n\nChecklist guide also lives on this site under Readiness.`
   }
-  return null
+  // Always answer — never leave the student with null / unknown silence
+  if (intentForAnswer === 'unknown' || !intentForAnswer) {
+    return `**I can help with NELFUND**\n\nTell me what you need in one short sentence, for example:\n• How to apply or log in\n• Missing information / school not showing\n• Pending application status\n• JAMB / NIN / BVN issues\n• Upkeep or repayment\n• Draft an email to my school\n\n**Official links**\n• Portal: ${PORTAL}\n• Website: ${SITE}\n• Support: ${ESUPPORT}\n\nI only answer from official NELFUND process guidance — not WhatsApp agents.`
+  }
+  return `**NELFUND guidance**\n\nUse the official portal and site for your live status:\n• ${PORTAL}\n• ${SITE}\n• Support tickets: ${ESUPPORT}\n\nIf you share the exact portal message, your school name, or what you are trying to do (apply, fix missing info, check pending status), I will give the next step.`
 }
 
 export function isNearDuplicate(prev: string, next: string): boolean {
