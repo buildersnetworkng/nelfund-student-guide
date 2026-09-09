@@ -44,6 +44,13 @@
     @apply rounded-2xl border border-forest-100 bg-white p-4 shadow-sm transition duration-200 ease-out hover:-translate-y-0.5 hover:border-forest-300 hover:shadow-md;
   }
 
+  .surface-elevated {
+    @apply rounded-2xl border border-forest-100/80 bg-white shadow-[0_8px_30px_rgb(10,77,46,0.06)] transition duration-200;
+  }
+  .surface-elevated:hover {
+    @apply shadow-[0_12px_36px_rgb(10,77,46,0.09)];
+  }
+
   .nav-link {
     @apply inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-forest-700 transition hover:bg-forest-50 hover:text-forest-900;
   }
@@ -66,6 +73,13 @@
 
   .tag {
     @apply inline-flex items-center rounded-full border border-forest-100 bg-white px-3 py-1.5 text-xs font-medium text-forest-700 transition hover:border-forest-300 hover:text-forest-900;
+  }
+
+  .bubble-user {
+    @apply ml-auto max-w-[92%] rounded-2xl rounded-br-md bg-forest-800 px-4 py-2.5 text-sm text-paper shadow-sm;
+  }
+  .bubble-assistant {
+    @apply mr-auto max-w-[92%] rounded-2xl rounded-bl-md border border-forest-100 bg-white px-4 py-2.5 text-sm text-ink shadow-sm;
   }
 
   .hero-glow-a {
@@ -97,50 +111,27 @@
     transform: translateY(10px);
     animation: hero-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-  .hero-enter-1 {
-    animation-delay: 60ms;
-  }
-  .hero-enter-2 {
-    animation-delay: 140ms;
-  }
-  .hero-enter-3 {
-    animation-delay: 240ms;
-  }
-  .hero-enter-4 {
-    animation-delay: 340ms;
-  }
-  .hero-enter-5 {
-    animation-delay: 420ms;
-  }
+  .hero-enter-1 { animation-delay: 60ms; }
+  .hero-enter-2 { animation-delay: 140ms; }
+  .hero-enter-3 { animation-delay: 240ms; }
+  .hero-enter-4 { animation-delay: 340ms; }
+  .hero-enter-5 { animation-delay: 420ms; }
 
   .reveal {
     opacity: 0;
     transform: translateY(14px);
-    transition:
-      opacity 480ms cubic-bezier(0.22, 1, 0.36, 1),
-      transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 480ms cubic-bezier(0.22, 1, 0.36, 1), transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .reveal.is-visible {
     opacity: 1;
     transform: translateY(0);
   }
 
-  .fade-in {
-    animation: fade-in 280ms ease-out both;
-  }
-
-  .slide-up {
-    animation: slide-up 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  .msg-in {
-    animation: msg-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  .chip-in {
-    opacity: 0;
-    animation: chip-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
+  .fade-in { animation: fade-in 280ms ease-out both; }
+  .slide-up { animation: slide-up 320ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .msg-in { animation: msg-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .chip-in { opacity: 0; animation: chip-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .soft-rise { animation: soft-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 
   .typing-dots {
     display: inline-flex;
@@ -155,109 +146,59 @@
     opacity: 0.35;
     animation: typing-bounce 1.1s ease-in-out infinite;
   }
-  .typing-dots span:nth-child(2) {
-    animation-delay: 0.15s;
-  }
-  .typing-dots span:nth-child(3) {
-    animation-delay: 0.3s;
-  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
 
-  .pulse-dot {
-    animation: pulse-dot 1.2s ease-in-out infinite;
-  }
+  .pulse-dot { animation: pulse-dot 1.2s ease-in-out infinite; }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .text-balance { text-wrap: balance; }
+}
+
+@keyframes soft-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.9);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1); }
 }
 
 @keyframes hero-enter {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes hero-drift {
-  from {
-    transform: translate(0, 0) scale(1);
-  }
-  to {
-    transform: translate(12px, -8px) scale(1.05);
-  }
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(12px, -8px) scale(1.05); }
 }
 
 @keyframes msg-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes chip-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes typing-bounce {
-  0%,
-  60%,
-  100% {
-    opacity: 0.3;
-    transform: translateY(0);
-  }
-  30% {
-    opacity: 1;
-    transform: translateY(-3px);
-  }
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -266,6 +207,7 @@
   .pulse-dot,
   .msg-in,
   .chip-in,
+  .soft-rise,
   .typing-dots span,
   .hero-enter,
   .hero-glow-a,
@@ -276,14 +218,8 @@
     transform: none !important;
   }
 
-  .hero-enter {
-    opacity: 1;
-  }
-
-  .chip-in {
-    opacity: 1;
-  }
-
+  .hero-enter { opacity: 1; }
+  .chip-in { opacity: 1; }
   .reveal {
     opacity: 1;
     transform: none;
