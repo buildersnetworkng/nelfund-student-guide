@@ -3,6 +3,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import StatusCard from '../components/StatusCard'
 import StaySafe from '../components/StaySafe'
 import InstitutionSelect from '../components/InstitutionSelect'
+import ShareGuide from '../components/ShareGuide'
 import { QuickActionCard } from '../components/Card'
 import { getCurrentAcademicCycle } from '../lib/academicCycle'
 
@@ -111,6 +112,7 @@ export default function Home() {
             >
               How to apply
             </Link>
+            <ShareGuide variant="hero" />
           </div>
 
           <div className="slide-up mt-6 flex flex-wrap gap-2">
@@ -205,6 +207,21 @@ export default function Home() {
           <Link to="/ask" className="tag">
             Ask support
           </Link>
+        </div>
+      </RevealSection>
+
+      <RevealSection className="container-page mt-14">
+        <div className="rounded-2xl border border-forest-100 bg-gradient-to-br from-forest-50 to-white p-5 sm:p-6">
+          <h2 className="font-display text-base font-semibold text-ink sm:text-lg">
+            Help a classmate
+          </h2>
+          <p className="mt-1 max-w-lg text-sm leading-relaxed text-ink/60">
+            Share the NELFUND Guide so other students can check readiness, apply correctly, and
+            troubleshoot portal issues before they get stuck.
+          </p>
+          <div className="mt-4">
+            <ShareGuide variant="button" />
+          </div>
         </div>
       </RevealSection>
 
