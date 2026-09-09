@@ -1,28 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="NELFUND">
-  <rect width="512" height="512" rx="108" fill="#0A4F2E"/>
-  <!-- Open book -->
-  <path fill="#FFFFFF" d="M80 350c45-50 105-70 176-70s131 20 176 70v58c-48-38-105-52-176-52s-128 14-176 52v-58z"/>
-  <!-- Continuous N with rising arrow (official mark) -->
-  <path fill="#FFFFFF" fill-rule="nonzero" d="
-    M115 115
-    h72
-    v155
-    L305 115
-    h72
-    v55
-    h-36
-    v40
-    L420 115
-    h55
-    v95
-    h-40
-    v55
-    L335 365
-    h-72
-    v-95
-    L187 365
-    h-72
-    V115
-    z
-  "/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="NELFUND">
+  <image width="128" height="128" href="data:image/png;base64,PLACEHOLDER"/>
 </svg>
