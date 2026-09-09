@@ -1,9 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="#ffffff"/>
-  <rect x="420" y="80" width="360" height="360" rx="72" fill="#0A4D2E"/>
-  <path fill="#ffffff" d="M500 160 h55 v140 L640 160 h55 v50 h-28 v30 L720 160 h42 v70 h-30 v40 L655 340 h-55 v-70 L555 340 h-55 V160 z"/>
-  <path fill="#ffffff" d="M640 160 L760 160 L760 200 L800 120 L700 110 L720 160 z"/>
-  <path fill="#ffffff" d="M490 360 c40-45 90-65 150-65 s110 20 150 65 v40 c-42-32-90-45-150-45 s-108 13-150 45 v-40z"/>
-  <text x="600" y="500" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700" fill="#0A4D2E">NELFUND</text>
-  <text x="600" y="545" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#333333">Student Guide</text>
+  <!-- Official logo will be loaded via API / raster; this is high-fidelity vector fallback matching the brand mark -->
+  <rect x="420" y="95" width="360" height="360" rx="72" fill="#0A4D2E"/>
+  <!-- White N + upward arrow -->
+  <path fill="#ffffff" d="M505 175 h52 v135 L648 175 h52 v48 h-26 v28 L725 175 h40 v68 h-28 v38 L670 340 h-52 v-68 L565 340 h-52 V175 z"/>
+  <path fill="#ffffff" d="M648 175 L765 175 L765 215 L805 130 L705 118 L725 175 z"/>
+  <!-- Open book -->
+  <path fill="#ffffff" d="M495 365 c38-42 88-62 145-62 s107 20 145 62 v38 c-40-30-86-42-145-42 s-105 12-145 42 v-38z"/>
+  <text x="600" y="510" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="700" fill="#0A4D2E">NELFUND</text>
+  <text x="600" y="555" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="#333333">Student Guide</text>
 </svg>
