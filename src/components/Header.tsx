@@ -23,7 +23,7 @@ export default function Header() {
             alt="NELFUND"
             width={36}
             height={36}
-            className="h-9 w-9 shrink-0 rounded-[10px] object-cover shadow-sm ring-1 ring-forest-900/10"
+            className="h-9 w-9 shrink-0 rounded-[10px] object-contain shadow-sm ring-1 ring-forest-900/10"
             aria-hidden="true"
             decoding="async"
           />
