@@ -213,5 +213,26 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'current-information', confidence: 0.42, topics: ['current'], problem: 'NELFUND guidance', stage: 'exploring', entities, isTroubleshooting: false }
   }
 
-  return { intent: 'unknown', confidence: 0.35, topics: [], problem: null, stage: 'unknown', entities, isTroubleshooting: false }
+  // Never emit pure unknown for non-empty student text.
+  const lower = q.toLowerCase()
+  if (/help|stuck|wahala|abeg|please|what|how|when|why|where|tell|explain|wetin|status|loan|school|student|portal|apply|money|pay/i.test(lower)) {
+    return {
+      intent: 'current-information',
+      confidence: 0.4,
+      topics: ['guidance'],
+      problem: 'General NELFUND guidance',
+      stage: 'exploring',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
+  return {
+    intent: 'official-sources',
+    confidence: 0.38,
+    topics: ['official'],
+    problem: 'Official NELFUND links',
+    stage: 'exploring',
+    entities,
+    isTroubleshooting: false,
+  }
 }
