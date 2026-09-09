@@ -20,10 +20,10 @@ export default function Header() {
         >
           <img
             src="/brand/logo.svg"
-            alt=""
+            alt="NELFUND"
             width={36}
             height={36}
-            className="h-9 w-9 shrink-0 rounded-xl shadow-sm ring-1 ring-forest-900/5"
+            className="h-9 w-9 shrink-0 rounded-[10px] object-cover shadow-sm ring-1 ring-forest-900/10"
             aria-hidden="true"
             decoding="async"
           />
