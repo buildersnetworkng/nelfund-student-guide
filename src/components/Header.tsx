@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import ShareGuide from './ShareGuide'
 
 const LINKS = [
   { to: '/', label: 'Home' },
@@ -55,12 +56,15 @@ export default function Header() {
           ))}
         </nav>
 
-        <NavLink
-          to="/ask"
-          className="inline-flex min-h-[38px] items-center justify-center rounded-full bg-forest-800 px-4 py-1.5 text-xs font-semibold text-paper shadow-sm transition duration-150 hover:bg-forest-900 hover:shadow-md active:scale-[0.98] sm:text-sm"
-        >
-          Ask support
-        </NavLink>
+        <div className="flex items-center gap-2">
+          <ShareGuide variant="icon" />
+          <NavLink
+            to="/ask"
+            className="inline-flex min-h-[38px] items-center justify-center rounded-full bg-forest-800 px-4 py-1.5 text-xs font-semibold text-paper shadow-sm transition duration-150 hover:bg-forest-900 hover:shadow-md active:scale-[0.98] sm:text-sm"
+          >
+            Ask support
+          </NavLink>
+        </div>
       </div>
     </header>
   )
