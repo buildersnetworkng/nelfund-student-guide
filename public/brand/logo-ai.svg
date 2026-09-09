@@ -1,26 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="NELFUND">
-  <rect width="512" height="512" rx="108" fill="#0A4F2E"/>
-  <path fill="#FFFFFF" d="M80 350c45-50 105-70 176-70s131 20 176 70v58c-48-38-105-52-176-52s-128 14-176 52v-58z"/>
-  <path fill="#FFFFFF" fill-rule="nonzero" d="
-    M115 115
-    h72
-    v155
-    L305 115
-    h72
-    v55
-    h-36
-    v40
-    L420 115
-    h55
-    v95
-    h-40
-    v55
-    L335 365
-    h-72
-    v-95
-    L187 365
-    h-72
-    V115
-    z
-  "/>
+  <rect width="512" height="512" rx="96" ry="96" fill="#0A4D2E"/>
+  <!-- Open book -->
+  <path fill="#FFFFFF" d="M88 355c48-55 110-78 168-78s120 23 168 78v52c-50-40-110-55-168-55s-118 15-168 55v-52z"/>
+  <!-- Left vertical of N -->
+  <rect x="110" y="95" width="70" height="230" fill="#FFFFFF"/>
+  <!-- Diagonal of N -->
+  <path fill="#FFFFFF" d="M180 95 L340 325 L270 325 L110 95 Z"/>
+  <!-- Right vertical rising to arrow base -->
+  <path fill="#FFFFFF" d="M270 325 L340 325 L340 160 L400 160 L400 95 L270 95 Z"/>
+  <!-- Arrow head -->
+  <path fill="#FFFFFF" d="M340 95 L445 95 L445 150 L490 55 L370 40 L400 95 Z"/>
 </svg>
