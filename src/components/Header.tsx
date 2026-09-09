@@ -17,7 +17,7 @@ export default function Header() {
       <div className="container-page flex h-14 items-center justify-between gap-2 sm:h-16 sm:gap-3">
         <NavLink
           to="/"
-          className="group flex min-w-0 items-center gap-2.5 font-display transition hover:opacity-95"
+          className="group flex min-w-0 flex-1 items-center gap-2 font-display transition hover:opacity-95 sm:gap-2.5"
         >
           <img
             src="/brand/logo.svg"
@@ -56,13 +56,15 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ShareGuide variant="icon" />
           <NavLink
             to="/ask"
-            className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-gold-500 px-3.5 py-2 text-xs font-bold text-ink shadow-md ring-1 ring-gold-700/20 transition duration-150 hover:bg-gold-300 hover:shadow-lg active:scale-[0.98] sm:min-h-[42px] sm:px-4 sm:text-sm"
+            className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-gold-500 px-3 py-2 text-xs font-bold text-forest-950 shadow-md ring-2 ring-gold-600/30 transition duration-150 hover:bg-gold-400 hover:shadow-lg active:scale-[0.98] sm:min-h-[42px] sm:px-4 sm:text-sm"
           >
-            Ask support
+            {/* Short label on very small screens, full on larger */}
+            <span className="xs:hidden sm:hidden">Ask</span>
+            <span className="hidden min-[360px]:inline">Ask support</span>
           </NavLink>
         </div>
       </div>
