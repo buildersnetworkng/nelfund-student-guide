@@ -1,13 +1,22 @@
 import { useCallback, useEffect, useId, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
-const SITE_URL = 'https://nelfund-student-guide.vercel.app/'
+/** Prefer live origin so share links match whatever domain the student is on */
+function getSiteUrl() {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/`
+  }
+  return 'https://nelfund-student-guide.vercel.app/'
+}
 
-/** Exact short write-up used when students share the guide */
-export const SHARE_TEXT =
-  '📌 NELFUND GUIDE\n' +
-  'Students are advised to go through the NELFUND Guide before taking any further steps regarding NELFUND.\n' +
-  'It provides key information and guidance for students at every stage of the process.\n' +
-  `🔗 ${SITE_URL}`
+function buildShareText(url: string) {
+  return (
+    '📌 NELFUND GUIDE\n' +
+    'Students are advised to go through the NELFUND Guide before taking any further steps regarding NELFUND.\n' +
+    'It provides key information and guidance for students at every stage of the process.\n' +
+    `🔗 ${url}`
+  )
+}
 
 const SHARE_TITLE = 'NELFUND Student Guide'
 
@@ -20,9 +29,9 @@ type Channel = {
   icon: ReactNode
 }
 
-function buildChannels(): Channel[] {
-  const encodedText = encodeURIComponent(SHARE_TEXT)
-  const encodedUrl = encodeURIComponent(SITE_URL)
+function buildChannels(siteUrl: string, shareText: string): Channel[] {
+  const encodedText = encodeURIComponent(shareText)
+  const encodedUrl = encodeURIComponent(siteUrl)
   const encodedTitle = encodeURIComponent(SHARE_TITLE)
 
   return [
@@ -140,10 +149,15 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState<'text' | 'link' | null>(null)
   const [canNative, setCanNative] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const titleId = useId()
-  const channels = buildChannels()
+
+  const siteUrl = getSiteUrl()
+  const shareText = buildShareText(siteUrl)
+  const channels = buildChannels(siteUrl, shareText)
 
   useEffect(() => {
+    setMounted(true)
     setCanNative(typeof navigator !== 'undefined' && typeof navigator.share === 'function')
   }, [])
 
@@ -163,38 +177,41 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
 
   const close = useCallback(() => setOpen(false), [])
 
-  const copy = useCallback(async (kind: 'text' | 'link') => {
-    const value = kind === 'text' ? SHARE_TEXT : SITE_URL
-    try {
-      await navigator.clipboard.writeText(value)
-      setCopied(kind)
-      window.setTimeout(() => setCopied(null), 2000)
-    } catch {
-      const ta = document.createElement('textarea')
-      ta.value = value
-      ta.style.position = 'fixed'
-      ta.style.left = '-9999px'
-      document.body.appendChild(ta)
-      ta.select()
-      document.execCommand('copy')
-      document.body.removeChild(ta)
-      setCopied(kind)
-      window.setTimeout(() => setCopied(null), 2000)
-    }
-  }, [])
+  const copy = useCallback(
+    async (kind: 'text' | 'link') => {
+      const value = kind === 'text' ? shareText : siteUrl
+      try {
+        await navigator.clipboard.writeText(value)
+        setCopied(kind)
+        window.setTimeout(() => setCopied(null), 2000)
+      } catch {
+        const ta = document.createElement('textarea')
+        ta.value = value
+        ta.style.position = 'fixed'
+        ta.style.left = '-9999px'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+        setCopied(kind)
+        window.setTimeout(() => setCopied(null), 2000)
+      }
+    },
+    [shareText, siteUrl],
+  )
 
   const shareNative = useCallback(async () => {
     try {
       await navigator.share({
         title: SHARE_TITLE,
-        text: SHARE_TEXT,
-        url: SITE_URL,
+        text: shareText,
+        url: siteUrl,
       })
       setOpen(false)
     } catch {
       /* user cancelled */
     }
-  }, [])
+  }, [shareText, siteUrl])
 
   const onChannel = useCallback(
     async (ch: Channel) => {
@@ -222,7 +239,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`inline-flex h-9 w-9 items-center justify-center rounded-full border border-forest-100 bg-white text-forest-800 shadow-sm transition hover:bg-forest-50 active:scale-[0.96] ${className}`}
+        className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-forest-200 bg-white text-forest-900 shadow-sm transition hover:bg-forest-50 active:scale-[0.96] ${className}`}
         aria-label="Share this guide"
         title="Share this guide"
       >
@@ -232,7 +249,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition duration-150 hover:border-white/40 hover:bg-white/15 active:scale-[0.98] ${className}`}
+        className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition duration-150 hover:border-white/50 hover:bg-white/15 active:scale-[0.98] ${className}`}
       >
         <ShareIcon className="opacity-90" />
         Share guide
@@ -241,99 +258,111 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full border border-forest-200 bg-white px-4 py-2 text-sm font-semibold text-forest-800 shadow-sm transition hover:bg-forest-50 active:scale-[0.98] ${className}`}
+        className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full border border-forest-200 bg-white px-4 py-2 text-sm font-semibold text-forest-900 shadow-sm transition hover:bg-forest-50 active:scale-[0.98] ${className}`}
       >
         <ShareIcon />
         Share guide
       </button>
     )
 
+  const sheet =
+    open && mounted
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4"
+            role="presentation"
+          >
+            <button
+              type="button"
+              className="absolute inset-0 bg-ink/50 backdrop-blur-[2px]"
+              aria-label="Close share sheet"
+              onClick={close}
+            />
+
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
+              className="relative z-10 flex max-h-[min(92vh,720px)] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border border-forest-100 bg-white shadow-2xl sm:rounded-3xl"
+            >
+              <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-forest-100 sm:hidden" aria-hidden />
+
+              <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 sm:px-6 sm:pt-5">
+                <div>
+                  <h2 id={titleId} className="font-display text-lg font-semibold text-ink">
+                    Share this guide
+                  </h2>
+                  <p className="mt-1 text-sm text-ink/55">
+                    Send the short note below to classmates on any app.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={close}
+                  className="rounded-full p-2 text-ink/40 transition hover:bg-forest-50 hover:text-ink"
+                  aria-label="Close"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+
+              <div
+                className="flex-1 overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6"
+                style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
+              >
+                <pre className="mt-3 max-h-32 overflow-auto rounded-2xl border border-forest-100 bg-forest-50/60 p-3 text-left text-[12px] leading-relaxed text-ink/80 whitespace-pre-wrap font-sans">
+                  {shareText}
+                </pre>
+
+                {canNative && (
+                  <button
+                    type="button"
+                    onClick={shareNative}
+                    className="mt-4 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-forest-900 text-sm font-semibold text-paper shadow-sm transition hover:bg-forest-800 active:scale-[0.99]"
+                  >
+                    <ShareIcon />
+                    Share via phone apps
+                  </button>
+                )}
+
+                <div className="mt-4 grid grid-cols-3 gap-2.5">
+                  {channels.map((ch) => (
+                    <button
+                      key={ch.id}
+                      type="button"
+                      onClick={() => onChannel(ch)}
+                      className="flex flex-col items-center gap-1.5 rounded-2xl border border-forest-50 bg-white p-3 text-center transition hover:border-forest-100 hover:bg-forest-50/50 active:scale-[0.97]"
+                    >
+                      <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${ch.tile}`}>
+                        {ch.icon}
+                      </span>
+                      <span className="text-[11px] font-semibold text-ink/70">
+                        {ch.action === 'copy' && copied === 'text'
+                          ? 'Copied!'
+                          : ch.action === 'copy-link' && copied === 'link'
+                            ? 'Copied!'
+                            : ch.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <p className="mt-4 text-center text-[11px] text-ink/40">
+                  Opens the app you choose with the message ready to send.
+                </p>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null
+
   return (
     <>
       {trigger}
-
-      {open && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="presentation">
-          <button
-            type="button"
-            className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]"
-            aria-label="Close share sheet"
-            onClick={close}
-          />
-
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            className="relative z-10 w-full max-w-md rounded-t-3xl border border-forest-100 bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-6"
-            style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
-          >
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-forest-100 sm:hidden" aria-hidden />
-
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 id={titleId} className="font-display text-lg font-semibold text-ink">
-                  Share this guide
-                </h2>
-                <p className="mt-1 text-sm text-ink/55">
-                  Send the short note below to classmates on any app.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={close}
-                className="rounded-full p-2 text-ink/40 transition hover:bg-forest-50 hover:text-ink"
-                aria-label="Close"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-
-            <pre className="mt-4 max-h-36 overflow-auto rounded-2xl border border-forest-100 bg-forest-50/60 p-3 text-left text-[12px] leading-relaxed text-ink/80 whitespace-pre-wrap font-sans">
-              {SHARE_TEXT}
-            </pre>
-
-            {canNative && (
-              <button
-                type="button"
-                onClick={shareNative}
-                className="mt-4 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-forest-800 text-sm font-semibold text-paper shadow-sm transition hover:bg-forest-900 active:scale-[0.99]"
-              >
-                <ShareIcon />
-                Share via phone apps
-              </button>
-            )}
-
-            <div className="mt-4 grid grid-cols-3 gap-2.5">
-              {channels.map((ch) => (
-                <button
-                  key={ch.id}
-                  type="button"
-                  onClick={() => onChannel(ch)}
-                  className="flex flex-col items-center gap-1.5 rounded-2xl border border-forest-50 bg-white p-3 text-center transition hover:border-forest-100 hover:bg-forest-50/50 active:scale-[0.97]"
-                >
-                  <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${ch.tile}`}>
-                    {ch.icon}
-                  </span>
-                  <span className="text-[11px] font-semibold text-ink/70">
-                    {ch.action === 'copy' && copied === 'text'
-                      ? 'Copied!'
-                      : ch.action === 'copy-link' && copied === 'link'
-                        ? 'Copied!'
-                        : ch.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <p className="mt-4 text-center text-[11px] text-ink/40">
-              Opens the app you choose with the message ready to send.
-            </p>
-          </div>
-        </div>
-      )}
+      {sheet}
     </>
   )
 }
@@ -357,3 +386,6 @@ function ShareIcon({ className = '' }: { className?: string }) {
     </svg>
   )
 }
+
+/** Exported for tests / other surfaces */
+export const SHARE_TEXT = buildShareText('https://nelfund-student-guide.vercel.app/')
