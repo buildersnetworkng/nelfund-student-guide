@@ -13,8 +13,8 @@ const LINKS = [
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-30 border-b border-forest-100/70 bg-paper/85 backdrop-blur-xl supports-[backdrop-filter]:bg-paper/75">
-      <div className="container-page flex h-14 items-center justify-between gap-3 sm:h-16">
+    <header className="sticky top-0 z-30 border-b border-forest-100/70 bg-paper/95 backdrop-blur-xl supports-[backdrop-filter]:bg-paper/90">
+      <div className="container-page flex h-14 items-center justify-between gap-2 sm:h-16 sm:gap-3">
         <NavLink
           to="/"
           className="group flex min-w-0 items-center gap-2.5 font-display transition hover:opacity-95"
@@ -29,7 +29,7 @@ export default function Header() {
             decoding="async"
           />
           <span className="min-w-0">
-            <span className="block truncate text-[13px] font-semibold leading-tight tracking-tight text-forest-800 sm:text-sm">
+            <span className="block truncate text-[13px] font-semibold leading-tight tracking-tight text-forest-900 sm:text-sm">
               NELFUND Guide
             </span>
             <span className="hidden text-[10px] font-medium leading-tight text-ink/45 sm:block">
@@ -46,7 +46,7 @@ export default function Header() {
               className={({ isActive }) =>
                 `rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
                   isActive
-                    ? 'bg-forest-800 text-paper shadow-sm'
+                    ? 'bg-forest-900 text-paper shadow-sm'
                     : 'text-ink/55 hover:bg-forest-50 hover:text-ink'
                 }`
               }
@@ -56,11 +56,11 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <ShareGuide variant="icon" />
           <NavLink
             to="/ask"
-            className="inline-flex min-h-[38px] items-center justify-center rounded-full bg-forest-800 px-4 py-1.5 text-xs font-semibold text-paper shadow-sm transition duration-150 hover:bg-forest-900 hover:shadow-md active:scale-[0.98] sm:text-sm"
+            className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-gold-500 px-3.5 py-2 text-xs font-bold text-ink shadow-md ring-1 ring-gold-700/20 transition duration-150 hover:bg-gold-300 hover:shadow-lg active:scale-[0.98] sm:min-h-[42px] sm:px-4 sm:text-sm"
           >
             Ask support
           </NavLink>
