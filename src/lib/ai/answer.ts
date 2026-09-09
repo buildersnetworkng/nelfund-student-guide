@@ -7,6 +7,7 @@ import type {
 import { diagnosticAssemble } from './diagnostics'
 import { buildEscalationPlan, needsInstitutionForEscalation, resolveInstitutionFromText } from '../escalation'
 import { understandPortalText } from './screenshotUnderstand'
+import { playbookAnswer } from './playbook'
 
 const OFFICIAL_PORTAL = 'https://portal.nelf.gov.ng/'
 const OFFICIAL_SITE = 'https://nelf.gov.ng/'
@@ -139,10 +140,39 @@ export function answerQuestion(
     }
   }
 
-  if (strongEvidence.length === 0 || (intent === 'unknown' && (evidence[0]?.score ?? 0) < 20)) {
-    return insufficientAnswer(intent, intentMeta)
-  }
-  if (confidence < 0.45 && (evidence[0]?.score ?? 0) < 25) {
+  // Prefer curated playbook over generic insufficient for known intents
+  if (strongEvidence.length === 0 || (intent === 'unknown' && (evidence[0]?.score ?? 0) < 20) || (confidence < 0.45 && (evidence[0]?.score ?? 0) < 25)) {
+    const pb = playbookAnswer(intent, {
+      institutionName: null,
+      problemSummary: intentMeta.problem,
+      exactError: null,
+      turnIndex: 0,
+      lastAssistant: '',
+      userText: trimmed,
+      priorIntent: null,
+    })
+    if (pb && pb.length > 40) {
+      return {
+        hasEvidence: true,
+        intent,
+        confidence: Math.max(confidence, 0.75),
+        responseMode: 'conversation',
+        problem: intentMeta.problem,
+        answer: pb,
+        whatThisMeans: null,
+        nextActions: [
+          `Official portal: ${OFFICIAL_PORTAL}`,
+          `Official website: ${OFFICIAL_SITE}`,
+        ],
+        clarifyingQuestions: [],
+        evidence: [],
+        sources: sources.filter((s) => s.official && s.scope === 'nelfund-wide').map((s) => ({ id: s.id, label: s.label, url: s.url, official: s.official })),
+        video: null,
+        insufficientReason: null,
+        officialFallbackUrl: OFFICIAL_PORTAL,
+        escalation: null,
+      }
+    }
     return insufficientAnswer(intent, intentMeta)
   }
 
