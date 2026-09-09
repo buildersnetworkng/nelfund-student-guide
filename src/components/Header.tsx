@@ -60,11 +60,9 @@ export default function Header() {
           <ShareGuide variant="icon" />
           <NavLink
             to="/ask"
-            className="inline-flex min-h-[40px] items-center justify-center rounded-full bg-gold-500 px-3 py-2 text-xs font-bold text-forest-950 shadow-md ring-2 ring-gold-600/30 transition duration-150 hover:bg-gold-400 hover:shadow-lg active:scale-[0.98] sm:min-h-[42px] sm:px-4 sm:text-sm"
+            className="inline-flex min-h-[40px] items-center justify-center whitespace-nowrap rounded-full bg-gold-500 px-3.5 py-2 text-xs font-bold text-forest-950 shadow-md ring-2 ring-gold-600/40 transition duration-150 hover:bg-gold-400 hover:shadow-lg active:scale-[0.98] sm:min-h-[42px] sm:px-4 sm:text-sm"
           >
-            {/* Short label on very small screens, full on larger */}
-            <span className="xs:hidden sm:hidden">Ask</span>
-            <span className="hidden min-[360px]:inline">Ask support</span>
+            Ask support
           </NavLink>
         </div>
       </div>
