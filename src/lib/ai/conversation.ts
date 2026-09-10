@@ -1,7 +1,7 @@
 /**
- * NELFUND AI — primary conversational intelligence (owned, in-repo).
+ * NELFUND AI, primary conversational intelligence (owned, in-repo).
  * Greetings never swallow real questions. Intent + playbook + multi-turn.
- * Replies match the question — not a repeated link wall.
+ * Replies match the question, not a repeated link wall.
  * Current/deadline questions use live dated status from official sources.
  */
 
@@ -95,7 +95,7 @@ export function createWelcomeMessage(): ChatMessage {
   return {
     id: uid('sys'),
     role: 'assistant',
-    text: 'Ask about NELFUND in your own words — portal errors, school contacts, drafts, eligibility, or current status.',
+    text: 'Ask about NELFUND in your own words, portal errors, school contacts, drafts, eligibility, or current status.',
     timestamp: Date.now(),
   }
 }
@@ -195,7 +195,7 @@ function isGreeting(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
   if (!t || t.length > 80) return false
   if (
-    /nelfund|explain|eligib|\bapply\b|application|\bportal\b|missing|upkeep|repay|\bjamb\b|\bnin\b|\bbvn\b|\bscam\b|\botp\b|matric|\bloan\b|scholarship|document|school\s*(not|fee)|what\s*is|wetin\s*be|overview|describe|teach\s*me|tell\s*me\s*(about|everything)|break\s*down|about\s*(this\s+)?nelf|how\s*to|pending|reject/i.test(
+    /nelfund|explain|eligib|\bapply\b|application|\bportal\b|missing|upkeep|repay|\bjamb\b|\bnin\b|\bbvn\b|\bscam\b|\botp\b|matric|\bloan\b|scholarship|document|school\s*(not|fee)|what\s*is|wetin\s*be|overview|describe|teach\s*me|tell\s*me\s*(about|everything)|break\s*down|about\s*(this\s+)?nelf|how\s*to|pending|reject|why\s+(was|dem)|purpose|created/i.test(
       t,
     )
   ) {
@@ -227,7 +227,7 @@ function isGreeting(text: string): boolean {
 }
 
 function greetingReply(): string {
-  return `How far — I can help with **NELFUND**.\n\nTell me what is going on in one short line (apply, pending, missing information, JAMB error, upkeep, repayment…). I will answer that directly — not a long menu.`
+  return `How far, I can help with **NELFUND**.\n\nTell me what is going on in one short line (apply, pending, missing information, JAMB error, upkeep, repayment…). I will answer that directly, not a long menu.`
 }
 
 function isOffTopic(text: string): boolean {
@@ -235,7 +235,7 @@ function isOffTopic(text: string): boolean {
   if (!t || t.length < 2) return false
   if (isGreeting(text)) return false
   if (
-    /nelfund|nelf\.gov|portal\.nelf|student\s*loan|upkeep|jamb|\bnin\b|\bbvn\b|matric|missing\s*info|institutional\s*charge|school\s*fees?|guarantor|\bgsi\b|nysc|esupport|polytechnic|university|college\s*of\s*education|tertiary|loan.*school|school.*loan|youtube|video|tutorial|apply|website|portal|login|sign\s*in|registration|application|loan\s*window|eligibility|eligible|matriculation|100\s*-?\s*level|200\s*-?\s*level|official\s*email|support\s*email|which\s*site|which\s*website/i.test(
+    /nelfund|nelf\.gov|portal\.nelf|student\s*loan|upkeep|jamb|\bnin\b|\bbvn\b|matric|missing\s*info|institutional\s*charge|school\s*fees?|guarantor|\bgsi\b|nysc|esupport|polytechnic|university|college\s*of\s*education|tertiary|loan.*school|school.*loan|youtube|video|tutorial|apply|website|portal|login|sign\s*in|registration|application|loan\s*window|eligibility|eligible|matriculation|100\s*-?\s*level|200\s*-?\s*level|official\s*email|support\s*email|which\s*site|which\s*website|why\s+(was|dem)|purpose|created/i.test(
       t,
     )
   ) {
@@ -320,11 +320,10 @@ export async function processUserTurn(opts: {
     return finalize(userMsg, { ...opts.slots }, 'official-sources', offTopicReply(), 'conversation')
   }
 
-  // Live dated status for current-information / deadline / "is it open?" questions
+  // Live status ONLY for dated / open-window questions, not purpose / how-to / eligibility
   {
     const earlyIntent = classifyIntent(combined || rawUser).intent
     const needsLive =
-      earlyIntent === 'current-information' ||
       earlyIntent === 'deadline' ||
       questionNeedsCurrentLive(combined || rawUser)
     if (needsLive) {
@@ -365,8 +364,8 @@ export async function processUserTurn(opts: {
       let intentGuess: IntentId =
         earlyIntent !== 'unknown' ? earlyIntent : opts.slots.intent || 'unknown'
       if (intentGuess === 'unknown') {
-        if (/Act, 2023|who established/i.test(early)) intentGuess = 'nelfund-history'
-        else if (/Purpose of NELFUND/i.test(early)) intentGuess = 'nelfund-purpose'
+        if (/Act, 2023|who established/i.test(early)) intentGuess = 'what-is-nelfund'
+        else if (/Purpose of NELFUND|Why NELFUND was created/i.test(early)) intentGuess = 'what-is-nelfund'
         else if (/NELFUND/i.test(early) && /loan/i.test(early)) intentGuess = 'what-is-nelfund'
         else if (/apply/i.test(early)) intentGuess = 'how-to-apply'
         else if (/[Mm]issing information/i.test(early)) intentGuess = 'missing-information'
@@ -421,7 +420,7 @@ export async function processUserTurn(opts: {
           userText: `${combined} ${slots.problemSummary || ''}`,
           priorIntent,
         }) ||
-        `Thanks — I have **${slots.institutionName}** noted.\n\nStart with the school ICT / Registry / NELFUND desk, then https://nelfund.esupport.ng/create if the portal still fails after they confirm upload.\n\nSay **draft the email** if you want a message for the school.`
+        `Thanks, I have **${slots.institutionName}** noted.\n\nStart with the school ICT / Registry / NELFUND desk, then https://nelfund.esupport.ng/create if the portal still fails after they confirm upload.\n\nSay **draft the email** if you want a message for the school.`
       const answer = lightAnswer(resumeIntent, pb, {
         next: pb.includes('portal.nelf.gov.ng') ? undefined : ['https://portal.nelf.gov.ng/'],
       })
@@ -514,7 +513,7 @@ export async function processUserTurn(opts: {
   if (needsInstitutionEarly(intent) && !slots.institutionId) {
     slots.awaitingInstitution = true
     slots.pendingClarify = 'institution'
-    const brief =
+    const pb =
       playbookAnswer(intent, {
         institutionName: null,
         problemSummary: slots.problemSummary,
@@ -523,19 +522,56 @@ export async function processUserTurn(opts: {
         lastAssistant: prevAsst,
         userText: combined,
         priorIntent,
-      }) || null
-    const ask = institutionAskPrompt(intent)
-    const firstLine = brief ? brief.split('\n\n')[0] : null
-    const text =
-      firstLine && turnIndex === 0 && firstLine.length < 280
-        ? `${firstLine}\n\n${ask}`
-        : ask
-    return finalize(userMsg, slots, intent, text, capability, {
-      next: ['Share your school name'],
-    })
+      }) || ''
+    return finalize(userMsg, slots, intent, `${pb}\n\n${institutionAskPrompt(intent)}`.trim(), capability)
   }
 
-  const pb = playbookAnswer(intent, {
+  {
+    const pb = playbookAnswer(intent, {
+      institutionName: slots.institutionName,
+      problemSummary: slots.problemSummary,
+      exactError: slots.exactError,
+      turnIndex,
+      lastAssistant: prevAsst,
+      userText: combined,
+      priorIntent,
+    })
+    if (pb && pb.length > 40) {
+      let esc = null as GroundedAnswer['escalation']
+      try {
+        if (slots.institutionId) {
+          esc = buildEscalationPlan(intent, slots.institutionId, {
+            errorMessage: slots.exactError || slots.problemSummary,
+          })
+        }
+      } catch {
+        esc = null
+      }
+      return finalize(userMsg, slots, intent, pb, capability, {
+        next: pb.includes('portal.nelf.gov.ng') ? undefined : ['https://portal.nelf.gov.ng/'],
+        escalation: esc || undefined,
+      })
+    }
+  }
+
+  try {
+    const grounded = await answerQuestion({
+      question: combined || rawUser,
+      institutionId: slots.institutionId,
+      intent,
+    })
+    if (grounded?.answer) {
+      return finalize(userMsg, slots, intent, grounded.answer, capability, {
+        next: grounded.nextActions,
+        sources: grounded.sources,
+        escalation: grounded.escalation || undefined,
+      })
+    }
+  } catch {
+    /* fall through */
+  }
+
+  const fallback = playbookAnswer(intent, {
     institutionName: slots.institutionName,
     problemSummary: slots.problemSummary,
     exactError: slots.exactError,
@@ -544,69 +580,12 @@ export async function processUserTurn(opts: {
     userText: combined,
     priorIntent,
   })
-  if (pb) {
-    let text = pb
-    if (!isNewUserAsk(combined) && isNearDuplicate(prevAsst, text)) {
-      text = nextStepAdvance(
-        {
-          institutionName: slots.institutionName,
-          problemSummary: slots.problemSummary,
-          exactError: slots.exactError,
-          turnIndex,
-          lastAssistant: prevAsst,
-          userText: combined,
-          priorIntent,
-        },
-        intent,
-      )
-    }
-    let escalation = null as GroundedAnswer['escalation']
-    try {
-      if (slots.institutionId) {
-        escalation = buildEscalationPlan(intent, slots.institutionId, {
-          errorMessage: slots.exactError || slots.problemSummary,
-        })
-      }
-    } catch {
-      /* ignore */
-    }
-    return finalize(userMsg, slots, intent, text, capability, {
-      next: text.includes('portal.nelf.gov.ng') ? undefined : ['https://portal.nelf.gov.ng/'],
-      escalation,
-    })
-  }
-
-  try {
-    const grounded = await answerQuestion(combined || rawUser, {
-      history,
-      institutionId: slots.institutionId,
-      ocrText: ocr,
-    })
-    if (grounded?.answer) {
-      slots.intent = grounded.intent || intent
-      return {
-        messages: [
-          userMsg,
-          {
-            id: uid('asst'),
-            role: 'assistant',
-            text: grounded.answer,
-            answer: grounded,
-            timestamp: Date.now(),
-          },
-        ],
-        slots,
-        diagnosed: grounded.intent !== 'unknown',
-        capability,
-      }
-    }
-  } catch {
-    /* fall through */
-  }
-
-  const fallback =
-    'I can help with NELFUND. Tell me the exact portal message, your school, or what you are trying to do (apply, pending, missing info, login).'
-  return finalize(userMsg, slots, intent, fallback, capability, {
-    next: ['https://portal.nelf.gov.ng/'],
-  })
+  return finalize(
+    userMsg,
+    slots,
+    intent,
+    fallback ||
+      'I can help with NELFUND. Say if you mean sign up, login, loan application, pending status, school fees, or upkeep.',
+    capability,
+  )
 }
