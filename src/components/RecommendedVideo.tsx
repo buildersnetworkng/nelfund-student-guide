@@ -12,13 +12,13 @@ const SOURCE_LABEL: Record<VideoSourceType, string> = {
   university: '✓ Official university source',
   educational: 'Third-party tutorial',
   community: 'Third-party tutorial',
-  third_party: 'Third-party — unverified',
+  third_party: 'Third-party, unverified',
 }
 
 function sourceLabel(video: Video): string {
   if (video.source_type === 'university') {
     const institution = getInstitution(video.institution_id)
-    return institution ? `✓ Official university source — ${institution.short_name}` : SOURCE_LABEL.university
+    return institution ? `✓ Official university source: ${institution.short_name}` : SOURCE_LABEL.university
   }
   return SOURCE_LABEL[video.source_type]
 }

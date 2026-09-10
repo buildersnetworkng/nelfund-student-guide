@@ -4,16 +4,16 @@ import { getInstitution } from '../lib/data'
 const SOURCE_TYPE_LABEL: Record<VideoSourceType, { label: string; className: string }> = {
   official: { label: '✓ Official NELFUND', className: 'stamp-verified' },
   university: { label: '✓ University', className: 'stamp-verified' },
-  educational: { label: 'Educational channel — third-party tutorial', className: 'stamp-guidance' },
+  educational: { label: 'Educational channel, third-party tutorial', className: 'stamp-guidance' },
   community: { label: 'Community/third-party tutorial', className: 'stamp-guidance' },
-  third_party: { label: 'Third-party — unverified', className: 'stamp-unverified' },
+  third_party: { label: 'Third-party, unverified', className: 'stamp-unverified' },
 }
 
 function getSourceBadge(video: Video): { label: string; className: string } {
   if (video.source_type === 'university') {
     const institution = getInstitution(video.institution_id)
     return {
-      label: institution ? `✓ Official university source — ${institution.short_name}` : '✓ University',
+      label: institution ? `✓ Official university source: ${institution.short_name}` : '✓ University',
       className: 'stamp-verified',
     }
   }
