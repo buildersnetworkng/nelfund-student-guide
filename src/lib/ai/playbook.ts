@@ -38,15 +38,15 @@ function clusterAnswer(key: string, ctx: PlaybookContext): string | null {
   const inst = ctx.institutionName ? ` at **${ctx.institutionName}**` : ''
   switch (key) {
     case 'history':
-      return `**When / who established NELFUND**\n\nCreated under the **Student Loans (Access to Higher Education) Act, 2023**.\n\n• Administered by the **Nigerian Education Loan Fund**\n• Federal programme for eligible students in **public** tertiary institutions\n• Interest-free education loan (not a grant)\n\nOfficial site: ${SITE}`
+      return `**When / who established NELFUND**\n\nCreated under the **Student Loans (Access to Higher Education) Act**.\n\n• Administered by the **Nigerian Education Loan Fund**\n• Federal programme for eligible students in **public** tertiary institutions\n• Interest-free education loan (not a grant)\n\nOfficial site: ${SITE} · FAQ: ${FAQ}`
     case 'purpose':
-      return `**Purpose of NELFUND**\n\nRemove money as a barrier to higher education for eligible Nigerians in public tertiary institutions.\n\nCovers:\n1. **Institutional charges** (paid to the school)\n2. **Upkeep** (living support when approved)\n\nIt is a **loan you repay** after study, not free money.\n\n${SITE}`
+      return `**Purpose of NELFUND**\n\nRemove money as a barrier to higher education for eligible Nigerians in public tertiary institutions.\n\nCovers:\n1. **Institutional charges** (paid to the school)\n2. **Upkeep** (living support when approved)\n\nIt is a **loan you repay** after study, not free money.\n\n${SITE} · ${FAQ}`
     case 'whatis':
       return `**NELFUND** is the **Nigerian Education Loan Fund**.\n\nInterest-free loans for eligible students in **public** Nigerian tertiary institutions:\n1. **Institutional charges** (paid to the school)\n2. **Upkeep** (monthly living support when applicable)\n\nIt is a **loan you repay**, not a grant.\n\n• School must have your record in order\n• **Sign in** at ${SITE} · **Sign up** / apply at ${PORTAL}\n• Apply when the window is officially open (${SITE})\n• Support: ${ESUPPORT}` + videoLinksFor('whatis')
     case 'apply':
-      return `**How to apply**\n\n1. Confirm your school is listed and has uploaded student data\n2. Create / sign in at ${PORTAL}\n3. Complete profile (JAMB, NIN, bank details as required)\n4. Submit when the application window is open\n\nOfficial site: ${SITE}\nSupport: ${ESUPPORT}` + videoLinksFor('apply')
+      return `**How to apply**\n\n1. Confirm your school is listed and has uploaded student data\n2. Create / sign in at ${PORTAL}\n3. Complete profile (JAMB, NIN, bank details as required)\n4. Submit when the application window is open\n\nOfficial FAQ: applications are online. Details typically include institution, admission number, JAMB number, date of birth, NIN, and BVN.\n\nThe loan is applied for **every academic session**.\n\nOfficial site: ${SITE}\nFAQ: ${FAQ}\nSupport: ${ESUPPORT}` + videoLinksFor('apply')
     case 'upkeep':
-      return `**Upkeep**\n\nLiving support separate from school charges.\n\n• Guide figure: **₦20,000 per month** unless ${SITE} changes it\n• Only when approved\n• Ignore unofficial WhatsApp amounts\n\n${PORTAL} · ${ESUPPORT}` + videoLinksFor('upkeep')
+      return `**Upkeep**\n\nLiving support separate from school charges.\n\n• Official FAQ: you must apply for **both** the institutional loan and the upkeep loan at registration. Institutional-only applications do not receive upkeep.\n• Guide figure often cited in operations is **₦20,000 per month** unless ${SITE} changes it — confirm live amounts on official channels only\n• Paid only when your application is approved\n• Ignore unofficial WhatsApp amounts\n\n${PORTAL} · ${FAQ} · ${ESUPPORT}` + videoLinksFor('upkeep')
     case 'missing':
       return ctx.institutionName
         ? `For **${ctx.institutionName}**, missing information usually means the portal cannot match your student record yet.\n\n1. Contact **ICT / Registry / NELFUND desk**\n2. Retry ${PORTAL}\n3. Still failing after school confirms → ${ESUPPORT}\n\nSay **“draft the email”** for a school message.`
@@ -58,27 +58,27 @@ function clusterAnswer(key: string, ctx: PlaybookContext): string | null {
     case 'login':
       return `**Log in / sign in**\n\nUse: ${SITE}\n\n**Sign up** (create account / apply on the portal):\n${PORTAL}\n\nReport portal problems to NELFUND support: ${ESUPPORT}\n\nAvoid random social-media links. Never share OTP or password.`
     case 'jamb':
-      return `**JAMB issues**\n\n• Re-check every digit of your JAMB registration number\n• Name / DOB should match JAMB and NIN\n• Still failing → school records desk, then ${ESUPPORT}\n\n${PORTAL}`
+      return `**JAMB issues**\n\n• Re-check every digit of your JAMB registration number\n• Name / DOB should match JAMB and NIN\n• Official FAQ: Direct Entry students can apply but must have a JAMB number\n• Still failing → school records desk, then ${ESUPPORT}\n\n${PORTAL} · ${FAQ}`
     case 'nin':
       return `**NIN issues**\n\n• Confirm digits on your official NIN slip\n• Name and date of birth should match your NELFUND profile\n• Fix mismatches through proper channels — not paid agents\n\n${PORTAL} · ${ESUPPORT}`
     case 'safety':
-      return `**Safety**\n\n• Never pay an agent to “process” or “speed up” NELFUND\n• Never share OTP, password, or full bank login\n• Apply only on ${PORTAL}\n• Tickets: ${ESUPPORT}`
+      return `**Safety**\n\n• Never pay an agent to “process” or “speed up” NELFUND\n• Official FAQ: no payment is required before disbursement\n• Never share OTP, password, or full bank login\n• Apply only on ${PORTAL}\n• Tickets: ${ESUPPORT}`
     case 'support':
-      return `**Official support**\n\n• Tickets: ${ESUPPORT}\n• Website: ${SITE}\n• Portal: ${PORTAL}\n\nFor school-record problems, contact your campus **ICT / Registry / NELFUND desk** first${inst}.`
+      return `**Official support**\n\n• Tickets: ${ESUPPORT}\n• Website: ${SITE}\n• Portal: ${PORTAL}\n• FAQ: ${FAQ}\n\nFor school-record problems, contact your campus **ICT / Registry / NELFUND desk** first${inst}.`
     case 'pending':
-      return `**Approval status**\n\nOnly ${PORTAL} shows your true status. Pending is not automatic rejection. For long delays, ask the school desk${inst} and ${ESUPPORT}.`
+      return `**Approval status**\n\nOnly ${PORTAL} shows your true status. Official FAQ: you receive a notification and can see loan status on your portal profile.\n\nPending is not automatic rejection. Official FAQ also says NELFUND will disburse within **30 days of approval** of successful applications — that clock starts after approval, not after you first submit.\n\nFor long delays after approval, ask the school desk${inst} and ${ESUPPORT}.\n\n${FAQ}`
     case 'upload':
       return `**School upload / institutional verification**\n\nStudents usually cannot see a private “upload log.”\n\n1. Ask ICT / Registry / NELFUND desk whether your record was sent\n2. Retry ${PORTAL}\n3. If school confirms upload and portal still fails → ${ESUPPORT}`
     case 'reapply':
-      return `**Re-applying**\n\nFollow the portal status on ${PORTAL}. Correct any missing data with your school first. Use ${ESUPPORT} if the portal blocks you after corrections.`
+      return `**Re-applying**\n\nOfficial FAQ: the loan is applied for **every academic session**.\n\nFollow the portal status on ${PORTAL}. Correct any missing data with your school first. Use ${ESUPPORT} if the portal blocks you after corrections.\n\n${FAQ}`
     case 'repay':
-      return `**Repayment**\n\nNELFUND is a loan. Repayment typically starts after the national service / study period under the Act’s rules. Check ${SITE} and ${PORTAL} for the current schedule — do not rely on WhatsApp figures.`
+      return `**Repayment (official FAQ)**\n\n• The loan is due **2 years after completion of NYSC**\n• If you still have no job two years after NYSC, notify NELFUND with a sworn court affidavit **every 3 months**\n• Employed: **10% of salary** deducted at source by the employer\n• Self-employed: remit **10% of monthly profit**\n• You may repay more than 10%, or repay early if you have the money\n• Relocating abroad: contact NELFUND and sign a repayment agreement\n\nNELFUND has publicly restated that monies received are to be repaid in instalments beginning two years after NYSC — it is not a grant.\n\nConfirm any later schedule changes on ${SITE} and ${FAQ}. Do not rely on WhatsApp figures.`
     case 'fees':
-      return `**Institutional charges / school fees**\n\nNELFUND pays eligible institutional charges to the school when approved. Amounts depend on your school’s published charges and approval. See ${PORTAL} and your school fees office.`
+      return `**Institutional charges / school fees**\n\nOfficial FAQ: the amount follows each institution’s charges. Institutional charges are remitted **directly to the school**; upkeep is paid to the student when approved.\n\nZero interest. No payment is required before disbursement.\n\nSee ${PORTAL}, ${FAQ}, and your school fees office.`
     case 'docs':
-      return `**Documents often needed**\n\n• JAMB registration details\n• NIN\n• Bank account + BVN (as required on the portal)\n• Admission / matric evidence as your school and the portal request\n\nAlways follow what ${PORTAL} asks for your cycle.`
+      return `**Documents often needed**\n\nOfficial FAQ lists application details such as institution, admission number, JAMB number, date of birth, NIN, and BVN.\n\nUploads commonly requested:\n• Scanned **admission letter** for new students (compulsory on the FAQ)\n• Scanned **student ID** (optional on the FAQ)\n• Bank account + BVN as the portal requires\n\nAlways follow what ${PORTAL} asks for your cycle. ${FAQ}`
     case 'contact':
-      return `**Contacts**\n\n• NELFUND support tickets: ${ESUPPORT}\n• Website: ${SITE}\n• Portal: ${PORTAL}\n\nSchool-record issues: start with campus ICT / Registry / NELFUND desk${inst}.`
+      return `**Contacts**\n\n• NELFUND support tickets: ${ESUPPORT}\n• Website: ${SITE}\n• Portal: ${PORTAL}\n• FAQ: ${FAQ}\n\nSchool-record issues: start with campus ICT / Registry / NELFUND desk${inst}.`
     default:
       return null
   }
@@ -111,16 +111,16 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Bank / BVN**\n\n• Use an account in your own name\n• Confirm BVN digits match your bank records\n• Fix bank-side mismatches before retrying ${PORTAL}\n• Still blocked → ${ESUPPORT}`
   }
   if (intentForAnswer === 'loan-or-scholarship') {
-    return `**Loan, not a scholarship**\n\nNELFUND is an **interest-free education loan** you repay under the Act — not free money or a grant.\n\n${SITE} · ${PORTAL}`
+    return `**Loan, not a scholarship**\n\nNELFUND is an **interest-free education loan** you repay under the Act — not free money or a grant.\n\nOfficial repayment trigger (FAQ): **2 years after NYSC**.\n\n${SITE} · ${PORTAL} · ${FAQ}`
   }
   if (intentForAnswer === 'guarantor') {
-    return `**Guarantor**\n\nFollow whatever ${PORTAL} requests for your application cycle. Do not pay anyone to “stand as guarantor.”\n\n${ESUPPORT}`
+    return `**Guarantor**\n\nOfficial FAQ: the student loan has **no guarantor requirement**.\n\nDo not pay anyone to “stand as guarantor.” Follow only what ${PORTAL} requests for your cycle.\n\n${FAQ} · ${ESUPPORT}`
   }
   if (intentForAnswer === 'gsi') {
-    return `**GSI (Global Standing Instruction)**\n\nA repayment mechanism linked to your accounts after the repayment trigger under NELFUND rules. Confirm current details on ${SITE}.`
+    return `**GSI (Global Standing Instruction)**\n\nA repayment mechanism linked to your accounts after the repayment trigger under NELFUND rules.\n\nOfficial FAQ repayment: due 2 years after NYSC; employed beneficiaries have 10% of salary deducted at source.\n\nConfirm current details on ${SITE} and ${FAQ}.`
   }
   if (intentForAnswer === 'current-information' || intentForAnswer === 'deadline') {
-    return `**Is NELFUND open right now?**\n\nApplication windows change by cycle. Check the official notice on ${SITE} and your status on ${PORTAL}.\n\nI will not invent a closing date — only ${SITE} / ${PORTAL} are authoritative.`
+    return `**Is NELFUND open right now?**\n\nApplication windows change by cycle. Check the official notice on ${SITE} and your status on ${PORTAL}.\n\nI will not invent a closing date — only ${SITE} / ${PORTAL} are authoritative.\n\n${FAQ}`
   }
   if (intentForAnswer === 'refund') {
     return `**Already paid school fees**\n\nIf you paid before NELFUND approval, ask your **school bursary / fees office** about their refund or reconciliation process. NELFUND institutional charges go to the school when approved.\n\n${PORTAL} · ${ESUPPORT}`
@@ -133,9 +133,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
   // Always answer — never leave the student with null / unknown silence
   if (intentForAnswer === 'unknown' || !intentForAnswer) {
-    return `**I can help with NELFUND**\n\nTell me what you need in one short sentence, for example:\n• How to apply or log in\n• Missing information / school not showing\n• Pending application status\n• JAMB / NIN / BVN issues\n• Upkeep or repayment\n• Draft an email to my school\n\n**Official links**\n• Portal: ${PORTAL}\n• Website: ${SITE}\n• Support: ${ESUPPORT}\n\nI only answer from official NELFUND process guidance — not WhatsApp agents.`
+    return `**I can help with NELFUND**\n\nTell me what you need in one short sentence, for example:\n• How to apply or log in\n• Missing information / school not showing\n• Pending application status\n• JAMB / NIN / BVN issues\n• Upkeep or repayment\n• Draft an email to my school\n\n**Official links**\n• Portal: ${PORTAL}\n• Website: ${SITE}\n• FAQ: ${FAQ}\n• Support: ${ESUPPORT}\n\nI only answer from official NELFUND process guidance — not WhatsApp agents.`
   }
-  return `**NELFUND guidance**\n\nUse the official portal and site for your live status:\n• ${PORTAL}\n• ${SITE}\n• Support tickets: ${ESUPPORT}\n\nIf you share the exact portal message, your school name, or what you are trying to do (apply, fix missing info, check pending status), I will give the next step.`
+  return `**NELFUND guidance**\n\nUse the official portal and site for your live status:\n• ${PORTAL}\n• ${SITE}\n• FAQ: ${FAQ}\n• Support tickets: ${ESUPPORT}\n\nIf you share the exact portal message, your school name, or what you are trying to do (apply, fix missing info, check pending status), I will give the next step.`
 }
 
 export function isNearDuplicate(prev: string, next: string): boolean {
