@@ -30,11 +30,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   if (intent === 'eligibility') return eligibilityAnswer({ userText: t })
 
   if (intent === 'official-sources') {
-    return `Official only (bookmark these):\n• **Sign in:** ${SITE}\n• **Sign up / apply:** ${PORTAL}\n• **Support ticket:** ${ESUPPORT}\n• **FAQ:** ${FAQ}\n\nSign in ≠ sign up ≠ loan application. Ignore WhatsApp or Telegram “portal” links.\n\nIf you pasted a long error, say whether it is login, pending, JAMB, or missing school.`
+    return `Official only (bookmark these):\n• **Sign in:** ${SITE}\n• **Sign up / apply:** ${PORTAL}\n• **Support ticket:** ${ESUPPORT}\n• **FAQ:** ${FAQ}\n\nSign in ≠ sign up ≠ loan application. Ignore WhatsApp or Telegram portal links.\n\nIf you pasted a long error, say whether it is login, pending, JAMB, or missing school.`
   }
 
   if (intent === 'what-is-nelfund') {
-    return `NELFUND is the Nigeria Education Loan Fund, **interest-free** loans for institutional charges and optional monthly upkeep for eligible students in **public** tertiary institutions.\n\nIt is a **loan**, not a scholarship. Repayment starts **2 years after NYSC** (10% of salary / profit). No guarantor.\n\n${MENU}`
+    return `**Why NELFUND was created:** to remove financial barriers so eligible students in **public** tertiary institutions can access higher education without paying school charges upfront.\n\n**What it is:** the Nigeria Education Loan Fund, **interest-free** loans for **institutional charges** (paid to the school) and optional **monthly upkeep** (paid to the student).\n\nIt is a **loan**, not a scholarship or free money. Repayment starts **2 years after NYSC** (10% of salary / profit). No guarantor is required on the official scheme described on nelf.gov.ng.\n\nOfficial site: ${SITE} · Apply: ${PORTAL} · FAQ: ${FAQ}\n\n${MENU}`
   }
 
   if (intent === 'pending-application') {
@@ -52,11 +52,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
     if (t.length < 64 || /help|abeg|stuck|wahala|what\s*next|empty|wetin|una\s*fit|reply|are\s*you\s*there|this\s*thing|i\s*no\s*sabi|confused|pls+|please/i.test(t)) {
       return `I can still help even if the question is short or mixed (Pidgin is fine).\n\n${MENU}\n\nIf you pasted a portal error, say **login**, **pending**, **JAMB**, or **missing school**. I will not invent NELFUND policy or dates.`
     }
-    return `Live notices only from ${SITE} and ${PORTAL}. I will not invent a deadline or “still open until…” date.\n\nAccount sign-up and a loan application **window** are different. Confirm on the portal before you act.\n\nWhat are you trying to do, sign up, login, submit a loan, or check pending status?`
+    return `Live notices only from ${SITE} and ${PORTAL}. I will not invent a deadline or still-open date.\n\nAccount sign-up and a loan application **window** are different. Confirm on the portal before you act.\n\nWhat are you trying to do, sign up, login, submit a loan, or check pending status?`
   }
 
   if (intent === 'upkeep') {
-    return `**Upkeep** is the monthly living allowance. Official FAQ: you must apply for **both** institutional charges and upkeep at registration. Institutional-only applications do not later receive upkeep.\n\nUpkeep is paid to the student; school fees go to the institution. Amounts and timing are only confirmed on ${PORTAL} / ${SITE}.\n\nIf *una never see* a month’s upkeep, treat it as a status check on the portal, then ticket ${ESUPPORT}. FAQ: ${FAQ}`
+    return `**Upkeep** is the monthly living allowance. Official FAQ: you must apply for **both** institutional charges and upkeep at registration. Institutional-only applications do not later receive upkeep.\n\nUpkeep is paid to the student; school fees go to the institution. Amounts and timing are only confirmed on ${PORTAL} / ${SITE}.\n\nIf *una never see* a month's upkeep, treat it as a status check on the portal, then ticket ${ESUPPORT}. FAQ: ${FAQ}`
   }
 
   if (intent === 'school-fees') {
@@ -64,7 +64,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'repayment') {
-    return `**Repayment (official FAQ):** due **2 years after NYSC**. Employers deduct **10% of salary**; self-employed remit 10% of monthly profit. You may pay earlier.\n\nNo job after that window: notify NELFUND with a sworn affidavit every 3 months.\n\nViral “life imprisonment for unpaid loans” claims are **not** official policy as stated on nelf.gov.ng FAQ. Default can bring penalties / credit damage, read the FAQ, do not trust WhatsApp posters.\n\nFAQ: ${FAQ}`
+    return `**Repayment (official FAQ):** due **2 years after NYSC**. Employers deduct **10% of salary**; self-employed remit 10% of monthly profit. You may pay earlier.\n\nNo job after that window: notify NELFUND with a sworn affidavit every 3 months.\n\nViral life-imprisonment claims for unpaid loans are **not** official policy as stated on nelf.gov.ng FAQ. Default can bring penalties / credit damage, read the FAQ, do not trust WhatsApp posters.\n\nFAQ: ${FAQ}`
   }
 
   if (intent === 'gsi') {
@@ -72,12 +72,12 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'loan-or-scholarship') {
-    return `NELFUND is an **interest-free loan**, not a scholarship and not “free money”.\n\nYou repay after NYSC + 2 years (see FAQ). Institutional charges go to the school; upkeep (if selected) comes to you.\n\nFAQ: ${FAQ} · Apply: ${PORTAL}`
+    return `NELFUND is an **interest-free loan**, not a scholarship and not free money.\n\nYou repay after NYSC + 2 years (see FAQ). Institutional charges go to the school; upkeep (if selected) comes to you.\n\nFAQ: ${FAQ} · Apply: ${PORTAL}`
   }
 
   if (intent === 'missing-information' || intent === 'school-not-found') {
     const school = ctx.institutionName ? ` You mentioned **${ctx.institutionName}**.` : ''
-    return `**Missing information / school not on the list** usually means the institution has not finished uploading your record, or the name does not match NELFUND’s public-institution list.${school}\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school’s NELFUND desk whether your data is uploaded.\n3. Retry on ${PORTAL}. If the school still does not appear, ticket: ${ESUPPORT}\n\nPrivate institutions are not in the current public-institution scheme described on nelf.gov.ng.`
+    return `**Missing information / school not on the list** usually means the institution has not finished uploading your record, or the name does not match NELFUND's public-institution list.${school}\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. Retry on ${PORTAL}. If the school still does not appear, ticket: ${ESUPPORT}\n\nPrivate institutions are not in the current public-institution scheme described on nelf.gov.ng.`
   }
 
   if (intent === 'how-to-apply') {
@@ -95,7 +95,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   if (intent === 'unknown' || !intent) {
     return t.length < 8
       ? `I am here for NELFUND.\n\n${MENU}`
-      : `I mapped that as general help so you are not stuck on an “other” topic.\n\n${MENU}\n\nPortal: ${PORTAL}`
+      : `I mapped that as general help so you are not stuck on an other topic.\n\n${MENU}\n\nPortal: ${PORTAL}`
   }
 
   return `${MENU}\n\nCheck live status on ${PORTAL}. Reply with the exact portal message or whether you mean **sign up**, **login**, **loan application**, **pending**, **school fees**, or **upkeep**.`
@@ -109,7 +109,7 @@ export function isNearDuplicate(prev: string, next: string): boolean {
 }
 
 export function isNewUserAsk(text: string): boolean {
-  return /what\s*is|how\s*to|eligib|apply|missing|upkeep|repay|login|sign\s*up|portal|jamb|nin|scam|open|status|abeg|wahala|help|stuck|ticket|esupport|school|pending|password|error|fees/i.test(text)
+  return /what\s*is|how\s*to|eligib|apply|missing|upkeep|repay|login|sign\s*up|portal|jamb|nin|scam|open|status|abeg|wahala|help|stuck|ticket|esupport|school|pending|password|error|fees|why\s+(was|dem)|purpose|created/i.test(text)
 }
 
 export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string {
