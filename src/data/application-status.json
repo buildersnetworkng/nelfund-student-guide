@@ -1,7 +1,7 @@
 {
-  "cycle": "2026/2027",
+  "cycle": "auto",
   "status": "not_announced",
-  "status_label": "Account creation open — 2026/2027 loan window not yet announced",
-  "note": "NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. Any deadline you may be seeing relates to the previous loan/upkeep application cycle, which has already closed. The 2026/2027 loan and upkeep application window is expected to open soon, but NELFUND has not yet announced the official opening or closing date. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.",
-  "last_checked": "2026-08-23"
+  "status_label": "Account creation open — current-cycle loan window not yet announced",
+  "note": "NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. The current academic cycle loan and upkeep window should be treated as unconfirmed until NELFUND announces official opening and closing dates. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines. The home card cycle year updates automatically from the academic calendar (from August each year).",
+  "last_checked": "2026-09-10"
 }

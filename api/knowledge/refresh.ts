@@ -3,6 +3,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 /**
  * Refreshes time-sensitive NELFUND knowledge from official sources.
  * Invoked by Vercel Cron and on-demand when status is stale.
+ * Cycle label is always computed from today's date (Aug–Jul academic session).
+ * Open/closed status tracks language on nelf.gov.ng + portal.nelf.gov.ng — never invents dates.
  */
 
 type AppStatus =
@@ -30,6 +32,14 @@ const OFFICIAL_SOURCES = [
   { id: 'nelfund-website', label: 'NELFUND official website', url: 'https://nelf.gov.ng/' },
   { id: 'nelfund-portal', label: 'NELFUND application portal', url: 'https://portal.nelf.gov.ng/' },
 ]
+
+/** Nigerian tertiary session: from August, label is YYYY/(YYYY+1). */
+function currentAcademicCycle(date: Date = new Date()): string {
+  const year = date.getFullYear()
+  const month = date.getMonth() // 0=Jan … 7=Aug
+  const startYear = month >= 7 ? year : year - 1
+  return `${startYear}/${startYear + 1}`
+}
 
 function redisUrl(): string {
   return process.env.UPSTASH_REDIS_REST_URL || 'https://premium-rooster-109704.upstash.io'
@@ -63,7 +73,8 @@ async function fetchText(url: string): Promise<{ ok: boolean; text: string; erro
   try {
     const res = await fetch(url, {
       headers: {
-        'User-Agent': 'NELFUND-Student-Guide/1.0 (+https://nelfund-student-guide.vercel.app; knowledge-refresh)',
+        'User-Agent':
+          'NELFUND-Student-Guide/1.0 (+https://nelfund-student-guide.vercel.app; knowledge-refresh)',
         Accept: 'text/html,application/xhtml+xml',
       },
       signal: AbortSignal.timeout(12000),
@@ -84,46 +95,54 @@ function analyse(combined: string): {
   confidence: 'high' | 'medium' | 'low'
   signals: string[]
 } {
-  const t = combined.toLowerCase()
   const signals: string[] = []
+  const cycle = currentAcademicCycle()
+  const cycleEsc = cycle.replace('/', '\\/')
 
   const hasOpen =
-    /\b(applications?\s+(are\s+)?open|apply\s+now|portal\s+is\s+open|application\s+window\s+is\s+open|start\s+your\s+application)\b/i.test(
+    /\b(applications?\s+(are\s+)?open|apply\s+now|portal\s+is\s+open|application\s+window\s+is\s+open|start\s+your\s+application|call\s+for\s+applications?|loan\s+application\s+(is\s+)?open|now\s+accepting\s+applications?)\b/i.test(
       combined,
     )
   const hasClosed =
-    /\b(applications?\s+(are\s+)?closed|window\s+(has\s+)?closed|application\s+closed|deadline\s+has\s+passed)\b/i.test(
+    /\b(applications?\s+(are\s+)?closed|window\s+(has\s+)?closed|application\s+closed|deadline\s+has\s+passed|no\s+longer\s+accepting)\b/i.test(
       combined,
     )
   const hasExtended =
     /\b(extended|extension\s+of\s+(the\s+)?(application|deadline)|deadline\s+extended)\b/i.test(combined)
   const hasActiveLoan =
     /\b(disbursement|student\s+loan|beneficiar|upkeep|repayment)\b/i.test(combined)
-  const mentions2526 = /2025\s*\/\s*2026|2025\/2026/.test(combined)
-  const mentions2627 = /2026\s*\/\s*2027|2026\/2027/.test(combined)
+  const mentionsThisCycle = new RegExp(cycleEsc.replace('\\/', '[\\/\\s]*')).test(combined)
+  const hasLoanWindowPhrase =
+    /\b(loan\s+application|upkeep\s+application|application\s+window|institutional\s+loan)\b/i.test(combined)
 
   if (hasOpen) signals.push('open_language')
   if (hasClosed) signals.push('closed_language')
   if (hasExtended) signals.push('extended_language')
   if (hasActiveLoan) signals.push('active_scheme_language')
-  if (mentions2526) signals.push('cycle_2025_2026')
-  if (mentions2627) signals.push('cycle_2026_2027')
+  if (mentionsThisCycle) signals.push(`cycle_${cycle.replace('/', '_')}`)
+  if (hasLoanWindowPhrase) signals.push('loan_window_phrase')
 
-  let cycle = '2025/2026 and subsequent cycles'
-  if (mentions2627 && !mentions2526) cycle = '2026/2027'
-  else if (mentions2526) cycle = '2025/2026 and subsequent cycles'
+  // Strong signal: open language + loan/window wording → treat as open for this cycle (still confirm on portal)
+  const strongOpen = hasOpen && !hasClosed && (hasLoanWindowPhrase || mentionsThisCycle)
 
-  // Prefer explicit signals; never invent a formal loan-application open window without evidence.
-  // Important distinction: portal/account creation can be available while a new-cycle
-  // loan/upkeep application window is not yet announced.
-  if (hasOpen && !hasClosed) {
+  if (strongOpen) {
     return {
       status: hasExtended ? 'extended' : 'open',
       status_label: hasExtended
-        ? 'Application window extended — confirm on the official portal'
-        : 'Portal activity detected — confirm whether this is account creation or a new loan window',
-      note:
-        'Official NELFUND pages currently include language consistent with active portal activity. Account creation may be available so you can register and sort out your BVN. Treat any new-cycle loan/upkeep application window as unconfirmed until NELFUND announces official opening and closing dates. Always verify on portal.nelf.gov.ng. Do not rely on social media for deadlines.',
+        ? `${cycle} application window extended — confirm dates on the official portal`
+        : `${cycle} application activity detected — confirm open window on the official portal`,
+      note: `Official NELFUND pages currently use language consistent with an active application period for the **${cycle}** cycle. Account creation and/or loan/upkeep steps may be available. Opening and closing dates can still change — always verify on portal.nelf.gov.ng and nelf.gov.ng. Do not rely on social media for deadlines.`,
+      cycle,
+      confidence: signals.length >= 2 ? 'high' : 'medium',
+      signals,
+    }
+  }
+
+  if (hasOpen && !hasClosed) {
+    return {
+      status: 'open',
+      status_label: `Portal activity detected — confirm whether this is account creation or a new ${cycle} loan window`,
+      note: `Official NELFUND pages currently include language consistent with active portal activity for the **${cycle}** period. Account creation may be available so you can register and sort out your BVN. Treat a full loan/upkeep application window as confirmed only when NELFUND states opening and closing dates on the official site. Always verify on portal.nelf.gov.ng. Do not rely on social media for deadlines.`,
       cycle,
       confidence: signals.length >= 2 ? 'high' : 'medium',
       signals,
@@ -133,9 +152,8 @@ function analyse(combined: string): {
   if (hasClosed && !hasOpen) {
     return {
       status: 'closed',
-      status_label: 'Previous application cycle appears closed — new window not yet announced',
-      note:
-        'Official pages currently include language consistent with a closed application window for the previous cycle. NELFUND account creation may still be available so you can create an account and sort out your BVN. The next loan and upkeep application window is expected to open later; confirm only on portal.nelf.gov.ng and nelf.gov.ng when NELFUND announces official dates.',
+      status_label: `Previous window appears closed — ${cycle} intake not confirmed open yet`,
+      note: `Official pages currently include language consistent with a closed application window. NELFUND account creation may still be available so you can create an account and sort out your BVN. When the **${cycle}** loan and upkeep window opens, NELFUND will announce it on portal.nelf.gov.ng and nelf.gov.ng — not on social media.`,
       cycle,
       confidence: 'medium',
       signals,
@@ -145,23 +163,23 @@ function analyse(combined: string): {
   if (hasExtended) {
     return {
       status: 'extended',
-      status_label: 'Extension referenced — confirm current dates on the official portal',
-      note:
-        'Official pages reference an extension related to applications. Exact dates can change. Account creation may still be available. Verify current eligibility to apply for a loan or upkeep only on portal.nelf.gov.ng.',
+      status_label: `${cycle} extension referenced — confirm current dates on the official portal`,
+      note: `Official pages reference an extension related to applications (${cycle}). Exact dates can change. Account creation may still be available. Verify whether you can apply for a loan or upkeep only on portal.nelf.gov.ng.`,
       cycle,
       confidence: 'medium',
       signals,
     }
   }
 
-  // Scheme may be active (disbursements) even when a new intake is not formally labelled.
-  // Default accurate messaging: account creation open; loan window not yet announced.
+  // Default: account creation guidance; loan window not formally announced for this cycle
+  const defaultLabel = `Account creation open — ${cycle} loan window not yet announced`
+  const defaultNote = `NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. Any deadline you may be seeing may relate to a previous loan/upkeep cycle. The **${cycle}** loan and upkeep application window should be treated as unconfirmed until NELFUND announces official opening and closing dates. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.`
+
   if (hasActiveLoan) {
     return {
       status: 'not_announced',
-      status_label: 'Account creation open — 2026/2027 loan window not yet announced',
-      note:
-        'NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. Any deadline you may be seeing relates to the previous loan/upkeep application cycle, which has already closed. The 2026/2027 loan and upkeep application window is expected to open soon, but NELFUND has not yet announced the official opening or closing date. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.',
+      status_label: defaultLabel,
+      note: defaultNote,
       cycle,
       confidence: 'medium',
       signals,
@@ -170,9 +188,8 @@ function analyse(combined: string): {
 
   return {
     status: 'not_announced',
-    status_label: 'Account creation open — 2026/2027 loan window not yet announced',
-    note:
-      'NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. Any deadline you may be seeing relates to the previous loan/upkeep application cycle, which has already closed. The 2026/2027 loan and upkeep application window is expected to open soon, but NELFUND has not yet announced the official opening or closing date. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.',
+    status_label: defaultLabel,
+    note: defaultNote,
     cycle,
     confidence: 'medium',
     signals,
@@ -194,14 +211,14 @@ export async function runRefresh(): Promise<LiveApplicationStatus> {
   const now = new Date()
   const iso = now.toISOString()
   const day = iso.slice(0, 10)
+  const cycle = currentAcademicCycle(now)
 
   if (!combined.trim()) {
     const fallback: LiveApplicationStatus = {
-      cycle: '2025/2026 and subsequent cycles',
+      cycle,
       status: 'not_announced',
-      status_label: 'Account creation open — 2026/2027 loan window not yet announced',
-      note:
-        'NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. Any deadline you may be seeing relates to the previous loan/upkeep application cycle, which has already closed. The 2026/2027 loan and upkeep application window is expected to open soon, but NELFUND has not yet announced the official opening or closing date. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.',
+      status_label: `Account creation open — ${cycle} loan window not yet announced`,
+      note: `NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. The **${cycle}** loan and upkeep application window should be treated as unconfirmed until NELFUND announces official opening and closing dates. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.`,
       last_checked: day,
       last_checked_iso: iso,
       sources: OFFICIAL_SOURCES,
@@ -221,6 +238,7 @@ export async function runRefresh(): Promise<LiveApplicationStatus> {
   const analysis = analyse(combined)
   const payload: LiveApplicationStatus = {
     ...analysis,
+    cycle, // always today's academic cycle for the home card year
     last_checked: day,
     last_checked_iso: iso,
     sources: OFFICIAL_SOURCES,
@@ -235,7 +253,7 @@ export async function runRefresh(): Promise<LiveApplicationStatus> {
 
 function cronAuthorized(req: VercelRequest): boolean {
   const secret = process.env.CRON_SECRET
-  if (!secret) return true // allow when unset (hobby / first setup)
+  if (!secret) return true
   const auth = req.headers.authorization
   return auth === `Bearer ${secret}`
 }
@@ -250,7 +268,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Vercel Cron sends GET with Authorization: Bearer <CRON_SECRET>
   const isCron = typeof req.headers['x-vercel-cron'] !== 'undefined'
   if (isCron && !cronAuthorized(req)) {
     return res.status(401).json({ error: 'Unauthorized cron' })

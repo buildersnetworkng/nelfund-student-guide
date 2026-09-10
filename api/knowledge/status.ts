@@ -2,10 +2,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 /**
  * Home-card status endpoint.
- * Self-contained (no import of refresh) so it cannot FUNCTION_INVOCATION_FAILED
- * when the heavier official-site scrape module misbehaves.
- * Always returns a last_checked stamp for *today* so the UI never shows "Yesterday"
- * solely because Redis or upstream HTML was slow.
+ * Serves live/cached Redis status from official-site refresh, or a safe dynamic fallback.
+ * Cycle year always follows the academic calendar (auto from today's date).
  */
 
 type LiveApplicationStatus = {
@@ -20,6 +18,13 @@ type LiveApplicationStatus = {
   freshness: 'live' | 'cached' | 'static_fallback'
   signals: string[]
   verified: boolean
+}
+
+function currentAcademicCycle(date: Date = new Date()): string {
+  const year = date.getFullYear()
+  const month = date.getMonth()
+  const startYear = month >= 7 ? year : year - 1
+  return `${startYear}/${startYear + 1}`
 }
 
 function redisUrl(): string {
@@ -49,12 +54,12 @@ async function redisGet(key: string): Promise<string | null> {
 
 function guidancePayload(freshness: LiveApplicationStatus['freshness']): LiveApplicationStatus {
   const iso = new Date().toISOString()
+  const cycle = currentAcademicCycle()
   return {
-    cycle: '2025/2026 and subsequent cycles',
+    cycle,
     status: 'not_announced',
-    status_label: 'Account creation open — 2026/2027 loan window not yet announced',
-    note:
-      'NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. Any deadline you may be seeing relates to the previous loan/upkeep application cycle, which has already closed. The 2026/2027 loan and upkeep application window is expected to open soon, but NELFUND has not yet announced the official opening or closing date. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.',
+    status_label: `Account creation open — ${cycle} loan window not yet announced`,
+    note: `NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. The **${cycle}** loan and upkeep application window should be treated as unconfirmed until NELFUND announces official opening and closing dates. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.`,
     last_checked: iso.slice(0, 10),
     last_checked_iso: iso,
     sources: [
@@ -78,6 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
   const today = new Date().toISOString().slice(0, 10)
+  const cycle = currentAcademicCycle()
 
   try {
     const raw = await redisGet('nsg:knowledge:application_status')
@@ -88,6 +94,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const iso = new Date().toISOString()
         return res.status(200).json({
           ...parsed,
+          // Always show the current academic cycle year on the home card
+          cycle,
           last_checked: today,
           last_checked_iso: checkedDay === today ? parsed.last_checked_iso || iso : iso,
           freshness: checkedDay === today ? ('cached' as const) : ('static_fallback' as const),
