@@ -17,7 +17,7 @@ export default function Troubleshooting() {
       <p className="eyebrow">Problems</p>
       <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">What problem are you having?</h1>
       <p className="section-sub max-w-xl">
-        Pick the closest issue for verified guidance — or describe it to Ask support if nothing matches.
+        Pick the closest issue for verified guidance, or describe it to Ask support if nothing matches.
       </p>
       <div className="mt-3">
         <InstitutionNotice />
@@ -39,7 +39,7 @@ export default function Troubleshooting() {
           <div>
             <p className="text-sm font-semibold text-ink">Not sure which problem it is?</p>
             <p className="text-xs text-ink/60">
-              Describe it or upload a screenshot — Ask support will guide you.
+              Describe it or upload a screenshot, Ask support will guide you.
             </p>
           </div>
         </Link>

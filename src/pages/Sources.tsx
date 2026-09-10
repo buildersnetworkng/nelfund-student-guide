@@ -45,7 +45,7 @@ export default function Sources() {
       {institutionId ? (
         <div>
           <h2 className="mt-8 font-display text-base font-semibold text-ink">
-            Institution-specific — {institutionLabel ?? 'your institution'}
+            Institution-specific, {institutionLabel ?? 'your institution'}
           </h2>
           {ownSources.length > 0 ? (
             <ul className="mt-3 space-y-3">
@@ -68,8 +68,8 @@ export default function Sources() {
             </ul>
           ) : (
             <p className="mt-3 text-sm text-ink/60">
-              This guide doesn't have verified official sources for {institutionLabel ?? 'your institution'} yet
-              — not that NELFUND doesn't apply to you.
+              This guide doesn't have verified official sources for {institutionLabel ?? 'your institution'} yet,
+              not that NELFUND doesn't apply to you.
             </p>
           )}
         </div>
@@ -87,7 +87,7 @@ export default function Sources() {
       <div className="card mt-8 border-amber-500/30 bg-amber-100/50">
         <p className="text-sm text-ink/70">
           Always verify application dates, amounts, and eligibility rules directly on these
-          official sources — not on unofficial websites or social media posts.
+          official sources, not on unofficial websites or social media posts.
         </p>
       </div>
     </div>
