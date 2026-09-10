@@ -1,8 +1,9 @@
 /**
  * Current-information answers — answer the question first, with correct WAT time.
- * Distinguishes: account creation vs loan application window. Never invent close dates.
+ * Cycle year always comes from getCurrentAcademicCycle() / live status — never a fixed year.
  */
 
+import { getCurrentAcademicCycle } from '../academicCycle'
 import type { GroundedAnswer } from './types'
 
 const SITE = 'https://nelf.gov.ng/'
@@ -23,7 +24,6 @@ type LiveStatus = {
   sources?: Array<{ id: string; label: string; url: string }>
 }
 
-/** Format instant in Africa/Lagos (WAT). Prefer "now" for answer stamps. */
 function formatWat(isoOrDay?: string | null, useNow = false): string {
   try {
     const d = useNow || !isoOrDay
@@ -51,17 +51,21 @@ function todayWatLabel(): string {
   return formatWat(null, true)
 }
 
+function cycleLabel(data?: LiveStatus | null): string {
+  if (data?.cycle && /\d{4}\s*\/\s*\d{4}/.test(data.cycle)) return data.cycle.replace(/\s/g, '')
+  return getCurrentAcademicCycle()
+}
+
 function isStale(iso?: string | null): boolean {
   if (!iso) return true
   try {
     const t = new Date(iso.includes('T') ? iso : `${iso}T12:00:00Z`).getTime()
-    return Number.isNaN(t) || Date.now() - t > 60 * 60 * 1000 // > 1 hour
+    return Number.isNaN(t) || Date.now() - t > 60 * 60 * 1000
   } catch {
     return true
   }
 }
 
-/** Map live status → plain statements students can act on */
 function interpretOpenState(data: LiveStatus): {
   loanWindow: 'open' | 'closed' | 'unconfirmed'
   accountCreation: 'open' | 'unconfirmed'
@@ -76,21 +80,20 @@ function interpretOpenState(data: LiveStatus): {
   const loanClearlyOpen =
     status === 'open' &&
     /loan\s*application|application\s*window|upkeep\s*application/.test(combined) &&
-    !/unconfirmed|not\s*yet\s*announced|treat\s*any/.test(combined)
+    !/unconfirmed|not\s*yet\s*announced|not confirmed|treat\s*any/.test(combined)
 
   const loanClearlyClosed =
-    status === 'closed' || /previous\s*application\s*cycle\s*appears\s*closed|window\s*appears\s*closed/.test(combined)
+    status === 'closed' || /previous\s*application\s*cycle\s*appears\s*closed|window\s*appears\s*closed|loan\/upkeep closed/.test(combined)
 
   const accountOpen =
-    /account\s*creation\s*(is\s*)?(currently\s*)?open|account\s*creation\s*may\s*be\s*available|register\s*and\s*sort/.test(
+    /account\s*creation\s*(is\s*)?(currently\s*)?open|account\s*creation\s*may\s*be\s*available|register\s*and\s*sort|account creation open/.test(
       combined,
     ) || status === 'not_announced' || status === 'open'
 
   let loanWindow: 'open' | 'closed' | 'unconfirmed' = 'unconfirmed'
   if (loanClearlyOpen) loanWindow = 'open'
   else if (loanClearlyClosed) loanWindow = 'closed'
-  // status "open" from portal-activity scrape without formal loan window → still unconfirmed for LOAN
-  else if (status === 'open' && /portal\s*activity|account\s*creation|unconfirmed/.test(combined)) {
+  else if (status === 'open' && /portal\s*activity|account\s*creation|unconfirmed|not confirmed/.test(combined)) {
     loanWindow = 'unconfirmed'
   } else if (status === 'extended') loanWindow = 'open'
 
@@ -118,7 +121,8 @@ function isIsOpenQuestion(q?: string): boolean {
 }
 
 export function buildCurrentInformationAnswer(): GroundedAnswer {
-  const answer = `**As of ${todayWatLabel()}**
+  const cycle = getCurrentAcademicCycle()
+  const answer = `**As of ${todayWatLabel()}** (${cycle})
 
 I do not invent opening or closing dates.
 
@@ -153,7 +157,7 @@ What do you need — sign up, login, or submit a loan?`
 
 function answerIsOpen(data: LiveStatus): GroundedAnswer {
   const { loanLine, accountLine } = interpretOpenState(data)
-  const cycle = data.cycle || 'current cycle'
+  const cycle = cycleLabel(data)
   const when = todayWatLabel()
 
   const answer = `**Is NELFUND open?** (as of **${when}**)
@@ -195,7 +199,7 @@ I will not invent a closing date. Re-check the portal before you rely on a deadl
 
 function answerGeneralStatus(data: LiveStatus): GroundedAnswer {
   const { loanLine, accountLine } = interpretOpenState(data)
-  const cycle = data.cycle || 'current cycle'
+  const cycle = cycleLabel(data)
   const when = todayWatLabel()
 
   const answer = `**NELFUND status as of ${when}** (${cycle})
@@ -234,7 +238,6 @@ Always verify on the official portal before acting.`
 async function loadStatus(): Promise<LiveStatus | null> {
   if (typeof fetch === 'undefined') return null
   try {
-    // If Redis status is old, hit refresh first (best-effort)
     let res = await fetch('/api/knowledge/status', {
       method: 'GET',
       headers: { Accept: 'application/json' },
@@ -259,10 +262,6 @@ async function loadStatus(): Promise<LiveStatus | null> {
   }
 }
 
-/**
- * Live current-information for the student AI.
- * Answers "is it open?" in plain language — no menu/nav snippet dumps.
- */
 export async function buildCurrentInformationAnswerLive(
   userQuestion?: string,
 ): Promise<GroundedAnswer> {
@@ -281,9 +280,9 @@ export async function buildCurrentInformationAnswerLive(
   return buildCurrentInformationAnswer()
 }
 
-/** True when the student is asking for time-sensitive / dated NELFUND info */
+/** Time-sensitive / dated NELFUND questions (any academic cycle year pattern). */
 export function questionNeedsCurrentLive(text: string): boolean {
-  return /\b(is\s+(nelfund|it)\s+open|still\s+open|still\s+accept|deadline|closing\s+date|opening\s+date|when\s+(can|do|will|is)|application\s*(window|period|status)|latest\s+(update|news|status)|current\s+(status|information|update)|as\s+of\s+today|today|announce|any\s+update|news\s+about\s+nelfund|2026\s*\/?\s*2027)\b/i.test(
+  return /\b(is\s+(nelfund|it)\s+open|still\s+open|still\s+accept|deadline|closing\s+date|opening\s+date|when\s+(can|do|will|is)|application\s*(window|period|status)|latest\s+(update|news|status)|current\s+(status|information|update)|as\s+of\s+today|today|announce|any\s+update|news\s+about\s+nelfund|20\d{2}\s*\/?\s*20\d{2})\b/i.test(
     text || '',
   )
 }
