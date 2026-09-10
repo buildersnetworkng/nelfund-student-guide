@@ -28,7 +28,7 @@ const RULES: Rule[] = [
   { intent: 'repayment', re: /repay|pay\s*(this\s*)?(money\s*)?back|loan\s*repayment|life\s*imprison|go\s*jail|imprisonment|prison\s*for\s*(unpaid|loan)/i, problem: 'Repayment', stage: 'repaying', troubleshooting: false, topics: ['repayment'], weight: 10 },
   { intent: 'gsi', re: /\bgsi\b|global\s*standing\s*instruction/i, problem: 'What GSI means', stage: 'repaying', troubleshooting: false, topics: ['gsi'], weight: 10 },
   { intent: 'loan-or-scholarship', re: /scholarship|free\s*money|loan\s*or\s*scholarship|is\s*(it|this)\s*free/i, problem: 'Loan or scholarship', stage: 'exploring', troubleshooting: false, topics: ['loan'], weight: 10 },
-  { intent: 'how-to-apply', re: /how\s*(do\s*i|to)\s*apply|application\s*steps?|register\s*(for|on)\s*nelfund|i\s*want\s*to\s*apply|i\s*wan\s*apply|wan\s*apply|help\s*me\s*apply/i, problem: 'How to apply', stage: 'preparing', troubleshooting: false, topics: ['apply'], weight: 9 },
+  { intent: 'how-to-apply', re: /how\s*(do\s*i|to)\s*apply|application\s*steps?|register\s*(for|on)\s*nelfund|i\s*want\s*to\s*apply|i\s*wan\s*apply|wan\s*apply|help\s*me\s*apply|how\s*i\s*go\s*apply/i, problem: 'How to apply', stage: 'preparing', troubleshooting: false, topics: ['apply'], weight: 9 },
   { intent: 'guarantor', re: /guarantor|surety/i, problem: 'Guarantor requirement', stage: 'preparing', troubleshooting: false, topics: ['guarantor'], weight: 9 },
   { intent: 'contact-support', re: /official\s*email|nelfund\s*support|contact\s*(nelfund|support)|esupport|helpline|customer\s*care|open\s*(a\s*)?ticket/i, problem: 'Contact NELFUND support', stage: 'unknown', troubleshooting: false, topics: ['contact'], weight: 14 },
   { intent: 'deadline', re: /deadline|closing\s*date|expire|when\s*will.{0,20}close/i, problem: 'Application deadline', stage: 'exploring', troubleshooting: false, topics: ['deadline'], weight: 12 },
@@ -45,7 +45,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'unknown', confidence: 0.2, topics: [], problem: null, stage: 'unknown', entities: [], isTroubleshooting: false }
   }
 
-  if (/^(hi|hello|hey|good\s*(morning|afternoon|evening)|how\s*far|wetin\s*dey|sup|ok|okay|thanks|thank\s*you|abeg)\b[.!?\s]*$/i.test(q)) {
+  if (/^(hi|hello|hey|yo|pls|please|good\s*(morning|afternoon|evening|day)|how\s*far|wetin\s*dey|how\s*una\s*dey|sup|ok|okay|thanks|thank\s*you|abeg|morning|afternoon|evening)\b[.!?\s]*$/i.test(q)) {
     const prior = lastUserIntent(history)
     if (prior && prior !== 'unknown') {
       return { intent: prior, confidence: 0.5, topics: ['greeting'], problem: null, stage: 'exploring', entities: [], isTroubleshooting: false }
@@ -105,8 +105,10 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   if (entities.includes('repayment')) return { intent: 'repayment', confidence: 0.48, topics: ['repayment'], problem: 'Repayment', stage: 'repaying', entities, isTroubleshooting: false }
   if (entities.includes('fees')) return { intent: 'school-fees', confidence: 0.48, topics: ['fees'], problem: 'School fees payment', stage: 'exploring', entities, isTroubleshooting: false }
   if (entities.includes('school')) return { intent: 'school-not-found', confidence: 0.45, topics: ['school'], problem: 'School or institution issue', stage: 'applying', entities, isTroubleshooting: true }
+  if (entities.includes('contact')) return { intent: 'contact-support', confidence: 0.45, topics: ['contact'], problem: 'Contact support', stage: 'unknown', entities, isTroubleshooting: false }
+  if (entities.includes('help')) return { intent: 'current-information', confidence: 0.42, topics: ['guidance'], problem: 'General help', stage: 'exploring', entities, isTroubleshooting: false }
 
-  if (/nelfund|nelf\.gov|student\s*loan|portal|loan|apply|school|help|stuck|wahala|abeg|wetin|please|what|how|when|why|money|pay/i.test(q)) {
+  if (/nelfund|nelf\.gov|student\s*loan|portal|loan|apply|school|help|stuck|wahala|abeg|wetin|please|what|how|when|why|money|pay|guide|explain|una|dey/i.test(q)) {
     return { intent: 'current-information', confidence: 0.4, topics: ['guidance'], problem: 'General NELFUND guidance', stage: 'exploring', entities, isTroubleshooting: false }
   }
   return { intent: 'official-sources', confidence: 0.38, topics: ['official'], problem: 'Official NELFUND links', stage: 'exploring', entities, isTroubleshooting: false }
