@@ -3,24 +3,24 @@ import type { IntentId, IntentResult, StudentStage, ConversationTurn } from './t
 export function detectEntities(q: string): string[] {
   const entities: string[] = []
   const map: [RegExp, string][] = [
-    [/\bjamb\b|utme|jamb\s*(reg|no|number|id)|direct\s*entry/i, 'jamb'],
+    [/\bjamb\b|utme|jamb\s*(reg|no|number|id)|direct\s*entry|invalid\s*format|verification\s*fail/i, 'jamb'],
     [/\bnin\b/i, 'nin'],
     [/\bbvn\b/i, 'bvn'],
     [/school|institution|university|poly|college|unilag|lasu|oou|yabatech|unilorin|uniben|unizik|unn|unical|uniport|futa|fuoye|tasued|lautech|noun?|futo|abu|oau|unijos|unimaid|delsu|eksu|ui\b|uniosun|mouau|funaab|aaua|\baau\b|ksu|buk|udus|rivers\s*state|lagos\s*state|university\s*of\s*lagos|obafemi\s*awolowo|campus|faculty|matric|kwasu|imsue?|rsust|rivers\s*state\s*uni|delta\s*state|edo\s*state|anambra|enugu\s*state|kaduna|kano|ibadan|ife|zaria|nsukka|akure|abeokuta|ado\s*ekiti|osogbo|uyo|calabar|port\s*harcourt|jos|maiduguri|minna|bauchi|gombe|sokoto|ilorin/i, 'school'],
     [/fee|tuition|charges/i, 'fees'],
     [/upkeep|20k|20,?000|allowance|stipend|hostel\s*money/i, 'upkeep'],
-    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|nothing\s*dey\s*happen|wetin\s*dey\s*happen|application\s*(id|number)|still\s*waiting|no\s*update|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)/i, 'status'],
+    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|nothing\s*dey\s*happen|wetin\s*dey\s*happen|application\s*(id|number)|still\s*waiting|no\s*update|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|my\s*own\s*never|dem\s*don\s*pay|others\s*don\s*(collect|receive|see)|check\s*am/i, 'status'],
     [/bank|account/i, 'bank'],
     [/portal|nelfund|nelfun[dt]?|nel\s*fund|nelf\.gov|dashboard|total\s*loans|student\s*loan/i, 'portal'],
     [/login|sign\s*in|password|otp|session\s*expir|cannot\s*enter|no\s*fit\s*enter/i, 'login'],
-    [/repay|gsi|pay\s*back|imprison|jail|prison|scholarship/i, 'repayment'],
+    [/repay|gsi|pay\s*back|imprison|jail|prison|scholarship|when\s*i\s*go\s*pay|after\s*nysc/i, 'repayment'],
     [/eligib|qualify|cgpa|level|fresher|part.?time|\bnd\b|\bhnd\b|100l|200l|300l|400l|undergraduate|postgraduate/i, 'eligibility'],
     [/apply|register|sign\s*up|i\s*wan\s*apply|start\s*(the\s*)?(loan|application)|how\s*i\s*go\s*apply/i, 'apply'],
     [/reject|declined|not\s*approv/i, 'rejected'],
     [/disburse|payment|money\s*(enter|come)|dem\s*never\s*pay|when\s*will\s*(they|i)\s*(pay|get)|never\s*see\s*(august|july|june|september|october)?\s*(upkeep|money)/i, 'disbursement'],
     [/help|abeg|assist|stuck|confused|wahala|please|pls+|guide\s*me|wetin|una\s*fit|i\s*need|problem|issue|this\s*thing|make\s*una|i\s*no\s*sabi|what\s*next/i, 'help'],
     [/ticket|esupport|customer\s*care|helpline|contact|complain|hotline|phone\s*number/i, 'contact'],
-    [/error|try\s*again|something\s*went\s*wrong|unable\s*to|timed?\s*out|blank\s*page|keep\s*loading|err_|500|404|network|failed\s*to\s*load|internal\s*server/i, 'error'],
+    [/error|try\s*again|something\s*went\s*wrong|unable\s*to|timed?\s*out|blank\s*page|keep\s*loading|err_|500|404|network|failed\s*to\s*load|internal\s*server|e\s*no\s*work|no\s*gree\s*work/i, 'error'],
     [/money|disburse|paid|payment|enter\s*account|how\s*much/i, 'money'],
   ]
   for (const [re, name] of map) {
@@ -63,6 +63,8 @@ export function isPortalDump(q: string): boolean {
     /try\s*again\s*later/i,
     /internal\s*server\s*error/i,
     /kindly\s*provide/i,
+    /verification\s*failed/i,
+    /invalid\s*(jamb|nin|bvn)\s*(number\s*)?format/i,
   ].filter((re) => re.test(q)).length
   return q.length > 100 && hits >= 2
 }
@@ -96,34 +98,34 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
 
   const portalError =
     entities.includes('error') ||
-    /something\s*went\s*wrong|try\s*again|timed?\s*out|blank\s*page|keep\s*loading|err_|500\b|404\b|network\s*error|failed\s*to\s*(load|fetch)|internal\s*server|unable\s*to\s*(open|load|continue)|page\s*not\s*working/i.test(
+    /something\s*went\s*wrong|try\s*again|timed?\s*out|blank\s*page|keep\s*loading|err_|500\b|404\b|network\s*error|failed\s*to\s*(load|fetch)|internal\s*server|unable\s*to\s*(open|load|continue)|page\s*not\s*working|e\s*no\s*work|no\s*gree\s*work/i.test(
       text,
     )
   if (portalError) {
     if (entities.includes('login') || /password|otp|session/i.test(text)) {
       return hit('portal-login', 'Portal error during login', 'applying', ['login', 'error'], entities, true, 0.58)
     }
-    if (entities.includes('jamb')) {
+    if (entities.includes('jamb') || /jamb|utme/i.test(text)) {
       return hit('jamb-verification', 'Portal error around JAMB', 'applying', ['jamb', 'error'], entities, true, 0.58)
     }
     return hit('contact-support', 'Portal error dump — how to reach support', 'unknown', ['error'], entities, true, 0.55)
   }
 
-  const pidginPending = /how\s*far|e\s*no\s*dey|no\s*gree|wahala|wetin\s*(dey|happen)|dem\s*never|money\s*never|still\s*dey\s*(pending|process|review)|abeg\s*(check|help).{0,40}(loan|status|pending|money)|e\s*never\s*pay|i\s*don\s*submit|never\s*see|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|una\s*never\s*pay/i.test(text)
+  const pidginPending = /how\s*far|e\s*no\s*dey|no\s*gree|wahala|wetin\s*(dey|happen)|dem\s*never|money\s*never|still\s*dey\s*(pending|process|review)|abeg\s*(check|help).{0,40}(loan|status|pending|money)|e\s*never\s*pay|i\s*don\s*submit|never\s*see|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|una\s*never\s*pay|my\s*own\s*never|dem\s*don\s*pay\s*(others|people)|others\s*don\s*(collect|receive)|check\s*am|see\s*am\s*(for|on)\s*(the\s*)?portal/i.test(text)
   const pendingish = /\bpending\b|under\s*review|application\s*status|check\s*status|how\s*far\s*(with)?\s*(my\s*)?(loan|application|nelfund)?/i.test(text) || entities.includes('status') || entities.includes('disbursement')
   if (pendingish || pidginPending) {
     return hit('pending-application', 'Pending / under review / how far with loan', 'waiting', ['pending'], entities, true, 0.58)
   }
 
-  if (entities.includes('jamb') || /invalid\s*jamb|jamb.{0,30}(fail|verif|reject|format|gree|no\s*work)|verify.{0,20}jamb/i.test(text)) {
+  if (entities.includes('jamb') || /invalid\s*jamb|jamb.{0,30}(fail|verif|reject|format|gree|no\s*work)|verify.{0,20}jamb|could\s*not\s*verify.{0,20}jamb|verification\s*failed/i.test(text)) {
     return hit('jamb-verification', 'JAMB verification or invalid JAMB', 'applying', ['jamb'], entities, true, 0.6)
   }
 
-  if (/is\s*(nelfund|it|portal|application)\s*(still\s*)?(open|accept)|still\s*(accepting|open|dey\s*open|dey\s*collect)|can\s*i\s*still\s*apply|dem\s*still\s*dey\s*(collect|accept)|closing\s*date|deadline|as\s*of\s*today|latest/i.test(text)) {
+  if (/is\s*(nelfund|it|portal|application)\s*(still\s*)?(open|accept)|still\s*(accepting|open|dey\s*open|dey\s*collect)|can\s*i\s*still\s*apply|dem\s*still\s*dey\s*(collect|accept)|closing\s*date|deadline|as\s*of\s*today|latest|una\s*still\s*dey\s*(collect|open)/i.test(text)) {
     return hit('current-information', 'Is NELFUND open / current official status', 'exploring', ['current'], entities, false, 0.6)
   }
 
-  if (entities.includes('repayment') || /\bgsi\b|pay\s*(am|it|the\s*loan)\s*back|loan\s*or\s*scholarship|is\s*(this|nelfund)\s*(a\s*)?(scholarship|grant|free)/i.test(text)) {
+  if (entities.includes('repayment') || /\bgsi\b|pay\s*(am|it|the\s*loan)\s*back|loan\s*or\s*scholarship|is\s*(this|nelfund)\s*(a\s*)?(scholarship|grant|free)|when\s*(i|we)\s*go\s*pay|after\s*nysc/i.test(text)) {
     if (/\bgsi\b|global\s*standing/i.test(text)) return hit('gsi', 'GSI explanation', 'repaying', ['gsi'], entities)
     if (/scholarship|grant|free\s*money/i.test(text)) return hit('loan-or-scholarship', 'Loan vs scholarship', 'exploring', ['loan'], entities)
     return hit('repayment', 'Repayment rules', 'repaying', ['repayment'], entities)
@@ -136,7 +138,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('school-fees', 'School fees / institutional charges', 'exploring', ['fees'], entities)
   }
 
-  if (entities.includes('school') || /list\s*of\s*schools|which\s*schools|school\s*not\s*(found|showing)|missing\s*(info|information|school)/i.test(text)) {
+  if (entities.includes('school') || /list\s*of\s*schools|which\s*schools|school\s*not\s*(found|showing)|missing\s*(info|information|school)|school\s*list\s*no\s*complete/i.test(text)) {
     if (/missing|not\s*found|record/i.test(text)) {
       return hit('missing-information', 'Missing information on portal', 'applying', ['missing'], entities, true, 0.55)
     }
