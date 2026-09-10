@@ -1,6 +1,6 @@
 /**
- * Current-information answers — never invent official open/close dates.
- * Live path: /api/knowledge/status (+ optional official-page lookup) with exact check timestamp.
+ * Current-information answers — answer the question first, with correct WAT time.
+ * Distinguishes: account creation vs loan application window. Never invent close dates.
  */
 
 import type { GroundedAnswer } from './types'
@@ -8,7 +8,6 @@ import type { GroundedAnswer } from './types'
 const SITE = 'https://nelf.gov.ng/'
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const FAQ = 'https://nelf.gov.ng/faq'
-const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 type LiveStatus = {
   cycle?: string
@@ -24,43 +23,111 @@ type LiveStatus = {
   sources?: Array<{ id: string; label: string; url: string }>
 }
 
-function formatWhen(isoOrDay?: string): string {
-  if (!isoOrDay) return 'unknown time'
+/** Format instant in Africa/Lagos (WAT). Prefer "now" for answer stamps. */
+function formatWat(isoOrDay?: string | null, useNow = false): string {
   try {
-    const d = new Date(isoOrDay.includes('T') ? isoOrDay : `${isoOrDay}T12:00:00Z`)
-    if (Number.isNaN(d.getTime())) return isoOrDay
-    // Africa/Lagos (WAT, UTC+1, no DST)
-    const wat = new Date(d.getTime() + 60 * 60 * 1000)
-    const y = wat.getUTCFullYear()
-    const m = String(wat.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(wat.getUTCDate()).padStart(2, '0')
-    const hh = String(wat.getUTCHours()).padStart(2, '0')
-    const mm = String(wat.getUTCMinutes()).padStart(2, '0')
-    return `${y}-${m}-${day} ${hh}:${mm} WAT`
+    const d = useNow || !isoOrDay
+      ? new Date()
+      : new Date(isoOrDay.includes('T') ? isoOrDay : `${isoOrDay}T12:00:00Z`)
+    if (Number.isNaN(d.getTime())) return isoOrDay || 'unknown'
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Africa/Lagos',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+      .format(d)
+      .replace(',', '')
+      .replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1') + ' WAT'
   } catch {
-    return isoOrDay
+    return isoOrDay || 'unknown'
   }
 }
 
 function todayWatLabel(): string {
-  return formatWhen(new Date().toISOString())
+  return formatWat(null, true)
+}
+
+function isStale(iso?: string | null): boolean {
+  if (!iso) return true
+  try {
+    const t = new Date(iso.includes('T') ? iso : `${iso}T12:00:00Z`).getTime()
+    return Number.isNaN(t) || Date.now() - t > 60 * 60 * 1000 // > 1 hour
+  } catch {
+    return true
+  }
+}
+
+/** Map live status → plain statements students can act on */
+function interpretOpenState(data: LiveStatus): {
+  loanWindow: 'open' | 'closed' | 'unconfirmed'
+  accountCreation: 'open' | 'unconfirmed'
+  loanLine: string
+  accountLine: string
+} {
+  const status = (data.status || '').toLowerCase()
+  const label = (data.status_label || '').toLowerCase()
+  const note = (data.note || '').toLowerCase()
+  const combined = `${status} ${label} ${note}`
+
+  const loanClearlyOpen =
+    status === 'open' &&
+    /loan\s*application|application\s*window|upkeep\s*application/.test(combined) &&
+    !/unconfirmed|not\s*yet\s*announced|treat\s*any/.test(combined)
+
+  const loanClearlyClosed =
+    status === 'closed' || /previous\s*application\s*cycle\s*appears\s*closed|window\s*appears\s*closed/.test(combined)
+
+  const accountOpen =
+    /account\s*creation\s*(is\s*)?(currently\s*)?open|account\s*creation\s*may\s*be\s*available|register\s*and\s*sort/.test(
+      combined,
+    ) || status === 'not_announced' || status === 'open'
+
+  let loanWindow: 'open' | 'closed' | 'unconfirmed' = 'unconfirmed'
+  if (loanClearlyOpen) loanWindow = 'open'
+  else if (loanClearlyClosed) loanWindow = 'closed'
+  // status "open" from portal-activity scrape without formal loan window → still unconfirmed for LOAN
+  else if (status === 'open' && /portal\s*activity|account\s*creation|unconfirmed/.test(combined)) {
+    loanWindow = 'unconfirmed'
+  } else if (status === 'extended') loanWindow = 'open'
+
+  const accountCreation: 'open' | 'unconfirmed' = accountOpen ? 'open' : 'unconfirmed'
+
+  const loanLine =
+    loanWindow === 'open'
+      ? '**Loan / upkeep application:** currently appears **open** on official signals — still confirm dates on the portal.'
+      : loanWindow === 'closed'
+        ? '**Loan / upkeep application:** currently **closed** (or previous cycle closed). Wait for official opening dates on nelf.gov.ng.'
+        : '**Loan / upkeep application:** **not confirmed open** yet. Portal activity does **not** automatically mean a new loan window is open.'
+
+  const accountLine =
+    accountCreation === 'open'
+      ? '**Account creation (sign up):** currently **open** — you can register and sort BVN / profile.'
+      : '**Account creation (sign up):** treat as unconfirmed until you can complete sign-up on the portal.'
+
+  return { loanWindow, accountCreation, loanLine, accountLine }
+}
+
+function isIsOpenQuestion(q?: string): boolean {
+  return /\b(is\s+(nelfund|it|the\s*portal|application)\s+open|still\s+open|still\s+accept|can\s+i\s+(still\s+)?apply|is\s+application\s+open|loan\s+window|application\s+window)\b/i.test(
+    q || '',
+  )
 }
 
 export function buildCurrentInformationAnswer(): GroundedAnswer {
-  const answer = `**Current application status (checked ${todayWatLabel()})**
+  const answer = `**As of ${todayWatLabel()}**
 
-I do **not invent** opening or closing dates.
+I do not invent opening or closing dates.
 
-**Check only:**
-• Official site: ${SITE}
-• Student portal: ${PORTAL}
-• FAQ: ${FAQ}
+**Loan / upkeep application** and **account creation** are different:
+• Sign **up** (new account): ${PORTAL}
+• Sign **in** / login: ${SITE}
+• Confirm live status only on those official pages
 
-**Remember:**
-• Account creation ≠ the full ${new Date().getMonth() >= 7 ? new Date().getFullYear() : new Date().getFullYear() - 1} loan window being open
-• Social media deadlines are unofficial until they match nelf.gov.ng or the portal
-
-Say what you need (create account, apply, pending, missing information) and I will guide that path.`
+What do you need — sign up, login, or submit a loan?`
 
   return {
     hasEvidence: true,
@@ -70,7 +137,7 @@ Say what you need (create account, apply, pending, missing information) and I wi
     problem: null,
     answer,
     whatThisMeans: null,
-    nextActions: [SITE, PORTAL, FAQ],
+    nextActions: [PORTAL, SITE],
     clarifyingQuestions: [],
     evidence: [],
     sources: [
@@ -84,60 +151,41 @@ Say what you need (create account, apply, pending, missing information) and I wi
   }
 }
 
-function answerFromLiveStatus(data: LiveStatus, extraSnippets?: string[]): GroundedAnswer {
-  const when = formatWhen(data.last_checked_iso || data.last_checked)
-  const cycle = data.cycle || 'current cycle'
-  const label = data.status_label || 'Status from official sources'
-  const note = data.note || ''
-  const freshness =
-    data.freshness === 'live'
-      ? 'live from official pages'
-      : data.freshness === 'cached'
-        ? 'recently verified from official pages'
-        : 'safe fallback — confirm on the portal'
+function answerIsOpen(data: LiveStatus): GroundedAnswer {
+  const { loanLine, accountLine } = interpretOpenState(data)
+  const cycle = data.cycle || '2026/2027'
+  const when = todayWatLabel()
 
-  let body = `**NELFUND current status as of ${when}**
+  const answer = `**Is NELFUND open?** (as of **${when}**)
 
-**${cycle}** — ${label}
+**${cycle}**
 
-${note}
+${loanLine}
 
-_Source freshness: ${freshness}${data.verified ? ' · verified signals' : ''}._`
+${accountLine}
 
-  if (extraSnippets && extraSnippets.length > 0) {
-    body += `\n\n**From official pages (snippets):**\n`
-    for (const s of extraSnippets.slice(0, 3)) {
-      body += `• ${s}\n`
-    }
-  }
+**Where to go**
+• **Sign up** (create account): ${PORTAL}
+• **Login / sign in** (existing account): ${SITE}
+• Support ticket: https://nelfund.esupport.ng/create
 
-  body += `\nI will not invent a closing date. For the final word use ${PORTAL} and ${SITE}.`
-
-  const sources =
-    data.sources && data.sources.length > 0
-      ? data.sources.map((s) => ({
-          id: s.id,
-          label: s.label,
-          url: s.url,
-          official: true,
-        }))
-      : [
-          { id: 'site', label: 'NELFUND website', url: SITE, official: true },
-          { id: 'portal', label: 'NELFUND portal', url: PORTAL, official: true },
-        ]
+I will not invent a closing date. Re-check the portal before you rely on a deadline.`
 
   return {
     hasEvidence: true,
     intent: 'current-information',
-    confidence: data.confidence === 'high' ? 0.92 : data.confidence === 'low' ? 0.7 : 0.85,
+    confidence: data.confidence === 'high' ? 0.9 : 0.82,
     responseMode: 'conversation',
     problem: null,
-    answer: body,
+    answer,
     whatThisMeans: null,
-    nextActions: [PORTAL, SITE, FAQ],
+    nextActions: [PORTAL, SITE],
     clarifyingQuestions: [],
     evidence: [],
-    sources,
+    sources: [
+      { id: 'portal', label: 'NELFUND portal', url: PORTAL, official: true },
+      { id: 'site', label: 'NELFUND website', url: SITE, official: true },
+    ],
     video: null,
     insufficientReason: null,
     officialFallbackUrl: PORTAL,
@@ -145,70 +193,87 @@ _Source freshness: ${freshness}${data.verified ? ' · verified signals' : ''}._`
   }
 }
 
-async function fetchOfficialSnippets(question: string): Promise<string[]> {
-  try {
-    if (typeof fetch === 'undefined') return []
-    const res = await fetch('/api/knowledge/lookup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ query: question || 'NELFUND application open deadline status' }),
-    })
-    if (!res.ok) return []
-    const data = (await res.json().catch(() => null)) as {
-      snippets?: string[]
-      results?: Array<{ text?: string; snippet?: string }>
-    } | null
-    if (data?.snippets && Array.isArray(data.snippets)) return data.snippets.filter(Boolean)
-    if (data?.results && Array.isArray(data.results)) {
-      return data.results
-        .map((r) => r.snippet || r.text || '')
-        .filter((s) => s.length > 20)
-        .slice(0, 3)
-    }
-  } catch {
-    /* ignore */
+function answerGeneralStatus(data: LiveStatus): GroundedAnswer {
+  const { loanLine, accountLine } = interpretOpenState(data)
+  const cycle = data.cycle || 'current cycle'
+  const when = todayWatLabel()
+
+  const answer = `**NELFUND status as of ${when}** (${cycle})
+
+${loanLine}
+
+${accountLine}
+
+• **Sign up:** ${PORTAL}
+• **Login / sign in:** ${SITE}
+
+Always verify on the official portal before acting.`
+
+  return {
+    hasEvidence: true,
+    intent: 'current-information',
+    confidence: data.confidence === 'high' ? 0.9 : 0.82,
+    responseMode: 'conversation',
+    problem: null,
+    answer,
+    whatThisMeans: null,
+    nextActions: [PORTAL, SITE],
+    clarifyingQuestions: [],
+    evidence: [],
+    sources: [
+      { id: 'portal', label: 'NELFUND portal', url: PORTAL, official: true },
+      { id: 'site', label: 'NELFUND website', url: SITE, official: true },
+    ],
+    video: null,
+    insufficientReason: null,
+    officialFallbackUrl: PORTAL,
+    escalation: null,
   }
-  return []
+}
+
+async function loadStatus(): Promise<LiveStatus | null> {
+  if (typeof fetch === 'undefined') return null
+  try {
+    // If Redis status is old, hit refresh first (best-effort)
+    let res = await fetch('/api/knowledge/status', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    })
+    let data = res.ok ? ((await res.json().catch(() => null)) as LiveStatus | null) : null
+
+    if (!data || isStale(data.last_checked_iso || data.last_checked)) {
+      try {
+        await fetch('/api/knowledge/refresh', { method: 'GET' })
+      } catch {
+        /* ignore */
+      }
+      res = await fetch('/api/knowledge/status', {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      })
+      data = res.ok ? ((await res.json().catch(() => null)) as LiveStatus | null) : null
+    }
+    return data
+  } catch {
+    return null
+  }
 }
 
 /**
  * Live current-information for the student AI.
- * Pulls dated status from /api/knowledge/status and optional official-page snippets.
+ * Answers "is it open?" in plain language — no menu/nav snippet dumps.
  */
 export async function buildCurrentInformationAnswerLive(
   userQuestion?: string,
 ): Promise<GroundedAnswer> {
   try {
-    if (typeof fetch === 'undefined') return buildCurrentInformationAnswer()
+    const statusData = await loadStatus()
 
-    // Prefer same-day cached status; client may pass refresh via status endpoint
-    const statusRes = await fetch('/api/knowledge/status?refresh=1', {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-    })
-    const statusData = statusRes.ok
-      ? ((await statusRes.json().catch(() => null)) as LiveStatus | null)
-      : null
-
-    const wantDeep =
-      !userQuestion ||
-      /open|deadline|window|news|announce|latest|today|current|status|when|date|2026|2027|still/i.test(
-        userQuestion,
-      )
-
-    const snippets = wantDeep ? await fetchOfficialSnippets(userQuestion || 'NELFUND application status') : []
-
-    if (statusData && (statusData.status_label || statusData.note)) {
-      return answerFromLiveStatus(statusData, snippets)
-    }
-
-    if (snippets.length > 0) {
-      const base = buildCurrentInformationAnswer()
-      base.answer = `**From official NELFUND pages (as of ${todayWatLabel()})**\n\n${snippets
-        .map((s) => `• ${s}`)
-        .join('\n')}\n\nAlways re-check ${PORTAL} — pages can change the same day.`
-      base.confidence = 0.8
-      return base
+    if (statusData && (statusData.status_label || statusData.note || statusData.status)) {
+      if (isIsOpenQuestion(userQuestion)) {
+        return answerIsOpen(statusData)
+      }
+      return answerGeneralStatus(statusData)
     }
   } catch {
     /* fall through */
