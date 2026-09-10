@@ -90,8 +90,8 @@ function buildIndex(): ScopedSearchableEntry[] {
       type: 'institution',
       title: i.name,
       snippet: i.verification_status === 'unverified'
-        ? `${i.short_name} — institution-specific guidance not yet available`
-        : `${i.short_name} — institution-specific guidance available`,
+        ? `${i.short_name}: institution-specific guidance not yet available`
+        : `${i.short_name}: institution-specific guidance available`,
       keywords: [i.short_name, i.state, i.type],
       path: '/#institution',
       // The institution picker itself is always visible to everyone,
