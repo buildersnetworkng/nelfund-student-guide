@@ -155,7 +155,7 @@ export function deriveUnknownTopic(userText?: string | null): string {
   if (/eligib|qualify|disqualif/.test(t)) return 'eligibility'
   if (/screenshot|error|what\s*does\s*this\s*mean|unable\s*to|try\s*again|500|404/.test(t)) return 'error-screenshot'
   if (/hello|hi\b|help|abeg|please|wahala|stuck|how\s*far|wetin|good\s*(morning|afternoon|evening)/.test(t) && t.length < 48)
-    return 'greeting-vague'
+    return 'guidance'
   if (/disburse|payment|money\s*enter|when\s*will\s*i\s*get/.test(t)) return 'disbursement'
   if (/account\s*creat|create\s*account|register|sign\s*up/.test(t)) return 'account-create'
   if (/password|reset\s*password|forgot/.test(t)) return 'password-reset'
@@ -183,6 +183,12 @@ export function deriveUnknownTopic(userText?: string | null): string {
   return 'guidance'
 }
 
+/** Never persist the historical catch-all bucket name. */
+export function normalizeUnknownTopic(topic?: string | null): string {
+  if (!topic || topic === 'other' || topic === 'greeting-vague') return 'guidance'
+  return topic
+}
+
 function isUnknownIntent(intent?: string | null): boolean {
   if (!intent) return true
   const i = intent.toLowerCase()
@@ -201,7 +207,7 @@ export function trackAiQuestion(opts: {
 }) {
   const intent = opts.intent || 'unknown'
   const unknown = isUnknownIntent(intent)
-  const topic = unknown || opts.unresolved ? deriveUnknownTopic(opts.userText) : undefined
+  const topic = unknown || opts.unresolved ? normalizeUnknownTopic(deriveUnknownTopic(opts.userText)) : undefined
 
   if (opts.isNewConversation) {
     track('ai_conversation_start', {
