@@ -9,7 +9,7 @@ export function detectEntities(q: string): string[] {
     [/school|institution|university|poly|college|unilag|lasu|oou|yabatech|unilorin|uniben|unizik|unn|unical|uniport|futa|fuoye|tasued|lautech|noun?/i, 'school'],
     [/fee|tuition|charges/i, 'fees'],
     [/upkeep|20k|20,?000|allowance/i, 'upkeep'],
-    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter)|nothing\s*dey\s*happen/i, 'status'],
+    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter)|nothing\s*dey\s*happen|wetin\s*dey\s*happen/i, 'status'],
     [/bank|account/i, 'bank'],
     [/portal|nelfund|nelf\.gov|dashboard|total\s*loans/i, 'portal'],
     [/login|sign\s*in|password|otp|session\s*expir/i, 'login'],
@@ -90,10 +90,13 @@ function result(
 
 export function residualSoftRoute(q: string, entities: string[]): IntentResult | null {
   const compact = q.replace(/\s+/g, ' ').trim()
+  if (!compact) {
+    return result('current-information', 0.35, ['empty'], 'Empty message', 'exploring', entities)
+  }
   const lower = compact.toLowerCase()
 
   const pidginHelp =
-    /abeg|wetin|wahala|e\s*no\s*(dey|gree|work|show|load)|i\s*wan|how\s*i\s*go|no\s*gree|don\s*apply|check\s*am|help\s*me|i\s*need\s*help|assist\s*me|dem\s*never|e\s*never\s*(come|enter|pay)|make\s*una\s*help|una\s*fit\s*help|i\s*dey\s*confused|e\s*no\s*clear|na\s*so|e\s*dey\s*hard|i\s*no\s*sabi|no\s*dey\s*work|portal\s*no\s*dey|e\s*keep\s*hang|una\s*fit\s*check/i.test(
+    /abeg|wetin|wahala|e\s*no\s*(dey|gree|work|show|load)|i\s*wan|how\s*i\s*go|no\s*gree|don\s*apply|check\s*am|help\s*me|i\s*need\s*help|assist\s*me|dem\s*never|e\s*never\s*(come|enter|pay)|make\s*una\s*help|una\s*fit\s*help|i\s*dey\s*confused|e\s*no\s*clear|na\s*so|e\s*dey\s*hard|i\s*no\s*sabi|no\s*dey\s*work|portal\s*no\s*dey|e\s*keep\s*hang|una\s*fit\s*check|wetin\s*dey\s*happen|how\s*far\s*now/i.test(
       q,
     )
   const vagueHelp =
@@ -215,10 +218,8 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (compact.length <= 2) {
     return result('current-information', 0.35, ['empty'], 'Empty or tiny message', 'exploring', entities)
   }
-  if (/[a-z]{3,}/i.test(compact)) {
-    return result('official-sources', 0.4, ['official', 'residual'], 'Unmatched text — official links', 'exploring', entities)
-  }
-  return null
+  // Never leave non-empty text as unclassified unknown
+  return result('official-sources', 0.4, ['official', 'residual'], 'Unmatched text — official links', 'exploring', entities)
 }
 
 export type { IntentId, IntentResult, StudentStage }

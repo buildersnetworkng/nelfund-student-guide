@@ -63,7 +63,7 @@ function acknowledge(ctx: PlaybookContext, fallback: string): string {
   return fallback
 }
 
-export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
+export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   const t = (ctx.userText || '').trim()
   const short = isShortAsk(t)
   const school = schoolLabel(ctx)
@@ -130,6 +130,10 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
       return `Only the portal shows live status: ${PORTAL}\n\nPending / under review is **not** automatic rejection.\n\nWhat does it show — Pending, Under review, or Approved?`
     }
     return `${acknowledge(ctx, 'On pending applications:')}\n\n• Trust **${PORTAL}**, not WhatsApp screenshots\n• Pending = still processing\n• Disbursement clock starts at **approval**\n• Long delay after approval → school NELFUND desk${school} + ${ESUPPORT}`
+  }
+
+  if (intent === 'rejected-application') {
+    return `${acknowledge(ctx, 'A declined or rejected application is different from pending.')}\n\nOfficial FAQ: you can raise a **complaint on the portal** or open a ticket.\n\n1. Read the exact reason on ${PORTAL}\n2. Fix school-record / JAMB / NIN mismatches with campus ICT if that is the reason\n3. Ticket: ${ESUPPORT}\n\nDo not pay anyone to “reverse” a rejection.`
   }
 
   if (intent === 'jamb-verification') {
