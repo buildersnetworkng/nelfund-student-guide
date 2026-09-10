@@ -38,7 +38,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'pending-application') {
-    return `**Pending / under review** means NELFUND or your school is still checking your record. That is not a rejection.\n\nWhat to do:\n1. Open ${PORTAL} and note the exact status word (Pending, Under review, Approved, Declined).\n2. Confirm your school has uploaded your data.\n3. If it stays pending for a long time, open a ticket: ${ESUPPORT}\n\nPidgin: *e no dey move* usually still means verification — check the portal status word, then ticket if nothing changes.\n\nI cannot see your personal file. I will not invent an approval date.`
+    return `**Pending / under review / money never enter** is not a rejection.\n\nWhat to do:\n1. Open ${PORTAL} and note the exact status word (Pending, Under review, Approved, Declined).\n2. Confirm your school has uploaded your data.\n3. School-level upkeep can lag after NELFUND pays the institution — check the portal first, then your school NELFUND desk.\n4. If it stays pending a long time, ticket: ${ESUPPORT}\n\nPidgin: *e no dey move* / *una never see upkeep* still means verify the portal word, then ticket. I cannot see your personal file and I will not invent a pay date.`
   }
 
   if (intent === 'jamb-verification') {
@@ -56,7 +56,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'upkeep') {
-    return `**Upkeep** is the monthly living allowance. Official FAQ: you must apply for **both** institutional charges and upkeep at registration. Institutional-only applications do not later receive upkeep.\n\nUpkeep is paid to the student; school fees go to the institution. Amounts and timing are only confirmed on ${PORTAL} / ${SITE}.\n\nFAQ: ${FAQ}`
+    return `**Upkeep** is the monthly living allowance. Official FAQ: you must apply for **both** institutional charges and upkeep at registration. Institutional-only applications do not later receive upkeep.\n\nUpkeep is paid to the student; school fees go to the institution. Amounts and timing are only confirmed on ${PORTAL} / ${SITE}.\n\nIf *una never see* a month’s upkeep, treat it as a status check on the portal, then ticket ${ESUPPORT}. FAQ: ${FAQ}`
   }
 
   if (intent === 'school-fees') {

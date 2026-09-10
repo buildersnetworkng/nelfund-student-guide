@@ -25,7 +25,7 @@ const RULES: Rule[] = [
   { intent: 'missing-information', re: /missing\s*(info|information|data|school)|record\s*not\s*found|e\s*dey\s*show\s*missing/i, problem: 'Missing information on portal', stage: 'applying', troubleshooting: true, topics: ['missing'], weight: 12 },
   { intent: 'school-not-found', re: /school.*(not|isn'?t|no\s*dey|no).*(show|appear|come|list|found)|list\s*of\s*schools|which\s*schools|school\s*list|institution\s*not\s*found|not\s*on\s*(the\s*)?list/i, problem: 'School not showing', stage: 'applying', troubleshooting: true, topics: ['school'], weight: 12 },
   { intent: 'scam-safety', re: /scam|fraud|\botp\b|(pay|send(\s*money)?|transfer).{0,40}(agent|whatsapp)|whatsapp\s*man/i, problem: 'Scam or safety concern', stage: 'unknown', troubleshooting: true, topics: ['scam'], weight: 11 },
-  { intent: 'pending-application', re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|under\s*review|still\s*(waiting|processing)|check\s*(my\s*)?(application\s*)?status|how\s*far\s*(with\s*)?(my\s*)?(application|loan|nelfund|money)?|e\s*no\s*dey(\s*move)?|no\s*gree|still\s*dey\s*(pending|process)|nothing\s*dey\s*happen|dem\s*never\s*(pay|disburse)|money\s*never\s*(come|enter)/i, problem: 'Application still pending', stage: 'waiting', troubleshooting: true, topics: ['pending'], weight: 11 },
+  { intent: 'pending-application', re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|under\s*review|still\s*(waiting|processing)|check\s*(my\s*)?(application\s*)?status|how\s*far\s*(with\s*)?(my\s*)?(application|loan|nelfund|money)?|e\s*no\s*dey(\s*move)?|no\s*gree|still\s*dey\s*(pending|process)|nothing\s*dey\s*happen|dem\s*never\s*(pay|disburse)|money\s*never\s*(come|enter)|never\s*see\s*(my\s*)?(august|july|june|september)?\s*(upkeep|money)|haven'?t\s*(got|gotten|received)/i, problem: 'Application still pending', stage: 'waiting', troubleshooting: true, topics: ['pending'], weight: 11 },
   { intent: 'repayment', re: /repay|pay\s*(this\s*)?(money\s*)?back|loan\s*repayment|life\s*imprison|go\s*jail|imprisonment|prison\s*for\s*(unpaid|loan)/i, problem: 'Repayment', stage: 'repaying', troubleshooting: false, topics: ['repayment'], weight: 10 },
   { intent: 'gsi', re: /\bgsi\b|global\s*standing\s*instruction/i, problem: 'What GSI means', stage: 'repaying', troubleshooting: false, topics: ['gsi'], weight: 10 },
   { intent: 'loan-or-scholarship', re: /scholarship|free\s*money|loan\s*or\s*scholarship|is\s*(it|this)\s*free/i, problem: 'Loan or scholarship', stage: 'exploring', troubleshooting: false, topics: ['loan'], weight: 10 },
@@ -66,7 +66,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'what-is-nelfund', confidence: 0.45, topics: ['greeting'], problem: 'Greeting — offer NELFUND help', stage: 'exploring', entities: [], isTroubleshooting: false }
   }
 
-  if (/\bupkeep\b|monthly\s*allowance|20,?000/i.test(q) && !/school\s*fees|institutional\s*charges|tuition/i.test(q)) {
+  if (/\bupkeep\b|monthly\s*allowance|20,?000/i.test(q) && !/school\s*fees|institutional\s*charges|tuition/i.test(q) && !/never\s*see|haven'?t\s*(got|gotten|received)|pending|how\s*far|dem\s*never/i.test(q)) {
     return { intent: 'upkeep', confidence: 0.9, topics: ['upkeep'], problem: 'Upkeep allowance', stage: 'exploring', entities: detectEntities(q), isTroubleshooting: false }
   }
   if (/school\s*fees|institutional\s*charges|tuition/i.test(q) && !/\bupkeep\b/i.test(q)) {

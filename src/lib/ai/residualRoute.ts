@@ -9,7 +9,7 @@ export function detectEntities(q: string): string[] {
     [/school|institution|university|poly|college|unilag|lasu|oou|yabatech|unilorin|uniben|unizik|unn|unical|uniport|futa|fuoye|tasued|lautech|noun?|futo|abu|oau|unijos|unimaid|delsu|eksu|ui\b|uniosun|mouau|funaab|aaua|\baau\b|ksu|buk|udus|rivers\s*state|lagos\s*state|university\s*of\s*lagos|obafemi\s*awolowo|campus|faculty|matric|kwasu|imsue?|rsust|rivers\s*state\s*uni|delta\s*state|edo\s*state|anambra|enugu\s*state|kaduna|kano|ibadan|ife|zaria|nsukka|akure|abeokuta|ado\s*ekiti|osogbo|uyo|calabar|port\s*harcourt|jos|maiduguri|minna|bauchi|gombe|sokoto|ilorin/i, 'school'],
     [/fee|tuition|charges/i, 'fees'],
     [/upkeep|20k|20,?000|allowance|stipend|hostel\s*money/i, 'upkeep'],
-    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter)|nothing\s*dey\s*happen|wetin\s*dey\s*happen|application\s*(id|number)|still\s*waiting|no\s*update/i, 'status'],
+    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|nothing\s*dey\s*happen|wetin\s*dey\s*happen|application\s*(id|number)|still\s*waiting|no\s*update|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)/i, 'status'],
     [/bank|account/i, 'bank'],
     [/portal|nelfund|nelfun[dt]?|nel\s*fund|nelf\.gov|dashboard|total\s*loans|student\s*loan/i, 'portal'],
     [/login|sign\s*in|password|otp|session\s*expir|cannot\s*enter|no\s*fit\s*enter/i, 'login'],
@@ -17,7 +17,7 @@ export function detectEntities(q: string): string[] {
     [/eligib|qualify|cgpa|level|fresher|part.?time|\bnd\b|\bhnd\b|100l|200l|300l|400l|undergraduate|postgraduate/i, 'eligibility'],
     [/apply|register|sign\s*up|i\s*wan\s*apply|start\s*(the\s*)?(loan|application)|how\s*i\s*go\s*apply/i, 'apply'],
     [/reject|declined|not\s*approv/i, 'rejected'],
-    [/disburse|payment|money\s*(enter|come)|dem\s*never\s*pay|when\s*will\s*(they|i)\s*(pay|get)/i, 'disbursement'],
+    [/disburse|payment|money\s*(enter|come)|dem\s*never\s*pay|when\s*will\s*(they|i)\s*(pay|get)|never\s*see\s*(august|july|june|september|october)?\s*(upkeep|money)/i, 'disbursement'],
     [/help|abeg|assist|stuck|confused|wahala|please|pls+|guide\s*me|wetin|una\s*fit|i\s*need|problem|issue|this\s*thing|make\s*una|i\s*no\s*sabi|what\s*next/i, 'help'],
     [/ticket|esupport|customer\s*care|helpline|contact|complain|hotline|phone\s*number/i, 'contact'],
     [/error|try\s*again|something\s*went\s*wrong|unable\s*to|timed?\s*out|blank\s*page|keep\s*loading|err_|500|404|network|failed\s*to\s*load|internal\s*server/i, 'error'],
@@ -38,7 +38,7 @@ export function expandWithContext(question: string, history?: ConversationTurn[]
   if (q.length < 400 && recentUser.length < 1200) return `${recentUser.slice(-400)} ${question}`
   const last = history.filter((t) => t.role === 'user').slice(-1)[0]?.text || ''
   if (q.length >= 400 && last && last !== question) {
-    return `${last.slice(0, 80)} ${question}`
+    return `${last.slice(0, 120)} ${question}`
   }
   return question
 }
@@ -109,7 +109,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('contact-support', 'Portal error dump — how to reach support', 'unknown', ['error'], entities, true, 0.55)
   }
 
-  const pidginPending = /how\s*far|e\s*no\s*dey|no\s*gree|wahala|wetin\s*(dey|happen)|dem\s*never|money\s*never|still\s*dey\s*(pending|process|review)|abeg\s*(check|help).{0,40}(loan|status|pending|money)|e\s*never\s*pay|i\s*don\s*submit/i.test(text)
+  const pidginPending = /how\s*far|e\s*no\s*dey|no\s*gree|wahala|wetin\s*(dey|happen)|dem\s*never|money\s*never|still\s*dey\s*(pending|process|review)|abeg\s*(check|help).{0,40}(loan|status|pending|money)|e\s*never\s*pay|i\s*don\s*submit|never\s*see|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|una\s*never\s*pay/i.test(text)
   const pendingish = /\bpending\b|under\s*review|application\s*status|check\s*status|how\s*far\s*(with)?\s*(my\s*)?(loan|application|nelfund)?/i.test(text) || entities.includes('status') || entities.includes('disbursement')
   if (pendingish || pidginPending) {
     return hit('pending-application', 'Pending / under review / how far with loan', 'waiting', ['pending'], entities, true, 0.58)
@@ -129,10 +129,10 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('repayment', 'Repayment rules', 'repaying', ['repayment'], entities)
   }
 
-  if (entities.includes('upkeep') && !entities.includes('fees')) {
+  if (entities.includes('upkeep') && !entities.includes('fees') && !entities.includes('status') && !entities.includes('disbursement')) {
     return hit('upkeep', 'Upkeep allowance', 'exploring', ['upkeep'], entities)
   }
-  if (entities.includes('fees')) {
+  if (entities.includes('fees') && !entities.includes('status')) {
     return hit('school-fees', 'School fees / institutional charges', 'exploring', ['fees'], entities)
   }
 
