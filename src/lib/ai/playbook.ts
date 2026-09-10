@@ -86,7 +86,6 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**NELFUND** = interest-free student loan (public tertiary). School charges go to the institution; upkeep can go to you when approved. Loan, not grant.\n\n${wantsLinks(t) ? linkLine('both') : 'Ask me how to apply, eligibility, fees vs upkeep, or paste a portal error.'}`
   }
 
-  // ——— Sign up / create account / loan application (NOT login) ———
   if (intent === 'how-to-apply') {
     if (/sign\s*up|create\s*(an?\s*)?account|register/i.test(t) && !/loan\s*application|how\s*to\s*apply|submit/i.test(t)) {
       return `${acknowledge(ctx, '**Sign up / create account** is not the same as submitting a loan application.')}\n\n**Create account (one-time setup):**\n1. Open ${PORTAL}\n2. Sign **up** (new account) with correct JAMB, NIN, phone, email\n3. Verify OTP — use your own number\n4. Complete profile / bank details\n\nAfter the account exists, you still need an **open loan application window** to submit the actual loan/upkeep request.\n\nStuck on sign-up error? Paste the exact message.`
@@ -97,7 +96,6 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `${acknowledge(ctx, 'Loan application path (after you already have an account):')}\n\n1. Confirm **${inst || 'your school'}** uploaded your student record\n2. Sign **in** at ${PORTAL} (or sign **up** first if you have no account)\n3. Complete JAMB, NIN, bank (own name)\n4. Choose **institutional charges** and/or **upkeep** as the portal allows\n5. Submit only when the **official application window** is open (${SITE})\n\n**Sign up ≠ loan submitted.** Account creation can be available even when a new loan window is not yet open.\n\nWhich step failed?`
   }
 
-  // ——— Login / sign-in only ———
   if (intent === 'portal-login') {
     return `${acknowledge(ctx, 'This is about **sign in / login**, not creating a new account.')}\n\n**Sign in (existing account):**\n• Prefer ${SITE} for sign-in, or the portal login if that is where your session lives\n• Use the password you set at sign-up; reset only on the **official** page\n• Session expired / blank screen → another browser or clear site data, then retry\n\n**Not the same as:**\n• **Sign up** = first-time account at ${PORTAL}\n• **Loan application** = submitting for school fees / upkeep when the window is open\n\nWhat do you see — wrong password, session expired, or blank page?`
   }
@@ -106,7 +104,6 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `Official only (bookmark these):\n• **Sign in:** ${SITE}\n• **Sign up / apply:** ${PORTAL}\n• **Support ticket:** ${ESUPPORT}\n\nSign in ≠ sign up ≠ loan application. Ignore WhatsApp “portal” links.`
   }
 
-  // ——— Upkeep (to student) vs school fees (to school) ———
   if (intent === 'upkeep') {
     return `${acknowledge(ctx, '**Upkeep** is not school fees.')}\n\n| | **Upkeep** | **School fees (institutional charges)** |\n|---|------------|----------------------------------------|\n| Who receives it? | **You** (student) | **Your school** |\n| What for? | Living support (when approved) | Tuition / institutional charges |\n| Typical guide | Often cited **₦20,000/month** unless ${SITE} changes it | Amount set by your school |\n\nOfficial FAQ: apply for **both** institutional loan and upkeep at registration if you want upkeep — missing upkeep at that stage can mean no upkeep for the cycle.\n\nPaid only **after approval**. Ignore WhatsApp “urgent upkeep” messages.\n\nAre you asking about the amount, timing, or that upkeep was not selected?`
   }
@@ -184,10 +181,13 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     if (/open|deadline|window|still\s*accept|still\s*dey/i.test(t)) {
       return `I will **not invent** a closing date.\n\nAlso remember:\n• **Account creation** can be open while a **loan window** is still unconfirmed\n• **Sign in** is for existing accounts; **sign up** is new accounts\n\nCheck ${SITE} and ${PORTAL}. Say apply, login, or pending if you want that path.`
     }
-    if (short || /help|abeg|stuck|wahala|what\s*next/i.test(t)) {
-      return `Pick one:\n• Sign **up** (new account)\n• Sign **in** / login (existing account)\n• Loan application (fees / upkeep)\n• Missing information / pending\n• Upkeep vs school fees\n\nOne short sentence is enough.`
+    if (!t) {
+      return `Send a short line about what you need.\n\nUseful starters: sign up, login, how to apply, pending status, missing information, upkeep vs school fees.\n\n${linkLine('both')}`
     }
-    return `Live notices only from ${SITE} and ${PORTAL}. What are you trying to do — sign up, login, or submit a loan?`
+    if (short || /help|abeg|stuck|wahala|what\s*next|empty/i.test(t)) {
+      return `Pick one:\n• Sign **up** (new account)\n• Sign **in** / login (existing account)\n• Loan application (fees / upkeep)\n• Missing information / pending\n• Upkeep vs school fees\n\nOne short sentence is enough. Portal: ${PORTAL}`
+    }
+    return `Live notices only from ${SITE} and ${PORTAL}. I will not invent a deadline or approval date.\n\nWhat are you trying to do — sign up, login, submit a loan, or check pending status?`
   }
 
   if (intent === 'refund') {
