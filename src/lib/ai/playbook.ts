@@ -28,16 +28,16 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**NELFUND** is the Nigerian Education Loan Fund.\nInterest-free loans for eligible students in public Nigerian tertiary institutions: institutional charges to the school, and upkeep to the student when approved. It is a loan you repay, not a grant.\n\n${site}`
   }
   if (intent === 'how-to-apply') {
-    return `**How to apply**\n1. Confirm school uploaded your record\n2. Sign in / sign up at ${PORTAL}\n3. Complete JAMB, NIN, bank details\n4. Submit when the official window is open\nLoan is applied for every academic session.\n\n${site}`
+    return `**How to apply**\n1. Confirm school uploaded your record\n2. Sign in / sign up at ${PORTAL}\n3. Complete JAMB, NIN, bank details\n4. Submit when the official window is open\nLoan is applied for every academic session.\nEnglish or Pidgin is fine — say if you are stuck on account creation.\n\n${site}`
   }
   if (intent === 'upkeep') {
     return `**Upkeep**\nOfficial FAQ: apply for both institutional loan and upkeep at registration or you will not get upkeep.\nGuide figure often cited is N20,000/month unless nelf.gov.ng changes it. Paid only after approval.\n\n${site}`
   }
   if (intent === 'missing-information' || intent === 'school-not-found') {
-    return `**Missing info / school not showing**\nAsk campus ICT / Registry / NELFUND desk to confirm upload, then retry ${PORTAL}. Still failing → ${ESUPPORT}. Tell me your school name for a tighter next step.\n\n${site}`
+    return `**Missing info / school not showing**\nAsk campus ICT / Registry / NELFUND desk to confirm upload, then retry ${PORTAL}. Still failing → ${ESUPPORT}. Name your school (UNILAG, LASU, OOU, YABATECH, …) for a tighter next step.\n\n${site}`
   }
   if (intent === 'portal-login' || intent === 'official-sources') {
-    return `**Official access**\nSign in: ${SITE}\nSign up / apply: ${PORTAL}\nNever share OTP. Avoid random social links.\n\n${site}`
+    return `**Official access**\nSign in: ${SITE}\nSign up / apply: ${PORTAL}\nIf you see invalid login, session expired, or a pasted error, retry the official pages only. Never share OTP. Avoid random social links.\n\n${site}`
   }
   if (intent === 'jamb-verification') {
     return `**JAMB issues**\nRecheck every digit. Name/DOB should match JAMB and NIN. Direct Entry students need a JAMB number (official FAQ). Then school desk or ${ESUPPORT}.`
@@ -49,7 +49,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Safety**\nNo payment is required before disbursement (official FAQ). Never pay an agent or share OTP. Apply only on ${PORTAL}. Tickets: ${ESUPPORT}`
   }
   if (intent === 'contact-support' || intent === 'contact-lookup') {
-    return `**Official support**\n${site}\nSchool-record issues start with campus ICT / Registry / NELFUND desk.`
+    return `**Official support**\n${site}\nSchool-record issues start with campus ICT / Registry / NELFUND desk.\nPortal error dumps: copy the exact message into a ticket at ${ESUPPORT}.`
   }
   if (intent === 'pending-application' || intent === 'institution-verification') {
     return `**Pending / under review**\nOnly ${PORTAL} shows true status. Pending is not automatic rejection. Official FAQ: disbursement within 30 days of approval (clock starts after approval). Long delay after approval → school desk + ${ESUPPORT}.`
@@ -64,12 +64,12 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Docs / guarantor / reapply**\nOfficial FAQ: no guarantor. Apply each academic session. Common details: institution, admission number, JAMB, DOB, NIN, BVN; scanned admission letter for new students.\n${site}`
   }
   if (intent === 'current-information' || intent === 'deadline') {
-    return `**Is NELFUND open right now?**\nWindows change by cycle. I will not invent a closing date. Check ${SITE} and ${PORTAL} only.\n${FAQ}`
+    return `**Is NELFUND open right now?**\nWindows change by cycle. I will not invent a closing date. Check ${SITE} and ${PORTAL} only.\nIf you only said help / abeg / stuck, start here, then tell me apply, pending, login, or missing info.\n${FAQ}`
   }
   if (intent === 'refund' || intent === 'email-draft') {
     return `**Fees already paid / draft email**\nAsk school bursary about refund or reconciliation. Institutional charges go to the school when approved. Say your school name and I can draft the campus email.\n${ESUPPORT}`
   }
-  return `**I can help with NELFUND**\nHow to apply, missing information, pending status, JAMB/NIN/BVN, upkeep, repayment, or a school email.\n\n${site}\nI only follow official NELFUND guidance — not WhatsApp agents.`
+  return `**I can help with NELFUND**\nEnglish or Pidgin is fine. Say one of these, or paste the portal screen text:\n- How to apply / create account / login\n- Missing information or school not showing\n- I don apply — pending or under review\n- JAMB / NIN / BVN / password error\n- Upkeep or repayment\n- Official links or a school email\n\n${site}\nI only follow official NELFUND guidance — not WhatsApp agents.`
 }
 
 export function isNearDuplicate(prev: string, next: string): boolean {
@@ -80,7 +80,7 @@ export function isNearDuplicate(prev: string, next: string): boolean {
 }
 
 export function isNewUserAsk(text: string): boolean {
-  return /what\s*is|how\s*to|eligib|apply|missing|upkeep|repay|login|portal|jamb|nin|scam|open|status/i.test(text)
+  return /what\s*is|how\s*to|eligib|apply|missing|upkeep|repay|login|portal|jamb|nin|scam|open|status|abeg|wahala|help|stuck|ticket|esupport|school|pending|password|error/i.test(text)
 }
 
 export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string {
