@@ -12,10 +12,15 @@ type Rule = { intent: IntentId; re: RegExp; problem: string; stage: StudentStage
 const RULES: Rule[] = [
   { intent: 'email-draft', re: /draft|write\s*(me\s*)?(an?\s*)?(email|mail|message|letter)|abeg\s*draft/i, problem: 'Draft a support email', stage: 'applying', troubleshooting: false, topics: ['email'], weight: 20 },
   { intent: 'what-is-nelfund', re: /what\s*is\s*(this\s+)?nelfund|about\s+(this\s+)?nelfund|wetin\s*(be\s*)?(this\s+)?nelfund|tell\s*me\s*(about|everything).{0,40}nelfund|^nelfund\??$/i, problem: 'What NELFUND is', stage: 'exploring', troubleshooting: false, topics: ['what is'], weight: 22 },
-  { intent: 'school-fees', re: /school\s*fees|institutional\s*charges?|pay\s*(my\s*)?fees|\bfees\b|tuition/i, problem: 'School fees payment', stage: 'exploring', troubleshooting: false, topics: ['fees'], weight: 19 },
+  // Upkeep BEFORE school-fees so "upkeep / 20k" never loses to generic "fees"
+  { intent: 'upkeep', re: /\bupkeep\b|monthly\s*allowance|20,?000|living\s*(allowance|support)|stipend|hostel\s*(money|allowance)|money\s*for\s*(feeding|rent|hostel)/i, problem: 'Upkeep allowance', stage: 'exploring', troubleshooting: false, topics: ['upkeep'], weight: 20 },
+  { intent: 'school-fees', re: /school\s*fees|institutional\s*charges?|tuition|pay\s*(my\s*)?(school\s*)?fees|fees\s*(to\s*)?(the\s*)?school|will\s*nelfund\s*pay\s*(my\s*)?fees/i, problem: 'School fees / institutional charges', stage: 'exploring', troubleshooting: false, topics: ['fees'], weight: 19 },
   { intent: 'eligibility', re: /eligib|can\s*i\s*apply|who\s*can\s*apply|qualify|cgpa|100\s*-?\s*level|fresher|part\s*-?\s*time|full\s*-?\s*time|postgraduate/i, problem: 'Eligibility', stage: 'exploring', troubleshooting: false, topics: ['eligibility'], weight: 19 },
   { intent: 'current-information', re: /as\s*of\s*today|current\s*(info|information|status|update)|latest\s*(update|news|info)|still\s*accepting|is\s*nelfund\s*still|is\s*nelfund\s*(currently\s*)?open|can\s*i\s*still\s*apply|still\s*dey\s*open|portal\s*(still\s*)?open|is\s*it\s*open|dem\s*still\s*dey\s*collect|still\s*dey\s*accept/i, problem: 'Current or time-sensitive information', stage: 'exploring', troubleshooting: false, topics: ['current'], weight: 18 },
-  { intent: 'portal-login', re: /\blogin\b|log\s*in|sign\s*in|forgot\s*(my\s*)?password|portal\s*(link|stuck|problem)|official\s*(website|site|portal|link)|session\s*expired|can.?t\s*create\s*(an?\s*)?account/i, problem: 'Official link to login', stage: 'applying', troubleshooting: false, topics: ['login'], weight: 17 },
+  // Login / sign-in only — NOT create account / sign up
+  { intent: 'portal-login', re: /\blogin\b|log\s*in|sign\s*in|forgot\s*(my\s*)?password|reset\s*(my\s*)?password|session\s*expired|wrong\s*password|can.?t\s*(log\s*in|login|sign\s*in)|unable\s*to\s*(log\s*in|login|sign\s*in)/i, problem: 'Sign in / login to existing account', stage: 'applying', troubleshooting: false, topics: ['login'], weight: 18 },
+  // Sign up / create account / loan application steps
+  { intent: 'how-to-apply', re: /sign\s*up|create\s*(an?\s*)?account|register\s*(for|on)?\s*(nelfund)?|how\s*(do\s*i|to)\s*apply|application\s*steps?|i\s*want\s*to\s*apply|i\s*wan\s*apply|wan\s*apply|help\s*me\s*apply|how\s*i\s*go\s*apply|loan\s*application|submit\s*(my\s*)?application/i, problem: 'Sign up or loan application', stage: 'preparing', troubleshooting: false, topics: ['apply'], weight: 17 },
   { intent: 'institution-verification', re: /institutional\s*verif|school\s*verif|data\s*(been\s*)?uploaded|my\s*school\s*(never|no)\s*upload/i, problem: 'Institution upload status', stage: 'waiting', troubleshooting: true, topics: ['upload'], weight: 16 },
   { intent: 'bank-information', re: /bank.*(detail|account|info|fail|reject)|\bbvn\b|don'?t\s*have\s*(a\s*)?bvn/i, problem: 'Bank details or BVN', stage: 'applying', troubleshooting: true, topics: ['bank'], weight: 14 },
   { intent: 'jamb-verification', re: /jamb.*(not|isn'?t|no|keep|reject|invalid|fail|accept|work|verif|profile|gree)|invalid\s*jamb|verify\s*(my\s*)?jamb|my\s*jamb|utme.*(fail|invalid|verif)/i, problem: 'JAMB verification', stage: 'applying', troubleshooting: true, topics: ['jamb'], weight: 13 },
@@ -24,15 +29,13 @@ const RULES: Rule[] = [
   { intent: 'school-not-found', re: /school.*(not|isn'?t|no\s*dey|no).*(show|appear|come|list|found)|list\s*of\s*schools|which\s*schools|school\s*list|institution\s*not\s*found|not\s*on\s*(the\s*)?list/i, problem: 'School not showing', stage: 'applying', troubleshooting: true, topics: ['school'], weight: 12 },
   { intent: 'scam-safety', re: /scam|fraud|\botp\b|(pay|send(\s*money)?|transfer).{0,40}(agent|whatsapp)|whatsapp\s*man/i, problem: 'Scam or safety concern', stage: 'unknown', troubleshooting: true, topics: ['scam'], weight: 11 },
   { intent: 'pending-application', re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|under\s*review|still\s*(waiting|processing)|check\s*(my\s*)?(application\s*)?status|how\s*far\s*(with\s*)?(my\s*)?(application|loan|nelfund|money)?|e\s*no\s*dey(\s*move)?|no\s*gree|still\s*dey\s*(pending|process)|nothing\s*dey\s*happen|dem\s*never\s*(pay|disburse)|money\s*never\s*(come|enter)/i, problem: 'Application still pending', stage: 'waiting', troubleshooting: true, topics: ['pending'], weight: 11 },
-  { intent: 'upkeep', re: /\bupkeep\b|20,?000|monthly\s*allowance|disburse|money\s*(never|no)\s*(enter|come)/i, problem: 'Upkeep allowance', stage: 'exploring', troubleshooting: false, topics: ['upkeep'], weight: 10 },
   { intent: 'repayment', re: /repay|pay\s*(this\s*)?(money\s*)?back|loan\s*repayment|life\s*imprison|go\s*jail|imprisonment|prison\s*for\s*(unpaid|loan)/i, problem: 'Repayment', stage: 'repaying', troubleshooting: false, topics: ['repayment'], weight: 10 },
   { intent: 'gsi', re: /\bgsi\b|global\s*standing\s*instruction/i, problem: 'What GSI means', stage: 'repaying', troubleshooting: false, topics: ['gsi'], weight: 10 },
   { intent: 'loan-or-scholarship', re: /scholarship|free\s*money|loan\s*or\s*scholarship|is\s*(it|this)\s*free/i, problem: 'Loan or scholarship', stage: 'exploring', troubleshooting: false, topics: ['loan'], weight: 10 },
-  { intent: 'how-to-apply', re: /how\s*(do\s*i|to)\s*apply|application\s*steps?|register\s*(for|on)\s*nelfund|i\s*want\s*to\s*apply|i\s*wan\s*apply|wan\s*apply|help\s*me\s*apply|how\s*i\s*go\s*apply/i, problem: 'How to apply', stage: 'preparing', troubleshooting: false, topics: ['apply'], weight: 9 },
   { intent: 'guarantor', re: /guarantor|surety/i, problem: 'Guarantor requirement', stage: 'preparing', troubleshooting: false, topics: ['guarantor'], weight: 9 },
   { intent: 'contact-support', re: /official\s*email|nelfund\s*support|contact\s*(nelfund|support)|esupport|helpline|customer\s*care|open\s*(a\s*)?ticket/i, problem: 'Contact NELFUND support', stage: 'unknown', troubleshooting: false, topics: ['contact'], weight: 14 },
   { intent: 'deadline', re: /deadline|closing\s*date|expire|when\s*will.{0,20}close/i, problem: 'Application deadline', stage: 'exploring', troubleshooting: false, topics: ['deadline'], weight: 12 },
-  { intent: 'official-sources', re: /official\s*(link|site|portal|website)|nelf\.gov|which\s*(link|url|website)/i, problem: 'Official links', stage: 'exploring', troubleshooting: false, topics: ['official'], weight: 8 },
+  { intent: 'official-sources', re: /official\s*(link|site|portal|website)|nelf\.gov|which\s*(link|url|website)|portal\s*link/i, problem: 'Official links', stage: 'exploring', troubleshooting: false, topics: ['official'], weight: 8 },
   { intent: 'rejected-application', re: /reject(?:ed|ion)?\s*(my\s*)?application|nelfund\s*rejected|(?<!declined\s)\bdeclined\b(?!\s*loans)/i, problem: 'Application rejected', stage: 'rejected', troubleshooting: true, topics: ['rejected'], weight: 11 },
   { intent: 'reapplication', re: /re-?apply|apply\s*again/i, problem: 'Reapplying', stage: 'applying', troubleshooting: true, topics: ['reapplication'], weight: 9 },
   { intent: 'documents-needed', re: /what\s*(documents?|do\s*i\s*need)|requirements?|admission\s*letter/i, problem: 'Documents required', stage: 'preparing', troubleshooting: false, topics: ['documents'], weight: 9 },
@@ -51,6 +54,20 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
       return { intent: prior, confidence: 0.5, topics: ['greeting'], problem: null, stage: 'exploring', entities: [], isTroubleshooting: false }
     }
     return { intent: 'what-is-nelfund', confidence: 0.45, topics: ['greeting'], problem: 'Greeting — offer NELFUND help', stage: 'exploring', entities: [], isTroubleshooting: false }
+  }
+
+  // Explicit disambiguation before general rules
+  if (/\bupkeep\b|monthly\s*allowance|20,?000/i.test(q) && !/school\s*fees|institutional\s*charges|tuition/i.test(q)) {
+    return { intent: 'upkeep', confidence: 0.9, topics: ['upkeep'], problem: 'Upkeep allowance', stage: 'exploring', entities: detectEntities(q), isTroubleshooting: false }
+  }
+  if (/school\s*fees|institutional\s*charges|tuition/i.test(q) && !/\bupkeep\b/i.test(q)) {
+    return { intent: 'school-fees', confidence: 0.9, topics: ['fees'], problem: 'School fees / institutional charges', stage: 'exploring', entities: detectEntities(q), isTroubleshooting: false }
+  }
+  if (/sign\s*up|create\s*(an?\s*)?account|register(\s|$)/i.test(q) && !/sign\s*in|\blogin\b|log\s*in|password/i.test(q)) {
+    return { intent: 'how-to-apply', confidence: 0.9, topics: ['apply', 'signup'], problem: 'Create account / sign up', stage: 'preparing', entities: detectEntities(q), isTroubleshooting: false }
+  }
+  if (/(\blogin\b|log\s*in|sign\s*in|password|session\s*expired)/i.test(q) && !/sign\s*up|create\s*(an?\s*)?account|how\s*to\s*apply/i.test(q)) {
+    return { intent: 'portal-login', confidence: 0.9, topics: ['login'], problem: 'Sign in / login', stage: 'applying', entities: detectEntities(q), isTroubleshooting: false }
   }
 
   if ((/total\s*loans|approved\s*loans|pending\s*loans|welcome\s+to\s+student\s+loan\s+portal/i.test(q)) && q.length < 220) {
@@ -98,7 +115,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'pending-application', confidence: 0.5, topics: ['pending'], problem: 'Application or payment status', stage: 'waiting', entities, isTroubleshooting: true }
   }
   if (entities.includes('jamb')) return { intent: 'jamb-verification', confidence: 0.5, topics: ['jamb'], problem: 'JAMB verification', stage: 'applying', entities, isTroubleshooting: true }
-  if (entities.includes('login') || entities.includes('portal')) return { intent: 'portal-login', confidence: 0.48, topics: ['login'], problem: 'Portal access', stage: 'applying', entities, isTroubleshooting: false }
+  if (entities.includes('login')) return { intent: 'portal-login', confidence: 0.48, topics: ['login'], problem: 'Sign in / login', stage: 'applying', entities, isTroubleshooting: false }
   if (entities.includes('apply')) return { intent: 'how-to-apply', confidence: 0.48, topics: ['apply'], problem: 'How to apply', stage: 'preparing', entities, isTroubleshooting: false }
   if (entities.includes('eligibility')) return { intent: 'eligibility', confidence: 0.48, topics: ['eligibility'], problem: 'Eligibility', stage: 'exploring', entities, isTroubleshooting: false }
   if (entities.includes('upkeep')) return { intent: 'upkeep', confidence: 0.48, topics: ['upkeep'], problem: 'Upkeep allowance', stage: 'exploring', entities, isTroubleshooting: false }
