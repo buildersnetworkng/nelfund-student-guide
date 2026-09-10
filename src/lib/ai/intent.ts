@@ -39,13 +39,18 @@ const RULES: Rule[] = [
   { intent: 'how-to-apply', re: /make\s*i\s*apply|how\s*i\s*go\s*take\s*apply|i\s*wan\s*start|begin\s*(loan|application)|account\s*(don|already)\s*(create|open)/i, problem: 'Start or continue application', stage: 'preparing', troubleshooting: false, topics: ['apply'], weight: 16 },
   { intent: 'school-fees', re: /i\s*(don|have|already)\s*pay.{0,30}(fee|tuition|school)|school\s*don\s*collect|already\s*paid\s*(my\s*)?fees/i, problem: 'Already paid school fees', stage: 'exploring', troubleshooting: false, topics: ['fees'], weight: 15 },
   { intent: 'contact-support', re: /who\s*(do\s*i|i\s*go)\s*(call|message|mail)|wetin\s*number|nelfund\s*(phone|mail)|open\s*ticket/i, problem: 'How to reach NELFUND', stage: 'unknown', troubleshooting: false, topics: ['contact'], weight: 13 },
+  { intent: 'current-information', re: /help\s*me|i\s*need\s*(help|assistance)|this\s*(nelfund\s*)?thing|what\s*next|i\s*no\s*sabi|make\s*una\s*help|guide\s*me|una\s*fit\s*help|confused|i\s*don\s*know\s*wetin/i, problem: 'Vague help request', stage: 'exploring', troubleshooting: false, topics: ['guidance'], weight: 8 },
+  { intent: 'contact-support', re: /something\s*went\s*wrong|try\s*again\s*later|internal\s*server|blank\s*page|keep\s*loading|network\s*error|page\s*not\s*working|failed\s*to\s*(load|fetch)/i, problem: 'Portal error dump', stage: 'unknown', troubleshooting: true, topics: ['error'], weight: 12 },
+  { intent: 'how-to-apply', re: /i\s*just\s*wan(t)?(\s*to)?\s*(do|start)|how\s*this\s*thing\s*work|steps?\s*abeg|begin\s*now|i\s*wan\s*start/i, problem: 'Start application (vague)', stage: 'preparing', troubleshooting: false, topics: ['apply'], weight: 8 },
+  { intent: 'official-sources', re: /send\s*(the\s*)?(link|url|website)|drop\s*(the\s*)?link|wetin\s*(be\s*)?(the\s*)?link|official\s*page/i, problem: 'Official links', stage: 'exploring', troubleshooting: false, topics: ['official'], weight: 10 },
+  { intent: 'pending-application', re: /i\s*don\s*submit|i\s*have\s*submitted|submitted\s*(already|since)|no\s*update|nothing\s*change|still\s*the\s*same/i, problem: 'Submitted — waiting', stage: 'waiting', troubleshooting: true, topics: ['pending'], weight: 10 },
 ]
 
 export function classifyIntent(question: string, history?: ConversationTurn[]): IntentResult {
   const expanded = expandWithContext(question, history)
   const q = expanded.trim()
   if (!q) {
-    return { intent: 'current-information', confidence: 0.32, topics: ['empty'], problem: 'Empty message \u2014 offer guidance', stage: 'exploring', entities: [], isTroubleshooting: false }
+    return { intent: 'current-information', confidence: 0.32, topics: ['empty'], problem: 'Empty message — offer guidance', stage: 'exploring', entities: [], isTroubleshooting: false }
   }
 
   if (/^(hi+|hello+|hey+|yo+|pls|please|good\s*(morning|afternoon|evening|day)|how\s*far|wetin\s*dey|how\s*una\s*dey|sup|wassup|ok|okay|thanks|thank\s*you|abeg|morning|afternoon|evening|kedu|bawo|sannu|salam|peace|e\s*kaaro|nno|da\s*zuwa|reply\s*me|are\s*you\s*there)(\s+(there|bro|sis|sir|ma|boss|dear))?\b[.!?\s]*$/i.test(q)) {
@@ -53,7 +58,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     if (prior && prior !== 'unknown') {
       return { intent: prior, confidence: 0.5, topics: ['greeting'], problem: null, stage: 'exploring', entities: [], isTroubleshooting: false }
     }
-    return { intent: 'what-is-nelfund', confidence: 0.45, topics: ['greeting'], problem: 'Greeting \u2014 offer NELFUND help', stage: 'exploring', entities: [], isTroubleshooting: false }
+    return { intent: 'what-is-nelfund', confidence: 0.45, topics: ['greeting'], problem: 'Greeting — offer NELFUND help', stage: 'exploring', entities: [], isTroubleshooting: false }
   }
 
   if (/\bupkeep\b|monthly\s*allowance|20,?000/i.test(q) && !/school\s*fees|institutional\s*charges|tuition/i.test(q)) {
@@ -76,13 +81,13 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   if (isPortalDump(q)) {
     const entities = detectEntities(q)
     if (/\bpending\b|under\s*review|how\s*far/i.test(q) || entities.includes('status')) {
-      return { intent: 'pending-application', confidence: 0.72, topics: ['pending', 'portal-dump'], problem: 'Portal dump \u2014 pending status', stage: 'waiting', entities, isTroubleshooting: true }
+      return { intent: 'pending-application', confidence: 0.72, topics: ['pending', 'portal-dump'], problem: 'Portal dump — pending status', stage: 'waiting', entities, isTroubleshooting: true }
     }
     if (entities.includes('jamb')) {
-      return { intent: 'jamb-verification', confidence: 0.7, topics: ['jamb', 'portal-dump'], problem: 'Portal dump \u2014 JAMB', stage: 'applying', entities, isTroubleshooting: true }
+      return { intent: 'jamb-verification', confidence: 0.7, topics: ['jamb', 'portal-dump'], problem: 'Portal dump — JAMB', stage: 'applying', entities, isTroubleshooting: true }
     }
     if (/missing|not\s*found|no\s*school/i.test(q)) {
-      return { intent: 'missing-information', confidence: 0.7, topics: ['missing', 'portal-dump'], problem: 'Portal dump \u2014 missing info', stage: 'applying', entities, isTroubleshooting: true }
+      return { intent: 'missing-information', confidence: 0.7, topics: ['missing', 'portal-dump'], problem: 'Portal dump — missing info', stage: 'applying', entities, isTroubleshooting: true }
     }
     return { intent: 'current-information', confidence: 0.68, topics: ['current', 'portal-dump'], problem: 'Portal dashboard dump', stage: 'waiting', entities, isTroubleshooting: false }
   }
@@ -128,7 +133,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'current-information', confidence: 0.4, topics: ['guidance'], problem: 'General NELFUND guidance', stage: 'exploring', entities, isTroubleshooting: false }
   }
   if (/[a-zA-Z]{2,}/.test(q)) {
-    return { intent: 'current-information', confidence: 0.38, topics: ['guidance'], problem: 'Unclassified text \u2014 offer menu', stage: 'exploring', entities, isTroubleshooting: false }
+    return { intent: 'current-information', confidence: 0.38, topics: ['guidance'], problem: 'Unclassified text — offer menu', stage: 'exploring', entities, isTroubleshooting: false }
   }
   return { intent: 'official-sources', confidence: 0.4, topics: ['official'], problem: 'Official NELFUND links', stage: 'exploring', entities, isTroubleshooting: false }
 }
