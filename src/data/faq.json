@@ -62,7 +62,7 @@
   {
     "id": "faq-how-to-apply",
     "title": "How do I apply?",
-    "content": "Apply only through the official NELFUND portal at https://portal.nelf.gov.ng/ — create or verify your account, complete identity/JAMB/institution checks, select components, review, and submit.",
+    "content": "Apply only through the official NELFUND portal at https://portal.nelf.gov.ng/: create or verify your account, complete identity/JAMB/institution checks, select components, review, and submit.",
     "category": "Application",
     "verification_status": "guidance",
     "scope": "nelfund-wide",
@@ -107,7 +107,7 @@
   {
     "id": "faq-eligibility",
     "title": "Who can apply?",
-    "content": "Eligibility follows official NELFUND rules for the open cycle. Confirm on nelf.gov.ng and portal.nelf.gov.ng — this guide does not invent individual eligibility decisions.",
+    "content": "Eligibility follows official NELFUND rules for the open cycle. Confirm on nelf.gov.ng and portal.nelf.gov.ng. This guide does not invent individual eligibility decisions.",
     "category": "Eligibility",
     "verification_status": "may_change",
     "scope": "nelfund-wide",
