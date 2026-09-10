@@ -48,7 +48,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'current-information', confidence: 0.32, topics: ['empty'], problem: 'Empty message — offer guidance', stage: 'exploring', entities: [], isTroubleshooting: false }
   }
 
-  if (/^(hi+|hello+|hey+|yo+|pls|please|good\s*(morning|afternoon|evening|day)|how\s*far|wetin\s*dey|how\s*una\s*dey|sup|wassup|ok|okay|thanks|thank\s*you|abeg|morning|afternoon|evening|kedu|bawo|sannu)(\s+(there|bro|sis|sir|ma|boss))?\b[.!?\s]*$/i.test(q)) {
+  if (/^(hi+|hello+|hey+|yo+|pls|please|good\s*(morning|afternoon|evening|day)|how\s*far|wetin\s*dey|how\s*una\s*dey|sup|wassup|ok|okay|thanks|thank\s*you|abeg|morning|afternoon|evening|kedu|bawo|sannu|salam|peace)(\s+(there|bro|sis|sir|ma|boss|dear))?\b[.!?\s]*$/i.test(q)) {
     const prior = lastUserIntent(history)
     if (prior && prior !== 'unknown') {
       return { intent: prior, confidence: 0.5, topics: ['greeting'], problem: null, stage: 'exploring', entities: [], isTroubleshooting: false }
@@ -70,7 +70,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'portal-login', confidence: 0.9, topics: ['login'], problem: 'Sign in / login', stage: 'applying', entities: detectEntities(q), isTroubleshooting: false }
   }
 
-  if ((/total\s*loans|approved\s*loans|pending\s*loans|welcome\s+to\s+student\s+loan\s+portal/i.test(q)) && q.length < 220) {
+  if ((/total\s*loans|approved\s*loans|pending\s*loans|welcome\s+to\s+student\s+loan\s*portal/i.test(q)) && q.length < 220) {
     return { intent: 'current-information', confidence: 0.75, topics: ['current'], problem: 'Portal dashboard counters', stage: 'waiting', entities: detectEntities(q), isTroubleshooting: false }
   }
 
@@ -125,8 +125,11 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   if (entities.includes('contact')) return { intent: 'contact-support', confidence: 0.45, topics: ['contact'], problem: 'Contact support', stage: 'unknown', entities, isTroubleshooting: false }
   if (entities.includes('help')) return { intent: 'current-information', confidence: 0.42, topics: ['guidance'], problem: 'General help', stage: 'exploring', entities, isTroubleshooting: false }
 
-  if (/nelfund|nelf\.gov|student\s*loan|portal|loan|apply|school|help|stuck|wahala|abeg|wetin|please|what|how|when|why|money|pay|guide|explain|una|dey|error|issue|problem|account|status|open|link|site/i.test(q)) {
+  if (/nelfund|nelf\.gov|student\s*loan|portal|loan|apply|school|help|stuck|wahala|abeg|wetin|please|what|how|when|why|money|pay|guide|explain|una|dey|error|issue|problem|account|status|open|link|site|need|assist|check|see|show|try|fail|work|load|hang|sir|ma|boss|poly|uni|college|campus|matric|admission|ticket|support|login|password/i.test(q)) {
     return { intent: 'current-information', confidence: 0.4, topics: ['guidance'], problem: 'General NELFUND guidance', stage: 'exploring', entities, isTroubleshooting: false }
+  }
+  if (/[a-zA-Z]{2,}/.test(q)) {
+    return { intent: 'current-information', confidence: 0.38, topics: ['guidance'], problem: 'Unclassified text — offer menu', stage: 'exploring', entities, isTroubleshooting: false }
   }
   return { intent: 'official-sources', confidence: 0.4, topics: ['official'], problem: 'Official NELFUND links', stage: 'exploring', entities, isTroubleshooting: false }
 }
