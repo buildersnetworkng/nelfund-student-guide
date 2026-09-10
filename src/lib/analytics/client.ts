@@ -142,7 +142,7 @@ export function deriveUnknownTopic(userText?: string | null): string {
   if (!t || t.length < 2) return 'empty'
   if (/jamb/.test(t)) return 'jamb'
   if (/nin/.test(t)) return 'nin'
-  if (/pending|status|under\s*review/.test(t)) return 'pending-status'
+  if (/pending|status|under\s*review|how\s*far|nothing\s*dey/.test(t)) return 'pending-status'
   if (/reject|declined|not\s*approved/.test(t)) return 'rejection'
   if (/school\s*(not|no)|not\s*show|institution\s*not/.test(t)) return 'school-list'
   if (/upkeep|20\s*k|allowance/.test(t)) return 'upkeep'
@@ -150,11 +150,12 @@ export function deriveUnknownTopic(userText?: string | null): string {
   if (/repay|gsi|pay\s*back/.test(t)) return 'repayment'
   if (/open|deadline|window|apply\s*today|latest\s*update|expire|bvn/.test(t)) return 'open-status'
   if (/login|password|otp|sign\s*in|portal/.test(t)) return 'login-portal'
-  if (/contact|email|phone|who\s*do\s*i/.test(t)) return 'contacts'
+  if (/contact|email|phone|who\s*do\s*i|esupport|ticket|helpline/.test(t)) return 'contacts'
   if (/draft|write\s*(an?\s*)?(email|message)/.test(t)) return 'email-draft'
   if (/eligib|qualify|disqualif/.test(t)) return 'eligibility'
-  if (/screenshot|error|what\s*does\s*this\s*mean/.test(t)) return 'error-screenshot'
-  if (/hello|hi\b|help|abeg|please|wahala|stuck/.test(t) && t.length < 40) return 'greeting-vague'
+  if (/screenshot|error|what\s*does\s*this\s*mean|unable\s*to|try\s*again|500|404/.test(t)) return 'error-screenshot'
+  if (/hello|hi\b|help|abeg|please|wahala|stuck|how\s*far|wetin|good\s*(morning|afternoon|evening)/.test(t) && t.length < 48)
+    return 'greeting-vague'
   if (/disburse|payment|money\s*enter|when\s*will\s*i\s*get/.test(t)) return 'disbursement'
   if (/account\s*creat|create\s*account|register|sign\s*up/.test(t)) return 'account-create'
   if (/password|reset\s*password|forgot/.test(t)) return 'password-reset'
@@ -165,16 +166,18 @@ export function deriveUnknownTopic(userText?: string | null): string {
   if (/upload|school\s*data|institution\s*verif/.test(t)) return 'upload'
   if (/dashboard|total\s*loans|signed\s*in|welcome\s*to\s*student/.test(t)) return 'dashboard'
   if (/scam|agent|whatsapp|pay\s*\d/.test(t)) return 'scam-safety'
-  if (/unilag|lasu|oou|school\s*name|my\s*school/.test(t)) return 'institution'
-  if (/how\s*to\s*apply|steps?\s*to|register/.test(t)) return 'how-to-apply'
+  if (/unilag|lasu|oou|yabatech|unilorin|uniben|school\s*name|my\s*school/.test(t)) return 'institution'
+  if (/how\s*to\s*apply|steps?\s*to|register|i\s*wan\s*apply/.test(t)) return 'how-to-apply'
+  if (/abeg|wetin|wahala|e\s*no\s*dey|i\s*wan|una\s*fit/.test(t)) return 'pidgin-help'
+  if (/,|;|\band\b.*\band\b|also.*plus/.test(t) && t.length > 80) return 'multi-issue'
   if (t.length < 3) return 'empty'
+  if (/nelfund|loan|school|help|please|guide/.test(t)) return 'guidance'
   return 'other'
 }
 
 function isUnknownIntent(intent?: string | null): boolean {
   if (!intent) return true
   const i = intent.toLowerCase()
-  // Only true unclassified intents — never treat named conversation / agent routes as unknown
   return i === 'unknown' || i === 'offline:unknown' || i.endsWith(':unknown')
 }
 
@@ -267,7 +270,6 @@ export function trackFeature(feature: string, meta?: Record<string, string | num
   track('feature_use', { feature, meta })
 }
 
-/** Flush queued analytics events immediately (e.g. before unload). */
 export async function flushAnalytics(): Promise<boolean> {
   if (flushTimer) {
     clearTimeout(flushTimer)
