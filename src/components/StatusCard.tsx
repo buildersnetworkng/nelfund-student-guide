@@ -42,6 +42,40 @@ function toView(s: LiveApplicationStatus | typeof staticStatus) {
   }
 }
 
+/** Split note into readable blocks (bullets / short paragraphs). */
+function NoteBlocks({ note }: { note: string }) {
+  const lines = (note || '')
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+
+  if (lines.length === 0) return null
+
+  // Prefer bullet lines that start with • or -
+  const bullets = lines.filter((l) => /^[•\-–]/.test(l))
+  const rest = lines.filter((l) => !/^[•\-–]/.test(l))
+
+  return (
+    <div className="mt-3 space-y-2 text-sm leading-relaxed text-paper/85">
+      {bullets.length > 0 ? (
+        <ul className="list-none space-y-2">
+          {bullets.map((line, i) => (
+            <li key={i} className="flex gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-300" aria-hidden />
+              <span>{line.replace(/^[•\-–]\s*/, '')}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {rest.map((line, i) => (
+        <p key={`p-${i}`} className="text-paper/75">
+          {line}
+        </p>
+      ))}
+    </div>
+  )
+}
+
 export default function StatusCard() {
   const [view, setView] = useState(() => toView(staticStatus))
   const [loading, setLoading] = useState(true)
@@ -50,7 +84,7 @@ export default function StatusCard() {
     let cancelled = false
     ;(async () => {
       try {
-        const live = await fetchLiveApplicationStatus()
+        const live = await fetchLiveApplicationStatus({ force: true })
         if (cancelled) return
         if (live) {
           setView(toView(live))
@@ -107,13 +141,13 @@ export default function StatusCard() {
   return (
     <div className="card border-forest-700/20 bg-forest-700 text-paper">
       <div className="eyebrow text-gold-300">{view.cycle} application status</div>
-      <div className="mt-2 flex items-center gap-2">
-        <span className={`h-2.5 w-2.5 rounded-full ${dot}`} aria-hidden="true" />
-        <span className="font-display text-lg font-semibold text-paper">
+      <div className="mt-2 flex items-start gap-2">
+        <span className={`mt-2 h-2.5 w-2.5 shrink-0 rounded-full ${dot}`} aria-hidden="true" />
+        <span className="font-display text-base font-semibold leading-snug text-paper sm:text-lg">
           {view.status_label}
         </span>
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-paper/80">{view.note}</p>
+      <NoteBlocks note={view.note} />
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-paper/60">
         <span>
           Last checked: {view.last_checked}
