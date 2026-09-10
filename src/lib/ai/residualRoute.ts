@@ -73,3 +73,61 @@ export function lastUserIntent(history?: ConversationTurn[]): IntentId | null {
   }
   return null
 }
+
+function hit(intent: IntentId, problem: string, stage: StudentStage, topics: string[], entities: string[], troubleshooting = false, confidence = 0.52): IntentResult {
+  return { intent, confidence, topics, problem, stage, entities, isTroubleshooting: troubleshooting }
+}
+
+/** Soft map leftover / long / Pidgin / multi-issue text onto a real intent. Never returns unknown. */
+export function residualSoftRoute(q: string, entities: string[]): IntentResult | null {
+  const text = q.trim()
+  if (!text) return hit('current-information', 'Empty message — offer guidance', 'exploring', ['empty'], entities)
+
+  const pidginPending = /how\s*far|e\s*no\s*dey|no\s*gree|wahala|wetin\s*(dey|happen)|dem\s*never|money\s*never|still\s*dey\s*(pending|process|review)|abeg\s*(check|help).{0,40}(loan|status|pending|money)/i.test(text)
+  const pendingish = /\bpending\b|under\s*review|application\s*status|check\s*status|how\s*far\s*(with)?\s*(my\s*)?(loan|application|nelfund)?/i.test(text) || entities.includes('status') || entities.includes('disbursement')
+  if (pendingish || pidginPending) {
+    return hit('pending-application', 'Pending / under review / how far with loan', 'waiting', ['pending'], entities, true, 0.58)
+  }
+
+  if (entities.includes('jamb') || /invalid\s*jamb|jamb.{0,30}(fail|verif|reject|format|gree|no\s*work)|verify.{0,20}jamb/i.test(text)) {
+    return hit('jamb-verification', 'JAMB verification or invalid JAMB', 'applying', ['jamb'], entities, true, 0.6)
+  }
+
+  if (/is\s*(nelfund|it|portal|application)\s*(still\s*)?(open|accept)|still\s*(accepting|open|dey\s*open|dey\s*collect)|can\s*i\s*still\s*apply|dem\s*still\s*dey\s*(collect|accept)|closing\s*date|deadline/i.test(text)) {
+    return hit('current-information', 'Is NELFUND open / current official status', 'exploring', ['current'], entities, false, 0.6)
+  }
+
+  if (entities.includes('repayment') || /\bgsi\b|pay\s*(am|it|the\s*loan)\s*back|loan\s*or\s*scholarship|is\s*(this|nelfund)\s*(a\s*)?(scholarship|grant|free)/i.test(text)) {
+    if (/\bgsi\b|global\s*standing/i.test(text)) return hit('gsi', 'GSI explanation', 'repaying', ['gsi'], entities)
+    if (/scholarship|grant|free\s*money/i.test(text)) return hit('loan-or-scholarship', 'Loan vs scholarship', 'exploring', ['loan'], entities)
+    return hit('repayment', 'Repayment rules', 'repaying', ['repayment'], entities)
+  }
+
+  if (entities.includes('upkeep') && !entities.includes('fees')) {
+    return hit('upkeep', 'Upkeep allowance', 'exploring', ['upkeep'], entities)
+  }
+  if (entities.includes('fees')) {
+    return hit('school-fees', 'School fees / institutional charges', 'exploring', ['fees'], entities)
+  }
+
+  if (entities.includes('school') || /list\s*of\s*schools|which\s*schools|school\s*not\s*(found|showing)|missing\s*(info|information|school)/i.test(text)) {
+    if (/missing|not\s*found|record/i.test(text)) {
+      return hit('missing-information', 'Missing information on portal', 'applying', ['missing'], entities, true, 0.55)
+    }
+    return hit('school-not-found', 'School list / school not found', 'applying', ['school'], entities, true, 0.55)
+  }
+
+  if (entities.includes('login') || entities.includes('apply')) {
+    return hit(entities.includes('login') ? 'portal-login' : 'how-to-apply', entities.includes('login') ? 'Sign in / login' : 'How to apply', entities.includes('login') ? 'applying' : 'preparing', [entities.includes('login') ? 'login' : 'apply'], entities)
+  }
+
+  if (entities.includes('contact')) {
+    return hit('contact-support', 'Contact NELFUND support', 'unknown', ['contact'], entities)
+  }
+
+  if (entities.includes('help') || entities.includes('portal') || entities.includes('error') || /[a-zA-Z]{3,}/.test(text)) {
+    return hit('current-information', 'General NELFUND guidance menu', 'exploring', ['guidance'], entities, false, 0.45)
+  }
+
+  return hit('official-sources', 'Official NELFUND links', 'exploring', ['official'], entities, false, 0.42)
+}
