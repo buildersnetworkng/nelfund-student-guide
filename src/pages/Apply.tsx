@@ -30,7 +30,7 @@ export default function Apply() {
         >
           <span className="text-xs font-semibold uppercase tracking-wide text-forest-700">Log in / sign in</span>
           <span className="text-sm font-medium text-ink">nelf.gov.ng</span>
-          <span className="text-xs text-ink/55">Existing account — official website</span>
+          <span className="text-xs text-ink/55">Existing account, official website</span>
         </a>
         <a
           href="https://portal.nelf.gov.ng/"
