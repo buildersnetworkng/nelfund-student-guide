@@ -176,6 +176,8 @@ export function deriveUnknownTopic(userText?: string | null): string {
   if (/poly|university|college|campus|faculty/.test(t)) return 'institution'
   if (/pidgin|abeg|wetin|una|dey/.test(t)) return 'pidgin-help'
   if (t.length > 120) return 'multi-issue'
+  if (/\?/.test(t) || /what|how|when|why|who|where/.test(t)) return 'guidance'
+  if (/[a-z]{3,}/.test(t)) return 'guidance'
   return 'other'
 }
 
