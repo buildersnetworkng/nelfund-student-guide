@@ -12,6 +12,7 @@ import { institutions } from '../lib/data'
 import { AnswerCards } from '../components/AnswerCards'
 import { LinkifiedText } from '../components/LinkifiedText'
 import { trackAiQuestion, trackFeedback } from '../lib/analytics'
+import ShareGuide from '../components/ShareGuide'
 
 // Driven by production unknown topics + top intents (admin analytics)
 const SUGGESTIONS = [
@@ -43,6 +44,7 @@ export default function Ask() {
   const [showAttachMenu, setShowAttachMenu] = useState(false)
   const [showSchoolMenu, setShowSchoolMenu] = useState(false)
   const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({})
+  const [shareNudgeDismissed, setShareNudgeDismissed] = useState(false)
 
   const hasConversation = messages.some((m) => m.role === 'user')
 
@@ -234,6 +236,7 @@ export default function Ask() {
     setBusy(false)
     setShowAttachMenu(false)
     setFeedback({})
+    setShareNudgeDismissed(false)
   }
 
   return (
@@ -333,6 +336,7 @@ export default function Ask() {
               New chat
             </button>
           )}
+          <ShareGuide variant="icon" />
           <Link
             to="/"
             className="rounded-full px-3 py-1.5 text-xs font-medium text-ink/50 transition hover:bg-forest-50 hover:text-ink"
@@ -451,6 +455,19 @@ export default function Ask() {
                               👎 No
                             </button>
                           </>
+                        )}
+                        {feedback[m.id] === 'up' && !shareNudgeDismissed && (
+                          <div className="mt-1 flex w-full flex-wrap items-center gap-2">
+                            <span className="text-[11px] text-ink/55">Know a classmate who needs this?</span>
+                            <ShareGuide variant="button" className="!min-h-[32px] !px-3 !py-1 !text-xs" />
+                            <button
+                              type="button"
+                              onClick={() => setShareNudgeDismissed(true)}
+                              className="text-[11px] font-medium text-ink/40 hover:text-ink/70"
+                            >
+                              Not now
+                            </button>
+                          </div>
                         )}
                       </div>
                     </>
