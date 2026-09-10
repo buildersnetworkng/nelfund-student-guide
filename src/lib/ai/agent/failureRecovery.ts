@@ -22,7 +22,7 @@ export function recoverFromToolResult(result: ToolResult): RecoveryMessage | nul
       if (result.status === 'not_found') {
         return {
           message:
-            "I couldn't verify that institution in the curated directory. Share the full official name (or short form like LASU, UNILAG). I can still help you draft a message and point you to NELFUND official support — I will not invent an email address.",
+            "I couldn't verify that institution in the curated directory. Share the full official name (or short form like LASU, UNILAG). I can still help you draft a message and point you to NELFUND official support. I will not invent an email address.",
           actions: [
             `Report issues to NELFUND support: ${ESUPPORT}`,
             `Portal: ${PORTAL}`,
