@@ -28,3 +28,48 @@ export function detectEntities(q: string): string[] {
   }
   return entities
 }
+
+export function expandWithContext(question: string, history?: ConversationTurn[]): string {
+  if (!history || history.length === 0) return question
+  const recentUser = history.filter((t) => t.role === 'user').slice(-2).map((t) => t.text).join(' ')
+  const q = question.trim()
+  if (!recentUser) return question
+  if (q.length < 80) return `${recentUser} ${question}`
+  if (q.length < 400 && recentUser.length < 1200) return `${recentUser.slice(-400)} ${question}`
+  const last = history.filter((t) => t.role === 'user').slice(-1)[0]?.text || ''
+  if (q.length >= 400 && last && last !== question) {
+    return `${last.slice(0, 80)} ${question}`
+  }
+  return question
+}
+
+export function isPortalDump(q: string): boolean {
+  const hits = [
+    /total\s*loans/i,
+    /approved\s*loans/i,
+    /pending\s*loans/i,
+    /declined\s*loans/i,
+    /student\s*loan\s*portal/i,
+    /institutional\s*charges/i,
+    /application\s*status/i,
+    /nelf\.gov/i,
+    /portal\.nelf/i,
+    /session\s*registration/i,
+    /welcome\s+to\s+student\s*loan/i,
+    /signed\s*in\s*as/i,
+    /loan\s*application\s*(id|number)/i,
+    /application\s*id\s*[:#]?\s*\d/i,
+  ].filter((re) => re.test(q)).length
+  return q.length > 140 && hits >= 2
+}
+
+export function lastUserIntent(history?: ConversationTurn[]): IntentId | null {
+  if (!history) return null
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].role === 'user' && history[i].intent) return history[i].intent as IntentId
+  }
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].intent) return history[i].intent as IntentId
+  }
+  return null
+}
