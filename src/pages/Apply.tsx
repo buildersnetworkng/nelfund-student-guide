@@ -3,6 +3,7 @@ import TrustBadge from '../components/TrustBadge'
 import RecommendedVideo from '../components/RecommendedVideo'
 import InstitutionTip from '../components/InstitutionTip'
 import InstitutionNotice from '../components/InstitutionNotice'
+import ShareGuide from '../components/ShareGuide'
 
 export default function Apply() {
   const guide = guides.find((g) => g.id === 'guide-how-to-apply')
@@ -10,9 +11,14 @@ export default function Apply() {
 
   return (
     <div className="container-page py-10">
-      <p className="eyebrow">Step-by-step guide</p>
-      <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">{guide.title}</h1>
-      <p className="mt-2 max-w-xl text-sm text-ink/65">{guide.summary}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="eyebrow">Step-by-step guide</p>
+          <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">{guide.title}</h1>
+          <p className="mt-2 max-w-xl text-sm text-ink/65">{guide.summary}</p>
+        </div>
+        <ShareGuide variant="button" className="shrink-0" />
+      </div>
       <div className="mt-2"><InstitutionNotice /></div>
 
       <div className="mt-6 grid gap-2 sm:grid-cols-2">
@@ -75,6 +81,14 @@ export default function Apply() {
           )
         })}
       </ol>
+
+      <div className="card mt-8 flex flex-col gap-3 border-forest-200 bg-forest-50/40 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-ink">Help a classmate apply correctly</p>
+          <p className="mt-0.5 text-xs text-ink/55">Share this step-by-step guide before they open the portal.</p>
+        </div>
+        <ShareGuide variant="button" className="shrink-0" />
+      </div>
 
       <div className="mt-8">
         <TrustBadge status="guidance" sourceId="nelfund-portal" lastVerified="2026-08-11" />

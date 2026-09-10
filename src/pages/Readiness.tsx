@@ -3,6 +3,7 @@ import { readinessQuestions, getInstitution } from '../lib/data'
 import { useInstitution } from '../context/InstitutionContext'
 import ScopeBadge from '../components/ScopeBadge'
 import InstitutionNotice from '../components/InstitutionNotice'
+import ShareGuide from '../components/ShareGuide'
 
 export default function Readiness() {
   const [checked, setChecked] = useState<Record<string, boolean>>({})
@@ -73,6 +74,18 @@ export default function Readiness() {
           </li>
         ))}
       </ul>
+
+      {isReady && (
+        <div className="card mt-6 flex flex-col gap-3 border-forest-300 bg-forest-50 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-ink">You're checklist-ready</p>
+            <p className="mt-0.5 text-xs text-ink/60">
+              Share the guide with classmates still preparing — then confirm final requirements on the official portal.
+            </p>
+          </div>
+          <ShareGuide variant="button" className="shrink-0" />
+        </div>
+      )}
 
       {institution && institution.verification_status !== 'unverified' && (
         <p className="mt-4 text-xs text-ink/50">
