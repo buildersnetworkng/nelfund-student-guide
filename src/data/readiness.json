@@ -56,7 +56,7 @@
   {
     "id": "r-oou-upload-check",
     "label": "I have confirmed with OOU whether my student record has been uploaded to NELFUND",
-    "helper": "OOU submits student records to NELFUND in its own process — checking ahead can save you a failed verification attempt.",
+    "helper": "OOU submits student records to NELFUND in its own process. Checking ahead can save you a failed verification attempt.",
     "institution_id": "oou"
   },
   {
