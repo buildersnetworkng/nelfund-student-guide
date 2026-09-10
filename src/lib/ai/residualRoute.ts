@@ -18,8 +18,10 @@ export function detectEntities(q: string): string[] {
     [/apply|register|sign\s*up|i\s*wan\s*apply/i, 'apply'],
     [/reject|declined|not\s*approv/i, 'rejected'],
     [/disburse|payment|money\s*(enter|come)|dem\s*never\s*pay/i, 'disbursement'],
-    [/help|abeg|assist|stuck|confused|wahala|please/i, 'help'],
-    [/ticket|esupport|customer\s*care|helpline|contact/i, 'contact'],
+    [/help|abeg|assist|stuck|confused|wahala|please|guide\s*me|wetin|una\s*fit/i, 'help'],
+    [/ticket|esupport|customer\s*care|helpline|contact|complain|hotline/i, 'contact'],
+    [/error|try\s*again|something\s*went\s*wrong|unable\s*to|timed?\s*out/i, 'error'],
+    [/money|disburse|paid|payment|enter\s*account/i, 'money'],
   ]
   for (const [re, name] of map) {
     if (re.test(q) && !entities.includes(name)) entities.push(name)
@@ -91,18 +93,21 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   const lower = compact.toLowerCase()
 
   const pidginHelp =
-    /abeg|wetin|wahala|e\s*no\s*(dey|gree|work|show)|i\s*wan|how\s*i\s*go|no\s*gree|don\s*apply|check\s*am|help\s*me|i\s*need\s*help|assist\s*me|dem\s*never|e\s*never\s*(come|enter|pay)|make\s*una\s*help|una\s*fit\s*help|i\s*dey\s*confused|e\s*no\s*clear/i.test(
+    /abeg|wetin|wahala|e\s*no\s*(dey|gree|work|show|load)|i\s*wan|how\s*i\s*go|no\s*gree|don\s*apply|check\s*am|help\s*me|i\s*need\s*help|assist\s*me|dem\s*never|e\s*never\s*(come|enter|pay)|make\s*una\s*help|una\s*fit\s*help|i\s*dey\s*confused|e\s*no\s*clear|na\s*so|e\s*dey\s*hard|i\s*no\s*sabi|no\s*dey\s*work|portal\s*no\s*dey|e\s*keep\s*hang|una\s*fit\s*check/i.test(
       q,
     )
   const vagueHelp =
-    /^(help|please\s*help|i\s*need\s*(help|assistance)|assist(\s*me)?|stuck|confused|please|what\s*next|how\s*far|nelfund(\s*help)?|this\s*nelfund|loan\s*help|guide\s*me|explain|i\s*don.?t\s*understand)[.!?\s]*$/i.test(
+    /^(help|please\s*help|i\s*need\s*(help|assistance)|assist(\s*me)?|stuck|confused|please|what\s*next|how\s*far|nelfund(\s*help)?|this\s*nelfund|loan\s*help|guide\s*me|explain|i\s*don.?t\s*understand|can\s*you\s*help|need\s*assistance|i\s*have\s*(a\s*)?problem|issue|problem|hello\s*help)[.!?\s]*$/i.test(
       compact,
-    )
+    ) ||
+    (/\b(help|assist|stuck|confused|guide|explain|what\s*next)\b/i.test(compact) &&
+      compact.length < 55 &&
+      !/jail|scam|otp/i.test(compact))
   const multiIssue =
     ((compact.match(/\band\b|,|;|also|plus|then|after\s*that/gi) || []).length >= 2 && compact.length > 70) ||
     (entities.length >= 3 && compact.length > 90)
   const errorDump =
-    /error\s*(code|500|400|403|404)|bad\s*request|unable\s*to|try\s*again|session\s*(timed?\s*out|expired)|something\s*went\s*wrong|kindly\s*provide|invalid\s*(login|credentials|details|jamb|nin)|network\s*error|verification\s*fail|request\s*failed|internal\s*server|forbidden|unauthorized/i.test(
+    /error\s*(code|500|400|403|404|502|503)?|bad\s*request|unable\s*to|try\s*again|session\s*(timed?\s*out|expired)|something\s*went\s*wrong|kindly\s*provide|invalid\s*(login|credentials|details|jamb|nin|email)|network\s*error|verification\s*fail|request\s*failed|internal\s*server|forbidden|unauthorized|gateway\s*timeout|page\s*isn.?t\s*working|this\s*site\s*can.?t\s*be\s*reached|err_connection|blank\s*page|spinner|keep\s*loading|not\s*secure|certificate/i.test(
       q,
     )
   const alreadyApplied =
@@ -114,7 +119,9 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
       q,
     )
   const schoolOnly =
-    SCHOOL_ONLY.test(q) && compact.length < 90 && !/apply|pending|login|jamb|nin|fee|upkeep|repay|open|portal/i.test(q)
+    (SCHOOL_ONLY.test(q) || /\b(my\s*school|our\s*school|polytechnic|university|college\s*of)\b/i.test(q)) &&
+    compact.length < 110 &&
+    !/apply|pending|login|jamb|nin|fee|upkeep|repay|open|portal|password/i.test(q)
   const openAsk =
     /still\s*(open|accept|dey)|is\s*(it|nelfund|portal)\s*open|dem\s*still\s*dey\s*collect|closing\s*date|deadline|latest\s*(news|update|info)|as\s*of\s*today/i.test(
       q,
@@ -198,6 +205,18 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   }
   if (entities.includes('help') && compact.length < 80) {
     return result('current-information', 0.46, ['guidance', 'vague-help'], 'Short help residual', 'exploring', entities)
+  }
+  if (entities.includes('error') || entities.includes('portal')) {
+    return result('contact-support', 0.44, ['error-dump', 'residual'], 'Unclassified portal/error residual', 'applying', entities, true)
+  }
+  if (entities.includes('school') || entities.includes('money')) {
+    return result('current-information', 0.44, ['guidance', 'residual'], 'School or money residual', 'exploring', entities)
+  }
+  if (compact.length <= 2) {
+    return result('current-information', 0.35, ['empty'], 'Empty or tiny message', 'exploring', entities)
+  }
+  if (/[a-z]{3,}/i.test(compact)) {
+    return result('official-sources', 0.4, ['official', 'residual'], 'Unmatched text — official links', 'exploring', entities)
   }
   return null
 }
