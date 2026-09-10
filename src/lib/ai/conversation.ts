@@ -1,6 +1,7 @@
 /**
  * NELFUND AI — primary conversational intelligence (owned, in-repo).
  * Greetings never swallow real questions. Intent + playbook + multi-turn.
+ * Replies match the question — not a repeated link wall.
  */
 
 import { getInstitution } from '../data'
@@ -225,7 +226,7 @@ function isGreeting(text: string): boolean {
 }
 
 function greetingReply(): string {
-  return `How far — welcome.\n\nI am here to help with **NELFUND**: applications, portal issues, eligibility, upkeep, repayment, and school-record problems.\n\nWhat do you need help with today?`
+  return `How far — I can help with **NELFUND**.\n\nTell me what is going on in one short line (apply, pending, missing information, JAMB error, upkeep, repayment…). I will answer that directly — not a long menu.`
 }
 
 function isOffTopic(text: string): boolean {
@@ -258,7 +259,7 @@ function isOffTopic(text: string): boolean {
 }
 
 function offTopicReply(): string {
-  return `I understand your request, but I can only help with **NELFUND** — the Nigerian Education Loan Fund (applications, portal issues, eligibility, upkeep, repayment, and school-record problems).\n\nWould you like help with any of these?\n• How to apply or log in\n• Missing information on the portal\n• Eligibility / documents\n• Upkeep or repayment\n• Contacting your school or NELFUND support\n\nJust tell me what you need in a short sentence.`
+  return `I only cover **NELFUND** (apply, portal problems, eligibility, upkeep, repayment, school records).\n\nWhat NELFUND issue should we handle?`
 }
 
 function finalize(
@@ -318,7 +319,7 @@ export async function processUserTurn(opts: {
     return finalize(userMsg, { ...opts.slots }, 'official-sources', offTopicReply(), 'conversation')
   }
 
-  // Early factual route: never show troubleshooting menu for clear knowledge questions
+  // Early factual route: match the question via adaptive playbook
   {
     const earlyIntent = classifyIntent(combined || rawUser).intent
     const early = playbookAnswer(earlyIntent !== 'unknown' ? earlyIntent : 'unknown', {
@@ -330,33 +331,29 @@ export async function processUserTurn(opts: {
       userText: combined || rawUser,
       priorIntent: opts.slots.intent,
     })
-    if (
-      early &&
-      (/\*\*|Official|NELFUND|Portal:|zero interest|Act, 2023|How to apply|Missing information|Upkeep|Repayment|Eligibility|Safety|Guarantor|Private institutions|School not showing/i.test(
-        early,
-      ) ||
-        early.length > 80)
-    ) {
+    if (early && early.length > 40) {
       let intentGuess: IntentId =
         earlyIntent !== 'unknown' ? earlyIntent : opts.slots.intent || 'unknown'
       if (intentGuess === 'unknown') {
-        if (/Act, 2023|who established|When \/ who established/i.test(early)) intentGuess = 'nelfund-history'
+        if (/Act, 2023|who established/i.test(early)) intentGuess = 'nelfund-history'
         else if (/Purpose of NELFUND/i.test(early)) intentGuess = 'nelfund-purpose'
-        else if (/\*\*NELFUND\*\* is the/i.test(early)) intentGuess = 'what-is-nelfund'
-        else if (/How to apply/i.test(early)) intentGuess = 'how-to-apply'
-        else if (/Missing information/i.test(early)) intentGuess = 'missing-information'
-        else if (/School not showing/i.test(early)) intentGuess = 'school-not-found'
-        else if (/Invalid JAMB|JAMB Profile/i.test(early)) intentGuess = 'jamb-verification'
-        else if (/pending|under review/i.test(early)) intentGuess = 'pending-application'
-        else if (/Repayment|NYSC/i.test(early)) intentGuess = 'repayment'
-        else if (/Upkeep/i.test(early)) intentGuess = 'upkeep'
-        else if (/zero interest/i.test(early)) intentGuess = 'what-is-nelfund'
-        else if (/Log in \/ sign in|Sign up/i.test(early)) intentGuess = 'portal-login'
-        else if (/Never pay|scam|OTP/i.test(early)) intentGuess = 'scam-safety'
-        else if (/Eligibility/i.test(early)) intentGuess = 'eligibility'
+        else if (/NELFUND/i.test(early) && /loan/i.test(early)) intentGuess = 'what-is-nelfund'
+        else if (/apply/i.test(early)) intentGuess = 'how-to-apply'
+        else if (/[Mm]issing information/i.test(early)) intentGuess = 'missing-information'
+        else if (/school not/i.test(early)) intentGuess = 'school-not-found'
+        else if (/JAMB/i.test(early)) intentGuess = 'jamb-verification'
+        else if (/[Pp]ending|[Uu]nder review/i.test(early)) intentGuess = 'pending-application'
+        else if (/[Rr]epayment|NYSC/i.test(early)) intentGuess = 'repayment'
+        else if (/[Uu]pkeep/i.test(early)) intentGuess = 'upkeep'
+        else if (/[Ss]ign in|[Pp]ortal/i.test(early)) intentGuess = 'portal-login'
+        else if (/[Ss]cam|OTP/i.test(early)) intentGuess = 'scam-safety'
+        else if (/[Ee]ligib/i.test(early)) intentGuess = 'eligibility'
       }
       return finalize(userMsg, { ...opts.slots, intent: intentGuess }, intentGuess, early, 'conversation', {
-        next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
+        next:
+          early.includes('portal.nelf.gov.ng') || early.includes('nelf.gov.ng')
+            ? undefined
+            : ['https://portal.nelf.gov.ng/'],
       })
     }
   }
@@ -394,9 +391,9 @@ export async function processUserTurn(opts: {
           userText: `${combined} ${slots.problemSummary || ''}`,
           priorIntent,
         }) ||
-        `Thanks — I have **${slots.institutionName}** on this conversation.\n\nFor your issue, start with the school ICT / Registry / NELFUND desk, then use https://nelfund.esupport.ng/create if the portal still fails after the school confirms your record.\n\nPortal: https://portal.nelf.gov.ng/\nSay **“draft the email”** if you want a message for the school.`
+        `Thanks — I have **${slots.institutionName}** noted.\n\nStart with the school ICT / Registry / NELFUND desk, then https://nelfund.esupport.ng/create if the portal still fails after they confirm upload.\n\nSay **draft the email** if you want a message for the school.`
       const answer = lightAnswer(resumeIntent, pb, {
-        next: ['https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create', 'https://nelf.gov.ng/'],
+        next: pb.includes('portal.nelf.gov.ng') ? undefined : ['https://portal.nelf.gov.ng/'],
       })
       if (esc) answer.escalation = esc
       slots.intent = resumeIntent
@@ -479,7 +476,7 @@ export async function processUserTurn(opts: {
     })
     if (pb) {
       return finalize(userMsg, slots, intent, pb, capability, {
-        next: ['https://nelfund.esupport.ng/create', 'https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'],
+        next: pb.includes('esupport') ? undefined : ['https://nelfund.esupport.ng/create'],
       })
     }
   }
@@ -504,7 +501,7 @@ export async function processUserTurn(opts: {
         ? `${firstLine}\n\n${ask}`
         : ask
     return finalize(userMsg, slots, intent, text, capability, {
-      next: ['Share your school name', 'https://portal.nelf.gov.ng/'],
+      next: ['Share your school name'],
     })
   }
 
@@ -544,7 +541,7 @@ export async function processUserTurn(opts: {
       /* ignore */
     }
     return finalize(userMsg, slots, intent, text, capability, {
-      next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
+      next: text.includes('portal.nelf.gov.ng') ? undefined : ['https://portal.nelf.gov.ng/'],
       escalation,
     })
   }
@@ -578,8 +575,8 @@ export async function processUserTurn(opts: {
   }
 
   const fallback =
-    'I can help with NELFUND applications, portal errors, eligibility, upkeep, and repayment.\n\nTell me the exact portal message, your school name, or what you are trying to do.\n\nPortal: https://portal.nelf.gov.ng/\nWebsite: https://nelf.gov.ng/\nSupport: https://nelfund.esupport.ng/create'
+    'I can help with NELFUND. Tell me the exact portal message, your school, or what you are trying to do (apply, pending, missing info, login).'
   return finalize(userMsg, slots, intent, fallback, capability, {
-    next: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
+    next: ['https://portal.nelf.gov.ng/'],
   })
 }
