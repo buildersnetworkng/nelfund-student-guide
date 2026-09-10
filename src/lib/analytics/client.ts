@@ -178,7 +178,9 @@ export function deriveUnknownTopic(userText?: string | null): string {
   if (t.length > 120) return 'multi-issue'
   if (/\?/.test(t) || /what|how|when|why|who|where/.test(t)) return 'guidance'
   if (/[a-z]{3,}/.test(t)) return 'guidance'
-  return 'other'
+  if (/\d{4,}/.test(t)) return 'pending-status'
+  if (/[?؟]/.test(t)) return 'guidance'
+  return 'guidance'
 }
 
 function isUnknownIntent(intent?: string | null): boolean {
