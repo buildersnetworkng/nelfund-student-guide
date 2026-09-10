@@ -90,7 +90,16 @@ const SCHOOL_ONLY =
 /** Soft map leftover / long / Pidgin / multi-issue text onto a real intent. Never returns unknown. */
 export function residualSoftRoute(q: string, entities: string[]): IntentResult | null {
   const text = q.trim()
-  if (!text) return hit('current-information', 'Empty message — offer guidance', 'exploring', ['empty'], entities)
+  if (!text) return hit('current-information', 'Empty message, offer guidance', 'exploring', ['empty'], entities)
+
+  // Purpose / why created (English + Pidgin) - never route to live status
+  if (
+    /why\s+(was|is|dem|they|una)\s+(nelfund|nel\s*fund|it)\s*(created|create|establish|start|begin|form|set\s*up)|why\s+dem\s+create\s+nelfund|purpose\s+of\s+nelfund|mission\s+of\s+nelfund|who\s+(created|established|started)\s+nelfund|wetin\s+(make|cause)\s+(dem|them)\s+create\s+nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|why\s+was\s+nelfund\s+created/i.test(
+      text,
+    )
+  ) {
+    return hit('what-is-nelfund', 'Why NELFUND was created / purpose', 'exploring', ['what is', 'purpose'], entities, false, 0.72)
+  }
 
   if (SCHOOL_ONLY.test(text) || (entities.includes('school') && text.split(/\s+/).length <= 6 && !entities.includes('status') && !entities.includes('apply'))) {
     return hit('school-not-found', 'School name without extra keywords', 'applying', ['school'], entities, true, 0.5)
@@ -108,7 +117,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     if (entities.includes('jamb') || /jamb|utme/i.test(text)) {
       return hit('jamb-verification', 'Portal error around JAMB', 'applying', ['jamb', 'error'], entities, true, 0.58)
     }
-    return hit('contact-support', 'Portal error dump — how to reach support', 'unknown', ['error'], entities, true, 0.55)
+    return hit('contact-support', 'Portal error dump, how to reach support', 'unknown', ['error'], entities, true, 0.55)
   }
 
   const pidginPending = /how\s*far|e\s*no\s*dey|no\s*gree|wahala|wetin\s*(dey|happen)|dem\s*never|money\s*never|still\s*dey\s*(pending|process|review)|abeg\s*(check|help).{0,40}(loan|status|pending|money)|e\s*never\s*pay|i\s*don\s*submit|never\s*see|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|una\s*never\s*pay|my\s*own\s*never|dem\s*don\s*pay\s*(others|people)|others\s*don\s*(collect|receive)|check\s*am|see\s*am\s*(for|on)\s*(the\s*)?portal/i.test(text)
@@ -159,12 +168,12 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   const multiIssue = text.length > 90 && (/,|;|\band\b.+\band\b|also|plus|then|after that/i.test(text) || entities.length >= 3)
   if (multiIssue) {
     if (entities.includes('status') || entities.includes('disbursement')) {
-      return hit('pending-application', 'Multi-issue paste — pending first', 'waiting', ['pending', 'multi-issue'], entities, true, 0.5)
+      return hit('pending-application', 'Multi-issue paste, pending first', 'waiting', ['pending', 'multi-issue'], entities, true, 0.5)
     }
     if (entities.includes('apply') || entities.includes('login')) {
-      return hit(entities.includes('login') ? 'portal-login' : 'how-to-apply', 'Multi-issue paste — apply/login first', entities.includes('login') ? 'applying' : 'preparing', ['multi-issue'], entities, false, 0.5)
+      return hit(entities.includes('login') ? 'portal-login' : 'how-to-apply', 'Multi-issue paste, apply/login first', entities.includes('login') ? 'applying' : 'preparing', ['multi-issue'], entities, false, 0.5)
     }
-    return hit('current-information', 'Multi-issue paste — offer menu', 'exploring', ['guidance', 'multi-issue'], entities, false, 0.48)
+    return hit('current-information', 'Multi-issue paste, offer menu', 'exploring', ['guidance', 'multi-issue'], entities, false, 0.48)
   }
 
   const vagueHelp =
@@ -172,7 +181,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     /^(help|abeg|please|pls|assist|guide|i\s*need\s*help|help\s*me|wetin|wahala|this\s*thing|make\s*una\s*help|i\s*no\s*sabi|what\s*next|reply|are\s*you\s*there)[.!? ]*$/i.test(text) ||
     /help\s*me|i\s*need\s*(help|assistance)|una\s*fit\s*help|abeg\s*help|guide\s*me|this\s*nelfund\s*thing/i.test(text)
   if (vagueHelp || entities.includes('portal')) {
-    return hit('current-information', 'Vague help — offer official menu', 'exploring', ['guidance'], entities, false, 0.46)
+    return hit('current-information', 'Vague help, offer official menu', 'exploring', ['guidance'], entities, false, 0.46)
   }
 
   if (entities.includes('error') || /[a-zA-Z]{3,}/.test(text)) {
