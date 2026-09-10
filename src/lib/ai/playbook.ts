@@ -47,10 +47,10 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
 
   if (intent === 'current-information' || intent === 'deadline') {
     if (!t) {
-      return `Send a short line about what you need.\n\n${MENU}\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
+      return `Empty message received. Send one line about what you need.\n\n${MENU}\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
     }
-    if (t.length < 48 || /help|abeg|stuck|wahala|what\s*next|empty|wetin|una\s*fit|reply|are\s*you\s*there/i.test(t)) {
-      return `${MENU}`
+    if (t.length < 64 || /help|abeg|stuck|wahala|what\s*next|empty|wetin|una\s*fit|reply|are\s*you\s*there|this\s*thing|i\s*no\s*sabi|confused|pls+|please/i.test(t)) {
+      return `I can still help even if the question is short or mixed (Pidgin is fine).\n\n${MENU}\n\nIf you pasted a portal error, say **login**, **pending**, **JAMB**, or **missing school**. I will not invent NELFUND policy or dates.`
     }
     return `Live notices only from ${SITE} and ${PORTAL}. I will not invent a deadline or “still open until…” date.\n\nAccount sign-up and a loan application **window** are different. Confirm on the portal before you act.\n\nWhat are you trying to do — sign up, login, submit a loan, or check pending status?`
   }
@@ -95,7 +95,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   if (intent === 'unknown' || !intent) {
     return t.length < 8
       ? `I am here for NELFUND.\n\n${MENU}`
-      : `I mapped that as general help so you are not stuck.\n\n${MENU}\n\nPortal: ${PORTAL}`
+      : `I mapped that as general help so you are not stuck on an “other” topic.\n\n${MENU}\n\nPortal: ${PORTAL}`
   }
 
   return `${MENU}\n\nCheck live status on ${PORTAL}. Reply with the exact portal message or whether you mean **sign up**, **login**, **loan application**, **pending**, **school fees**, or **upkeep**.`
