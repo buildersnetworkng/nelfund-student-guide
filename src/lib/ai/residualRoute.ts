@@ -92,9 +92,8 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   const text = q.trim()
   if (!text) return hit('current-information', 'Empty message, offer guidance', 'exploring', ['empty'], entities)
 
-  // Purpose / why created (English + Pidgin) - never route to live status
   if (
-    /why\s+(was|is|dem|they|una)\s+(nelfund|nel\s*fund|it)\s*(created|create|establish|start|begin|form|set\s*up)|why\s+dem\s+create\s+nelfund|purpose\s+of\s+nelfund|mission\s+of\s+nelfund|who\s+(created|established|started)\s+nelfund|wetin\s+(make|cause)\s+(dem|them)\s+create\s+nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|why\s+was\s+nelfund\s+created/i.test(
+    /why\s+(was|is|dem|they|una|we)\s+.{0,24}(nelfund|nel\s*fund|it).{0,16}(created|create|establish|start|begin|form|set\s*up|make)|why\s+(dem|they)\s+(create|make|start)\s+nelfund|why\s+nelfund|purpose\s+(of\s+)?nelfund|mission\s+of\s+nelfund|who\s+(created|established|started)\s+nelfund|wetin\s+(be\s*)?(this\s+)?nelfund|wetin\s+(make|cause)\s+(dem|them)\s+create|what\s+is\s+(this\s+)?nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|how\s+come\s+.{0,20}nelfund|reason\s+(for|dem|they)\s+.{0,20}nelfund/i.test(
       text,
     )
   ) {
