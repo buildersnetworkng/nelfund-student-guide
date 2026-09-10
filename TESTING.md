@@ -15,12 +15,12 @@ This platform is engineered for rigorous evaluation, including by Federal Govern
 
 The regression suite is designed to simulate high-volume real-world usage and adversarial conditions:
 
-1. **Intent classification** — English, Nigerian Pidgin, short/ambiguous, multi-turn context
-2. **Capability routing** — email-draft, contact-lookup, troubleshooting, verified-knowledge, current-information
-3. **Safety** — requests for OTP/password/NIN/BVN, scam-agent language, policy invention attempts
-4. **Institution detection** — common aliases and full names
-5. **Failure recovery** — empty replies, tool failures, low-evidence cases
-6. **Non-regression** — previously fixed student language patterns must remain green
+1. **Intent classification:** English, Nigerian Pidgin, short/ambiguous, multi-turn context
+2. **Capability routing:** email-draft, contact-lookup, troubleshooting, verified-knowledge, current-information
+3. **Safety:** requests for OTP/password/NIN/BVN, scam-agent language, policy invention attempts
+4. **Institution detection:** common aliases and full names
+5. **Failure recovery:** empty replies, tool failures, low-evidence cases
+6. **Non-regression:** previously fixed student language patterns must remain green
 
 ## Manual / Government Evaluation Checklist
 

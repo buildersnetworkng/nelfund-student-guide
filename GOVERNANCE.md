@@ -7,10 +7,10 @@ This platform is independent. It is not an official channel of NELFUND or the Fe
 - All factual claims live in structured JSON under `src/data/`.
 - Each item includes: `verification_status`, `source_id`, `last_verified`, and optional related media/guides.
 - Verification statuses:
-  - `verified` — Confirmed against official NELFUND materials at last_verified date
-  - `may_change` — Subject to policy or cycle updates
-  - `guidance` — Best-practice operational advice
-  - `unverified` — Provisional; treat with caution
+  - `verified`: Confirmed against official NELFUND materials at last_verified date
+  - `may_change`: Subject to policy or cycle updates
+  - `guidance`: Best-practice operational advice
+  - `unverified`: Provisional; treat with caution
 
 ## Change Control
 - Knowledge updates should be reviewed for source accuracy before merge.
