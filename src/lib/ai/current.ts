@@ -122,7 +122,16 @@ function isIsOpenQuestion(q?: string): boolean {
 
 export function buildCurrentInformationAnswer(): GroundedAnswer {
   const cycle = getCurrentAcademicCycle()
-  const answer = `**As of ${todayWatLabel()}** (${cycle})\n\nI do not invent opening or closing dates.\n\n**Loan / upkeep application** and **account creation** are different:\n• Sign **up** (new account): ${PORTAL}\n• Sign **in** / login: ${SITE}\n• Confirm live status only on those official pages\n\nWhat do you need: sign up, login, or submit a loan?`
+  const answer = `**As of ${todayWatLabel()}** (${cycle})
+
+I do not invent opening or closing dates.
+
+**Loan / upkeep application** and **account creation** are different:
+• Sign **up** (new account): ${PORTAL}
+• Sign **in** / login: ${SITE}
+• Confirm live status only on those official pages
+
+What do you need: sign up, login, or submit a loan?`
 
   return {
     hasEvidence: true,
@@ -151,7 +160,20 @@ function answerIsOpen(data: LiveStatus): GroundedAnswer {
   const cycle = cycleLabel(data)
   const when = todayWatLabel()
 
-  const answer = `**Is NELFUND open?** (as of **${when}**)\n\n**${cycle}**\n\n${loanLine}\n\n${accountLine}\n\n**Where to go**\n• **Sign up** (create account): ${PORTAL}\n• **Login / sign in** (existing account): ${SITE}\n• Support ticket: https://nelfund.esupport.ng/create\n\nI will not invent a closing date. Re-check the portal before you rely on a deadline.`
+  const answer = `**Is NELFUND open?** (as of **${when}**)
+
+**${cycle}**
+
+${loanLine}
+
+${accountLine}
+
+**Where to go**
+• **Sign up** (create account): ${PORTAL}
+• **Login / sign in** (existing account): ${SITE}
+• Support ticket: https://nelfund.esupport.ng/create
+
+I will not invent a closing date. Re-check the portal before you rely on a deadline.`
 
   return {
     hasEvidence: true,
@@ -180,7 +202,16 @@ function answerGeneralStatus(data: LiveStatus): GroundedAnswer {
   const cycle = cycleLabel(data)
   const when = todayWatLabel()
 
-  const answer = `**NELFUND status as of ${when}** (${cycle})\n\n${loanLine}\n\n${accountLine}\n\n• **Sign up:** ${PORTAL}\n• **Login / sign in:** ${SITE}\n\nAlways verify on the official portal before acting.`
+  const answer = `**NELFUND status as of ${when}** (${cycle})
+
+${loanLine}
+
+${accountLine}
+
+• **Sign up:** ${PORTAL}
+• **Login / sign in:** ${SITE}
+
+Always verify on the official portal before acting.`
 
   return {
     hasEvidence: true,
