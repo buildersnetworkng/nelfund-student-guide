@@ -171,7 +171,11 @@ export function deriveUnknownTopic(userText?: string | null): string {
   if (/abeg|wetin|wahala|e\s*no\s*dey|i\s*wan|una\s*fit/.test(t)) return 'pidgin-help'
   if (/,|;|\band\b.*\band\b|also.*plus/.test(t) && t.length > 80) return 'multi-issue'
   if (t.length < 3) return 'empty'
-  if (/nelfund|loan|school|help|please|guide/.test(t)) return 'guidance'
+  if (/nelfund|loan|school|help|please|guide|assist|issue|problem/.test(t)) return 'guidance'
+  if (/link|website|url|official|nelf\.gov/.test(t)) return 'official-links'
+  if (/poly|university|college|campus|faculty/.test(t)) return 'institution'
+  if (/pidgin|abeg|wetin|una|dey/.test(t)) return 'pidgin-help'
+  if (t.length > 120) return 'multi-issue'
   return 'other'
 }
 
