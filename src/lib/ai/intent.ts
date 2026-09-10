@@ -6,9 +6,7 @@ function isLoanCounterNoise(q: string): boolean {
     /approved\s*loans/i.test(q) ||
     /pending\s*loans/i.test(q) ||
     /declined\s*loans/i.test(q) ||
-    /welcome\s+to\s+student\s+loan\s+portal/i.test(q) ||
-    /student\s+loan\s+application\s+system/i.test(q) ||
-    /loan\s+disbursement\s+(status\s+)?dashboard/i.test(q)
+    /welcome\s+to\s+student\s+loan\s+portal/i.test(q)
   )
 }
 
@@ -21,7 +19,7 @@ function detectEntities(q: string): string[] {
     [/school|institution|university|poly|college/i, 'school'],
     [/fee|tuition|charges/i, 'fees'],
     [/upkeep|20k|allowance/i, 'upkeep'],
-    [/pending|status|under\s*review|how\s*far|e\s*no\s*dey|no\s*gree|wetin\s*dey/i, 'status'],
+    [/pending|status|under\s*review/i, 'status'],
     [/bank|account/i, 'bank'],
     [/portal|nelfund|nelf\.gov/i, 'portal'],
     [/login|sign\s*in|password|otp/i, 'login'],
@@ -39,17 +37,33 @@ function detectEntities(q: string): string[] {
 
 function expandWithContext(question: string, history?: ConversationTurn[]): string {
   if (!history || history.length === 0) return question
-  const q = question.trim()
-  // Long official-portal dumps already carry the signal — do not dilute them.
-  if (q.length > 280 && isLoanCounterNoise(q)) return q
   const recentUser = history
     .filter((t) => t.role === 'user')
     .slice(-2)
     .map((t) => t.text)
     .join(' ')
-  const pidginShort = /\b(abeg|how\s*far|e\s*no\s*dey|wahala|wetin|no\s*gree|pls|please|ok|okay)\b/i.test(q)
-  if ((q.length < 80 || pidginShort) && recentUser) return `${recentUser} ${q}`
+  const q = question.trim()
+  if (q.length < 48 && recentUser) return `${recentUser} ${question}`
+  if (q.length < 160 && recentUser && recentUser.length < 400) {
+    return `${recentUser.slice(-200)} ${question}`
+  }
   return question
+}
+
+/** Long portal screenshot/OCR dumps often contain status counters + school names */
+function isPortalDump(q: string): boolean {
+  const hits = [
+    /total\s*loans/i,
+    /approved\s*loans/i,
+    /pending\s*loans/i,
+    /declined\s*loans/i,
+    /student\s*loan\s*portal/i,
+    /institutional\s*charges/i,
+    /application\s*status/i,
+    /nelf\.gov/i,
+    /portal\.nelf/i,
+  ].filter((re) => re.test(q)).length
+  return q.length > 180 && hits >= 2
 }
 
 function lastUserIntent(history?: ConversationTurn[]): IntentId | null {
@@ -78,16 +92,16 @@ const RULES: Rule[] = [
   { intent: 'what-is-nelfund', re: /what\s*is\s*(this\s+)?nelfund|what'?s\s*(this\s+)?nelfund|about\s+(this\s+)?nelfund|explain.{0,40}nelfund|wetin\s*(be\s*)?(this\s+)?nelfund|tell\s*me\s*(about|everything).{0,40}nelfund|understand\s*nelfund|^nelfund\??$/i, problem: 'What NELFUND is', stage: 'exploring', troubleshooting: false, topics: ['what is'], weight: 22 },
   { intent: 'school-fees', re: /school\s*fees|institutional\s*charges?|will\s*nelfund\s*pay|pay\s*(my\s*)?fees|\bfees\b|tuition/i, problem: 'School fees payment', stage: 'exploring', troubleshooting: false, topics: ['fees'], weight: 19 },
   { intent: 'eligibility', re: /eligib|can\s*i\s*apply|am\s*i\s*(eligible|qualified)|who\s*can\s*apply|qualify|cgpa|100\s*-?\s*level|\d{2,3}\s*-?\s*level|fresher|freshman|polytechnic\s*students?|part\s*-?\s*time|full\s*-?\s*time|postgraduate|\bMSc\b|\bPhD\b/i, problem: 'Eligibility', stage: 'exploring', troubleshooting: false, topics: ['eligibility'], weight: 19 },
-  { intent: 'current-information', re: /as\s*of\s*today|current\s*(info|information|status|update)|latest\s*(update|news|info)|still\s*accepting|is\s*nelfund\s*still|is\s*nelfund\s*(currently\s*)?open|accepting\s*applications|can\s*i\s*still\s*apply|window\s*(still\s*)?(open|close)|when\s*(will|is|does).{0,40}(expire|close|end|open)|application\s*still\s*open|showing\s*0\s*loans|has\s*(the\s*)?portal\s*opened|still\s*dey\s*(open|collect|accept)|dem\s*still\s*dey\s*(collect|open)/i, problem: 'Current or time-sensitive information', stage: 'exploring', troubleshooting: false, topics: ['current'], weight: 18 },
+  { intent: 'current-information', re: /as\s*of\s*today|current\s*(info|information|status|update)|latest\s*(update|news|info)|still\s*accepting|is\s*nelfund\s*still|is\s*nelfund\s*(currently\s*)?open|accepting\s*applications|can\s*i\s*still\s*apply|window\s*(still\s*)?(open|close)|when\s*(will|is|does).{0,40}(expire|close|end|open)|application\s*still\s*open|showing\s*0\s*loans|has\s*(the\s*)?portal\s*opened|still\s*dey\s*open|portal\s*(still\s*)?open|window\s*open|is\s*it\s*open|dem\s*still\s*dey\s*collect/i, problem: 'Current or time-sensitive information', stage: 'exploring', troubleshooting: false, topics: ['current'], weight: 18 },
   { intent: 'portal-login', re: /\blogin\b|log\s*in|sign\s*in|forgot\s*(my\s*)?password|reset\s*(my\s*)?password|can.?t\s*(login|log\s*in)|portal\s*(link|stuck|problem)|official\s*(website|site|portal|link)|session\s*expired|blank\s*(white\s*)?screen|cannot\s*create\s*account|can.?t\s*create\s*(an?\s*)?account/i, problem: 'Official link to login', stage: 'applying', troubleshooting: false, topics: ['login'], weight: 17 },
   { intent: 'institution-verification', re: /institutional\s*verif|school\s*verif|data\s*(been\s*)?uploaded|school\s*(has\s*)?uploaded|my\s*school\s*(never|no)\s*upload|school\s*(has\s*)?not\s*confirm/i, problem: 'Institution upload status', stage: 'waiting', troubleshooting: true, topics: ['upload'], weight: 16 },
   { intent: 'bank-information', re: /bank.*(detail|account|info|fail|reject)|bvn.*(fail|reject|not|verif)|\bbvn\b|changed?\s*(my\s*)?bank|don'?t\s*have\s*(a\s*)?bvn/i, problem: 'Bank details or BVN', stage: 'applying', troubleshooting: true, topics: ['bank'], weight: 14 },
-  { intent: 'jamb-verification', re: /jamb.*(not|isn'?t|no|keep|reject|invalid|fail|accept|work|verif|profile|format|gree)|(not|isn'?t|no|keep|reject|invalid|fail).*jamb|invalid\s*jamb|verify\s*(my\s*)?jamb|jamb\s*profile|profile\s*verif|jamb\s*(e\s*)?no\s*(dey|gree|work)/i, problem: 'JAMB verification', stage: 'applying', troubleshooting: true, topics: ['jamb'], weight: 13 },
+  { intent: 'jamb-verification', re: /jamb.*(not|isn'?t|no|keep|reject|invalid|fail|accept|work|verif|profile|format)|(not|isn'?t|no|keep|reject|invalid|fail).*jamb|invalid\s*jamb|verify\s*(my\s*)?jamb|jamb\s*profile|profile\s*verif|jamb\s*(number|reg|registration)|my\s*jamb/i, problem: 'JAMB verification', stage: 'applying', troubleshooting: true, topics: ['jamb'], weight: 13 },
   { intent: 'nin-verification', re: /\bnin\b.*(not|isn'?t|no|keep|reject|invalid|fail|verify|work)|(not|isn'?t|no|keep|reject|invalid|fail).*?\bnin\b|verify\s*(my\s*)?\bnin\b/i, problem: 'NIN verification', stage: 'applying', troubleshooting: true, topics: ['nin'], weight: 12 },
   { intent: 'missing-information', re: /missing\s*(info|information|data|school)|no\s*school\s*(info|information)|showing\s*missing|information\s*not\s*found|record\s*not\s*found|e\s*dey\s*show\s*missing/i, problem: 'Missing information on portal', stage: 'applying', troubleshooting: true, topics: ['missing'], weight: 12 },
   { intent: 'school-not-found', re: /school.*(not|isn'?t|no\s*dey|no).*(show|appear|come|list|found)|my\s*school\s*(no\s*dey|not\s*showing)|can'?t\s*find\s*(my\s*)?school|institution\s*not\s*found|not\s*on\s*(the\s*)?list/i, problem: 'School not showing', stage: 'applying', troubleshooting: true, topics: ['school'], weight: 12 },
   { intent: 'scam-safety', re: /scam|fraud|\botp\b|(pay|send(\s*money)?|transfer).{0,40}(agent|them|whatsapp|approval)|(agent|whatsapp).{0,40}(pay|money|otp|password)|make\s*i\s*pay|whatsapp\s*man/i, problem: 'Scam or safety concern', stage: 'unknown', troubleshooting: true, topics: ['scam'], weight: 11 },
-  { intent: 'pending-application', re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*(waiting|processing|pending)|nothing\s*(is\s*)?happening|check\s*(my\s*)?(application\s*)?status|my\s*application\s*status|how\s*far(\s*(with\s*)?(my\s*)?(application|loan|nelfund))?|submitted\s*but|on\s*hold|loan\s*status|e\s*no\s*dey(\s*(move|show|work|enter))?|no\s*gree|wetin\s*dey\s*happen|still\s*dey\s*(pending|process)/i, problem: 'Application still pending', stage: 'waiting', troubleshooting: true, topics: ['pending'], weight: 11 },
+  { intent: 'pending-application', re: /(?<!pending\s)(?<!total\s)(?<!approved\s)\bpending\b(?!\s*loans)|application\s*(is\s*)?pending|status\s*(is\s*)?pending|under\s*review|still\s*(waiting|processing)|nothing\s*(is\s*)?happening|check\s*(my\s*)?(application\s*)?status|my\s*application\s*status|how\s*far\s*(with\s*)?(my\s*)?(application|loan|nelfund)?|submitted\s*but|on\s*hold|loan\s*status|e\s*no\s*dey\s*move|e\s*no\s*dey|no\s*gree|still\s*dey\s*(pending|process)|nothing\s*dey\s*happen/i, problem: 'Application still pending', stage: 'waiting', troubleshooting: true, topics: ['pending'], weight: 11 },
   { intent: 'upkeep', re: /\bupkeep\b|how\s*much.*(allowance|monthly|upkeep|20k)|20,?000|monthly\s*allowance|when\s*will\s*(i\s*)?(get|receive).*(money|upkeep|allowance)|disburse|money\s*(never|no)\s*(enter|come)|hostel|accommodation/i, problem: 'Upkeep allowance', stage: 'exploring', troubleshooting: false, topics: ['upkeep'], weight: 10 },
   { intent: 'repayment', re: /repay|pay\s*(this\s*)?(money\s*)?back|do\s*i\s*(have\s*to|must)\s*pay|when\s*do\s*i\s*(start\s*)?pay|loan\s*repayment|how\s*(do\s*i|to)\s*repay|repayment\s*(plan|schedule|start)/i, problem: 'Repayment', stage: 'repaying', troubleshooting: false, topics: ['repayment'], weight: 10 },
   { intent: 'gsi', re: /\bgsi\b|global\s*standing\s*instruction/i, problem: 'What GSI means', stage: 'repaying', troubleshooting: false, topics: ['gsi'], weight: 10 },
@@ -111,8 +125,30 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'unknown', confidence: 0.2, topics: [], problem: null, stage: 'unknown', entities: [], isTroubleshooting: false }
   }
 
-  if (isLoanCounterNoise(q)) {
+  if (/^(hi|hello|hey|good\s*(morning|afternoon|evening)|how\s*far|wetin\s*dey|sup|ok|okay|thanks|thank\s*you|abeg)\b[.!?\s]*$/i.test(q)) {
+    const prior = lastUserIntent(history)
+    if (prior && prior !== 'unknown') {
+      return { intent: prior, confidence: 0.5, topics: ['greeting'], problem: null, stage: 'exploring', entities: [], isTroubleshooting: false }
+    }
+    return { intent: 'what-is-nelfund', confidence: 0.45, topics: ['greeting'], problem: 'Greeting — offer NELFUND help', stage: 'exploring', entities: [], isTroubleshooting: false }
+  }
+
+  if (isLoanCounterNoise(q) && q.length < 220) {
     return { intent: 'current-information', confidence: 0.75, topics: ['current'], problem: 'Portal dashboard counters', stage: 'waiting', entities: detectEntities(q), isTroubleshooting: false }
+  }
+
+  if (isPortalDump(q)) {
+    const entities = detectEntities(q)
+    if (/\bpending\b|under\s*review|how\s*far/i.test(q) || entities.includes('status')) {
+      return { intent: 'pending-application', confidence: 0.72, topics: ['pending', 'portal-dump'], problem: 'Portal dump — pending status', stage: 'waiting', entities, isTroubleshooting: true }
+    }
+    if (entities.includes('jamb') || /\bjamb\b/i.test(q)) {
+      return { intent: 'jamb-verification', confidence: 0.7, topics: ['jamb', 'portal-dump'], problem: 'Portal dump — JAMB', stage: 'applying', entities, isTroubleshooting: true }
+    }
+    if (/missing|not\s*found|no\s*school/i.test(q)) {
+      return { intent: 'missing-information', confidence: 0.7, topics: ['missing', 'portal-dump'], problem: 'Portal dump — missing info', stage: 'applying', entities, isTroubleshooting: true }
+    }
+    return { intent: 'current-information', confidence: 0.68, topics: ['current', 'portal-dump'], problem: 'Portal dashboard dump', stage: 'waiting', entities, isTroubleshooting: false }
   }
 
   let best: Rule | null = null
@@ -139,9 +175,9 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   }
 
   const keywordBuckets: Array<{ intent: IntentId; re: RegExp; weight: number; problem: string; stage: StudentStage; troubleshooting: boolean; topics: string[] }> = [
-    { intent: 'pending-application', re: /\bpending\b|under\s*review|application\s*status|still\s*(waiting|processing)|how\s*far|e\s*no\s*dey|no\s*gree|wetin\s*dey\s*happen/i, weight: 14, problem: 'Application still pending', stage: 'waiting', troubleshooting: true, topics: ['pending'] },
+    { intent: 'pending-application', re: /\bpending\b|under\s*review|application\s*status|still\s*(waiting|processing)|how\s*far|e\s*no\s*dey|no\s*gree|still\s*dey\s*(pending|process)/i, weight: 14, problem: 'Application still pending', stage: 'waiting', troubleshooting: true, topics: ['pending'] },
     { intent: 'jamb-verification', re: /\bjamb\b|invalid\s*jamb/i, weight: 13, problem: 'JAMB verification', stage: 'applying', troubleshooting: true, topics: ['jamb'] },
-    { intent: 'current-information', re: /still\s*open|still\s*accepting|latest\s*(update|news)|as\s*of\s*today|deadline|closing\s*date|total\s*loans/i, weight: 13, problem: 'Current or time-sensitive information', stage: 'exploring', troubleshooting: false, topics: ['current'] },
+    { intent: 'current-information', re: /still\s*open|still\s*accepting|latest\s*(update|news)|as\s*of\s*today|deadline|closing\s*date|total\s*loans|still\s*dey\s*open/i, weight: 13, problem: 'Current or time-sensitive information', stage: 'exploring', troubleshooting: false, topics: ['current'] },
     { intent: 'how-to-apply', re: /how\s*(do\s*i|to)\s*apply|i\s*want\s*to\s*apply|sign\s*up|create\s*(an?\s*)?account|register/i, weight: 12, problem: 'How to apply', stage: 'preparing', troubleshooting: false, topics: ['apply'] },
     { intent: 'eligibility', re: /eligib|can\s*i\s*apply|qualify|\bcgpa\b|100\s*-?\s*level|fresher/i, weight: 12, problem: 'Eligibility', stage: 'exploring', troubleshooting: false, topics: ['eligibility'] },
     { intent: 'missing-information', re: /missing\s*(info|information)|record\s*not\s*found|no\s*school\s*info/i, weight: 13, problem: 'Missing information on portal', stage: 'applying', troubleshooting: true, topics: ['missing'] },
@@ -219,7 +255,6 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'current-information', confidence: 0.42, topics: ['current'], problem: 'NELFUND guidance', stage: 'exploring', entities, isTroubleshooting: false }
   }
 
-  // Never emit pure unknown for non-empty student text.
   const lower = q.toLowerCase()
   if (/help|stuck|wahala|abeg|please|what|how|when|why|where|tell|explain|wetin|status|loan|school|student|portal|apply|money|pay/i.test(lower)) {
     return {
