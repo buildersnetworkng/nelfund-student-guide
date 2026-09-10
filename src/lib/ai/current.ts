@@ -153,7 +153,7 @@ What do you need — sign up, login, or submit a loan?`
 
 function answerIsOpen(data: LiveStatus): GroundedAnswer {
   const { loanLine, accountLine } = interpretOpenState(data)
-  const cycle = data.cycle || '2026/2027'
+  const cycle = data.cycle || 'current cycle'
   const when = todayWatLabel()
 
   const answer = `**Is NELFUND open?** (as of **${when}**)

@@ -48,7 +48,7 @@ export async function processUserTurn(opts: {
       }
       const answer: GroundedAnswer = {
         hasEvidence: true,
-        intent: 'missing-information',
+        intent: 'jamb-verification',
         confidence: 0.92,
         responseMode: 'conversation',
         problem: forced.exactError,
@@ -126,7 +126,7 @@ export async function processUserTurn(opts: {
 
     const answer: GroundedAnswer = {
       hasEvidence: true,
-      intent: screen.kind === 'error' ? 'missing-information' : 'current-information',
+      intent: /jamb/i.test(screen.exactError || combined) ? 'jamb-verification' : screen.kind === 'error' ? 'missing-information' : 'current-information',
       confidence: 0.88,
       responseMode: 'conversation',
       problem: screen.exactError || screen.kind,
