@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { trackFeature } from '../lib/analytics'
 
 /** Prefer live origin so share links match whatever domain the student is on */
 function getSiteUrl() {
@@ -202,6 +203,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
 
   const shareNative = useCallback(async () => {
     try {
+      trackFeature('share_channel', { channel: 'native' })
       await navigator.share({
         title: SHARE_TITLE,
         text: shareText,
@@ -215,6 +217,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
 
   const onChannel = useCallback(
     async (ch: Channel) => {
+      trackFeature('share_channel', { channel: ch.id })
       if (ch.action === 'copy') {
         await copy('text')
         return
@@ -242,7 +245,10 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
     variant === 'icon' ? (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          trackFeature('share_open', { variant: 'icon' })
+          setOpen(true)
+        }}
         className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-forest-200 bg-white text-forest-900 shadow-sm transition hover:bg-forest-50 active:scale-[0.96] ${nudge} ${className}`}
         aria-label="Share this guide"
         title="Share this guide"
@@ -252,7 +258,10 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
     ) : variant === 'hero' ? (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          trackFeature('share_open', { variant: 'hero' })
+          setOpen(true)
+        }}
         className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition duration-150 hover:border-white/50 hover:bg-white/15 active:scale-[0.98] ${nudge} ${className}`}
       >
         <ShareIcon className="opacity-90" />
@@ -261,7 +270,10 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
     ) : (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          trackFeature('share_open', { variant: 'button' })
+          setOpen(true)
+        }}
         className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full border border-forest-200 bg-white px-4 py-2 text-sm font-semibold text-forest-900 shadow-sm transition hover:bg-forest-50 active:scale-[0.98] ${nudge} ${className}`}
       >
         <ShareIcon />
