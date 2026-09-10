@@ -47,7 +47,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
 
   if (intent === 'current-information' || intent === 'deadline') {
     if (!t) {
-      return `Empty message received. Send one line about what you need.\n\n${MENU}\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
+      return `Empty message received — I can still help.\n\n${MENU}\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
     }
     if (t.length < 64 || /help|abeg|stuck|wahala|what\s*next|empty|wetin|una\s*fit|reply|are\s*you\s*there|this\s*thing|i\s*no\s*sabi|confused|pls+|please/i.test(t)) {
       return `I can still help even if the question is short or mixed (Pidgin is fine).\n\n${MENU}\n\nIf you pasted a portal error, say **login**, **pending**, **JAMB**, or **missing school**. I will not invent NELFUND policy or dates.`
