@@ -33,7 +33,7 @@ export default function Readiness() {
       <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Am I ready to apply?</h1>
       <p className="mt-2 max-w-xl text-sm text-ink/65">
         Tick off what you already have. This is a preparation checklist to help you get
-        organised — verify the final, official requirements on the NELFUND portal before
+        organised, verify the final, official requirements on the NELFUND portal before
         you apply, since specific requirements can be updated between cycles.
       </p>
       <div className="mt-2"><InstitutionNotice /></div>
@@ -80,7 +80,7 @@ export default function Readiness() {
           <div>
             <p className="text-sm font-semibold text-ink">You're checklist-ready</p>
             <p className="mt-0.5 text-xs text-ink/60">
-              Share the guide with other students still preparing — then confirm final requirements on the official portal.
+              Share the guide with other students still preparing, then confirm final requirements on the official portal.
             </p>
           </div>
           <ShareGuide variant="button" className="shrink-0" />
@@ -89,7 +89,7 @@ export default function Readiness() {
 
       {institution && institution.verification_status !== 'unverified' && (
         <p className="mt-4 text-xs text-ink/50">
-          {institution.short_name}-specific items above come from this guide's {institution.short_name} coverage —
+          {institution.short_name}-specific items above come from this guide's {institution.short_name} coverage,
           {' '}general items apply to every NELFUND applicant.
         </p>
       )}
