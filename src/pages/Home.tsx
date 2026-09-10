@@ -213,7 +213,7 @@ export default function Home() {
       <RevealSection className="container-page mt-14">
         <div className="rounded-2xl border border-forest-100 bg-gradient-to-br from-forest-50 to-white p-5 sm:p-6">
           <h2 className="font-display text-base font-semibold text-ink sm:text-lg">
-            Help a classmate
+            Help another student
           </h2>
           <p className="mt-1 max-w-lg text-sm leading-relaxed text-ink/60">
             Share the NELFUND Guide so other students can check readiness, apply correctly, and

@@ -84,7 +84,7 @@ export default function Apply() {
 
       <div className="card mt-8 flex flex-col gap-3 border-forest-200 bg-forest-50/40 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-ink">Help a classmate apply correctly</p>
+          <p className="text-sm font-semibold text-ink">Help another student apply correctly</p>
           <p className="mt-0.5 text-xs text-ink/55">Share this step-by-step guide before they open the portal.</p>
         </div>
         <ShareGuide variant="button" className="shrink-0" />
