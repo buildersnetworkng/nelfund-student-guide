@@ -38,7 +38,7 @@ export default function Faq() {
       </div>
 
       <div className="mt-4 rounded-2xl border border-forest-700/10 bg-forest-50/50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
-        <p className="text-sm text-ink/70">Can&apos;t find your problem?</p>
+        <p className="text-sm text-ink/70">Can't find your problem?</p>
         <Link to="/ask" className="btn-primary mt-3 px-4 py-2 text-xs sm:mt-0">
           Ask support
         </Link>
@@ -104,7 +104,7 @@ export default function Faq() {
                   </div>
                 </div>
                 <span className="mt-0.5 text-ink/40" aria-hidden="true">
-                  {isOpen ? '−' : '+'}
+                  {isOpen ? '-' : '+'}
                 </span>
               </button>
               {isOpen && (
