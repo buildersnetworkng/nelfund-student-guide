@@ -58,7 +58,7 @@ function guidancePayload(freshness: LiveApplicationStatus['freshness']): LiveApp
   return {
     cycle,
     status: 'not_announced',
-    status_label: `Account creation open — ${cycle} loan window not yet announced`,
+    status_label: `Account creation open: ${cycle} loan window not yet announced`,
     note: `NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. The **${cycle}** loan and upkeep application window should be treated as unconfirmed until NELFUND announces official opening and closing dates. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.`,
     last_checked: iso.slice(0, 10),
     last_checked_iso: iso,
