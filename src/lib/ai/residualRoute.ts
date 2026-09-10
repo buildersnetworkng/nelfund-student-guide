@@ -75,7 +75,7 @@ export function lastUserIntent(history?: ConversationTurn[]): IntentId | null {
 }
 
 const SCHOOL_ONLY =
-  /\b(unilag|lasu|oou|yabatech|unilorin|uniben|oau|unijos|noun?|futo|abu|unizik|unn|unical|uniport|futa|lautech|tasued|ui\b|unimaid|fuoye|ksusta|delsu|aaua|aau|eksu|ksu|nasarawa|buk|udus|uniosun|mouau|funaab|rivers\s*state|yaba\s*tech|lagos\s*state\s*uni|university\s*of\s*lagos|obafemi\s*awolowo|university\s*of\s*ilorin|university\s*of\s*benin|university\s*of\s*nigeria|nnamdi\s*azikiwe|covenant|laspotech|mapoly|federal\s*poly|state\s*poly|college\s*of\s*education)\b/i
+  /\b(unilag|lasu|oou|yabatech|unilorin|uniben|oau|unijos|noun?|futo|abu|unizik|unn|unical|uniport|futa|lautech|tasued|ui\b|unimaid|fuoye|ksusta|delsu|aaua|aau|eksu|ksu|nasarawa|buk|udus|uniosun|mouau|funaab|rivers\s*state|yaba\s*tech|lagos\s*state\s*uni|university\s*of\s*lagos|obafemi\s*awolowo|university\s*of\s*ilorin|university\s*of\s*benin|university\s*of\s*nigeria|nnamdi\s*azikiwe|covenant|laspotech|mapoly|federal\s*poly|state\s*poly|college\s*of\s*education|kwasu|osustech|imsu|absu|esut|rsust|ndu|fupre|atbu|uniabuja|lasustech)\b/i
 
 function result(
   intent: IntentId,
@@ -97,7 +97,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   const lower = compact.toLowerCase()
 
   const pidginHelp =
-    /abeg|wetin|wahala|e\s*no\s*(dey|gree|work|show|load)|i\s*wan|how\s*i\s*go|no\s*gree|don\s*apply|check\s*am|help\s*me|i\s*need\s*help|assist\s*me|dem\s*never|e\s*never\s*(come|enter|pay)|make\s*una\s*help|una\s*fit\s*help|i\s*dey\s*confused|e\s*no\s*clear|na\s*so|e\s*dey\s*hard|i\s*no\s*sabi|no\s*dey\s*work|portal\s*no\s*dey|e\s*keep\s*hang|una\s*fit\s*check|wetin\s*dey\s*happen|how\s*far\s*now|abeg\s*now|na\s*wahala|e\s*dey\s*slow|make\s*una\s*check/i.test(
+    /abeg|wetin|wahala|e\s*no\s*(dey|gree|work|show|load)|i\s*wan|how\s*i\s*go|no\s*gree|don\s*apply|check\s*am|help\s*me|i\s*need\s*help|assist\s*me|dem\s*never|e\s*never\s*(come|enter|pay)|make\s*una\s*help|una\s*fit\s*help|i\s*dey\s*confused|e\s*no\s*clear|na\s*so|e\s*dey\s*hard|i\s*no\s*sabi|no\s*dey\s*work|portal\s*no\s*dey|e\s*keep\s*hang|una\s*fit\s*check|wetin\s*dey\s*happen|how\s*far\s*now|abeg\s*now|na\s*wahala|e\s*dey\s*slow|make\s*una\s*check|how\s*i\s*go\s*do|e\s*dey\s*show|dem\s*no\s*gree|look\s*am|see\s*am|e\s*hang|my\s*own\s*no\s*gree|abeg\s*check|money\s*no\s*enter|dem\s*no\s*pay/i.test(
       q,
     )
   const vagueHelp =
@@ -148,12 +148,25 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   const eligibilityAsk =
     /\b(100|200|300|400)\s*-?\s*(l|level)\b|\bnd\b|\bhnd\b|fresher|part\s*-?time|postgraduate|masters?|phd|nce|direct\s*entry|qualify|can\s*i\s*get/i.test(q)
   const documentsAsk = /matric|admission\s*letter|what\s*(paper|document)|requirements?/i.test(q)
-  const tinyNoise = /^(ok+|okay+|hmm+|hmmm+|yes|no|yeah|yep|\?+|pls+|please|sir|ma|boss|bro|sis|\.+|idk|lol|lmao)$/i.test(compact)
+  const tinyNoise = /^(ok+|okay+|hmm+|hmmm+|yes|no|yeah|yep|\?+|pls+|please|sir|ma|boss|bro|sis|\.+|idk|lol|lmao|k+|fine|alright|noted|seen|copy|continue|next|go\s*on)$/i.test(compact)
   const nelfundTypo = /nelfun[dt]?|nel\s*fund|nelf\s*und|this\s*loan|student\s*loan/i.test(q) && compact.length < 80
   const idPaste = /application\s*(id|number)|loan\s*id|#\d{4,}|\b\d{8,}\b/i.test(q)
+  const emojiOrPunct = /^[^a-zA-Z0-9]+$/.test(compact)
+  const numbersOnly = /^[\d\s#:-]+$/.test(compact) && /\d{4,}/.test(compact)
+  const helpMeLoan = /help.{0,20}(loan|nelfund|portal|apply)|need.{0,20}(loan|help|support)|i\s*need\s*(this|am|the\s*loan)|sort\s*(this|am)\s*out/i.test(q)
+  const pasteLooksPortal = /welcome\s+to|signed\s*in\s*as|kindly\s*provide|provide\s*the\s*required|retry|click\s*here|dashboard|profile\s*verification/i.test(q)
 
-  if (tinyNoise) {
+  if (tinyNoise || emojiOrPunct) {
     return result('current-information', 0.42, ['empty', 'guidance'], 'Tiny or acknowledgement message', 'exploring', entities)
+  }
+  if (numbersOnly || (idPaste && compact.length < 40)) {
+    return result('pending-application', 0.5, ['pending', 'id-paste'], 'Numeric / application-id paste', 'waiting', entities, true)
+  }
+  if (pasteLooksPortal && compact.length > 80) {
+    return result('current-information', 0.55, ['current', 'portal-dump'], 'Portal-looking paste residual', 'waiting', entities)
+  }
+  if (helpMeLoan && compact.length < 90 && !alreadyApplied) {
+    return result('how-to-apply', 0.5, ['apply', 'vague-help'], 'Short loan-help residual', 'preparing', entities)
   }
   if (jambFail) {
     return result('jamb-verification', 0.64, ['jamb', 'residual'], 'JAMB verification residual', 'applying', entities, true)
