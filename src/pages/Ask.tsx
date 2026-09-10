@@ -14,7 +14,6 @@ import { LinkifiedText } from '../components/LinkifiedText'
 import { trackAiQuestion, trackFeedback } from '../lib/analytics'
 import ShareGuide from '../components/ShareGuide'
 
-// Driven by production unknown topics + top intents (admin analytics)
 const SUGGESTIONS = [
   'My NELFUND application is pending',
   "It's showing invalid JAMB number",
@@ -432,8 +431,8 @@ export default function Ask() {
                         <span className="text-[11px] font-medium text-ink/55">
                           {feedback[m.id]
                             ? feedback[m.id] === 'up'
-                              ? 'Thanks — marked helpful'
-                              : 'Thanks — we will use this to improve'
+                              ? 'Thanks, marked helpful'
+                              : 'Thanks, we will use this to improve'
                             : 'Was this helpful?'}
                         </span>
                         {!feedback[m.id] && (
