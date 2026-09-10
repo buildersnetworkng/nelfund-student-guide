@@ -1,5 +1,5 @@
 /**
- * NELFUND AI playbook — adaptive replies that match what the student asked.
+ * NELFUND AI playbook, adaptive replies that match what the student asked.
  * Clear distinctions: sign-up vs login vs loan application; school fees vs upkeep.
  * Never returns empty/null for residual or unknown intents.
  */
@@ -22,7 +22,7 @@ export type PlaybookContext = {
   priorIntent?: IntentId | null
 }
 
-const MENU = `Pick one:\n• Sign **up** (new account) — ${PORTAL}\n• Sign **in** / login — ${SITE}\n• Loan application (fees / upkeep)\n• Pending / under review status\n• Missing information / school not on list\n• Upkeep vs school fees / repayment\n• Support ticket — ${ESUPPORT}\n\nPidgin or English is fine. Official pages only: ${SITE}`
+const MENU = `Pick one:\n• Sign **up** (new account): ${PORTAL}\n• Sign **in** / login: ${SITE}\n• Loan application (fees / upkeep)\n• Pending / under review status\n• Missing information / school not on list\n• Upkeep vs school fees / repayment\n• Support ticket: ${ESUPPORT}\n\nPidgin or English is fine. Official pages only: ${SITE}`
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   const t = (ctx.userText || '').trim()
@@ -34,25 +34,25 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'what-is-nelfund') {
-    return `NELFUND is the Nigeria Education Loan Fund — **interest-free** loans for institutional charges and optional monthly upkeep for eligible students in **public** tertiary institutions.\n\nIt is a **loan**, not a scholarship. Repayment starts **2 years after NYSC** (10% of salary / profit). No guarantor.\n\n${MENU}`
+    return `NELFUND is the Nigeria Education Loan Fund, **interest-free** loans for institutional charges and optional monthly upkeep for eligible students in **public** tertiary institutions.\n\nIt is a **loan**, not a scholarship. Repayment starts **2 years after NYSC** (10% of salary / profit). No guarantor.\n\n${MENU}`
   }
 
   if (intent === 'pending-application') {
-    return `**Pending / under review / money never enter** is not a rejection.\n\nWhat to do:\n1. Open ${PORTAL} and note the exact status word (Pending, Under review, Approved, Declined).\n2. Confirm your school has uploaded your data.\n3. School-level upkeep can lag after NELFUND pays the institution — check the portal first, then your school NELFUND desk.\n4. If it stays pending a long time, ticket: ${ESUPPORT}\n\nPidgin: *e no dey move* / *una never see upkeep* still means verify the portal word, then ticket. I cannot see your personal file and I will not invent a pay date.`
+    return `**Pending / under review / money never enter** is not a rejection.\n\nWhat to do:\n1. Open ${PORTAL} and note the exact status word (Pending, Under review, Approved, Declined).\n2. Confirm your school has uploaded your data.\n3. School-level upkeep can lag after NELFUND pays the institution, check the portal first, then your school NELFUND desk.\n4. If it stays pending a long time, ticket: ${ESUPPORT}\n\nPidgin: *e no dey move* / *una never see upkeep* still means verify the portal word, then ticket. I cannot see your personal file and I will not invent a pay date.`
   }
 
   if (intent === 'jamb-verification') {
-    return `**JAMB / profile verification failed** is usually a format or data mismatch, not a ban.\n\n1. Type the JAMB number **exactly** as on your JAMB profile (no extra spaces or letters).\n2. Direct Entry students still need a JAMB number (official FAQ).\n3. If the portal says *invalid JAMB number format*, fix the number and retry — do not create a second account.\n4. Still failing? Ticket: ${ESUPPORT} and keep a screenshot.\n\nPortal: ${PORTAL}`
+    return `**JAMB / profile verification failed** is usually a format or data mismatch, not a ban.\n\n1. Type the JAMB number **exactly** as on your JAMB profile (no extra spaces or letters).\n2. Direct Entry students still need a JAMB number (official FAQ).\n3. If the portal says *invalid JAMB number format*, fix the number and retry, do not create a second account.\n4. Still failing? Ticket: ${ESUPPORT} and keep a screenshot.\n\nPortal: ${PORTAL}`
   }
 
   if (intent === 'current-information' || intent === 'deadline') {
     if (!t) {
-      return `Empty message received — I can still help.\n\n${MENU}\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
+      return `Empty message received, I can still help.\n\n${MENU}\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
     }
     if (t.length < 64 || /help|abeg|stuck|wahala|what\s*next|empty|wetin|una\s*fit|reply|are\s*you\s*there|this\s*thing|i\s*no\s*sabi|confused|pls+|please/i.test(t)) {
       return `I can still help even if the question is short or mixed (Pidgin is fine).\n\n${MENU}\n\nIf you pasted a portal error, say **login**, **pending**, **JAMB**, or **missing school**. I will not invent NELFUND policy or dates.`
     }
-    return `Live notices only from ${SITE} and ${PORTAL}. I will not invent a deadline or “still open until…” date.\n\nAccount sign-up and a loan application **window** are different. Confirm on the portal before you act.\n\nWhat are you trying to do — sign up, login, submit a loan, or check pending status?`
+    return `Live notices only from ${SITE} and ${PORTAL}. I will not invent a deadline or “still open until…” date.\n\nAccount sign-up and a loan application **window** are different. Confirm on the portal before you act.\n\nWhat are you trying to do, sign up, login, submit a loan, or check pending status?`
   }
 
   if (intent === 'upkeep') {
@@ -60,11 +60,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'school-fees') {
-    return `**Institutional charges / school fees** are paid **to your school**, not into your personal account.\n\nUpkeep (if you applied for it) is separate and monthly to you.\n\nIf you already paid fees yourself, still apply if eligible — NELFUND does not replace that decision on this chat. Confirm live on ${PORTAL}. FAQ: ${FAQ}`
+    return `**Institutional charges / school fees** are paid **to your school**, not into your personal account.\n\nUpkeep (if you applied for it) is separate and monthly to you.\n\nIf you already paid fees yourself, still apply if eligible, NELFUND does not replace that decision on this chat. Confirm live on ${PORTAL}. FAQ: ${FAQ}`
   }
 
   if (intent === 'repayment') {
-    return `**Repayment (official FAQ):** due **2 years after NYSC**. Employers deduct **10% of salary**; self-employed remit 10% of monthly profit. You may pay earlier.\n\nNo job after that window: notify NELFUND with a sworn affidavit every 3 months.\n\nViral “life imprisonment for unpaid loans” claims are **not** official policy as stated on nelf.gov.ng FAQ. Default can bring penalties / credit damage — read the FAQ, do not trust WhatsApp posters.\n\nFAQ: ${FAQ}`
+    return `**Repayment (official FAQ):** due **2 years after NYSC**. Employers deduct **10% of salary**; self-employed remit 10% of monthly profit. You may pay earlier.\n\nNo job after that window: notify NELFUND with a sworn affidavit every 3 months.\n\nViral “life imprisonment for unpaid loans” claims are **not** official policy as stated on nelf.gov.ng FAQ. Default can bring penalties / credit damage, read the FAQ, do not trust WhatsApp posters.\n\nFAQ: ${FAQ}`
   }
 
   if (intent === 'gsi') {
@@ -85,7 +85,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'portal-login') {
-    return `**Login / sign in:** ${SITE}\n**New account / apply:** ${PORTAL}\n\nForgot password — use the portal reset, do not create a second profile. Never send OTP to anyone.\nTicket if login keeps failing: ${ESUPPORT}`
+    return `**Login / sign in:** ${SITE}\n**New account / apply:** ${PORTAL}\n\nForgot password, use the portal reset, do not create a second profile. Never send OTP to anyone.\nTicket if login keeps failing: ${ESUPPORT}`
   }
 
   if (intent === 'contact-support' || intent === 'email-draft') {
@@ -114,8 +114,8 @@ export function isNewUserAsk(text: string): boolean {
 
 export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string {
   if (intent === 'pending-application') return `Next: open ${PORTAL} and tell me the exact status word (Pending, Under review, Approved).`
-  if (intent === 'missing-information' || intent === 'school-not-found') return 'Which school do you attend? (e.g. UNILAG, LASU, OOU, YABATECH) — that lets me narrow the next step.'
+  if (intent === 'missing-information' || intent === 'school-not-found') return 'Which school do you attend? (e.g. UNILAG, LASU, OOU, YABATECH), that lets me narrow the next step.'
   if (intent === 'how-to-apply') return 'Are you stuck on **sign up**, **profile**, or **submit loan**? Those are different steps.'
-  if (intent === 'portal-login') return 'Still on login — wrong password, session expired, or blank page?'
-  return 'What next — sign up, login, loan application, school fees, or upkeep?'
+  if (intent === 'portal-login') return 'Still on login, wrong password, session expired, or blank page?'
+  return 'What next, sign up, login, loan application, school fees, or upkeep?'
 }
