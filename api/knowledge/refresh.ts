@@ -84,27 +84,27 @@ async function fetchText(url: string): Promise<{ ok: boolean; text: string; erro
   }
 }
 
-/** Short bullet notes — StatusCard renders each • line on its own row. */
+/** Short bullet notes, StatusCard renders each • line on its own row. */
 function copyAccountOpenLoanUnconfirmed(cycle: string): { status_label: string; note: string } {
   return {
     status_label: `Account creation open · Loan/upkeep not confirmed yet`,
-    note: `• Account creation (sign up) — OPEN. You can create your account, finish your profile, and sort out your BVN.\n• Loan and upkeep application — NOT confirmed open yet for ${cycle}. Wait for official opening and closing dates on the portal.\nDo not use social media for deadlines. Use the buttons below for sign in or sign up.`,
+    note: `• Account creation (sign up): OPEN. You can create your account, finish your profile, and sort out your BVN.\n• Loan and upkeep application: NOT confirmed open yet for ${cycle}. Wait for official opening and closing dates on the portal.\nDo not use social media for deadlines. Use the buttons below for sign in or sign up.`,
   }
 }
 
 function copyLoanOpen(cycle: string, extended: boolean): { status_label: string; note: string } {
   return {
     status_label: extended
-      ? `${cycle} loan/upkeep extended — confirm dates on the portal`
+      ? `${cycle} loan/upkeep extended, confirm dates on the portal`
       : `${cycle} loan/upkeep application appears OPEN`,
-    note: `• Loan and upkeep application — appears OPEN for ${cycle}. Still confirm exact dates on the portal before you rely on a deadline.\n• Account creation (sign up) — available if you do not already have an account.\nOnly trust portal.nelf.gov.ng and nelf.gov.ng for deadlines.`,
+    note: `• Loan and upkeep application: appears OPEN for ${cycle}. Still confirm exact dates on the portal before you rely on a deadline.\n• Account creation (sign up): available if you do not already have an account.\nOnly trust portal.nelf.gov.ng and nelf.gov.ng for deadlines.`,
   }
 }
 
 function copyLoanClosed(cycle: string): { status_label: string; note: string } {
   return {
     status_label: `Loan/upkeep closed · Account creation may still be open`,
-    note: `• Loan and upkeep application — CLOSED (or previous cycle closed). Wait for the next ${cycle} opening dates on the official site.\n• Account creation (sign up) — may still be open so you can prepare your profile and BVN.\nDo not use social media for deadlines.`,
+    note: `• Loan and upkeep application: CLOSED (or previous cycle closed). Wait for the next ${cycle} opening dates on the official site.\n• Account creation (sign up): may still be open so you can prepare your profile and BVN.\nDo not use social media for deadlines.`,
   }
 }
 
