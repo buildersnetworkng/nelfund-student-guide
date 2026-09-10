@@ -111,11 +111,11 @@ function composeMessage(
       if (contacts.length) {
         parts.push(`For ${name}, curated contacts:`)
         for (const c of contacts.slice(0, 3)) {
-          parts.push(`• ${c.label}${c.email ? `: ${c.email}` : c.url ? ` — ${c.url}` : ''}`)
+          parts.push(`• ${c.label}${c.email ? `: ${c.email}` : c.url ? `: ${c.url}` : ''}`)
         }
       } else {
         parts.push(
-          `I could not verify a dedicated unit email for ${name}. Use the official institution website and NELFUND eSupport — do not use unofficial addresses.`,
+          `I could not verify a dedicated unit email for ${name}. Use the official institution website and NELFUND eSupport. Do not use unofficial addresses.`,
         )
       }
     }
