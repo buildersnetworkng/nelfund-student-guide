@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { troubleshootingItems, getRelevantContent } from '../lib/data'
 import { useInstitution } from '../context/InstitutionContext'
 import InstitutionNotice from '../components/InstitutionNotice'
+import ShareGuide from '../components/ShareGuide'
 
 export default function Troubleshooting() {
   const { institutionId } = useInstitution()
@@ -14,11 +15,16 @@ export default function Troubleshooting() {
 
   return (
     <div className="container-page py-8 sm:py-10">
-      <p className="eyebrow">Problems</p>
-      <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">What problem are you having?</h1>
-      <p className="section-sub max-w-xl">
-        Pick the closest issue for verified guidance, or describe it to Ask support if nothing matches.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="eyebrow">Problems</p>
+          <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">What problem are you having?</h1>
+          <p className="section-sub max-w-xl">
+            Pick the closest issue for verified guidance, or describe it to Ask support if nothing matches.
+          </p>
+        </div>
+        <ShareGuide variant="button" className="shrink-0" />
+      </div>
       <div className="mt-3">
         <InstitutionNotice />
       </div>

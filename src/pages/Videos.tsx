@@ -3,6 +3,7 @@ import { videos, getRelevantContent } from '../lib/data'
 import { useInstitution } from '../context/InstitutionContext'
 import VideoCard from '../components/VideoCard'
 import InstitutionNotice from '../components/InstitutionNotice'
+import ShareGuide from '../components/ShareGuide'
 
 export default function Videos() {
   const { institutionId } = useInstitution()
@@ -16,13 +17,18 @@ export default function Videos() {
 
   return (
     <div className="container-page py-10">
-      <p className="eyebrow">Video guides</p>
-      <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Tutorials organised by topic</h1>
-      <p className="mt-2 max-w-xl text-sm text-ink/65">
-        Videos are labelled by source: official NELFUND, university, educational,
-        community/third-party, or unverified third-party. A non-official label never means
-        it is an official NELFUND instruction.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="eyebrow">Video guides</p>
+          <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Tutorials organised by topic</h1>
+          <p className="mt-2 max-w-xl text-sm text-ink/65">
+            Videos are labelled by source: official NELFUND, university, educational,
+            community/third-party, or unverified third-party. A non-official label never means
+            it is an official NELFUND instruction.
+          </p>
+        </div>
+        <ShareGuide variant="button" className="shrink-0" />
+      </div>
       <div className="mt-2"><InstitutionNotice /></div>
 
       <div className="mt-5 flex flex-wrap gap-2">
