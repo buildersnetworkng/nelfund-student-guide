@@ -1,6 +1,6 @@
 /**
  * Deterministic MOCK model for architecture tests.
- * Not real AI — plans tool use and phases without a provider.
+ * Not real AI - plans tool use and phases without a provider.
  */
 
 import type { AgentInput, AgentObjective, AgentState, ToolCall, ToolName } from './contracts'
@@ -98,7 +98,7 @@ export function mockPlanTurn(input: AgentInput): MockPlan {
     state = nextPhase(state, {
       type: 'needs_clarification',
       question:
-        'What part is not working — login, missing information, school not showing, or something else?',
+        'What part is not working: login, missing information, school not showing, or something else?',
     })
     return { objective, state, toolCalls: [], clarify: state.pendingQuestion, label: 'mock' }
   }
