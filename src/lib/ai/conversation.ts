@@ -238,12 +238,12 @@ export async function processUserTurn(opts: {
   }
 
   {
-    const asked = combined || rawUser
+    const asked = rawUser || combined
     const earlyIntent = classifyIntent(asked, history).intent
     const purposeAsk =
-      earlyIntent === 'what-is-nelfund' || PURPOSE_RE.test(asked) || isPurposeQuestion(asked)
+      earlyIntent === 'what-is-nelfund' || PURPOSE_RE.test(rawUser) || isPurposeQuestion(rawUser)
     const needsLive =
-      !purposeAsk && (earlyIntent === 'deadline' || questionNeedsCurrentLive(asked))
+      !purposeAsk && (earlyIntent === 'deadline' || questionNeedsCurrentLive(rawUser))
     if (needsLive) {
       try {
         const live = await buildCurrentInformationAnswerLive(asked)
@@ -267,14 +267,14 @@ export async function processUserTurn(opts: {
   }
 
   {
-    const earlyIntent = classifyIntent(combined || rawUser, history).intent
+    const earlyIntent = classifyIntent(rawUser || combined, history).intent
     const early = playbookAnswer(earlyIntent !== 'unknown' ? earlyIntent : 'how-to-apply', {
       institutionName: opts.slots.institutionName,
       problemSummary: opts.slots.problemSummary,
       exactError: opts.slots.exactError,
       turnIndex,
       lastAssistant: prevAsst,
-      userText: combined || rawUser,
+      userText: rawUser || combined,
       priorIntent: opts.slots.intent,
     })
     if (early && early.length > 40) {
@@ -292,7 +292,7 @@ export async function processUserTurn(opts: {
     opts.uiInstitutionId ?? null,
   )
 
-  const intentMeta = classifyIntent(combined || rawUser, history)
+  const intentMeta = classifyIntent(rawUser || combined, history)
   let intent: IntentId = intentMeta.intent
   if (
     priorIntent &&
@@ -338,7 +338,7 @@ export async function processUserTurn(opts: {
       exactError: slots.exactError,
       turnIndex,
       lastAssistant: prevAsst,
-      userText: combined,
+      userText: rawUser || combined,
       priorIntent,
     })
     if (pb && pb.length > 40) {
