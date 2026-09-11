@@ -1,5 +1,5 @@
 /**
- * NELFUND Student Guide — conversational AI agent endpoint.
+ * NELFUND Student Guide: conversational AI agent endpoint.
  * LLM reasons → tools → natural reply.
  * Knowledge is EVIDENCE. Provider is swappable via env.
  */
@@ -206,7 +206,7 @@ function lastUserText(messages: { role: string; content: string }[]): string {
 }
 
 function purposePlaybook(): string {
-  return `**Why NELFUND was created:** to remove financial barriers so eligible students in **public** tertiary institutions can access higher education without paying school charges upfront.\n\n**What it is:** the Nigeria Education Loan Fund — **interest-free** loans for **institutional charges** (paid to the school) and optional **monthly upkeep** (paid to the student), under the Students Loans (Access to Higher Education) Act.\n\nIt is a **loan**, not a scholarship. Official FAQ: repayment starts **2 years after NYSC** (10% of salary / profit).\n\nOfficial site: ${SITE} · Apply: ${PORTAL} · FAQ: ${FAQ_PAGE}`
+  return `**Why NELFUND was created:** to remove financial barriers so eligible students in **public** tertiary institutions can access higher education without paying school charges upfront.\n\n**What it is:** the Nigeria Education Loan Fund: **interest-free** loans for **institutional charges** (paid to the school) and optional **monthly upkeep** (paid to the student), under the Students Loans (Access to Higher Education) Act.\n\nIt is a **loan**, not a scholarship. Official FAQ: repayment starts **2 years after NYSC** (10% of salary / profit).\n\nOfficial site: ${SITE} · Apply: ${PORTAL} · FAQ: ${FAQ_PAGE}`
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
