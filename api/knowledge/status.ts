@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { applyCors, rateLimitOr429 } from '../_lib/security'
 
 /**
  * Home-card status endpoint.
@@ -28,14 +29,15 @@ function currentAcademicCycle(date: Date = new Date()): string {
 }
 
 function redisUrl(): string {
-  return process.env.UPSTASH_REDIS_REST_URL || 'https://premium-rooster-109704.upstash.io'
+  return (process.env.UPSTASH_REDIS_REST_URL || '').trim()
 }
 function redisToken(): string {
-  return process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAayIAQIgcDE2YWZkNzllZDIxN2I0MjA5YWIwNDQ1OGFjNTY0MGUzNg'
+  return (process.env.UPSTASH_REDIS_REST_TOKEN || '').trim()
 }
 
 async function redisGet(key: string): Promise<string | null> {
   try {
+    if (!redisUrl() || !redisToken()) return null
     const path = ['GET', key].map((c) => encodeURIComponent(String(c))).join('/')
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 2000)
@@ -74,13 +76,12 @@ function guidancePayload(freshness: LiveApplicationStatus['freshness']): LiveApp
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  applyCors(req, res, 'GET, OPTIONS')
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
 
   if (req.method === 'OPTIONS') return res.status(204).end()
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+  if (!rateLimitOr429(req, res, 'knowledge-status', 120, 60_000)) return
 
   const today = new Date().toISOString().slice(0, 10)
   const cycle = currentAcademicCycle()
@@ -94,7 +95,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const iso = new Date().toISOString()
         return res.status(200).json({
           ...parsed,
-          // Always show the current academic cycle year on the home card
           cycle,
           last_checked: today,
           last_checked_iso: checkedDay === today ? parsed.last_checked_iso || iso : iso,
