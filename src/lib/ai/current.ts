@@ -4,6 +4,7 @@
  */
 
 import { getCurrentAcademicCycle } from '../academicCycle'
+import { PURPOSE_RE, isPurposeAsk, liveOpenRe } from './intent'
 import type { GroundedAnswer } from './types'
 
 const SITE = 'https://nelf.gov.ng/'
@@ -250,9 +251,7 @@ export async function buildCurrentInformationAnswerLive(
 }
 
 export function isPurposeQuestion(text: string): boolean {
-  return /what\s*(is|are)\s*(the\s+)?(purpose|aim|point|goal|meaning)?\s*(of\s+)?(this\s+)?(nelfund|loan)|what\s+does\s+(nelfund|it|this)\s+do|explain\s+(this\s+)?nelfund|origin\s+of\s+nelfund|wetin\s*(be\s*|mean\s*)?(this\s+)?nelfund|wetin\s+nelfund\s+(be|mean|dey\s+do|for)|nelfund\s+dey\s+do\s+wetin|why\s+(was|is|dem|they|una|we|fg|government)\s+.{0,40}(create|created|establish|start|begin|form|set\s*up)|why\s+(dem|they)\s+(create|make|start|bring)\s+(nelfund|am|it)|purpose\s+(of\s+)?(nelfund|the\s+(student\s+)?loan)|mission\s+of\s+nelfund|who\s+(created|established|started)\s+nelfund|wetin\s+(make|cause)\s+(dem|them|government|fg)\s+create|reason\s+(dem|they|una)\s+(create|start)|how\s+come\s+.{0,28}(nelfund|this\s+loan|dis\s+loan)|tell\s*me\s*(about|everything).{0,40}nelfund|nelfund\s+(purpose|mission|aim|objective)|why\s+nelfund\s*(dey|exist|come|was)|point\s+of\s+nelfund|how\s+nelfund\s+come\s+about|wetin\s+dem\s+(take\s+)?(create|start|make)\s+nelfund|what'?s\s+nelfund|nelfund\s+for\s+wetin|na\s+wetin\s+(be\s+)?nelfund|why\s+(they|dem|una)\s+bring\s+nelfund/i.test(
-    text || '',
-  )
+  return isPurposeAsk(text || '') || (PURPOSE_RE.test(text || '') && !liveOpenRe().test(text || ''))
 }
 
 /** Live window only. Never purpose / personal pending status / how-to. */
