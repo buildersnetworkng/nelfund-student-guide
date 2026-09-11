@@ -6,6 +6,7 @@ import ScopeBadge from '../components/ScopeBadge'
 import RecommendedVideo from '../components/RecommendedVideo'
 import ScopeRestricted from '../components/ScopeRestricted'
 import NotFound from './NotFound'
+import ShareGuide from '../components/ShareGuide'
 
 export default function TroubleshootingDetail() {
   const { id } = useParams()
@@ -33,7 +34,10 @@ export default function TroubleshootingDetail() {
           <p className="eyebrow">{item.category}</p>
           <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">{item.icon} {item.problem}</h1>
         </div>
-        <ScopeBadge scope={item.scope} institutionId={item.institution_id} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ScopeBadge scope={item.scope} institutionId={item.institution_id} />
+          <ShareGuide variant="button" className="shrink-0" />
+        </div>
       </div>
 
       <div className="mt-3">

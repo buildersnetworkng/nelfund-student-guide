@@ -2,14 +2,20 @@ import { nelfundFacts } from '../lib/data'
 import TrustBadge from '../components/TrustBadge'
 import ScopeBadge from '../components/ScopeBadge'
 import RecommendedVideo from '../components/RecommendedVideo'
+import ShareGuide from '../components/ShareGuide'
 
 export default function Upkeep() {
   const amountFact = nelfundFacts.find((f) => f.id === 'nf-upkeep-amount')!
 
   return (
     <div className="container-page py-10">
-      <p className="eyebrow">Upkeep allowance</p>
-      <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Understanding the upkeep allowance</h1>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="eyebrow">Upkeep allowance</p>
+          <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Understanding the upkeep allowance</h1>
+        </div>
+        <ShareGuide variant="button" className="shrink-0" />
+      </div>
 
       <div className="card mt-6 border-forest-700/20 bg-forest-700 text-paper">
         <div className="flex flex-wrap items-start justify-between gap-2">

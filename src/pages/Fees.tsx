@@ -3,14 +3,20 @@ import { nelfundFacts } from '../lib/data'
 import TrustBadge from '../components/TrustBadge'
 import ScopeBadge from '../components/ScopeBadge'
 import RecommendedVideo from '../components/RecommendedVideo'
+import ShareGuide from '../components/ShareGuide'
 
 export default function Fees() {
   const facts = nelfundFacts.filter((f) => ['nf-components'].includes(f.id))
 
   return (
     <div className="container-page py-10">
-      <p className="eyebrow">School fees</p>
-      <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">How NELFUND pays school fees</h1>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="eyebrow">School fees</p>
+          <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">How NELFUND pays school fees</h1>
+        </div>
+        <ShareGuide variant="button" className="shrink-0" />
+      </div>
 
       <div className="mt-6 space-y-4">
         {facts.map((f) => (
