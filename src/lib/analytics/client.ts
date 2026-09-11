@@ -80,8 +80,6 @@ function saveQueue(events: AnalyticsEventPayload[]) {
   }
 }
 
-let flushTimer: ReturnType<typeof setTimeout> | null = null
-
 async function flushQueue() {
   const events = loadQueue()
   if (!events.length) return
@@ -92,71 +90,56 @@ async function flushQueue() {
       sid: getSessionId(),
       events,
     }
-    const res = await fetch('/api/analytics/track', {
+    await fetch('/api/analytics/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
       keepalive: true,
     })
-    if (!res.ok) {
-      const existing = loadQueue()
-      saveQueue([...events, ...existing].slice(-MAX_QUEUE))
-    }
   } catch {
     const existing = loadQueue()
     saveQueue([...events, ...existing].slice(-MAX_QUEUE))
   }
 }
 
-function scheduleFlush() {
-  if (flushTimer) clearTimeout(flushTimer)
-  flushTimer = setTimeout(() => {
-    flushTimer = null
-    void flushQueue()
-  }, 1200)
-}
-
-export function track(name: AnalyticsEventName, payload: Omit<AnalyticsEventPayload, 'name' | 'ts'> = {}) {
-  const event: AnalyticsEventPayload = {
+export function track(
+  name: AnalyticsEventName,
+  meta?: {
+    path?: string
+    intent?: string | null
+    institutionId?: string | null
+    feature?: string | null
+    faqId?: string | null
+    unresolved?: boolean
+    hasImage?: boolean
+    topic?: string | null
+  },
+) {
+  const payload: AnalyticsEventPayload = {
     name,
     ts: new Date().toISOString(),
-    path: payload.path || (typeof location !== 'undefined' ? location.pathname : undefined),
-    intent: payload.intent,
-    institutionId: payload.institutionId,
-    feature: payload.feature,
-    faqId: payload.faqId,
-    unresolved: payload.unresolved,
-    hasImage: payload.hasImage,
-    topic: payload.topic,
-    meta: sanitizeMeta(payload.meta),
+    path: meta?.path,
+    intent: meta?.intent || undefined,
+    institutionId: meta?.institutionId || undefined,
+    feature: meta?.feature || undefined,
+    faqId: meta?.faqId || undefined,
+    unresolved: meta?.unresolved,
+    hasImage: meta?.hasImage,
+    topic: meta?.topic || undefined,
   }
   const q = loadQueue()
-  q.push(event)
+  q.push(payload)
   saveQueue(q)
-  scheduleFlush()
+  void flushQueue()
 }
 
-/** Coarse topic buckets only — never stores the student question text. */
 export function deriveUnknownTopic(userText?: string | null): string {
   const t = (userText || '').toLowerCase().trim()
-  if (!t || t.length < 2) return 'empty'
-  if (/jamb/.test(t)) return 'jamb'
-  if (/nin/.test(t)) return 'nin'
-  if (/pending|status|under\s*review|how\s*far|nothing\s*dey/.test(t)) return 'pending-status'
-  if (/reject|declined|not\s*approved/.test(t)) return 'rejection'
-  if (/school\s*(not|no)|not\s*show|institution\s*not/.test(t)) return 'school-list'
-  if (/upkeep|20\s*k|allowance/.test(t)) return 'upkeep'
-  if (/fee|tuition|charges/.test(t)) return 'fees'
-  if (/repay|gsi|pay\s*back/.test(t)) return 'repayment'
-  if (/open|deadline|window|apply\s*today|latest\s*update|expire|bvn/.test(t)) return 'open-status'
-  if (/login|password|otp|sign\s*in|portal/.test(t)) return 'login-portal'
-  if (/contact|email|phone|who\s*do\s*i|esupport|ticket|helpline/.test(t)) return 'contacts'
-  if (/draft|write\s*(an?\s*)?(email|message)/.test(t)) return 'email-draft'
-  if (/eligib|qualify|disqualif/.test(t)) return 'eligibility'
-  if (/screenshot|error|what\s*does\s*this\s*mean|unable\s*to|try\s*again|500|404/.test(t)) return 'error-screenshot'
-  if (/hello|hi\b|help|abeg|please|wahala|stuck|how\s*far|wetin|good\s*(morning|afternoon|evening)/.test(t) && t.length < 48)
-    return 'guidance'
-  if (/disburse|payment|money\s*enter|when\s*will\s*i\s*get/.test(t)) return 'disbursement'
+  if (!t) return 'empty'
+  if (/pending|under\s*review|status|how\s*far|never\s*(pay|see|come)/.test(t)) return 'pending-status'
+  if (/jamb|utme|verification\s*fail|invalid\s*format/.test(t)) return 'jamb'
+  if (/open|deadline|still\s*accept|as\s*of/.test(t)) return 'open-status'
+  if (/repay|gsi|nysc|10\s*%/.test(t)) return 'repayment'
   if (/account\s*creat|create\s*account|register|sign\s*up/.test(t)) return 'account-create'
   if (/password|reset\s*password|forgot/.test(t)) return 'password-reset'
   if (/approv|not\s*yet\s*approv/.test(t)) return 'approval'
@@ -205,7 +188,7 @@ export function trackAiQuestion(opts: {
   resolutionClosed?: boolean
   escalationFired?: boolean
 }) {
-  const intent = opts.intent || 'unknown'
+  const intent = opts.intent && String(opts.intent).trim() ? opts.intent : 'current-information'
   const unknown = isUnknownIntent(intent)
   const topic = unknown || opts.unresolved ? normalizeUnknownTopic(deriveUnknownTopic(opts.userText)) : undefined
 
@@ -280,35 +263,4 @@ export function trackFaqOpen(faqId: string) {
   track('faq_open', { faqId, feature: 'faq' })
 }
 
-export function trackFeature(feature: string, meta?: Record<string, string | number | boolean | null>) {
-  track('feature_use', { feature, meta })
-}
-
-export async function flushAnalytics(): Promise<boolean> {
-  if (flushTimer) {
-    clearTimeout(flushTimer)
-    flushTimer = null
-  }
-  try {
-    await flushQueue()
-    return true
-  } catch {
-    return false
-  }
-}
-
-export function trackInstitution(institutionId: string) {
-  track('institution_set', { institutionId, feature: 'institution_select' })
-}
-
-export async function fetchAnalyticsStats(adminKey: string): Promise<AnalyticsStats | null> {
-  try {
-    const res = await fetch('/api/analytics/stats', {
-      headers: { 'x-admin-key': adminKey },
-    })
-    if (!res.ok) return null
-    return (await res.json()) as AnalyticsStats
-  } catch {
-    return null
-  }
-}
+export type { AnalyticsStats }
