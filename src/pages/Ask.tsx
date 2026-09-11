@@ -11,7 +11,7 @@ import { useInstitution, OTHER_INSTITUTION } from '../context/InstitutionContext
 import { institutions } from '../lib/data'
 import { AnswerCards } from '../components/AnswerCards'
 import { trackAiQuestion, trackFeedback } from '../lib/analytics'
-import { ShareGuide } from '../components/ShareGuide'
+import ShareGuide from '../components/ShareGuide'
 
 function uid(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
@@ -143,11 +143,15 @@ export default function Ask() {
     }
   }
 
+  const [helpfulShareId, setHelpfulShareId] = useState<string | null>(null)
+
   function onFeedback(messageId: string, vote: 'up' | 'down', intent?: string | null) {
     trackFeedback(vote, {
       intent: intent || slots.intent,
       institutionId: slots.institutionId || institutionId,
     })
+    if (vote === 'up') setHelpfulShareId(messageId)
+    else if (helpfulShareId === messageId) setHelpfulShareId(null)
   }
 
   return (
@@ -159,7 +163,7 @@ export default function Ask() {
             <h1 className="text-base font-semibold text-ink">Ask</h1>
           </div>
           <div className="flex items-center gap-2">
-            <ShareGuide compact />
+            <ShareGuide variant="icon" />
             <Link to="/" className="text-sm text-ink/60 hover:text-ink">
               Exit
             </Link>
@@ -202,13 +206,21 @@ export default function Ask() {
               <p className="whitespace-pre-wrap">{m.text}</p>
               {m.answer && <AnswerCards answer={m.answer} />}
               {m.role === 'assistant' && (
-                <div className="mt-2 flex gap-2 text-xs text-ink/50">
-                  <button type="button" onClick={() => onFeedback(m.id, 'up', m.answer?.intent)}>
-                    Helpful
-                  </button>
-                  <button type="button" onClick={() => onFeedback(m.id, 'down', m.answer?.intent)}>
-                    Not helpful
-                  </button>
+                <div className="mt-2 space-y-2">
+                  <div className="flex gap-2 text-xs text-ink/50">
+                    <button type="button" onClick={() => onFeedback(m.id, 'up', m.answer?.intent)}>
+                      Helpful
+                    </button>
+                    <button type="button" onClick={() => onFeedback(m.id, 'down', m.answer?.intent)}>
+                      Not helpful
+                    </button>
+                  </div>
+                  {helpfulShareId === m.id && (
+                    <div className="flex flex-wrap items-center gap-2 rounded-xl bg-forest-50 px-2.5 py-2 text-xs text-ink/70">
+                      <span>If this helped, send the guide to a classmate.</span>
+                      <ShareGuide variant="button" className="!min-h-[32px] !px-3 !py-1 !text-xs" />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
