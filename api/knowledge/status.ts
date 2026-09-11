@@ -1,11 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { applyCors, rateLimitOr429 } from '../_lib/security'
-
-/**
- * Home-card status endpoint.
- * Serves live/cached Redis status from official-site refresh, or a safe dynamic fallback.
- * Cycle year always follows the academic calendar (auto from today's date).
- */
+import { applyCors, rateLimitOr429 } from '../lib/security'
 
 type LiveApplicationStatus = {
   cycle: string
