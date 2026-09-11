@@ -53,7 +53,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       clarifyingQuestions.push('What exact error message appears when NIN verification fails?')
       break
     case 'missing-information':
-      answer = 'When the portal shows "missing information" or "no school information found," it usually means NELFUND cannot yet match your student record with data from your institution — not that you invented a school.'
+      answer = 'When the portal shows "missing information" or "no school information found," it usually means NELFUND cannot yet match your student record with data from your institution, not that you invented a school.'
       whatThisMeans = meanBody ?? 'This is typically an institutional data upload or verification gap.'
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push(
@@ -89,7 +89,7 @@ export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], i
       clarifyingQuestions.push('When did you submit the application (approximate date)?')
       break
     case 'rejected-application':
-      answer = 'If your application was rejected, the next step is to understand the reason shown on the portal (when available) and correct what you can — for example data mismatches — before considering a new attempt in an open cycle.'
+      answer = 'If your application was rejected, the next step is to understand the reason shown on the portal (when available) and correct what you can, for example data mismatches, before considering a new attempt in an open cycle.'
       whatThisMeans = meanBody ?? (factBody || 'Rejection is not always final forever. Many cases relate to verification or data issues that can be addressed.')
       if (steps.length) nextActions.push(...steps.slice(0, 4))
       else nextActions.push(
