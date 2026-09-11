@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { applyCors, adminAuthorized, rateLimitOr429 } from '../lib/security'
 
 function dayKey(d: Date): string {
   return d.toISOString().slice(0, 10)
@@ -28,6 +27,18 @@ function redisConfigured(): boolean {
   return !!(redisUrl() && redisToken())
 }
 
+async function redisCmd(command: unknown[]): Promise<unknown> {
+  const url = redisUrl()
+  const token = redisToken()
+  const path = command.map((c) => encodeURIComponent(String(c))).join('/')
+  const res = await fetch(`${url}/${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error(`Redis ${res.status}`)
+  const json = (await res.json()) as { result: unknown }
+  return json.result
+}
+
 async function redisPipeline(commands: unknown[][]): Promise<unknown[]> {
   const url = redisUrl()
   const token = redisToken()
@@ -42,6 +53,32 @@ async function redisPipeline(commands: unknown[][]): Promise<unknown[]> {
   if (!res.ok) throw new Error(`Redis pipeline ${res.status}`)
   const json = (await res.json()) as Array<{ result: unknown }>
   return json.map((r) => r.result)
+}
+
+const mem = globalThis as unknown as {
+  __nsgAnalytics?: {
+    users: Set<string>
+    sessions: Set<string>
+    dau: Map<string, Set<string>>
+    counters: Map<string, number>
+  }
+}
+
+function memStore() {
+  return mem.__nsgAnalytics
+}
+
+function adminAuthorized(req: VercelRequest): boolean {
+  const expected = (process.env.ANALYTICS_ADMIN_KEY || '').trim()
+  if (!expected || expected.length < 24) return false
+  const provided = req.headers['x-admin-key']
+  if (typeof provided !== 'string' || !provided) return false
+  if (provided.length !== expected.length) return false
+  let diff = 0
+  for (let i = 0; i < expected.length; i++) {
+    diff |= provided.charCodeAt(i) ^ expected.charCodeAt(i)
+  }
+  return diff === 0
 }
 
 const emptyTotals = {
@@ -61,11 +98,14 @@ const emptyTotals = {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  applyCors(req, res, 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-key')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Cache-Control', 'no-store')
 
   if (req.method === 'OPTIONS') return res.status(204).end()
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-  if (!rateLimitOr429(req, res, 'analytics-stats', 30, 60_000)) return
   if (!adminAuthorized(req)) return res.status(401).json({ error: 'Unauthorized' })
 
   const today = dayKey(new Date())
@@ -73,6 +113,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const last30 = daysBack(30)
 
   if (!redisConfigured()) {
+    const store = memStore()
+    if (store) {
+      return res.status(200).json({
+        generatedAt: new Date().toISOString(),
+        storage: 'memory',
+        totals: {
+          uniqueUsers: store.users.size,
+          sessions: store.sessions.size,
+          pageViews: store.counters.get('pageViews') || 0,
+          aiConversations: store.counters.get('aiConversations') || 0,
+          aiQuestions: store.counters.get('aiQuestions') || 0,
+          imageAnalyses: store.counters.get('imageAnalyses') || 0,
+          faqOpens: store.counters.get('faqOpens') || 0,
+          unresolvedAi: store.counters.get('unresolvedAi') || 0,
+          unknownAi: store.counters.get('unknownAi') || 0,
+          resolutionClosed: store.counters.get('resolutionClosed') || 0,
+          escalationFired: store.counters.get('escalationFired') || 0,
+          feedbackUp: store.counters.get('feedbackUp') || 0,
+          feedbackDown: store.counters.get('feedbackDown') || 0,
+        },
+        active: {
+          today: store.dau.get(today)?.size || 0,
+          week: 0,
+          month: 0,
+        },
+        topIntents: [],
+        topInstitutions: [],
+        topPages: [],
+        topFeatures: [],
+        topUnknownTopics: [],
+        daily: last7.map((date) => ({
+          date,
+          users: store.dau.get(date)?.size || 0,
+          sessions: 0,
+          aiQuestions: 0,
+          unknownAi: 0,
+        })),
+      })
+    }
     return res.status(200).json({
       generatedAt: new Date().toISOString(),
       storage: 'none',
@@ -88,39 +167,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const counterKeys = [
-      'nsg:analytics:users',
-      'nsg:analytics:sessions',
-      'nsg:analytics:pageViews',
-      'nsg:analytics:aiConversations',
-      'nsg:analytics:aiQuestions',
-      'nsg:analytics:imageAnalyses',
-      'nsg:analytics:faqOpens',
-      'nsg:analytics:unresolvedAi',
-      'nsg:analytics:unknownAi',
-      'nsg:analytics:resolutionClosed',
-      'nsg:analytics:escalationFired',
-      'nsg:analytics:feedbackUp',
-      'nsg:analytics:feedbackDown',
-    ]
-
     const pipeline: unknown[][] = [
       ['SCARD', 'nsg:analytics:users'],
       ['SCARD', 'nsg:analytics:sessions'],
-      ...counterKeys.slice(2).map((k) => ['GET', k]),
+      ['GET', 'nsg:analytics:pageViews'],
+      ['GET', 'nsg:analytics:aiConversations'],
+      ['GET', 'nsg:analytics:aiQuestions'],
+      ['GET', 'nsg:analytics:imageAnalyses'],
+      ['GET', 'nsg:analytics:faqOpens'],
+      ['GET', 'nsg:analytics:unresolvedAi'],
+      ['GET', 'nsg:analytics:unknownAi'],
+      ['GET', 'nsg:analytics:resolutionClosed'],
+      ['GET', 'nsg:analytics:escalationFired'],
+      ['GET', 'nsg:analytics:feedbackUp'],
+      ['GET', 'nsg:analytics:feedbackDown'],
       ['SCARD', `nsg:analytics:dau:${today}`],
-      ...last7.map((d) => ['SCARD', `nsg:analytics:dau:${d}`]),
-      ...last30.map((d) => ['SCARD', `nsg:analytics:dau:${d}`]),
-      ['ZREVRANGE', 'nsg:analytics:intents', 0, 19, 'WITHSCORES'],
-      ['ZREVRANGE', 'nsg:analytics:institutions', 0, 19, 'WITHSCORES'],
-      ['ZREVRANGE', 'nsg:analytics:pages', 0, 19, 'WITHSCORES'],
-      ['ZREVRANGE', 'nsg:analytics:features', 0, 19, 'WITHSCORES'],
-      ['ZREVRANGE', 'nsg:analytics:unknownTopics', 0, 19, 'WITHSCORES'],
+      ...last7.map((d) => ['SCARD', `nsg:analytics:dau:${d}`] as unknown[]),
+      ...last30.map((d) => ['SCARD', `nsg:analytics:dau:${d}`] as unknown[]),
+      ['ZREVRANGE', 'nsg:analytics:intents', '0', '19', 'WITHSCORES'],
+      ['ZREVRANGE', 'nsg:analytics:institutions', '0', '19', 'WITHSCORES'],
+      ['ZREVRANGE', 'nsg:analytics:pages', '0', '19', 'WITHSCORES'],
+      ['ZREVRANGE', 'nsg:analytics:features', '0', '19', 'WITHSCORES'],
+      ['ZREVRANGE', 'nsg:analytics:unknownTopics', '0', '19', 'WITHSCORES'],
       ...last7.flatMap((d) => [
-        ['SCARD', `nsg:analytics:dau:${d}`],
-        ['GET', `nsg:analytics:day:${d}:sessions`],
-        ['GET', `nsg:analytics:day:${d}:aiQuestions`],
-        ['GET', `nsg:analytics:day:${d}:unknownAi`],
+        ['SCARD', `nsg:analytics:dau:${d}`] as unknown[],
+        ['GET', `nsg:analytics:day:${d}:sessions`] as unknown[],
+        ['GET', `nsg:analytics:day:${d}:aiQuestions`] as unknown[],
+        ['GET', `nsg:analytics:day:${d}:unknownAi`] as unknown[],
       ]),
     ]
 
@@ -140,7 +213,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const feedbackUp = Number(results[i++] || 0)
     const feedbackDown = Number(results[i++] || 0)
     const todayActive = Number(results[i++] || 0)
-    i += last7.length + last30.length
+    const weekSets = last7.map(() => Number(results[i++] || 0))
+    const monthSets = last30.map(() => Number(results[i++] || 0))
 
     function parseZ(raw: unknown): Array<{ key: string; count: number }> {
       if (!Array.isArray(raw)) return []
@@ -185,8 +259,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       active: {
         today: todayActive,
-        week: 0,
-        month: 0,
+        week: weekSets.reduce((a, b) => a + b, 0),
+        month: monthSets.reduce((a, b) => a + b, 0),
       },
       topIntents,
       topInstitutions,
