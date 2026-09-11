@@ -1,9 +1,9 @@
 /**
  * Shared backend security helpers for NELFUND Student Guide APIs.
+ * Pure JS (no node:crypto) for reliable Vercel serverless bundling.
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { timingSafeEqual } from 'node:crypto'
 
 const DEFAULT_ORIGINS = [
   'https://nelfund-student-guide.vercel.app',
@@ -32,19 +32,18 @@ export function clientIp(req: VercelRequest): string {
   return 'unknown'
 }
 
+/** Best-effort constant-time string compare without node:crypto. */
 export function safeEqual(a: string, b: string): boolean {
-  try {
-    const ba = Buffer.from(String(a))
-    const bb = Buffer.from(String(b))
-    if (ba.length !== bb.length) {
-      const pad = Buffer.alloc(ba.length)
-      timingSafeEqual(ba, pad)
-      return false
-    }
-    return timingSafeEqual(ba, bb)
-  } catch {
-    return false
+  const aa = String(a)
+  const bb = String(b)
+  const len = Math.max(aa.length, bb.length)
+  let diff = aa.length ^ bb.length
+  for (let i = 0; i < len; i++) {
+    const ca = i < aa.length ? aa.charCodeAt(i) : 0
+    const cb = i < bb.length ? bb.charCodeAt(i) : 0
+    diff |= ca ^ cb
   }
+  return diff === 0
 }
 
 export function adminAuthorized(req: VercelRequest): boolean {
@@ -56,8 +55,8 @@ export function adminAuthorized(req: VercelRequest): boolean {
 }
 
 export function cronAuthorized(req: VercelRequest): boolean {
-  const secret = process.env.CRON_SECRET || ''
   if (typeof req.headers['x-vercel-cron'] !== 'undefined') return true
+  const secret = process.env.CRON_SECRET || ''
   if (!secret || secret.length < 16) return false
   const auth = req.headers.authorization
   if (typeof auth === 'string' && auth.startsWith('Bearer ')) {
