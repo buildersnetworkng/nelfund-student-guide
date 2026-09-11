@@ -34,7 +34,6 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   const q = expandWithContext(question, history).trim()
   const entities = detectEntities(q || raw)
 
-  // Purpose on RAW text first so prior "is it open" turns cannot leak into live-status.
   if (PURPOSE_RE.test(raw) && !liveOpenRe().test(raw)) {
     return { intent: 'what-is-nelfund', confidence: 0.94, topics: ['what is', 'purpose'], problem: 'What NELFUND is / why it was created', stage: 'exploring', entities, isTroubleshooting: false }
   }
@@ -55,7 +54,11 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   if (/school\s*fees|institutional\s*charges|tuition/i.test(q) && !/\bupkeep\b/i.test(q)) {
     return { intent: 'school-fees', confidence: 0.9, topics: ['fees'], problem: 'School fees / institutional charges', stage: 'exploring', entities, isTroubleshooting: false }
   }
-  if (/sign\s*up|create\s*(an?\s*)?account|register(\s|$)|how\s*(do\s*i|to)\s*apply|i\s*wan\s*apply/i.test(q) && !/sign\s*in|\blogin\b|log\s*in|password/i.test(q)) {
+  if (
+    /sign\s*up|create\s*(an?\s*)?account|register(\s|$)|how\s*(do\s*i|to)\s*apply|i\s*wan\s*apply|step\s*by\s*step|guide\s*me\s*(step|through|with)?|walk\s*me\s*through|one\s*by\s*one|creating\s*(it|account|profile)|help\s*me\s*(create|apply|register)/i.test(
+      q,
+    ) && !/sign\s*in|\blogin\b|log\s*in|password/i.test(q)
+  ) {
     return { intent: 'how-to-apply', confidence: 0.9, topics: ['apply', 'signup'], problem: 'Create account / sign up', stage: 'preparing', entities, isTroubleshooting: false }
   }
   if (/(\blogin\b|log\s*in|sign\s*in|password|session\s*expired)/i.test(q) && !/sign\s*up|create\s*(an?\s*)?account/i.test(q)) {
@@ -64,7 +67,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   if (/invalid\s*jamb|jamb.*(invalid|fail|verif|format)|jamb\s*no\s*(gree|work)|utme\s*(number|verif)/i.test(q)) {
     return { intent: 'jamb-verification', confidence: 0.88, topics: ['jamb'], problem: 'JAMB verification', stage: 'applying', entities, isTroubleshooting: true }
   }
-  if (/missing\s*information|no\s*school\s*info|record\s*not\s*found|school\s*not\s*(on\s*)?(the\s*)?(list|showing)|institution\s*not\s*found/i.test(q)) {
+  if (/missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)|institution\s*not\s*found/i.test(q)) {
     return { intent: 'missing-information', confidence: 0.88, topics: ['missing'], problem: 'Missing information on portal', stage: 'applying', entities, isTroubleshooting: true }
   }
   if (/\bpending\b|under\s*review|check\s*(my\s*)?(application\s*)?status|how\s*far\s*(with)?/i.test(q) && !liveOpenRe().test(raw)) {
@@ -105,6 +108,5 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   const residual = residualSoftRoute(raw || q, entities)
   if (residual) return residual
 
-  // Never emit unknown: always a real intent so analytics stop inflating unknown rate
   return { intent: 'official-sources', confidence: 0.4, topics: ['official'], problem: 'Official NELFUND links', stage: 'exploring', entities, isTroubleshooting: false }
 }
