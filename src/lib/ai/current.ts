@@ -122,16 +122,7 @@ function isIsOpenQuestion(q?: string): boolean {
 
 export function buildCurrentInformationAnswer(): GroundedAnswer {
   const cycle = getCurrentAcademicCycle()
-  const answer = `**As of ${todayWatLabel()}** (${cycle})
-
-I do not invent opening or closing dates.
-
-**Loan / upkeep application** and **account creation** are different:
-• Sign **up** (new account): ${PORTAL}
-• Sign **in** / login: ${SITE}
-• Confirm live status only on those official pages
-
-What do you need: sign up, login, or submit a loan?`
+  const answer = `**As of ${todayWatLabel()}** (${cycle})\n\nI do not invent opening or closing dates.\n\n**Loan / upkeep application** and **account creation** are different:\n• Sign **up** (new account): ${PORTAL}\n• Sign **in** / login: ${SITE}\n• Confirm live status only on those official pages\n\nWhat do you need: sign up, login, or submit a loan?`
 
   return {
     hasEvidence: true,
@@ -160,20 +151,7 @@ function answerIsOpen(data: LiveStatus): GroundedAnswer {
   const cycle = cycleLabel(data)
   const when = todayWatLabel()
 
-  const answer = `**Is NELFUND open?** (as of **${when}**)
-
-**${cycle}**
-
-${loanLine}
-
-${accountLine}
-
-**Where to go**
-• **Sign up** (create account): ${PORTAL}
-• **Login / sign in** (existing account): ${SITE}
-• Support ticket: https://nelfund.esupport.ng/create
-
-I will not invent a closing date. Re-check the portal before you rely on a deadline.`
+  const answer = `**Is NELFUND open?** (as of **${when}**)\n\n**${cycle}**\n\n${loanLine}\n\n${accountLine}\n\n**Where to go**\n• **Sign up** (create account): ${PORTAL}\n• **Login / sign in** (existing account): ${SITE}\n• Support ticket: https://nelfund.esupport.ng/create\n\nI will not invent a closing date. Re-check the portal before you rely on a deadline.`
 
   return {
     hasEvidence: true,
@@ -202,16 +180,7 @@ function answerGeneralStatus(data: LiveStatus): GroundedAnswer {
   const cycle = cycleLabel(data)
   const when = todayWatLabel()
 
-  const answer = `**NELFUND status as of ${when}** (${cycle})
-
-${loanLine}
-
-${accountLine}
-
-• **Sign up:** ${PORTAL}
-• **Login / sign in:** ${SITE}
-
-Always verify on the official portal before acting.`
+  const answer = `**NELFUND status as of ${when}** (${cycle})\n\n${loanLine}\n\n${accountLine}\n\n• **Sign up:** ${PORTAL}\n• **Login / sign in:** ${SITE}\n\nAlways verify on the official portal before acting.`
 
   return {
     hasEvidence: true,
@@ -281,7 +250,7 @@ export async function buildCurrentInformationAnswerLive(
 }
 
 export function isPurposeQuestion(text: string): boolean {
-  return /what\s*is\s*(this\s+)?nelfund|wetin\s*(be\s*)?(this\s+)?nelfund|why\s+(was|is|dem|they|una|we)\s+.{0,20}(create|created|establish|start|begin|form|set\s*up)|why\s+(dem|they)\s+(create|make|start)\s+nelfund|purpose\s+(of\s+)?nelfund|mission\s+of\s+nelfund|who\s+(created|established|started)\s+nelfund|wetin\s+(make|cause)\s+(dem|them)\s+create|reason\s+(dem|they|una)\s+(create|start)|how\s+come\s+.{0,20}nelfund|tell\s*me\s*(about|everything).{0,40}nelfund|nelfund\s+(purpose|mission|aim|objective)|why\s+nelfund\s*(dey|exist|come)/i.test(
+  return /what\s*(is|are)\s*(the\s+)?(purpose|aim|point|goal|meaning)?\s*(of\s+)?(this\s+)?nelfund|what\s+does\s+(nelfund|it|this)\s+do|explain\s+(this\s+)?nelfund|origin\s+of\s+nelfund|wetin\s*(be\s*|mean\s*)?(this\s+)?nelfund|wetin\s+nelfund\s+(be|mean|dey\s+do)|nelfund\s+dey\s+do\s+wetin|why\s+(was|is|dem|they|una|we|fg|government)\s+.{0,40}(create|created|establish|start|begin|form|set\s*up)|why\s+(dem|they)\s+(create|make|start)\s+(nelfund|am|it)|purpose\s+(of\s+)?nelfund|mission\s+of\s+nelfund|who\s+(created|established|started)\s+nelfund|wetin\s+(make|cause)\s+(dem|them)\s+create|reason\s+(dem|they|una)\s+(create|start)|how\s+come\s+.{0,20}nelfund|tell\s*me\s*(about|everything).{0,40}nelfund|nelfund\s+(purpose|mission|aim|objective)|why\s+nelfund\s*(dey|exist|come|was)|point\s+of\s+nelfund/i.test(
     text || '',
   )
 }
@@ -290,7 +259,7 @@ export function isPurposeQuestion(text: string): boolean {
 export function questionNeedsCurrentLive(text: string): boolean {
   const q = text || ''
   if (isPurposeQuestion(q)) return false
-  if (/why\s+(was|is|dem|they)|purpose|wetin\s*be\s*(this\s+)?nelfund|what\s*is\s*(this\s+)?nelfund/i.test(q)) return false
+  if (/why\s+(was|is|dem|they|una|fg)|purpose|wetin\s*(be|mean)|what\s*(is|does)\s*(this\s+)?nelfund|explain\s+(this\s+)?nelfund|origin\s+of\s+nelfund|point\s+of\s+nelfund/i.test(q)) return false
   if (/\b(my\s+)?(application|loan)\s+status\b|check\s+(my\s+)?status|\bpending\b|under\s*review/i.test(q) && !/is\s+(nelfund|it|portal|application)\s+(still\s+)?open/i.test(q)) {
     return false
   }
