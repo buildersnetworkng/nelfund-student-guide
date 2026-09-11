@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { applyCors, adminAuthorized, cronAuthorized, rateLimitOr429 } from '../_lib/security'
 
 /**
  * Refreshes time-sensitive NELFUND knowledge from official sources.
@@ -39,13 +40,17 @@ function currentAcademicCycle(date: Date = new Date()): string {
 }
 
 function redisUrl(): string {
-  return process.env.UPSTASH_REDIS_REST_URL || 'https://premium-rooster-109704.upstash.io'
+  return (process.env.UPSTASH_REDIS_REST_URL || '').trim()
 }
 function redisToken(): string {
-  return process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAayIAQIgcDE2YWZkNzllZDIxN2I0MjA5YWIwNDQ1OGFjNTY0MGUzNg'
+  return (process.env.UPSTASH_REDIS_REST_TOKEN || '').trim()
+}
+function redisConfigured(): boolean {
+  return !!(redisUrl() && redisToken())
 }
 
 async function redisCmd(command: unknown[]): Promise<unknown> {
+  if (!redisConfigured()) throw new Error('Redis not configured')
   const path = command.map((c) => encodeURIComponent(String(c))).join('/')
   const res = await fetch(`${redisUrl()}/${path}`, {
     headers: { Authorization: `Bearer ${redisToken()}` },
@@ -84,7 +89,6 @@ async function fetchText(url: string): Promise<{ ok: boolean; text: string; erro
   }
 }
 
-/** Short bullet notes, StatusCard renders each • line on its own row. */
 function copyAccountOpenLoanUnconfirmed(cycle: string): { status_label: string; note: string } {
   return {
     status_label: `Account creation open · Loan/upkeep not confirmed yet`,
@@ -210,7 +214,7 @@ export async function runRefresh(): Promise<LiveApplicationStatus> {
       verified: false,
     }
     try {
-      await redisCmd(['SET', 'nsg:knowledge:application_status', JSON.stringify(fallback)])
+      if (redisConfigured()) await redisCmd(['SET', 'nsg:knowledge:application_status', JSON.stringify(fallback)])
     } catch {
       /* ignore */
     }
@@ -228,31 +232,29 @@ export async function runRefresh(): Promise<LiveApplicationStatus> {
     verified: analysis.confidence !== 'low',
   }
 
-  await redisCmd(['SET', 'nsg:knowledge:application_status', JSON.stringify(payload)])
-  await redisCmd(['SET', 'nsg:knowledge:application_status:updated_at', iso])
+  if (redisConfigured()) {
+    await redisCmd(['SET', 'nsg:knowledge:application_status', JSON.stringify(payload)])
+    await redisCmd(['SET', 'nsg:knowledge:application_status:updated_at', iso])
+  }
   return payload
 }
 
-function cronAuthorized(req: VercelRequest): boolean {
-  const secret = process.env.CRON_SECRET
-  if (!secret) return true
-  const auth = req.headers.authorization
-  return auth === `Bearer ${secret}`
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  applyCors(req, res, 'GET, POST, OPTIONS')
 
   if (req.method === 'OPTIONS') return res.status(204).end()
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  if (!rateLimitOr429(req, res, 'knowledge-refresh', 10, 60_000)) return
+
   const isCron = typeof req.headers['x-vercel-cron'] !== 'undefined'
-  if (isCron && !cronAuthorized(req)) {
-    return res.status(401).json({ error: 'Unauthorized cron' })
+  const authorized = isCron
+    ? cronAuthorized(req) || adminAuthorized(req)
+    : adminAuthorized(req) || cronAuthorized(req)
+  if (!authorized) {
+    return res.status(401).json({ error: 'Unauthorized' })
   }
 
   try {
