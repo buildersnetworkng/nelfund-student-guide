@@ -63,7 +63,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
     if (t.length < 64 || /help|abeg|stuck|wahala|what\s*next|empty|wetin|una\s*fit|reply|are\s*you\s*there|this\s*thing|i\s*no\s*sabi|confused|pls+|please/i.test(t)) {
       return `I can still help even if the question is short or mixed (Pidgin is fine).\n\n${MENU}\n\nIf you pasted a portal error, say **login**, **pending**, **JAMB**, or **missing school**. I will not invent NELFUND policy or dates.`
     }
-    return `Live notices only from ${SITE} and ${PORTAL}. I will not invent a deadline or still-open date.\n\nAccount sign-up and a loan application **window** are different. Confirm on the portal before you act.\n\nWhat are you trying to do, sign up, login, submit a loan, or check pending status?`
+    return `For **live** open/closed and dates, use the home status card and ${PORTAL}.\n\nI only report what official pages support. I will not invent a closing date.\n\n${MENU}`
   }
 
   if (intent === 'upkeep' || intent === 'school-fees') {
@@ -71,11 +71,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'upkeep') {
-    return `**Upkeep** is the monthly living allowance. Official FAQ: you must apply for **both** institutional charges and upkeep at registration. Institutional-only applications do not later receive upkeep.\n\nUpkeep is paid to the student; school fees go to the institution. Amounts and timing are only confirmed on ${PORTAL} / ${SITE}.\n\nIf *una never see* a month's upkeep, treat it as a status check on the portal, then ticket ${ESUPPORT}. FAQ: ${FAQ}`
+    return `**Upkeep** is the monthly living allowance paid **to you** if you applied for it.\n\nIt is separate from school fees (paid to the school). Official FAQ: apply for institutional charges and upkeep in the same registration session.\n\nAmounts and payment dates only on ${PORTAL}. FAQ: ${FAQ}`
   }
 
   if (intent === 'school-fees') {
-    return `**Institutional charges / school fees** are paid **to your school**, not into your personal account.\n\nUpkeep (if you applied for it) is separate and monthly to you.\n\nIf you already paid fees yourself, still apply if eligible, NELFUND does not replace that decision on this chat. Confirm live on ${PORTAL}. FAQ: ${FAQ}`
+    return `**Institutional charges / school fees** go **to your school**, not your personal account.\n\nUpkeep is different: monthly to you.\n\nIf you already paid fees yourself, still apply if eligible, NELFUND does not replace that decision on this chat. Confirm live on ${PORTAL}. FAQ: ${FAQ}`
   }
 
   if (intent === 'repayment') {
@@ -103,14 +103,20 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
     return `**Login / sign in:** ${SITE}\n**New account / apply:** ${PORTAL}\n\nThose are different pages. Sign up creates the account; login opens an existing one; submitting a loan is a later step after profile.\n\nForgot password, use the portal reset, do not create a second profile. Never send OTP to anyone.\nTicket if login keeps failing: ${ESUPPORT}`
   }
 
+  if (intent === 'scam-safety') {
+    return `**Scam warning:** NELFUND does **not** collect application fees through WhatsApp, Telegram, or random agents.\n\n• Only use ${SITE} and ${PORTAL}\n• Never send OTP, BVN, or NIN to private numbers\n• Support ticket: ${ESUPPORT}\n\nIf someone asked you to pay to process a loan, stop and use the official portal only.`
+  }
+
+  if (intent === 'documents-needed') {
+    return `**Typical portal profile items** (confirm live on the portal):\n• NIN and BVN\n• JAMB registration number\n• Admission / matric details\n• Bank account for upkeep if you apply for it.\n\nExact document list can change, use ${PORTAL} and FAQ: ${FAQ}. Do not email BVN/NIN to strangers.`
+  }
+
   if (intent === 'contact-support' || intent === 'email-draft') {
     return `Official support:\n• Ticket: ${ESUPPORT}\n• Site: ${SITE}\n• Portal: ${PORTAL}\n• FAQ: ${FAQ}\n\nSay your full name, school, JAMB number, and the exact portal error. Do not send BVN/NIN in random chats.`
   }
 
   if (intent === 'unknown' || !intent) {
-    return t.length < 8
-      ? `I am here for NELFUND.\n\n${MENU}`
-      : `I mapped that as general help so you are not stuck on an other topic.\n\n${MENU}\n\nPortal: ${PORTAL}`
+    return `I am here for NELFUND, pick a lane so I answer the right thing:\n\n${MENU}\n\nPortal: ${PORTAL} · Ticket: ${ESUPPORT}`
   }
 
   return `${MENU}\n\nCheck live status on ${PORTAL}. Reply with the exact portal message or whether you mean **sign up**, **login**, **loan application**, **pending**, **school fees**, or **upkeep**.`
@@ -118,13 +124,13 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
 
 export function isNearDuplicate(prev: string, next: string): boolean {
   if (!prev || !next) return false
-  const a = prev.slice(0, 120).toLowerCase()
-  const b = next.slice(0, 120).toLowerCase()
+  const a = prev.toLowerCase().replace(/\s+/g, ' ').slice(0, 180)
+  const b = next.toLowerCase().replace(/\s+/g, ' ').slice(0, 180)
   return a === b || (a.length > 40 && b.includes(a.slice(0, 40)))
 }
 
 export function isNewUserAsk(text: string): boolean {
-  return /what\s*is|how\s*to|eligib|apply|missing|upkeep|repay|login|sign\s*up|portal|jamb|nin|scam|open|status|abeg|wahala|help|stuck|ticket|esupport|school|pending|password|error|fees|why\s+(was|dem)|purpose|created/i.test(text)
+  return /\b(new\s*question|different\s*issue|another\s*problem|something\s*else)\b/i.test(text)
 }
 
 export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string {
@@ -132,5 +138,5 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
   if (intent === 'missing-information' || intent === 'school-not-found') return 'Which school do you attend? (e.g. UNILAG, LASU, OOU, YABATECH), that lets me narrow the next step.'
   if (intent === 'how-to-apply') return 'Are you stuck on **sign up**, **profile**, or **submit loan**? Those are different steps.'
   if (intent === 'portal-login') return 'Still on login, wrong password, session expired, or blank page?'
-  return 'What next, sign up, login, loan application, school fees, or upkeep?'
+  return `Portal: ${PORTAL} · Ticket: ${ESUPPORT}`
 }
