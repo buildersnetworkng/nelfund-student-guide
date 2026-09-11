@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import ShareGuide from './ShareGuide'
 
 const ITEMS = [
   { to: '/', label: 'Home', icon: HomeIcon },
@@ -83,7 +84,7 @@ export default function MobileNav() {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-forest-700/10 bg-white/95 backdrop-blur-md md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <ul className="grid grid-cols-5">
+      <ul className="grid grid-cols-6">
         {ITEMS.map((item) => (
           <li key={item.to}>
             <NavLink
@@ -105,6 +106,9 @@ export default function MobileNav() {
             </NavLink>
           </li>
         ))}
+        <li>
+          <ShareGuide variant="nav" />
+        </li>
       </ul>
     </nav>
   )
