@@ -54,16 +54,17 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'current-information' || intent === 'deadline') {
-    if (/why\s+(was|is|dem|they)|purpose|wetin\s*be|what\s*is\s*(this\s+)?nelfund/i.test(t)) {
+    if (/why\s+(was|is|dem|they|una|fg|government)|purpose|wetin\s*(be|mean|nelfund|make)|what\s*(is|does)\s*(this\s+)?nelfund|nelfund\s+(mean|meaning|purpose)|na\s+wetin/i.test(t)) {
       return playbookAnswer('what-is-nelfund', ctx)
     }
     if (!t) {
       return `Empty message received, I can still help.\n\n${MENU}\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
     }
-    if (t.length < 64 || /help|abeg|stuck|wahala|what\s*next|empty|wetin|una\s*fit|reply|are\s*you\s*there|this\s*thing|i\s*no\s*sabi|confused|pls+|please/i.test(t)) {
+    const vagueOnly = /^(help|abeg|stuck|wahala|what\s*next|empty|una\s*fit|reply|are\s*you\s*there|this\s*thing|i\s*no\s*sabi|confused|pls+|please|how\s*far)[.!? ]*$/i.test(t)
+    if (vagueOnly) {
       return `I can still help even if the question is short or mixed (Pidgin is fine).\n\n${MENU}\n\nIf you pasted a portal error, say **login**, **pending**, **JAMB**, or **missing school**. I will not invent NELFUND policy or dates.`
     }
-    return `For **live** open/closed and dates, use the home status card and ${PORTAL}.\n\nI only report what official pages support. I will not invent a closing date.\n\n${MENU}`
+    return `For **live** open/closed and dates, use the home status card and ${PORTAL}.\n\nI only report what official pages support. I will not invent a closing date.\n\nSign **up** and loan window are different. Confirm on ${PORTAL} / ${SITE}.`
   }
 
   if (intent === 'upkeep' || intent === 'school-fees') {
