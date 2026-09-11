@@ -254,7 +254,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
         title="Share this guide"
       >
         <ShareIcon />
-        <span className="text-[11px] font-semibold">Share</span>
+        <span className="text-[11px] font-semibold sm:text-xs">Share guide</span>
       </button>
     ) : variant === 'hero' ? (
       <button
