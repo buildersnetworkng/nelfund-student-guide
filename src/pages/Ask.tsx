@@ -97,7 +97,7 @@ export default function Ask() {
       const intent =
         intentRaw && intentRaw !== 'unknown' && !String(intentRaw).endsWith(':unknown')
           ? intentRaw
-          : 'current-information'
+          : 'unknown'
       const answer = assistantWithAnswer?.answer
       const unresolved =
         !answer || (answer.clarifyingQuestions?.length ?? 0) > 0 || !result.diagnosed
