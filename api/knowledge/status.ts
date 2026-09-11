@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { applyCors, rateLimitOr429 } from '../lib/security'
 
 type LiveApplicationStatus = {
   cycle: string
@@ -70,12 +69,15 @@ function guidancePayload(freshness: LiveApplicationStatus['freshness']): LiveApp
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  applyCors(req, res, 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
 
   if (req.method === 'OPTIONS') return res.status(204).end()
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-  if (!rateLimitOr429(req, res, 'knowledge-status', 120, 60_000)) return
 
   const today = new Date().toISOString().slice(0, 10)
   const cycle = currentAcademicCycle()
