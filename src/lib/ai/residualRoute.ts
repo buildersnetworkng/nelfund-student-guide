@@ -90,7 +90,15 @@ const SCHOOL_ONLY =
 /** Soft map leftover / long / Pidgin / multi-issue text onto a real intent. Never returns unknown. */
 export function residualSoftRoute(q: string, entities: string[]): IntentResult | null {
   const text = q.trim()
-  if (!text) return hit('current-information', 'Empty message, offer guidance', 'exploring', ['empty'], entities)
+  if (!text) return hit('current-information', 'Empty message, offer guidance', 'exploring', ['empty'], entities, false, 0.7)
+
+  if (/^(hi|hii+|hello|hey|heyy+|yo|sup|wassup|whatsup|good\s*(morning|afternoon|evening|day)|how\s*far|howfar|how\s*you\s*dey|thanks?|thank\s*you|tenki)[.!? ]*$/i.test(text)) {
+    return hit('current-information', 'Greeting, offer menu', 'exploring', ['greeting', 'guidance'], entities, false, 0.65)
+  }
+
+  if (/\b(open\s*status|application\s*open|is\s*it\s*open|still\s*open|dey\s*open|accepting|opening\s*date|closing\s*date|loan\s*window|as\s*of\s*(today|now)|current\s*status)\b/i.test(text)) {
+    return hit('current-information', 'Open status / is NELFUND open', 'exploring', ['open-status', 'current'], entities, false, 0.68)
+  }
 
   if (
     /why\s+(was|is|dem|they|una|we)\s+.{0,24}(nelfund|nel\s*fund|it).{0,16}(created|create|establish|start|begin|form|set\s*up|make)|why\s+(dem|they)\s+(create|make|start)\s+nelfund|why\s+nelfund|purpose\s+(of\s+)?nelfund|mission\s+of\s+nelfund|who\s+(created|established|started)\s+nelfund|wetin\s+(be\s*)?(this\s+)?nelfund|wetin\s+(make|cause)\s+(dem|them)\s+create|what\s+is\s+(this\s+)?nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|how\s+come\s+.{0,20}nelfund|reason\s+(for|dem|they)\s+.{0,20}nelfund/i.test(
@@ -125,8 +133,8 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('pending-application', 'Pending / under review / how far with loan', 'waiting', ['pending'], entities, true, 0.58)
   }
 
-  if (entities.includes('jamb') || /invalid\s*jamb|jamb.{0,30}(fail|verif|reject|format|gree|no\s*work)|verify.{0,20}jamb|could\s*not\s*verify.{0,20}jamb|verification\s*failed/i.test(text)) {
-    return hit('jamb-verification', 'JAMB verification or invalid JAMB', 'applying', ['jamb'], entities, true, 0.6)
+  if (entities.includes('jamb') || /invalid\s*jamb|jamb.{0,40}(fail|verif|reject|format|gree|no\s*work|error|issue|problem)|verify.{0,20}jamb|could\s*not\s*verify.{0,20}jamb|verification\s*failed|jamb\s*(number|reg|registration)|utme\s*(number|verif)/i.test(text)) {
+    return hit('jamb-verification', 'JAMB verification or invalid JAMB', 'applying', ['jamb'], entities, true, 0.62)
   }
 
   if (/is\s*(nelfund|it|portal|application)\s*(still\s*)?(open|accept)|still\s*(accepting|open|dey\s*open|dey\s*collect)|can\s*i\s*still\s*apply|dem\s*still\s*dey\s*(collect|accept)|closing\s*date|deadline|as\s*of\s*today|latest|una\s*still\s*dey\s*(collect|open)/i.test(text)) {
@@ -151,6 +159,25 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
       return hit('missing-information', 'Missing information on portal', 'applying', ['missing'], entities, true, 0.55)
     }
     return hit('school-not-found', 'School list / school not found', 'applying', ['school'], entities, true, 0.55)
+  }
+
+  if (/\b(scam|fraud|fake\s*agent|whatsapp\s*agent|pay\s*(to\s*)?(apply|process)|telegram\s*(agent|link))\b/i.test(text)) {
+    return hit('scam-safety', 'Scam / fake agent warning', 'exploring', ['scam'], entities, true, 0.7)
+  }
+
+  if (/\b(document|admission\s*letter|matriculation|transcript|passport\s*photo|upload\s*file)\b/i.test(text)) {
+    return hit('documents-needed', 'Documents for application', 'preparing', ['documents'], entities, false, 0.55)
+  }
+
+  if (/\b(repay|repayment|pay\s*back|after\s*nysc|10\s*%|loan\s*or\s*scholarship|is\s*(it|this)\s*(a\s*)?scholarship)\b/i.test(text)) {
+    if (/scholarship|grant|free\s*money/i.test(text)) {
+      return hit('loan-or-scholarship', 'Loan vs scholarship', 'exploring', ['loan'], entities, false, 0.65)
+    }
+    return hit('repayment', 'Repayment rules', 'repaying', ['repayment'], entities, false, 0.62)
+  }
+
+  if (/\b(eligib|who\s*can\s*apply|do\s*i\s*qualify|am\s*i\s*eligible|fresher|100\s*level|private\s*university)\b/i.test(text)) {
+    return hit('eligibility', 'Eligibility question', 'exploring', ['eligibility'], entities, false, 0.6)
   }
 
   if (entities.includes('login')) {
