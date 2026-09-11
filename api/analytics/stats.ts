@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { applyCors, adminAuthorized, rateLimitOr429 } from '../_lib/security'
+import { applyCors, adminAuthorized, rateLimitOr429 } from '../lib/security'
 
 function dayKey(d: Date): string {
   return d.toISOString().slice(0, 10)
@@ -26,18 +26,6 @@ function redisToken(): string {
 
 function redisConfigured(): boolean {
   return !!(redisUrl() && redisToken())
-}
-
-async function redisCmd(command: unknown[]): Promise<unknown> {
-  const url = redisUrl()
-  const token = redisToken()
-  const path = command.map((c) => encodeURIComponent(String(c))).join('/')
-  const res = await fetch(`${url}/${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) throw new Error(`Redis ${res.status}`)
-  const json = (await res.json()) as { result: unknown }
-  return json.result
 }
 
 async function redisPipeline(commands: unknown[][]): Promise<unknown[]> {
@@ -152,8 +140,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const feedbackUp = Number(results[i++] || 0)
     const feedbackDown = Number(results[i++] || 0)
     const todayActive = Number(results[i++] || 0)
-    const weekSets = last7.map(() => Number(results[i++] || 0))
-    const monthSets = last30.map(() => Number(results[i++] || 0))
+    i += last7.length + last30.length
 
     function parseZ(raw: unknown): Array<{ key: string; count: number }> {
       if (!Array.isArray(raw)) return []
@@ -198,8 +185,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       active: {
         today: todayActive,
-        week: weekSets.reduce((a, b) => a + b, 0),
-        month: monthSets.reduce((a, b) => a + b, 0),
+        week: 0,
+        month: 0,
       },
       topIntents,
       topInstitutions,
