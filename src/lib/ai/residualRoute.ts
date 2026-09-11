@@ -97,7 +97,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   }
 
   if (
-    /why\s+(was|is|dem|they|una|we|fg|government)\s+.{0,40}(nelfund|nel\s*fund|it|this\s+loan|dis\s+loan|scheme).{0,20}(created|create|establish|start|begin|form|set\s*up|make|bring)|why\s+(dem|they|una)\s+(take\s+)?(create|make|start|bring|form)\s+(nelfund|am|it|this\s+loan)|why\s+nelfund|purpose\s+(of\s+)?(nelfund|the\s+(student\s+)?loan)|mission\s+of\s+nelfund|who\s+(created|established|started|bring)\s+nelfund|wetin\s+(be\s*)?(this\s+)?(nelfund|loan)|wetin\s+(make|cause)\s+(dem|them|government|fg)\s+(create|start|bring)|what\s+is\s+(this\s+)?nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|how\s+come\s+.{0,20}(nelfund|this\s+loan)|reason\s+(for|dem|they)\s+.{0,20}(nelfund|this\s+loan)|tell\s+me\s+why\s+nelfund|nelfund\s+for\s+wetin/i.test(
+    /why\s+(was|is|dem|they|una|we|fg|government)\s+.{0,40}(nelfund|nel\s*fund|it|this\s+loan|dis\s+loan|scheme).{0,20}(created|create|establish|start|begin|form|set\s*up|make|bring)|why\s+(dem|they|una)\s+(take\s+)?(create|make|start|bring|form)\s+(nelfund|am|it|this\s+loan)|why\s+nelfund|purpose\s+(of\s+)?(nelfund|the\s+(student\s+)?loan)|mission\s+of\s+nelfund|who\s+(created|established|started|bring)\s+nelfund|wetin\s+(be\s*)?(this\s+)?(nelfund|loan)|wetin\s+(make|cause)\s+(dem|them|government|fg)\s+(create|start|bring)|what\s+is\s+(this\s+)?nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|how\s+come\s+.{0,20}(nelfund|this\s+loan)|reason\s+(for|dem|they)\s+.{0,20}(nelfund|this\s+loan)|tell\s+me\s+why\s+nelfund|nelfund\s+for\s+wetin|na\s+wetin\s+nelfund\s+dey\s+do|wetin\s+nelfund\s+dey\s+do|why\s+dem\s+bring\s+nelfund|explain\s+why\s+nelfund/i.test(
       text,
     )
   ) {
