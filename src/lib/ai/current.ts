@@ -116,7 +116,7 @@ function interpretOpenState(data: LiveStatus): {
 }
 
 function isIsOpenQuestion(q?: string): boolean {
-  return /\b(is\s+(nelfund|it|the\s*portal|application)\s+open|still\s+open|still\s+accept|can\s+i\s+(still\s+)?apply|is\s+application\s+open|loan\s+window|application\s+window)\b/i.test(
+  return /\b(is\s+(nelfund|it|the\s*portal|application)\s+open|still\s+open|still\s+accept|can\s+i\s+(still\s+)?apply|is\s+application\s+open|loan\s+window|application\s+window|dem\s+still\s+dey\s+(collect|open)|nelfund\s+dey\s+open)\b/i.test(
     q || '',
   )
 }
