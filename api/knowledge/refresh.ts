@@ -1,9 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { applyCors, adminAuthorized, cronAuthorized, rateLimitOr429 } from '../_lib/security'
+import { applyCors, adminAuthorized, cronAuthorized, rateLimitOr429 } from '../lib/security'
 
 /**
  * Refreshes time-sensitive NELFUND knowledge from official sources.
- * Home-card copy uses short bullet lines the UI stacks cleanly.
  */
 
 type AppStatus =
