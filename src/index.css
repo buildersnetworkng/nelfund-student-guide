@@ -152,7 +152,7 @@
   .pulse-dot { animation: pulse-dot 1.2s ease-in-out infinite; }
 
   /*
-   * Share attention nudge — rubber-band stretch every few seconds.
+   * Share attention nudge: rubber-band stretch every few seconds.
    * Applied to every ShareGuide trigger (header icon, hero, bottom CTA).
    */
   .share-nudge {
