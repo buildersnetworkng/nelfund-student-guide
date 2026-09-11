@@ -7,8 +7,8 @@ import { getInstitution } from '../data'
 import { buildEscalationPlan, resolveInstitutionFromText } from '../escalation'
 import { answerQuestion } from './answer'
 import { resolveCapability } from './capabilities'
-import { buildCurrentInformationAnswerLive, questionNeedsCurrentLive } from './current'
-import { classifyIntent } from './intent'
+import { buildCurrentInformationAnswerLive, isPurposeQuestion, questionNeedsCurrentLive } from './current'
+import { PURPOSE_RE, classifyIntent } from './intent'
 import { isOffTopic } from './offTopic'
 import { isNearDuplicate, isNewUserAsk, nextStepAdvance, playbookAnswer } from './playbook'
 import { institutionAskPrompt, needsInstitutionEarly } from './supportGates'
@@ -238,11 +238,15 @@ export async function processUserTurn(opts: {
   }
 
   {
-    const earlyIntent = classifyIntent(combined || rawUser, history).intent
-    const needsLive = earlyIntent === 'deadline' || questionNeedsCurrentLive(combined || rawUser)
+    const asked = combined || rawUser
+    const earlyIntent = classifyIntent(asked, history).intent
+    const purposeAsk =
+      earlyIntent === 'what-is-nelfund' || PURPOSE_RE.test(asked) || isPurposeQuestion(asked)
+    const needsLive =
+      !purposeAsk && (earlyIntent === 'deadline' || questionNeedsCurrentLive(asked))
     if (needsLive) {
       try {
-        const live = await buildCurrentInformationAnswerLive(combined || rawUser)
+        const live = await buildCurrentInformationAnswerLive(asked)
         if (live?.answer) {
           return finalize(
             userMsg,
