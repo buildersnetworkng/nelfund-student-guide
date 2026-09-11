@@ -9,10 +9,19 @@ import {
 
 /** Purpose / what-is. Must beat live-status and catch-all "why" routes. */
 export const PURPOSE_RE =
-  /what\s*(is|are)\s*(the\s+)?(purpose|aim|point|goal|meaning|reason)\s*(of\s+)?(this\s+)?(nelfund|loan|scheme)|what\s*is\s*(this\s+)?nelfund|what\s+does\s+(nelfund|it|this)\s+do|explain\s+(this\s+)?nelfund|overview\s+of\s+nelfund|origin\s+of\s+nelfund|wetin\s*(be|mean)\s*(this\s+)?(nelfund|loan|scheme)|wetin\s+nelfund\s+(be|mean|dey\s+do|for)|nelfund\s+dey\s+do\s+wetin|about\s+(this\s+)?nelfund|tell\s*me\s*(about|everything|why).{0,40}(nelfund|this\s+loan|dis\s+loan)|why\s+(was|is|were|did|do|dem|they|una|we|fg|government)\s+.{0,48}(nelfund|nel\s*fund|it|dis|this|loan|scheme)?.{0,24}(created|create|establish|established|started|start|begin|form|formed|set\s*up|make|made|bring|brought)|why\s+(dem|they|una|fg|government)\s+(take\s+)?(create|make|start|form|bring)\s+(nelfund|am|it|this\s+loan|dis\s+loan)|why\s+(they|dem)\s+(created|formed|started)\s+(nelfund|this\s+loan)|why\s+nelfund\s+(was|is|dey|come|exist|existed)|why\s+(was|is)\s+nelfund|why\s+nelfund\b|purpose\s+(of\s+)?(nelfund|the\s+(student\s+)?loan)|reason\s+(for|dem|they|una)\s+.{0,24}(nelfund|this\s+loan|dis\s+loan)|mission\s+of\s+nelfund|nelfund\s+(purpose|mission|aim|objective|mean|meaning)|who\s+(created|established|started|signed)\s+nelfund|wetin\s+(make|cause|make\s+una)\s+(dem|them|una|government|fg)?\s*(create|start|bring)|how\s+come\s+.{0,28}(nelfund|dis\s+loan|this\s+loan)|na\s+why\s+.{0,24}(nelfund|dem\s+form|this\s+loan)|wetin\s+be\s+the\s+(purpose|reason)|why\s+dem\s+create\s+nelfund|why\s+una\s+create|wetin\s+be\s+nelfund|why\s+dem\s+take\s+create|point\s+of\s+nelfund|wetin\s+dem\s+(take\s+)?(create|start|make)\s+(nelfund|am|dis\s+loan|this\s+loan)|how\s+nelfund\s+come\s+about|wetin\s+make\s+(government|fg|dem)\s+start|^nelfund\??$|what'?s\s+nelfund(\s+for)?|nelfund\s+for\s+wetin|na\s+wetin\s+(be\s+)?nelfund|why\s+(they|dem|una)\s+bring\s+(nelfund|this\s+loan|am)|wetin\s+nelfund\s+dey\s+mean|who\s+bring\s+nelfund|why\s+(this|dis)\s+(student\s+)?loan\s+(scheme\s+)?(dey|exist)|tell\s+me\s+why\s+nelfund/i
+  /what\s*(is|are)\s*(the\s+)?(purpose|aim|point|goal|meaning|reason)\s*(of\s+)?(this\s+)?(nelfund|loan|scheme)|what\s*is\s*(this\s+)?nelfund|what\s+does\s+(nelfund|it|this)\s+do|explain\s+(this\s+)?nelfund|overview\s+of\s+nelfund|origin\s+of\s+nelfund|wetin\s*(be|mean)\s*(this\s+)?(nelfund|loan|scheme)|wetin\s+nelfund\s+(be|mean|dey\s+do|for)|nelfund\s+dey\s+do\s+wetin|about\s+(this\s+)?nelfund|tell\s*me\s*(about|everything|why).{0,40}(nelfund|this\s+loan|dis\s+loan)|why\s+(was|is|were|did|do|dem|they|una|we|fg|government)\s+.{0,48}(nelfund|nel\s*fund|it|dis|this|loan|scheme)?.{0,24}(created|create|establish|established|started|start|begin|form|formed|set\s*up|make|made|bring|brought)|why\s+(dem|they|una|fg|government)\s+(take\s+)?(create|make|start|form|bring)\s+(nelfund|am|it|this\s+loan|dis\s+loan)|why\s+(they|dem)\s+(created|formed|started)\s+(nelfund|this\s+loan)|why\s+nelfund\s+(was|is|dey|come|exist|existed)|why\s+(was|is)\s+nelfund|why\s+nelfund\b|purpose\s+(of\s+)?(nelfund|the\s+(student\s+)?loan)|reason\s+(for|dem|they|una)\s+.{0,24}(nelfund|this\s+loan|dis\s+loan)|mission\s+of\s+nelfund|nelfund\s+(purpose|mission|aim|objective|mean|meaning)|who\s+(created|established|started|signed)\s+nelfund|wetin\s+(make|cause|make\s+una)\s+(dem|them|una|government|fg)?\s*(create|start|bring)|how\s+come\s+.{0,28}(nelfund|dis\s+loan|this\s+loan)|na\s+why\s+.{0,24}(nelfund|dem\s+form|this\s+loan)|wetin\s+be\s+the\s+(purpose|reason)|why\s+dem\s+create\s+nelfund|why\s+una\s+create|wetin\s+be\s+nelfund|why\s+dem\s+take\s+create|point\s+of\s+nelfund|wetin\s+dem\s+(take\s+)?(create|start|make)\s+(nelfund|am|dis\s+loan|this\s+loan)|how\s+nelfund\s+come\s+about|wetin\s+make\s+(government|fg|dem)\s+start|^nelfund\??$|what'?s\s+nelfund(\s+for)?|nelfund\s+for\s+wetin|na\s+wetin\s+(be\s+)?nelfund|why\s+(they|dem|una)\s+bring\s+(nelfund|this\s+loan|am)|wetin\s+nelfund\s+dey\s+mean|who\s+bring\s+nelfund|why\s+(this|dis)\s+(student\s+)?loan\s+(scheme\s+)?(dey|exist)|tell\s+me\s+why\s+nelfund|what\s+nelfund\s+mean|nelfund\s+meaning|reason\s+behind\s+(nelfund|the\s+(student\s+)?loan)|why\s+(fg|the\s+government|government|una)\s+(introduce|introduced|bring|brought|set\s*up)|why\s+(this|dis)\s+nelfund|una\s+create\s+nelfund\s+for\s+wetin|wetin\s+make\s+dem\s+form|introduce[d]?\s+nelfund|student\s+loans?\s+act|why\s+dem\s+form\s+nelfund|wetin\s+be\s+dis\s+nelfund|na\s+why\s+dem\s+create/i
 
-function liveOpenRe(): RegExp {
-  return /is\s+(nelfund|it|portal|application|loan)\s+(still\s+)?(open|dey\s+open)|deadline|as\s+of\s+today|still\s+accept|can\s+i\s+still\s+apply|dem\s+still\s+dey\s+(collect|accept|open)|una\s+still\s+dey\s+(collect|open)|closing\s+date|opening\s+date|open\s*status|loan\s*window/i
+export function liveOpenRe(): RegExp {
+  return /is\s+(nelfund|it|portal|application|loan)\s+(still\s+)?(open|dey\s+open|closed)|deadline|as\s+of\s+today|still\s+accept|can\s+i\s+still\s+apply|dem\s+still\s+dey\s+(collect|accept|open)|una\s+still\s+dey\s+(collect|open)|closing\s+date|opening\s+date|open\s*status|loan\s*window|nelfund\s+(still\s+)?(open|closed)|application\s+(still\s+)?open/i
+}
+
+/** Purpose ask that is not a live window / deadline ask. */
+export function isPurposeAsk(text: string): boolean {
+  const q = text || ''
+  if (!q.trim()) return false
+  if (liveOpenRe().test(q)) return false
+  if (/\b(still\s+open|deadline|closing\s+date|loan\s+window)\b/i.test(q)) return false
+  return PURPOSE_RE.test(q)
 }
 
 function isContrastFeesUpkeep(q: string): boolean {
@@ -34,10 +43,10 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   const q = expandWithContext(question, history).trim()
   const entities = detectEntities(q || raw)
 
-  if (PURPOSE_RE.test(raw) && !liveOpenRe().test(raw)) {
+  if (isPurposeAsk(raw)) {
     return { intent: 'what-is-nelfund', confidence: 0.94, topics: ['what is', 'purpose'], problem: 'What NELFUND is / why it was created', stage: 'exploring', entities, isTroubleshooting: false }
   }
-  if (PURPOSE_RE.test(q) && !liveOpenRe().test(raw)) {
+  if (isPurposeAsk(q) && !liveOpenRe().test(raw)) {
     return { intent: 'what-is-nelfund', confidence: 0.93, topics: ['what is', 'purpose'], problem: 'What NELFUND is / why it was created', stage: 'exploring', entities, isTroubleshooting: false }
   }
 
@@ -69,6 +78,9 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   }
   if (/missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)|institution\s*not\s*found|school\s*no\s*(dey|gree)\s*show|my\s*school\s*no\s*dey/i.test(q)) {
     return { intent: 'missing-information', confidence: 0.88, topics: ['missing'], problem: 'Missing information on portal', stage: 'applying', entities, isTroubleshooting: true }
+  }
+  if (/una\s+never\s+pay|money\s+never\s+enter|application\s+no\s+move|status\s+no\s+change|dem\s+never\s+approve/i.test(q) && !liveOpenRe().test(raw)) {
+    return { intent: 'pending-application', confidence: 0.86, topics: ['pending'], problem: 'Application still pending', stage: 'waiting', entities, isTroubleshooting: true }
   }
   if (/\bpending\b|under\s*review|check\s*(my\s*)?(application\s*)?status|how\s*far\s*(with)?/i.test(q) && !liveOpenRe().test(raw)) {
     return { intent: 'pending-application', confidence: 0.86, topics: ['pending'], problem: 'Application still pending', stage: 'waiting', entities, isTroubleshooting: true }
