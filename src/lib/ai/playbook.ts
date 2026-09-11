@@ -24,6 +24,14 @@ export type PlaybookContext = {
 
 const MENU = `Pick one:\n• Sign **up** (new account): ${PORTAL}\n• Sign **in** / login: ${SITE}\n• Loan application (fees / upkeep)\n• Pending / under review status\n• Missing information / school not on list\n• Upkeep vs school fees / repayment\n• Support ticket: ${ESUPPORT}\n\nPidgin or English is fine. Official pages only: ${SITE}`
 
+function isFeesUpkeepContrast(t: string): boolean {
+  return /\bupkeep\b|monthly\s*allowance|stipend/.test(t) && /school\s*fees|institutional\s*charges|tuition|school\s*money/.test(t)
+}
+
+function feesVsUpkeepAnswer(): string {
+  return `**School fees vs upkeep** (two different things)\n\n• **Institutional charges / school fees:** paid **to your school**, not your personal account.\n• **Upkeep:** monthly living allowance paid **to you**, if you applied for it.\n\nOfficial FAQ: apply for **both** at registration. An institutional-only application does not later get upkeep.\n\nAmounts and pay dates only on ${PORTAL} / ${SITE}. FAQ: ${FAQ}`
+}
+
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   const t = (ctx.userText || '').trim()
 
@@ -34,7 +42,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'what-is-nelfund') {
-    return `**Why NELFUND was created:** to remove financial barriers so eligible students in **public** tertiary institutions can access higher education without paying school charges upfront.\n\n**What it is:** the Nigeria Education Loan Fund, **interest-free** loans for **institutional charges** (paid to the school) and optional **monthly upkeep** (paid to the student).\n\nIt is a **loan**, not a scholarship or free money. Repayment starts **2 years after NYSC** (10% of salary / profit). No guarantor is required on the official scheme described on nelf.gov.ng.\n\nOfficial site: ${SITE} · Apply: ${PORTAL} · FAQ: ${FAQ}\n\n${MENU}`
+    return `**Why NELFUND was created:** to remove financial barriers so eligible students in **public** tertiary institutions can access higher education without paying school charges upfront.\n\n**What it is:** the Nigeria Education Loan Fund — **interest-free** loans for **institutional charges** (paid to the school) and optional **monthly upkeep** (paid to the student).\n\nIt is a **loan**, not a scholarship. Repayment starts **2 years after NYSC** (10% of salary / profit), as described on nelf.gov.ng.\n\nOfficial site: ${SITE} · Apply: ${PORTAL} · FAQ: ${FAQ}`
   }
 
   if (intent === 'pending-application') {
@@ -46,6 +54,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'current-information' || intent === 'deadline') {
+    if (/why\s+(was|is|dem|they)|purpose|wetin\s*be|what\s*is\s*(this\s+)?nelfund/i.test(t)) {
+      return playbookAnswer('what-is-nelfund', ctx)
+    }
     if (!t) {
       return `Empty message received, I can still help.\n\n${MENU}\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
     }
@@ -53,6 +64,10 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
       return `I can still help even if the question is short or mixed (Pidgin is fine).\n\n${MENU}\n\nIf you pasted a portal error, say **login**, **pending**, **JAMB**, or **missing school**. I will not invent NELFUND policy or dates.`
     }
     return `Live notices only from ${SITE} and ${PORTAL}. I will not invent a deadline or still-open date.\n\nAccount sign-up and a loan application **window** are different. Confirm on the portal before you act.\n\nWhat are you trying to do, sign up, login, submit a loan, or check pending status?`
+  }
+
+  if (intent === 'upkeep' || intent === 'school-fees') {
+    if (isFeesUpkeepContrast(t)) return feesVsUpkeepAnswer()
   }
 
   if (intent === 'upkeep') {
@@ -85,7 +100,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'portal-login') {
-    return `**Login / sign in:** ${SITE}\n**New account / apply:** ${PORTAL}\n\nForgot password, use the portal reset, do not create a second profile. Never send OTP to anyone.\nTicket if login keeps failing: ${ESUPPORT}`
+    return `**Login / sign in:** ${SITE}\n**New account / apply:** ${PORTAL}\n\nThose are different pages. Sign up creates the account; login opens an existing one; submitting a loan is a later step after profile.\n\nForgot password, use the portal reset, do not create a second profile. Never send OTP to anyone.\nTicket if login keeps failing: ${ESUPPORT}`
   }
 
   if (intent === 'contact-support' || intent === 'email-draft') {
