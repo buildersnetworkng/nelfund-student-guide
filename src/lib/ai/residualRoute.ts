@@ -6,12 +6,12 @@ export function detectEntities(q: string): string[] {
     [/\bjamb\b|utme|jamb\s*(reg|no|number|id)|direct\s*entry|invalid\s*format|verification\s*fail/i, 'jamb'],
     [/\bnin\b/i, 'nin'],
     [/\bbvn\b/i, 'bvn'],
-    [/school|institution|university|poly|college|unilag|lasu|oou|yabatech|unilorin|uniben|unizik|unn|unical|uniport|futa|fuoye|tasued|lautech|noun?|futo|abu|oau|unijos|unimaid|delsu|eksu|ui\b|uniosun|mouau|funaab|aaua|\baau\b|ksu|buk|udus|rivers\s*state|lagos\s*state|university\s*of\s*lagos|obafemi\s*awolowo|campus|faculty|matric|kwasu|imsue?|rsust|rivers\s*state\s*uni|delta\s*state|edo\s*state|anambra|enugu\s*state|kaduna|kano|ibadan|ife|zaria|nsukka|akure|abeokuta|ado\s*ekiti|osogbo|uyo|calabar|port\s*harcourt|jos|maiduguri|minna|bauchi|gombe|sokoto|ilorin/i, 'school'],
+    [/school|institution|university|poly|college|unilag|lasu|oou|yabatech|unilorin|uniben|unizik|unn|unical|uniport|futa|fuoye|tasued|lautech|noun?|futo|abu|oau|unijos|unimaid|delsu|eksu|ui\b|uniosun|mouau|funaab|aaua|\baau\b|ksu|buk|udus|rivers\s*state|lagos\s*state|university\s*of\s+lagos|obafemi\s*awolowo|campus|faculty|matric|kwasu|imsue?|rsust|rivers\s*state\s*uni|delta\s*state|edo\s*state|anambra|enugu\s*state|kaduna|kano|ibadan|ife|zaria|nsukka|akure|abeokuta|ado\s*ekiti|osogbo|uyo|calabar|port\s*harcourt|jos|maiduguri|minna|bauchi|gombe|sokoto|ilorin/i, 'school'],
     [/fee|tuition|charges/i, 'fees'],
     [/upkeep|20k|20,?000|allowance|stipend|hostel\s*money/i, 'upkeep'],
     [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|nothing\s*dey\s*happen|wetin\s*dey\s*happen|application\s*(id|number)|still\s*waiting|no\s*update|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|my\s*own\s*never|dem\s*don\s*pay|others\s*don\s*(collect|receive|see)|check\s*am/i, 'status'],
     [/bank|account/i, 'bank'],
-    [/portal|nelfund|nelfun[dt]?|nel\s*fund|nelf\.gov|dashboard|total\s*loans|student\s*loan/i, 'portal'],
+    [/portal|nelf\.gov|dashboard|total\s*loans|student\s*loan\s*portal|signed\s*in\s*as/i, 'portal'],
     [/login|sign\s*in|password|otp|session\s*expir|cannot\s*enter|no\s*fit\s*enter/i, 'login'],
     [/repay|gsi|pay\s*back|imprison|jail|prison|scholarship|when\s*i\s*go\s*pay|after\s*nysc/i, 'repayment'],
     [/eligib|qualify|cgpa|level|fresher|part.?time|\bnd\b|\bhnd\b|100l|200l|300l|400l|undergraduate|postgraduate/i, 'eligibility'],
@@ -96,16 +96,16 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('current-information', 'Greeting, offer menu', 'exploring', ['greeting', 'guidance'], entities, false, 0.65)
   }
 
-  if (/\b(open\s*status|application\s*open|is\s*it\s*open|still\s*open|dey\s*open|accepting|opening\s*date|closing\s*date|loan\s*window|as\s*of\s*(today|now)|current\s*status)\b/i.test(text)) {
-    return hit('current-information', 'Open status / is NELFUND open', 'exploring', ['open-status', 'current'], entities, false, 0.68)
-  }
-
   if (
-    /why\s+(was|is|dem|they|una|we)\s+.{0,24}(nelfund|nel\s*fund|it).{0,16}(created|create|establish|start|begin|form|set\s*up|make)|why\s+(dem|they)\s+(create|make|start)\s+nelfund|why\s+nelfund|purpose\s+(of\s+)?nelfund|mission\s+of\s+nelfund|who\s+(created|established|started)\s+nelfund|wetin\s+(be\s*)?(this\s+)?nelfund|wetin\s+(make|cause)\s+(dem|them)\s+create|what\s+is\s+(this\s+)?nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|how\s+come\s+.{0,20}nelfund|reason\s+(for|dem|they)\s+.{0,20}nelfund/i.test(
+    /why\s+(was|is|dem|they|una|we|fg|government)\s+.{0,40}(nelfund|nel\s*fund|it|this\s+loan|dis\s+loan|scheme).{0,20}(created|create|establish|start|begin|form|set\s*up|make|bring)|why\s+(dem|they|una)\s+(take\s+)?(create|make|start|bring|form)\s+(nelfund|am|it|this\s+loan)|why\s+nelfund|purpose\s+(of\s+)?(nelfund|the\s+(student\s+)?loan)|mission\s+of\s+nelfund|who\s+(created|established|started|bring)\s+nelfund|wetin\s+(be\s*)?(this\s+)?(nelfund|loan)|wetin\s+(make|cause)\s+(dem|them|government|fg)\s+(create|start|bring)|what\s+is\s+(this\s+)?nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|how\s+come\s+.{0,20}(nelfund|this\s+loan)|reason\s+(for|dem|they)\s+.{0,20}(nelfund|this\s+loan)|tell\s+me\s+why\s+nelfund|nelfund\s+for\s+wetin/i.test(
       text,
     )
   ) {
-    return hit('what-is-nelfund', 'Why NELFUND was created / purpose', 'exploring', ['what is', 'purpose'], entities, false, 0.72)
+    return hit('what-is-nelfund', 'Why NELFUND was created / purpose', 'exploring', ['what is', 'purpose'], entities, false, 0.78)
+  }
+
+  if (/\b(open\s*status|application\s*open|is\s*it\s*open|still\s*open|dey\s*open|accepting|opening\s*date|closing\s*date|loan\s*window|as\s*of\s*(today|now)|current\s*status)\b/i.test(text) && !/why\s+(was|is|dem|they)|purpose|wetin\s*be/i.test(text)) {
+    return hit('current-information', 'Open status / is NELFUND open', 'exploring', ['open-status', 'current'], entities, false, 0.68)
   }
 
   if (SCHOOL_ONLY.test(text) || (entities.includes('school') && text.split(/\s+/).length <= 6 && !entities.includes('status') && !entities.includes('apply'))) {
@@ -206,8 +206,11 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     entities.includes('help') ||
     /^(help|abeg|please|pls|assist|guide|i\s*need\s*help|help\s*me|wetin|wahala|this\s*thing|make\s*una\s*help|i\s*no\s*sabi|what\s*next|reply|are\s*you\s*there)[.!? ]*$/i.test(text) ||
     /help\s*me|i\s*need\s*(help|assistance)|una\s*fit\s*help|abeg\s*help|guide\s*me|this\s*nelfund\s*thing/i.test(text)
-  if (vagueHelp || entities.includes('portal')) {
+  if (vagueHelp) {
     return hit('current-information', 'Vague help, offer official menu', 'exploring', ['guidance'], entities, false, 0.46)
+  }
+  if (entities.includes('portal') && /dashboard|total\s*loans|signed\s*in/i.test(text)) {
+    return hit('current-information', 'Portal dashboard paste', 'waiting', ['portal'], entities, false, 0.5)
   }
 
   if (entities.includes('error') || /[a-zA-Z]{3,}/.test(text)) {
