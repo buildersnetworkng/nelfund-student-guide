@@ -61,7 +61,6 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Student text about invalid JAMB — answer format error even if OCR missed the red banner
   if (
     /invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format|not\s*correct)/i.test(rawUser) ||
     /invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format)/i.test(ocr || '')
@@ -129,7 +128,6 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Prefer OCR / real portal dumps. Do not treat short questions as a screenshot.
   const ocrish =
     Boolean(ocr && ocr.trim().length >= 8) ||
     (combined.length > 120 && /\n/.test(combined)) ||
@@ -207,11 +205,13 @@ export async function processUserTurn(opts: {
     }
   }
 
+  const loginAsk = /\blogin\b|log\s*in|loggin'?g\s*in|sign\s*in/i.test(rawUser)
+  const signupAsk = /sign\s*up|create\s*(an?\s*)?account|register/i.test(rawUser)
   if (
-    /\blogin\b|log\s*in|loggin'?g\s*in|sign\s*in|sign\s*up|create\s*(an?\s*)?account|register\s*(for\s*)?nelfund|link\s*(for\s*)?(to\s*)?(log|sign)/i.test(
-      rawUser,
-    ) &&
-    !/missing|pending|upkeep|eligibility|scam|otp|pay\s*agent/i.test(rawUser)
+    loginAsk &&
+    !isPurposeAsk(rawUser) &&
+    !signupAsk &&
+    !/missing|pending|upkeep|eligibility|scam|otp|pay\s*agent|how\s*to\s*apply/i.test(rawUser)
   ) {
     const slots: ConversationSlots = {
       ...opts.slots,
