@@ -98,7 +98,7 @@ export const EVAL_SCENARIOS: EvalScenario[] = [
     description: 'Remember institution across turns',
     turns: [
       { role: 'user', content: 'My school is LASU.' },
-      { role: 'assistant', content: 'Got it — Lagos State University.' },
+      { role: 'assistant', content: 'Got it: Lagos State University.' },
       { role: 'user', content: 'What should I do about missing information?' },
     ],
     expect: ['lasu'],
