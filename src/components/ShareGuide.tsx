@@ -249,12 +249,12 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
           trackFeature('share_open', { variant: 'icon' })
           setOpen(true)
         }}
-        className={`inline-flex h-10 items-center justify-center gap-1 rounded-full border border-forest-200 bg-white px-2.5 text-forest-900 shadow-sm transition hover:bg-forest-50 active:scale-[0.96] sm:w-10 sm:px-0 ${nudge} ${className}`}
+        className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-forest-200 bg-white px-3 text-forest-900 shadow-sm transition hover:bg-forest-50 active:scale-[0.96] ${nudge} ${className}`}
         aria-label="Share this guide"
         title="Share this guide"
       >
         <ShareIcon />
-        <span className="text-[11px] font-semibold sm:hidden">Share</span>
+        <span className="text-[11px] font-semibold">Share</span>
       </button>
     ) : variant === 'hero' ? (
       <button
