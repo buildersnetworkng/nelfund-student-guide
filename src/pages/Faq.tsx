@@ -8,6 +8,7 @@ import RecommendedVideo from '../components/RecommendedVideo'
 import InstitutionNotice from '../components/InstitutionNotice'
 import InstitutionTip from '../components/InstitutionTip'
 import { trackFaqOpen } from '../lib/analytics'
+import ShareGuide from '../components/ShareGuide'
 
 export default function Faq() {
   const [query, setQuery] = useState('')
@@ -30,9 +31,14 @@ export default function Faq() {
 
   return (
     <div className="container-page py-8 sm:py-10">
-      <p className="eyebrow">FAQ</p>
-      <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Frequently asked questions</h1>
-      <p className="section-sub max-w-xl">Short, verified answers. For a specific portal error, use Ask support.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="eyebrow">FAQ</p>
+          <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Frequently asked questions</h1>
+          <p className="section-sub max-w-xl">Short, verified answers. For a specific portal error, use Ask support.</p>
+        </div>
+        <ShareGuide variant="button" className="shrink-0" />
+      </div>
       <div className="mt-2">
         <InstitutionNotice />
       </div>

@@ -1,5 +1,5 @@
 /**
- * Response generation helpers — email drafts and contact guidance.
+ * Response generation helpers: email drafts and contact guidance.
  */
 
 export function draftSupportEmail(opts: {
@@ -13,7 +13,7 @@ export function draftSupportEmail(opts: {
   const problem = opts.problemSummary || opts.exactError || 'missing school information / portal error'
   const who = opts.studentName || '[Your Full Name]'
   return {
-    subject: `NELFUND registration assistance – ${school}`,
+    subject: `NELFUND registration assistance - ${school}`,
     body: [
       `Dear ICT / Registry / NELFUND Desk,`,
       ``,

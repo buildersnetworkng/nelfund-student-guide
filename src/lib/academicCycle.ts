@@ -1,6 +1,6 @@
 /**
  * Nigerian tertiary academic session label used for NELFUND cycles.
- * Sessions typically roll in August–September.
+ * Sessions typically roll in August-September.
  * Example: on 29 Aug 2026 → "2026/2027"
  */
 export function getCurrentAcademicCycle(date: Date = new Date()): string {

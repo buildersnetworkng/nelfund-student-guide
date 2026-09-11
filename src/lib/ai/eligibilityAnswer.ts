@@ -30,8 +30,8 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
   }
   const levelLine =
     levelLabel === 'your level'
-      ? '• **Full-time** students with valid admission (any level — 100, 200, 300, etc.)'
-      : `• **Full-time** students with valid admission — **${levelLabel}** is covered`
+      ? '• **Full-time** students with valid admission (any level: 100, 200, 300, etc.)'
+      : `• **Full-time** students with valid admission: **${levelLabel}** is covered`
   const levelNote =
     levelLabel === 'your level'
       ? `Your **year of study does not by itself** block you.`
@@ -42,13 +42,13 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
     `• Admission into a **public** university, polytechnic, college of education, or vocational school\n` +
     `${levelLine}\n\n` +
     `**Before you apply, confirm you have all required details ready:**\n` +
-    `• **Matriculation number** (very important — your school must have issued and uploaded it)\n` +
+    `• **Matriculation number** (very important: your school must have issued and uploaded it)\n` +
     `• JAMB registration number\n` +
     `• NIN\n` +
     `• BVN and your own bank account details\n` +
     `• Admission letter / proof of admission\n` +
     `• Name and date of birth matching across NIN, JAMB, and school records\n\n` +
-    `${levelNote} What blocks many students is **missing or unmatched school data** — especially **matric number** not yet on the portal.\n\n` +
+    `${levelNote} What blocks many students is **missing or unmatched school data**, especially **matric number** not yet on the portal.\n\n` +
     `If matric is not ready, ask your school ICT / Registry / NELFUND desk to upload your record first, then retry ${PORTAL}.\n\n` +
     `Exact checklist for the open cycle: ${PORTAL} · ${SITE}\n\n` +
     `This guide does not invent individual approval decisions.`
