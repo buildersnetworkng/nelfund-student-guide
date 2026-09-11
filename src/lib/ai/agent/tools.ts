@@ -1,5 +1,5 @@
 /**
- * Structured tool runners — return evidence, not final answers.
+ * Structured tool runners: return evidence, not final answers.
  */
 
 import { getInstitution } from '../../data'
@@ -71,7 +71,7 @@ export function runToolLocal(call: ToolCall): ToolResult {
             })),
           },
           evidenceIds: items.map((e) => e.id),
-          warnings: items.length ? undefined : ['No strong knowledge match — clarify or use other tools.'],
+          warnings: items.length ? undefined : ['No strong knowledge match: clarify or use other tools.'],
         }
       }
       case 'get_current_status': {
@@ -129,9 +129,9 @@ export function runToolLocal(call: ToolCall): ToolResult {
           },
           warnings: found
             ? contacts.every((c) => !c.email)
-              ? ['No curated email — use official website only; do not invent.']
+              ? ['No curated email: use official website only; do not invent.']
               : undefined
-            : ['Institution not resolved — ask for full official name.'],
+            : ['Institution not resolved: ask for full official name.'],
         }
       }
       case 'get_nelfund_support':

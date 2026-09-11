@@ -1,5 +1,5 @@
 /**
- * Graceful recovery when tools/sources fail — never invent contacts or policy.
+ * Graceful recovery when tools/sources fail: never invent contacts or policy.
  */
 
 import type { ToolResult, ToolResultStatus } from './contracts'
@@ -37,7 +37,7 @@ export function recoverFromToolResult(result: ToolResult): RecoveryMessage | nul
           message:
             'I do not have a strong verified match for that wording yet. Paste the exact portal message, name your institution, or say whether you need a contact, a draft email, or current application status.',
           actions: [`Official site: ${SITE}`, `Portal: ${PORTAL}`],
-          warnings: ['Thin evidence — clarify before asserting policy'],
+          warnings: ['Thin evidence: clarify before asserting policy'],
         }
       }
       break
@@ -85,7 +85,7 @@ export function statusLabel(status: ToolResultStatus): string {
   }
 }
 
-/** School says uploaded + portal still missing — conflict recovery copy */
+/** School says uploaded + portal still missing: conflict recovery copy */
 export function conflictSchoolUploadedStillMissing(institutionName: string | null): RecoveryMessage {
   const school = institutionName || 'your school'
   return {
@@ -104,6 +104,6 @@ export function conflictSchoolUploadedStillMissing(institutionName: string | nul
       'Draft message to NELFUND',
       `Report the problem to NELFUND support: ${ESUPPORT}`,
     ],
-    warnings: ['Do not claim the school upload succeeded or failed — student cannot see private upload logs'],
+    warnings: ['Do not claim the school upload succeeded or failed: student cannot see private upload logs'],
   }
 }
