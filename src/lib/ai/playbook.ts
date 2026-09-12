@@ -46,6 +46,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'pending-application') {
+    if (/already\s*appl|i\s*don\s*apply|i\s*have\s*appl|submitted|money\s*no\s*drop|when\s*(will|go)\s*(they|dem)/i.test(t)) {
+      return `You already applied — that is a **wait / status** question, not a new sign-up.\n\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Institution charges go to the **school first**. Upkeep (if you ticked it) can arrive later.\n3. I will not invent a pay date. If the same status sits for a long time, ticket ${ESUPPORT} with name, school, and that status word.`
+    }
     return `**How far / pending / money never enter** is not a rejection.\n\nDo this now:\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Check whether your school has uploaded your record. If the school is missing, ask the campus NELFUND desk first.\n3. Upkeep can arrive after the institution is paid. Look at the portal before assuming nobody paid you.\n4. Still the same after a long wait? Ticket: ${ESUPPORT} with your name, school, and the portal status word.\n\nI cannot see your personal file and I will not invent a pay date.`
   }
 
@@ -76,6 +79,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'school-fees') {
+    if (/already\s*paid|i\s*don\s*pay|i\s*have\s*paid/i.test(t)) {
+      return `Paying school fees yourself does **not** block a NELFUND application.\n\nInstitutional charges still go **to the school** if NELFUND later approves. Confirm live on ${PORTAL}. Upkeep is separate and only if you ticked it in the same session.\n\nFAQ: ${FAQ}`
+    }
     return `**Institutional charges / school fees** go **to your school**, not your personal account.\n\nUpkeep is different: monthly to you.\n\nIf you already paid fees yourself, still apply if eligible, NELFUND does not replace that decision on this chat. Confirm live on ${PORTAL}. FAQ: ${FAQ}`
   }
 
