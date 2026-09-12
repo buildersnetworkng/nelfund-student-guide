@@ -47,7 +47,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
 
   if (intent === 'pending-application') {
     if (/already\s*appl|i\s*don\s*apply|i\s*have\s*appl|submitted|money\s*no\s*drop|when\s*(will|go)\s*(they|dem)/i.test(t)) {
-      return `You already applied — that is a **wait / status** question, not a new sign-up.\n\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Institution charges go to the **school first**. Upkeep (if you ticked it) can arrive later.\n3. I will not invent a pay date. If the same status sits for a long time, ticket ${ESUPPORT} with name, school, and that status word.`
+      return `You already applied: that is a **wait / status** question, not a new sign-up.\n\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Institution charges go to the **school first**. Upkeep (if you ticked it) can arrive later.\n3. I will not invent a pay date. If the same status sits for a long time, ticket ${ESUPPORT} with name, school, and that status word.`
     }
     return `**How far / pending / money never enter** is not a rejection.\n\nDo this now:\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Check whether your school has uploaded your record. If the school is missing, ask the campus NELFUND desk first.\n3. Upkeep can arrive after the institution is paid. Look at the portal before assuming nobody paid you.\n4. Still the same after a long wait? Ticket: ${ESUPPORT} with your name, school, and the portal status word.\n\nI cannot see your personal file and I will not invent a pay date.`
   }
