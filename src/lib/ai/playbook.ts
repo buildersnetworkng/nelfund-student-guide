@@ -97,7 +97,13 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'how-to-apply') {
-    return `**Apply**\n1. Create account: ${PORTAL}\n2. Complete profile (NIN, BVN, JAMB, admission / matric).\n3. Submit **institutional charges** and, if you need it, **upkeep** in the same session.\n4. Track status on the portal. Approval notice also appears in your profile (official FAQ).\n\nLogin for an existing account is ${SITE}, not the same as sign-up.`
+    if (/what\s*(do\s*i\s*do\s*)?next|wetin\s*(i\s*)?go\s*do|after\s*(i\s*)?(register|sign\s*up|create)|then\s*what|next\s*step|i\s*don\s*(create|register)/i.test(t)) {
+      return `**Next after the account**\n1. Sign in only if the account already exists: ${SITE}\n2. Finish **profile**: NIN, BVN, JAMB number, admission / matric.\n3. Submit **institutional charges**. If you need living money, tick **upkeep in the same session**.\n4. After submit, track the exact status word on ${PORTAL}. That is not the same as creating the account.\n\nStuck on a red error? Send the exact portal sentence (JAMB invalid, school missing, or pending).`
+    }
+    if (/\bnin\b|\bbvn\b/i.test(t)) {
+      return `**NIN and BVN** are profile fields on the application, not a separate loan.\n\n1. Open ${PORTAL} (new account) or ${SITE} (existing login).\n2. Enter NIN and BVN exactly as issued. Do not send them in this chat.\n3. Then add JAMB + admission / matric and submit institutional charges + optional upkeep together.\n\nMismatch after several tries: ticket ${ESUPPORT} with a screenshot, not a second account.`
+    }
+    return `**How to apply (step by step)**\n1. New account only: ${PORTAL}\n2. Fill profile: NIN, BVN, JAMB registration number, admission / matric.\n3. Submit **institutional charges** (paid to the school). If you need monthly living money, apply for **upkeep in the same session**.\n4. After submit, watch status on the portal. Approval notice also shows in profile (official FAQ).\n\nExisting account = sign **in** at ${SITE}, not another sign-up. I will not invent a closing date here.`
   }
 
   if (intent === 'portal-login') {

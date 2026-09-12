@@ -177,11 +177,11 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     return { intent: 'school-fees', confidence: 0.9, topics: ['fees'], problem: 'School fees / institutional charges', stage: 'exploring', entities, isTroubleshooting: false }
   }
   if (
-    /sign\s*up|create\s*(an?\s*)?account|register(\s|$)|how\s*(do\s*i|to)\s*apply|i\s*wan\s*apply|step\s*by\s*step|guide\s*me\s*(step|through|with)?|walk\s*me\s*through|one\s*by\s*one|creating\s*(it|account|profile)|help\s*me\s*(create|apply|register)/i.test(
+    /sign\s*up|create\s*(an?\s*)?account|register(\s|$)|how\s*(do\s*i|to)\s*apply|i\s*wan(t)?\s*(to\s*)?apply|how\s*i\s*go\s*(apply|start)|step\s*by\s*step|guide\s*me\s*(step|through|with)?|walk\s*me\s*through|one\s*by\s*one|creating\s*(it|account|profile)|help\s*me\s*(create|apply|register)|first\s*time|i\s*no\s*apply\s*yet|new\s*applicant|what\s*(do\s*i\s*do\s*)?next|next\s*step|after\s*(i\s*)?(register|sign\s*up|create)/i.test(
       q,
-    ) && !/sign\s*in|\blogin\b|log\s*in|password/i.test(q)
+    ) && !/sign\s*in|\blogin\b|log\s*in|password|\bpending\b|how\s*far|money\s*never/i.test(q)
   ) {
-    return { intent: 'how-to-apply', confidence: 0.9, topics: ['apply', 'signup'], problem: 'Create account / sign up', stage: 'preparing', entities, isTroubleshooting: false }
+    return { intent: 'how-to-apply', confidence: 0.9, topics: ['apply', 'signup', 'how-to-apply'], problem: 'Create account / sign up', stage: 'preparing', entities, isTroubleshooting: false }
   }
   if (/(\blogin\b|log\s*in|sign\s*in|password|session\s*expired)/i.test(q) && !/sign\s*up|create\s*(an?\s*)?account/i.test(q)) {
     return { intent: 'portal-login', confidence: 0.9, topics: ['login'], problem: 'Sign in / login', stage: 'applying', entities, isTroubleshooting: false }
@@ -222,13 +222,13 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     /\bpending\b|under\s*review|how\s*far/i.test(raw) ||
     liveOpenRe().test(raw)
   if (prior && prior !== 'unknown' && raw.length < 60 && !priorOverrideBlocked) {
-    return { intent: prior, confidence: 0.55, topics: [], problem: null, stage: 'unknown', entities, isTroubleshooting: false }
+    return { intent: prior, confidence: 0.55, topics: prior === 'how-to-apply' ? ['how-to-apply'] : [], problem: null, stage: 'unknown', entities, isTroubleshooting: false }
   }
 
   if (/\b(scam|fake\s*agent|whatsapp\s*agent|pay\s*(me|us)\s*to\s*apply)\b/i.test(q)) {
     return { intent: 'scam-safety', confidence: 0.88, topics: ['scam'], problem: 'Scam warning', stage: 'exploring', entities, isTroubleshooting: true }
   }
-  if (/\b(document|admission\s*letter|what\s*do\s*i\s*need|requirements?)\b/i.test(q) && !/school\s*not/i.test(q)) {
+  if (/\b(document|admission\s*letter|what\s*do\s*i\s*need|requirements?|\bnin\b|\bbvn\b)\b/i.test(q) && !/school\s*not/i.test(q)) {
     return { intent: 'documents-needed', confidence: 0.8, topics: ['documents'], problem: 'Documents needed', stage: 'preparing', entities, isTroubleshooting: false }
   }
   if (/\b(repay|repayment|pay\s*back|after\s*nysc|when\s*(i|we)\s*go\s*pay|10\s*%\s*(of\s*)?(salary|profit))\b/i.test(q)) {
@@ -244,5 +244,5 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   const residual = residualSoftRoute(raw || q, entities)
   if (residual) return residual
 
-  return { intent: 'official-sources', confidence: 0.4, topics: ['official'], problem: 'Official NELFUND links', stage: 'exploring', entities, isTroubleshooting: false }
+  return { intent: 'official-sources', confidence: 0.4, topics: ['guidance'], problem: 'Official NELFUND links', stage: 'exploring', entities, isTroubleshooting: false }
 }

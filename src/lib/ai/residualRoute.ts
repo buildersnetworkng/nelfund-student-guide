@@ -6,13 +6,14 @@ export function detectEntities(q: string): string[] {
     [/\bjamb\b|utme|jamb\s*(reg|no|number|id)|direct\s*entry|invalid\s*format|verification\s*fail/i, 'jamb'],
     [/\bnin\b|national\s*identity/i, 'nin'],
     [/\bbvn\b|bank\s*verification/i, 'bvn'],
-    [/sign\s*up|create\s*(an?\s*)?account|register/i, 'apply'],
+    [/sign\s*up|create\s*(an?\s*)?account|register|i\s*wan(t)?\s*(to\s*)?apply|first\s*time\s*apply/i, 'apply'],
     [/(\blogin\b|log\s*in|sign\s*in|password|session)/i, 'login'],
     [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|nothing\s*dey\s*happen|wetin\s*dey\s*happen|application\s*(id|number)|still\s*waiting|no\s*update|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|my\s*own\s*never|dem\s*don\s*pay|others\s*don\s*(collect|receive|see)|check\s*am/i, 'status'],
     [/upkeep|monthly\s*allowance|stipend|20,?000/i, 'upkeep'],
     [/school\s*fees?|institutional\s*charges|tuition/i, 'fees'],
     [/repay|gsi|pay\s*back|imprison|jail|prison|scholarship|when\s*i\s*go\s*pay|after\s*nysc/i, 'repayment'],
     [/missing\s*info|school\s*not|not\s*on\s*(the\s*)?list|institution\s*not/i, 'school'],
+    [/admission\s*letter|matric|documents?\s*need|requirements?/i, 'documents'],
     [/help|abeg|assist|guide|stuck|wahala/i, 'help'],
     [/portal|dashboard|nelf\.gov|nelfund/i, 'portal'],
     [/error|fail|invalid|reject|denied/i, 'error'],
@@ -72,7 +73,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('official-sources', 'Greeting, offer menu', 'exploring', ['greeting', 'guidance'], entities, false, 0.65)
   }
 
-  // Admin top unknown buckets: pending-status, jamb, open-status, repayment, school-list
+  // Admin top unknown buckets: other, pending-status, jamb, empty, open-status
   if (/^(how\s*far|howfar)[.!? ]*$/i.test(text) || /how\s*far\s*(with|about|on)?\s*(my\s*)?(loan|application|nelfund|status|upkeep|money)?/i.test(text)) {
     return hit('pending-application', 'How far / pending status', 'waiting', ['pending-status', 'pending'], entities, true, 0.72)
   }
@@ -93,6 +94,28 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   }
   if (/list\s*of\s*schools|which\s*schools|school\s*list|schools\s*(that\s*)?(dey|are)\s*(on|for)\s*nelfund/i.test(text)) {
     return hit('school-not-found', 'School list question', 'applying', ['school-list', 'school'], entities, true, 0.65)
+  }
+
+  // Residual "other" (324 lifetime): first-time apply, next-step follow-ups, NIN/BVN, documents
+  if (
+    /i\s*wan(t)?\s*(to\s*)?apply|how\s*i\s*go\s*(apply|start|register)|first\s*time|how\s*i\s*(go|fit)\s*start|start\s*(the\s*)?(application|process)|begin\s*(the\s*)?application|i\s*never\s*apply|i\s*no\s*apply\s*yet|new\s*applicant|how\s*i\s*go\s*do\s*am/i.test(
+      text,
+    ) && !/\bpending\b|how\s*far|still\s*open|deadline|money\s*never/i.test(text)
+  ) {
+    return hit('how-to-apply', 'First-time apply / I wan apply', 'preparing', ['how-to-apply', 'account-create'], entities, false, 0.72)
+  }
+  if (
+    /what\s*(do\s*i\s*do\s*)?next|wetin\s*(i\s*)?go\s*do\s*(next|now)|after\s*(i\s*)?(register|sign\s*up|create|account)|then\s*what|next\s*step|continue\s*(the\s*)?(application|process)|i\s*don\s*(create|register)|after\s*sign\s*up/i.test(
+      text,
+    ) && !/\bpending\b|money\s*never|how\s*far/i.test(text)
+  ) {
+    return hit('how-to-apply', 'Apply follow-up / next step', 'preparing', ['how-to-apply'], entities, false, 0.7)
+  }
+  if (/\bnin\b|national\s*identity|\bbvn\b|bank\s*verification/i.test(text) && !/\bjamb\b|pending|how\s*far/i.test(text)) {
+    return hit('documents-needed', 'NIN / BVN profile item', 'preparing', ['documents', 'account-create'], entities, true, 0.68)
+  }
+  if (/admission\s*letter|matric(\s*no)?|what\s*documents?|which\s*documents?|requirements?\s*(to\s*)?apply/i.test(text) && !/school\s*not/i.test(text)) {
+    return hit('documents-needed', 'Documents for application', 'preparing', ['documents'], entities, false, 0.68)
   }
 
   if (/why\s+(was|is|dem|they|una)|purpose|wetin\s*(be|mean)|what\s*is\s*(this\s*)?nelfund|why\s+dem\s+create/i.test(text)) {
@@ -123,8 +146,8 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (entities.includes('login')) {
     return hit('portal-login', 'Sign in / login', 'applying', ['login'], entities)
   }
-  if (entities.includes('apply')) {
-    return hit('how-to-apply', 'How to apply', 'preparing', ['apply'], entities)
+  if (entities.includes('apply') || entities.includes('documents')) {
+    return hit(entities.includes('documents') ? 'documents-needed' : 'how-to-apply', entities.includes('documents') ? 'Documents needed' : 'How to apply', 'preparing', entities.includes('documents') ? ['documents'] : ['apply'], entities)
   }
   if (entities.includes('contact')) {
     return hit('contact-support', 'Contact NELFUND support', 'exploring', ['contact'], entities)
@@ -146,7 +169,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     /^(help|abeg|please|pls|assist|guide|i\s*need\s*help|help\s*me|wetin|wahala|this\s*thing|make\s*una\s*help|i\s*no\s*sabi|what\s*next|reply|are\s*you\s*there)[.!? ]*$/i.test(text) ||
     /help\s*me|i\s*need\s*(help|assistance)|una\s*fit\s*help|abeg\s*help|guide\s*me|this\s*nelfund\s*thing/i.test(text)
   if (vagueHelp) {
-    return hit('official-sources', 'Vague help, offer official menu', 'exploring', ['greeting-vague', 'guidance'], entities, false, 0.46)
+    return hit('official-sources', 'Vague help, offer official menu', 'exploring', ['guidance'], entities, false, 0.46)
   }
   if (entities.includes('portal') && /dashboard|total\s*loans|signed\s*in/i.test(text)) {
     return hit('pending-application', 'Portal dashboard paste', 'waiting', ['portal'], entities, false, 0.5)
@@ -156,5 +179,5 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('official-sources', 'General NELFUND guidance menu', 'exploring', ['guidance'], entities, false, 0.45)
   }
 
-  return hit('official-sources', 'Official NELFUND links', 'exploring', ['official'], entities, false, 0.42)
+  return hit('official-sources', 'Official NELFUND links', 'exploring', ['guidance'], entities, false, 0.42)
 }
