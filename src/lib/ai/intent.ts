@@ -192,7 +192,10 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   if (/missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)|institution\s*not\s*found|school\s*no\s*(dey|gree)\s*show|my\s*school\s*no\s*dey|school\s*no\s*upload|data\s*no\s*dey|dem\s*never\s*upload/i.test(raw) || /missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)/i.test(q)) {
     return { intent: 'missing-information', confidence: 0.88, topics: ['missing'], problem: 'Missing information on portal', stage: 'applying', entities, isTroubleshooting: true }
   }
-  if (/una\s+never\s+pay|money\s+never\s+enter|application\s+no\s+move|status\s+no\s+change|dem\s+never\s+approve|how\s+far\s+(my|with\s+my)|e\s+never\s+drop|i\s+don\s+apply|pending\s*status/i.test(raw) && !liveOpenRe().test(raw)) {
+  if (/^(how\s*far|howfar)[.!? ]*$/i.test(raw) || /how\s*far\s*(with|about|on)?\s*(my\s*)?(loan|application|nelfund|status|upkeep|money)?/i.test(raw)) {
+    return { intent: 'pending-application', confidence: 0.9, topics: ['pending-status', 'pending'], problem: 'How far / pending status', stage: 'waiting', entities, isTroubleshooting: true }
+  }
+  if (/una\s+never\s+pay|money\s+never\s+enter|application\s+no\s+move|status\s+no\s+change|dem\s+never\s+approve|e\s+never\s+drop|i\s+don\s+apply|pending\s*status|never\s+(see|enter|collect|receive)\s+(my\s+)?(money|upkeep|loan)/i.test(raw) && !liveOpenRe().test(raw)) {
     return { intent: 'pending-application', confidence: 0.86, topics: ['pending'], problem: 'Application still pending', stage: 'waiting', entities, isTroubleshooting: true }
   }
   if (/\bpending\b|under\s*review|check\s*(my\s*)?(application\s*)?status|how\s*far\s*(with)?/i.test(q) && !liveOpenRe().test(raw)) {
@@ -216,7 +219,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
     /\b(repay|repayment|pay\s*back|after\s*nysc)\b/i.test(raw) ||
     /invalid\s*jamb|jamb\s*invalid|\bjamb\b/i.test(raw) ||
     /missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)/i.test(raw) ||
-    /\bpending\b|under\s*review/i.test(raw) ||
+    /\bpending\b|under\s*review|how\s*far/i.test(raw) ||
     liveOpenRe().test(raw)
   if (prior && prior !== 'unknown' && raw.length < 60 && !priorOverrideBlocked) {
     return { intent: prior, confidence: 0.55, topics: [], problem: null, stage: 'unknown', entities, isTroubleshooting: false }
@@ -234,7 +237,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   if (/\b(eligib|who\s*can\s*apply|do\s*i\s*qualify|am\s*i\s*eligible)\b/i.test(q)) {
     return { intent: 'eligibility', confidence: 0.86, topics: ['eligibility'], problem: 'Eligibility', stage: 'exploring', entities, isTroubleshooting: false }
   }
-  if (/^(hi|hello|hey|how\s*far|good\s*(morning|afternoon|evening))[.!? ]*$/i.test(raw)) {
+  if (/^(hi|hello|hey|good\s*(morning|afternoon|evening))[.!? ]*$/i.test(raw)) {
     return { intent: 'official-sources', confidence: 0.7, topics: ['greeting'], problem: 'Greeting', stage: 'exploring', entities, isTroubleshooting: false }
   }
 
