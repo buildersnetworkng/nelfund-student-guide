@@ -12,7 +12,7 @@ export const PURPOSE_RE =
   /what\s*(is|are)\s*(the\s+)?(purpose|aim|point|goal|meaning|reason)\s*(of\s+)?(this\s+)?(nelfund|loan|scheme)|what\s*is\s*(this\s+)?nelfund|what\s+does\s+(nelfund|it|this)\s+do|explain\s+(this\s+)?nelfund|overview\s+of\s+nelfund|origin\s+of\s+nelfund|wetin\s*(be|mean)\s*(this\s+)?(nelfund|loan|scheme)|wetin\s+nelfund\s+(be|mean|dey\s+do|for)|nelfund\s+dey\s+do\s+wetin|about\s+(this\s+)?nelfund|tell\s*me\s*(about|everything|why).{0,40}(nelfund|this\s+loan|dis\s+loan)|why\s+(was|is|were|did|do|dem|they|una|we|fg|government)\s+.{0,48}(nelfund|nelfund|it|dis|this|loan|scheme)?.{0,24}(created|create|establish|established|started|start|begin|form|formed|set\s*up|make|made|bring|brought)|why\s+(dem|they|una|fg|government)\s+(take\s+)?(create|make|start|form|bring|introduce)\s+(nelfund|am|it|this\s+loan|dis\s+loan)|why\s+(they|dem)\s+(created|formed|started|introduced)\s+(nelfund|this\s+loan)|why\s+nelfund\s+(was|is|dey|come|exist|existed)|why\s+(was|is)\s+nelfund|why\s+nelfund\b|purpose\s+(of\s+)?(nelfund|the\s+(student\s+)?loan)|reason\s+(for|dem|they|una)\s+.{0,24}(nelfund|this\s+loan|dis\s+loan)|mission\s+of\s+nelfund|nelfund\s+(purpose|mission|aim|objective|mean|meaning)|who\s+(created|established|started|signed)\s+nelfund|wetin\s+(make|cause|make\s+una)\s+(dem|them|una|government|fg)?\s*(create|start|bring)|how\s+come\s+.{0,28}(nelfund|dis\s+loan|this\s+loan)|na\s+why\s+.{0,24}(nelfund|dem\s+form|this\s+loan)|wetin\s+be\s+the\s+(purpose|reason)|why\s+dem\s+create\s+nelfund|why\s+una\s+create|wetin\s+be\s+nelfund|why\s+dem\s+take\s+create|point\s+of\s+nelfund|wetin\s+dem\s+(take\s+)?(create|start|make)\s+(nelfund|am|dis\s+loan|this\s+loan)|how\s+nelfund\s+come\s+about|wetin\s+make\s+(government|fg|dem)\s+start|^nelfund\??$|what'?s\s+nelfund(\s+for)?|nelfund\s+for\s+wetin|na\s+wetin\s+(be\s+)?nelfund|why\s+(they|dem|una)\s+bring\s+(nelfund|this\s+loan|am)|wetin\s+nelfund\s+dey\s+mean|who\s+bring\s+nelfund|why\s+(this|dis)\s+(student\s+)?loan\s+(scheme\s+)?(dey|exist)|tell\s+me\s+why\s+nelfund|what\s+nelfund\s+mean|nelfund\s+meaning|reason\s+behind\s+(nelfund|the\s+(student\s+)?loan)|why\s+(fg|the\s+government|government|una)\s+(introduce|introduced|bring|brought|set\s*up)|why\s+(this|dis)\s+nelfund|una\s+create\s+nelfund\s+for\s+wetin|wetin\s+make\s+dem\s+form|introduce[d]?\s+nelfund|student\s+loans?\s+act|why\s+dem\s+form\s+nelfund|wetin\s+be\s+dis\s+nelfund|na\s+why\s+dem\s+create|why\s+they\s+create\s+nelfund|wetin\s+be\s+dis\s+loan|what\s+nelfund\s+is\s+for|why\s+this\s+scheme|nelfund\s+na\s+wetin|reason\s+they\s+(start|create|bring)|na\s+wetin\s+nelfund\s+dey\s+do|wetin\s+nelfund\s+dey\s+do|why\s+dem\s+bring\s+nelfund|why\s+they\s+form\s+nelfund|purpose\s+of\s+this\s+(student\s+)?loan|why\s+introduce\s+nelfund|wetin\s+be\s+the\s+aim|nelfund\s+dey\s+mean\s+wetin|explain\s+why\s+nelfund|why\s+they\s+form\s+this\s+loan|explain\s+this\s+student\s+loan|na\s+wetin\s+be\s+(dis|this)\s+(loan|scheme)|wetin\s+make\s+una\s+start|what\s+is\s+the\s+student\s+loan|why\s+they\s+introduce\s+nelfund/i
 
 export function liveOpenRe(): RegExp {
-  return /is\s+(nelfund|it|portal|application|loan)\s+(still\s+)?(open|dey\s+open|closed)|deadline|as\s+of\s+today|still\s+accept|can\s+i\s+still\s+apply|dem\s+still\s+dey\s+(collect|accept|open)|una\s+still\s+dey\s+(collect|open|accept)|nelfund\s+dey\s+open|portal\s+(still\s+)?(dey\s+)?open|application\s+dey\s+open|closing\s+date|opening\s+date|open\s*status|loan\s*window|nelfund\s+(still\s+)?(open|closed)|application\s+(still\s+)?open/i
+  return /is\s+(nelfund|it|portal|application|loan)\s+(still\s+)?(open|dey\s+open|closed)|deadline|as\s+of\s+today|still\s+accept|can\s+i\s+still\s+apply|dem\s+still\s+dey\s+(collect|accept|open)|una\s+still\s+dey\s+(collect|open|accept)|nelfund\s+dey\s+(still\s+)?open|portal\s+(still\s+)?(dey\s+)?open|application\s+dey\s+open|closing\s+date|opening\s+date|open\s*status|loan\s*window|nelfund\s+(still\s+)?(open|closed)|application\s+(still\s+)?open|dem\s+don\s+close\s+(nelfund|am|portal)|una\s+don\s+close/i
 }
 
 /** Last user utterance only — never classify from concatenated history. */
@@ -30,6 +30,16 @@ const PURPOSE_PHRASES = [
   'why they created nelfund',
   'why they introduce nelfund',
   'why they introduced nelfund',
+  'why this loan',
+  'why the student loan',
+  'why student loan',
+  'wetin make nelfund',
+  'na why nelfund',
+  'what nelfund is',
+  'nelfund explanation',
+  'why nelfund start',
+  'wetin be dis loan',
+  'una bring nelfund',
   'why dem create nelfund',
   'why dem created nelfund',
   'why dem take create nelfund',
@@ -152,7 +162,15 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   }
 
   const prior = lastUserIntent(history)
-  if (prior && prior !== 'unknown' && raw.length < 60 && !PURPOSE_RE.test(raw)) {
+  const priorOverrideBlocked =
+    PURPOSE_RE.test(raw) ||
+    isPurposeAsk(raw) ||
+    /\b(repay|repayment|pay\s*back|after\s*nysc)\b/i.test(raw) ||
+    /invalid\s*jamb|jamb\s*invalid|\bjamb\b/i.test(raw) ||
+    /missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)/i.test(raw) ||
+    /\bpending\b|under\s*review/i.test(raw) ||
+    liveOpenRe().test(raw)
+  if (prior && prior !== 'unknown' && raw.length < 60 && !priorOverrideBlocked) {
     return { intent: prior, confidence: 0.55, topics: [], problem: null, stage: 'unknown', entities, isTroubleshooting: false }
   }
 
