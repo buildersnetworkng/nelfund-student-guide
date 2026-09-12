@@ -1,5 +1,5 @@
 /**
- * Official NELFUND URLs — single source of truth for UI + AI.
+ * Official NELFUND URLs, single source of truth for UI + AI.
  *
  * Per product rules:
  * - Logging in / signing in → https://nelf.gov.ng/
