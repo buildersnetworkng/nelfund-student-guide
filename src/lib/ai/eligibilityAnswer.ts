@@ -36,8 +36,16 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
     levelLabel === 'your level'
       ? `Your **year of study does not by itself** block you.`
       : `Being **${levelLabel}** does **not** by itself block you.`
+  const typeNote = /private/.test(raw)
+    ? 'Private universities/polys are **not** in the current public-institution scheme described on nelf.gov.ng.\n\n'
+    : /part[\s-]*time/.test(raw)
+      ? 'Official FAQ language is **full-time** public tertiary students. Confirm part-time on the live portal, do not assume.\n\n'
+      : /post\s*grad|postgraduate|masters?|phd/.test(raw)
+        ? 'This chat will not invent a postgraduate rule. Confirm the open cycle on the official portal.\n\n'
+        : ''
   return (
     `**Eligibility (official FAQ)**\n\n` +
+    typeNote +
     `• Nigerian citizen\n` +
     `• Admission into a **public** university, polytechnic, college of education, or vocational school\n` +
     `${levelLine}\n\n` +
