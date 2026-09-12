@@ -168,8 +168,10 @@ function isShortFollowUp(text: string): boolean {
 function isGreeting(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
   if (!t || t.length > 80) return false
+  // "how far" is pending-status (rule 4), never a greeting
+  if (/how\s*far|money\s*never|never\s*enter|pending|under\s*review/i.test(t)) return false
   if (/nelfund|apply|portal|loan|jamb|pending|upkeep|create|account|step|guide/i.test(t)) return false
-  if (/^(hi|hello|hey|how\s*far|good\s*(morning|afternoon|evening))[.!?\s]*$/i.test(t)) return true
+  if (/^(hi|hello|hey|good\s*(morning|afternoon|evening))[.!?\s]*$/i.test(t)) return true
   return false
 }
 

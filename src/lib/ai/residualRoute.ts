@@ -8,7 +8,7 @@ export function detectEntities(q: string): string[] {
     [/\bbvn\b|bank\s*verification/i, 'bvn'],
     [/sign\s*up|create\s*(an?\s*)?account|register|i\s*wan(t)?\s*(to\s*)?apply|first\s*time\s*apply/i, 'apply'],
     [/(\blogin\b|log\s*in|sign\s*in|password|session)/i, 'login'],
-    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|nothing\s*dey\s*happen|wetin\s*dey\s*happen|application\s*(id|number)|still\s*waiting|no\s*update|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|my\s*own\s*never|dem\s*don\s*pay|others\s*don\s*(collect|receive|see)|check\s*am/i, 'status'],
+    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|nothing\s*dey\s*happen|wetin\s*dey\s*happen|application\s*(id|number)|still\s*waiting|no\s*update|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|my\s*own\s*never|dem\s*don\s*pay|others\s*don\s*(collect|receive|see)|check\s*am|already\s*appl|i\s*don\s*apply|money\s*no\s*drop/i, 'status'],
     [/upkeep|monthly\s*allowance|stipend|20,?000/i, 'upkeep'],
     [/school\s*fees?|institutional\s*charges|tuition/i, 'fees'],
     [/repay|gsi|pay\s*back|imprison|jail|prison|scholarship|when\s*i\s*go\s*pay|after\s*nysc/i, 'repayment'],
@@ -80,6 +80,14 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (/\bpending\b|under\s*review|still\s*waiting|no\s*update|money\s*never|never\s*(see|enter|collect|receive|pay)|una\s*never\s*pay|dem\s*never\s*pay|check\s*(my\s*)?(status|application)|application\s*status/i.test(text)) {
     return hit('pending-application', 'Pending / under review status', 'waiting', ['pending-status', 'pending'], entities, true, 0.7)
   }
+  // Residual "other" that is really already-applied / wait-for-pay
+  if (
+    /i\s*don\s*apply|already\s*appl(y|ied)|i\s*have\s*(already\s*)?appl(y|ied)|submitted\s*(already|my)|i\s*don\s*submit|application\s*don\s*go|when\s*(will|go)\s*(they|dem|una)\s*(pay|disburse)|dem\s*go\s*pay|money\s*no\s*drop|e\s*never\s*drop|nothing\s*don\s*enter|no\s*alert/i.test(
+      text,
+    ) && !liveishOpen(text)
+  ) {
+    return hit('pending-application', 'Already applied / waiting for pay', 'waiting', ['pending-status', 'guidance'], entities, true, 0.7)
+  }
   if (/\bjamb\b|utme|invalid\s*format|verification\s*fail|could\s*not\s*verify/i.test(text)) {
     return hit('jamb-verification', 'JAMB verification', 'applying', ['jamb'], entities, true, 0.7)
   }
@@ -116,6 +124,12 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   }
   if (/admission\s*letter|matric(\s*no)?|what\s*documents?|which\s*documents?|requirements?\s*(to\s*)?apply/i.test(text) && !/school\s*not/i.test(text)) {
     return hit('documents-needed', 'Documents for application', 'preparing', ['documents'], entities, false, 0.68)
+  }
+  if (/already\s*paid\s*(my\s*)?(school\s*)?fees|i\s*don\s*pay\s*(school|fees)|i\s*have\s*paid\s*(my\s*)?fees/i.test(text)) {
+    return hit('school-fees', 'Already paid school fees', 'exploring', ['fees', 'guidance'], entities, false, 0.68)
+  }
+  if (/who\s*(do\s*i|i\s*go|should\s*i)\s*contact|open\s*(a\s*)?ticket|esupport|campus\s*desk|school\s*desk/i.test(text)) {
+    return hit('contact-support', 'Who to contact / ticket', 'exploring', ['contact', 'guidance'], entities, false, 0.66)
   }
 
   if (/why\s+(was|is|dem|they|una)|purpose|wetin\s*(be|mean)|what\s*is\s*(this\s*)?nelfund|why\s+dem\s+create/i.test(text)) {
@@ -180,4 +194,10 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   }
 
   return hit('official-sources', 'Official NELFUND links', 'exploring', ['guidance'], entities, false, 0.42)
+}
+
+function liveishOpen(text: string): boolean {
+  return /is\s+(nelfund|it|portal|loan|application)\s+(still\s+)?(open|dey\s+open)|deadline|still\s+accept|can\s+i\s+still\s+apply/i.test(
+    text,
+  )
 }
