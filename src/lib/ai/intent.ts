@@ -29,6 +29,21 @@ const PURPOSE_PHRASES = [
   'why they create nelfund',
   'why they created nelfund',
   'why they introduce nelfund',
+  'why e dey exist',
+  'why e exist',
+  'why una start am',
+  'why una bring am',
+  'wetin una dey try do',
+  'wetin una wan solve',
+  'nelfund na wetin exactly',
+  'student loan fund na wetin',
+  'wetin be nigeria education loan',
+  'what is nigeria education loan fund',
+  'why this nelfund dey',
+  'why dem set up nelfund',
+  'why government start student loan',
+  'reason dem start nelfund',
+  'why student loan scheme',
   'why they introduced nelfund',
   'why this loan',
   'why the student loan',
@@ -78,17 +93,23 @@ export function isPurposeAsk(text: string): boolean {
   const q = lastUtterance(text)
   if (!q.trim()) return false
   const compact = q.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+  if (liveOpenRe().test(q) && !/why|purpose|wetin|what\s*is|meaning|created|create|establish|mission|aim|introduce|exist/i.test(q)) {
+    return false
+  }
   if (PURPOSE_PHRASES.some((p) => compact.includes(p) || compact === p)) {
-    if (liveOpenRe().test(q) && !/why|purpose|wetin|what\s*is|meaning|created|create|establish|mission|aim|introduce/i.test(q)) {
-      return false
-    }
     return true
   }
-  const purpose = PURPOSE_RE.test(q)
-  if (!purpose) return false
-  const liveOnly = liveOpenRe().test(q) && !/why|purpose|wetin\s*be|what\s*is|meaning|created|create|establish|mission|aim|introduce/i.test(q)
-  if (liveOnly) return false
-  return true
+  if (PURPOSE_RE.test(q)) return true
+  // Short Pidgin/English purpose without the word "created"
+  if (
+    /\b(why|wetin|purpose|meaning|aim|mission)\b/i.test(q) &&
+    /\b(nelfund|student\s+loan|dis\s+loan|this\s+loan|this\s+scheme)\b/i.test(q) &&
+    !liveOpenRe().test(q) &&
+    !/\b(pending|missing|jamb|apply|login|upkeep|fees)\b/i.test(q)
+  ) {
+    return true
+  }
+  return false
 }
 
 function isContrastFeesUpkeep(q: string): boolean {
@@ -180,7 +201,7 @@ export function classifyIntent(question: string, history?: ConversationTurn[]): 
   if (/\b(document|admission\s*letter|what\s*do\s*i\s*need|requirements?)\b/i.test(q) && !/school\s*not/i.test(q)) {
     return { intent: 'documents-needed', confidence: 0.8, topics: ['documents'], problem: 'Documents needed', stage: 'preparing', entities, isTroubleshooting: false }
   }
-  if (/\b(repay|repayment|pay\s*back|after\s*nysc)\b/i.test(q)) {
+  if (/\b(repay|repayment|pay\s*back|after\s*nysc|when\s*(i|we)\s*go\s*pay|10\s*%\s*(of\s*)?(salary|profit))\b/i.test(q)) {
     return { intent: 'repayment', confidence: 0.86, topics: ['repayment'], problem: 'Repayment', stage: 'repaying', entities, isTroubleshooting: false }
   }
   if (/\b(eligib|who\s*can\s*apply|do\s*i\s*qualify|am\s*i\s*eligible)\b/i.test(q)) {
