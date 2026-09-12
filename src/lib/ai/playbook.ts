@@ -18,7 +18,7 @@ export type PlaybookContext = {
   exactError?: string | null
   turnIndex?: number
   lastAssistant?: string
-  userText?: string | null
+  userText?: string
   priorIntent?: IntentId | null
 }
 
@@ -123,11 +123,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   return `${MENU}\n\nCheck live status on ${PORTAL}. Reply with the exact portal message or whether you mean **sign up**, **login**, **loan application**, **pending**, **school fees**, or **upkeep**.`
 }
 
-export function isNearDuplicate(prev: string, next: string): string {
-  if (!prev || !next) return false as unknown as string
+export function isNearDuplicate(prev: string, next: string): boolean {
+  if (!prev || !next) return false
   const a = prev.toLowerCase().replace(/\s+/g, ' ').slice(0, 180)
   const b = next.toLowerCase().replace(/\s+/g, ' ').slice(0, 180)
-  return (a === b || (a.length > 40 && b.includes(a.slice(0, 40)))) as unknown as string
+  return a === b || (a.length > 40 && b.includes(a.slice(0, 40)))
 }
 
 export function isNewUserAsk(text: string): boolean {
