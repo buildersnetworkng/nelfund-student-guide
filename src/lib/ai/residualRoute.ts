@@ -104,8 +104,14 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('what-is-nelfund', 'Why NELFUND was created / purpose', 'exploring', ['what is', 'purpose'], entities, false, 0.78)
   }
 
-  if (/\b(open\s*status|application\s*open|is\s*it\s*open|still\s*open|dey\s*open|accepting|opening\s*date|closing\s*date|loan\s*window|as\s*of\s*(today|now)|current\s*status)\b/i.test(text) && !/why\s+(was|is|dem|they)|purpose|wetin\s*be/i.test(text)) {
+  if (/\b(open\s*status|application\s*open|is\s*it\s*open|still\s*open|dey\s*open|accepting|opening\s*date|closing\s*date|loan\s*window|as\s*of\s*(today|now)|current\s*status)\b/i.test(text) && !/why\s+(was|is|dem|they)|purpose|wetin\s*be|created|what\s*is\s+nelfund/i.test(text)) {
     return hit('current-information', 'Open status / is NELFUND open', 'exploring', ['open-status', 'current'], entities, false, 0.68)
+  }
+
+  if (/\b(repay|repayment|pay\s*back|after\s*nysc|when\s*(i|we)\s*go\s*pay|10\s*%|gsi)\b/i.test(text) && !/why\s+(was|is|dem|they)|purpose|wetin\s*be\s+nelfund/i.test(text)) {
+    if (/\bgsi\b|global\s*standing/i.test(text)) return hit('gsi', 'GSI explanation', 'repaying', ['gsi'], entities)
+    if (/scholarship|grant|free\s*money/i.test(text)) return hit('loan-or-scholarship', 'Loan vs scholarship', 'exploring', ['loan'], entities)
+    return hit('repayment', 'Repayment rules', 'repaying', ['repayment'], entities, false, 0.7)
   }
 
   if (SCHOOL_ONLY.test(text) || (entities.includes('school') && text.split(/\s+/).length <= 6 && !entities.includes('status') && !entities.includes('apply'))) {
