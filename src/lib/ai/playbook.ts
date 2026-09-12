@@ -42,7 +42,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'what-is-nelfund') {
-    return `**Why NELFUND was created:** to remove financial barriers so eligible students in **public** tertiary institutions can access higher education without paying school charges upfront.\n\n**What it is:** the Nigeria Education Loan Fund: **interest-free** loans for **institutional charges** (paid to the school) and optional **monthly upkeep** (paid to the student).\n\nIt is a **loan**, not a scholarship. Repayment starts **2 years after NYSC** (10% of salary / profit), as described on nelf.gov.ng.\n\nOfficial site: ${SITE} · Apply: ${PORTAL} · FAQ: ${FAQ}`
+    return `**Why NELFUND was created:** the Students Loans (Access to Higher Education) Act set up the Nigeria Education Loan Fund so eligible students in **public** tertiary institutions can get **interest-free** loans for school charges and living costs. Official aim is access to higher education, not a grant.\n\n**What it is:** institutional charges go **to the school**; optional **monthly upkeep** goes **to the student**.\n\nIt is a **loan**, not a scholarship. Official FAQ: repayment starts **2 years after NYSC** (10% of salary / profit).\n\nOfficial site: ${SITE} · Apply: ${PORTAL} · FAQ: ${FAQ}`
   }
 
   if (intent === 'pending-application') {
