@@ -16,6 +16,10 @@ const STATUS_DOT: Record<ApplicationCycleStatus, string> = {
   pending_verification: 'bg-gold-300',
 }
 
+function stripLongDashes(s: string) {
+  return s.replace(/[\u2010-\u2015\u2212]/g, '-')
+}
+
 function toView(s: LiveApplicationStatus | typeof staticStatus) {
   const asLive: LiveApplicationStatus = {
     cycle: s.cycle,
@@ -34,7 +38,7 @@ function toView(s: LiveApplicationStatus | typeof staticStatus) {
   return {
     cycle: getCurrentAcademicCycle(),
     status: asLive.status as ApplicationCycleStatus,
-    status_label: asLive.status_label,
+    status_label: stripLongDashes(asLive.status_label),
     note: asLive.note,
     last_checked: formatChecked(asLive),
     freshness: asLive.freshness || ('static_fallback' as const),
@@ -44,7 +48,7 @@ function toView(s: LiveApplicationStatus | typeof staticStatus) {
 
 /** Split note into readable blocks (bullets / short paragraphs). */
 function NoteBlocks({ note }: { note: string }) {
-  const lines = (note || '')
+  const lines = stripLongDashes(note || '')
     .split(/\n+/)
     .map((l) => l.trim())
     .filter(Boolean)
@@ -52,8 +56,8 @@ function NoteBlocks({ note }: { note: string }) {
   if (lines.length === 0) return null
 
   // Prefer bullet lines that start with • or -
-  const bullets = lines.filter((l) => /^[•\-–]/.test(l))
-  const rest = lines.filter((l) => !/^[•\-–]/.test(l))
+  const bullets = lines.filter((l) => /^[•\-]/.test(l))
+  const rest = lines.filter((l) => !/^[•\-]/.test(l))
 
   return (
     <div className="mt-3 space-y-2 text-sm leading-relaxed text-paper/85">
@@ -62,7 +66,7 @@ function NoteBlocks({ note }: { note: string }) {
           {bullets.map((line, i) => (
             <li key={i} className="flex gap-2">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold-300" aria-hidden />
-              <span>{line.replace(/^[•\-–]\s*/, '')}</span>
+              <span>{line.replace(/^[•\-]\s*/, '')}</span>
             </li>
           ))}
         </ul>

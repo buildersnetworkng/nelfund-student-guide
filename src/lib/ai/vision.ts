@@ -75,7 +75,8 @@ export async function extractTextFromImage(file: Blob): Promise<OcrResult> {
       .split('\n')
       .map((line) =>
         line
-          .replace(/[^\w\s\-–—.,:()%/₦?@']/g, ' ')
+          .replace(/[\u2010-\u2015\u2212]/g, '-')
+          .replace(/[^\w\s\-.,:()%/\u20A6?@']/g, ' ')
           .replace(/[ \t]+/g, ' ')
           .trim(),
       )
