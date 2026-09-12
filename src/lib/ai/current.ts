@@ -259,7 +259,7 @@ export function isPurposeQuestion(text: string): boolean {
 export function questionNeedsCurrentLive(text: string): boolean {
   const q = text || ''
   if (isPurposeQuestion(q)) return false
-  if (/why\s+(was|is|dem|they|una|fg)|purpose|wetin\s*(be|mean)|what\s*(is|does)\s*(this\s+)?nelfund|explain\s+(this\s+)?nelfund|origin\s+of\s+nelfund|point\s+of\s+nelfund/i.test(q)) return false
+  if (/why\s+(was|is|dem|they|una|fg|e)|purpose|wetin\s*(be|mean)|what\s*(is|does)\s*(this\s+)?nelfund|explain\s+(this\s+)?nelfund|origin\s+of\s+nelfund|point\s+of\s+nelfund|na\s+wetin|nelfund\s+for\s+wetin|student\s+loans?\s+act/i.test(q)) return false
   if (/\b(my\s+)?(application|loan)\s+status\b|check\s+(my\s+)?status|\bpending\b|under\s*review/i.test(q) && !/is\s+(nelfund|it|portal|application)\s+(still\s+)?open/i.test(q)) {
     return false
   }
