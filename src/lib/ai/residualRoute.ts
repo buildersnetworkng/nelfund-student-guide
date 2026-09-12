@@ -90,14 +90,14 @@ const SCHOOL_ONLY =
 /** Soft map leftover / long / Pidgin / multi-issue text onto a real intent. Never returns unknown. */
 export function residualSoftRoute(q: string, entities: string[]): IntentResult | null {
   const text = q.trim()
-  if (!text) return hit('current-information', 'Empty message, offer guidance', 'exploring', ['empty'], entities, false, 0.7)
+  if (!text) return hit('official-sources', 'Empty message, offer guidance', 'exploring', ['empty'], entities, false, 0.7)
 
   if (/^(hi|hii+|hello|hey|heyy+|yo|sup|wassup|whatsup|good\s*(morning|afternoon|evening|day)|how\s*far|howfar|how\s*you\s*dey|thanks?|thank\s*you|tenki)[.!? ]*$/i.test(text)) {
-    return hit('current-information', 'Greeting, offer menu', 'exploring', ['greeting', 'guidance'], entities, false, 0.65)
+    return hit('official-sources', 'Greeting, offer menu', 'exploring', ['greeting', 'guidance'], entities, false, 0.65)
   }
 
   if (
-    /why\s+(was|is|dem|they|una|we|fg|government)\s+.{0,40}(nelfund|nel\s*fund|it|this\s+loan|dis\s+loan|scheme).{0,20}(created|create|establish|start|begin|form|set\s*up|make|bring)|why\s+(dem|they|una)\s+(take\s+)?(create|make|start|bring|form)\s+(nelfund|am|it|this\s+loan)|why\s+nelfund|purpose\s+(of\s+)?(nelfund|the\s+(student\s+)?loan)|mission\s+of\s+nelfund|who\s+(created|established|started|bring)\s+nelfund|wetin\s+(be\s*)?(this\s+)?(nelfund|loan)|wetin\s+(make|cause)\s+(dem|them|government|fg)\s+(create|start|bring)|what\s+is\s+(this\s+)?nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|how\s+come\s+.{0,20}(nelfund|this\s+loan)|reason\s+(for|dem|they)\s+.{0,20}(nelfund|this\s+loan)|tell\s+me\s+why\s+nelfund|nelfund\s+for\s+wetin|na\s+wetin\s+nelfund\s+dey\s+do|wetin\s+nelfund\s+dey\s+do|why\s+dem\s+bring\s+nelfund|explain\s+why\s+nelfund|why\s+they\s+form\s+this\s+loan|una\s+create\s+nelfund\s+for\s+wetin|explain\s+this\s+student\s+loan/i.test(
+    /why\s+(was|is|dem|they|una|we|fg|government)\s+.{0,40}(nelfund|nelfund|it|this\s+loan|dis\s+loan|scheme).{0,20}(created|create|establish|start|begin|form|set\s*up|make|bring|introduce)|why\s+(dem|they|una)\s+(take\s+)?(create|make|start|bring|form|introduce)\s+(nelfund|am|it|this\s+loan)|why\s+nelfund|purpose\s+(of\s+)?(nelfund|the\s+(student\s+)?loan)|mission\s+of\s+nelfund|who\s+(created|established|started|bring)\s+nelfund|wetin\s+(be\s*)?(this\s+)?(nelfund|loan)|wetin\s+(make|cause)\s+(dem|them|government|fg)\s+(create|start|bring)|what\s+is\s+(this\s+)?nelfund|what\s+is\s+the\s+(purpose|aim|goal)\s+of\s+nelfund|how\s+come\s+.{0,20}(nelfund|this\s+loan)|reason\s+(for|dem|they)\s+.{0,20}(nelfund|this\s+loan)|tell\s+me\s+why\s+nelfund|nelfund\s+for\s+wetin|na\s+wetin\s+nelfund\s+dey\s+do|wetin\s+nelfund\s+dey\s+do|why\s+dem\s+bring\s+nelfund|explain\s+why\s+nelfund|why\s+they\s+form\s+this\s+loan|una\s+create\s+nelfund\s+for\s+wetin|explain\s+this\s+student\s+loan|why\s+they\s+introduce/i.test(
       text,
     )
   ) {
@@ -128,16 +128,16 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   }
 
   const pidginPending = /how\s*far|e\s*no\s*dey|no\s*gree|wahala|wetin\s*(dey|happen)|dem\s*never|money\s*never|still\s*dey\s*(pending|process|review)|abeg\s*(check|help).{0,40}(loan|status|pending|money)|e\s*never\s*pay|i\s*don\s*submit|never\s*see|haven'?t\s*(got|gotten|received)|no\s*see\s*(my\s*)?(upkeep|money|loan)|una\s*never\s*pay|my\s*own\s*never|dem\s*don\s*pay\s*(others|people)|others\s*don\s*(collect|receive)|check\s*am|see\s*am\s*(for|on)\s*(the\s*)?portal/i.test(text)
-  const pendingish = /\bpending\b|under\s*review|application\s*status|check\s*status|how\s*far\s*(with)?\s*(my\s*)?(loan|application|nelfund)?/i.test(text) || entities.includes('status') || entities.includes('disbursement')
+  const pendingish = /\bpending\b|under\s*review|application\s*status|pending\s*status|check\s*status|how\s*far\s*(with)?\s*(my\s*)?(loan|application|nelfund)?/i.test(text) || entities.includes('status') || entities.includes('disbursement')
   if (pendingish || pidginPending) {
     return hit('pending-application', 'Pending / under review / how far with loan', 'waiting', ['pending'], entities, true, 0.58)
   }
 
-  if (entities.includes('jamb') || /invalid\s*jamb|jamb.{0,40}(fail|verif|reject|format|gree|no\s*work|error|issue|problem)|verify.{0,20}jamb|could\s*not\s*verify.{0,20}jamb|verification\s*failed|jamb\s*(number|reg|registration)|utme\s*(number|verif)/i.test(text)) {
+  if (entities.includes('jamb') || /invalid\s*jamb|jamb\s*invalid|jamb.{0,40}(fail|verif|reject|format|gree|no\s*work|error|issue|problem)|verify.{0,20}jamb|could\s*not\s*verify.{0,20}jamb|verification\s*failed|jamb\s*(number|reg|registration)|utme\s*(number|verif)/i.test(text)) {
     return hit('jamb-verification', 'JAMB verification or invalid JAMB', 'applying', ['jamb'], entities, true, 0.62)
   }
 
-  if (/is\s*(nelfund|it|portal|application)\s*(still\s*)?(open|accept)|still\s*(accepting|open|dey\s*open|dey\s*collect)|can\s*i\s*still\s*apply|dem\s*still\s*dey\s*(collect|accept)|closing\s*date|deadline|as\s*of\s*today|latest|una\s*still\s*dey\s*(collect|open)/i.test(text)) {
+  if (/is\s*(nelfund|it|portal|application)\s*(still\s*)?(open|accept)|still\s*(accepting|open|dey\s*open|dey\s*collect)|can\s*i\s*still\s*apply|dem\s*still\s*dey\s*(collect|accept|open)|closing\s*date|deadline|as\s*of\s*today|latest|una\s*still\s*dey\s*(collect|open)/i.test(text)) {
     return hit('current-information', 'Is NELFUND open / current official status', 'exploring', ['current'], entities, false, 0.6)
   }
 
@@ -199,7 +199,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     if (entities.includes('apply') || entities.includes('login')) {
       return hit(entities.includes('login') ? 'portal-login' : 'how-to-apply', 'Multi-issue paste, apply/login first', entities.includes('login') ? 'applying' : 'preparing', ['multi-issue'], entities, false, 0.5)
     }
-    return hit('current-information', 'Multi-issue paste, offer menu', 'exploring', ['guidance', 'multi-issue'], entities, false, 0.48)
+    return hit('official-sources', 'Multi-issue paste, offer menu', 'exploring', ['guidance', 'multi-issue'], entities, false, 0.48)
   }
 
   const vagueHelp =
@@ -207,14 +207,14 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     /^(help|abeg|please|pls|assist|guide|i\s*need\s*help|help\s*me|wetin|wahala|this\s*thing|make\s*una\s*help|i\s*no\s*sabi|what\s*next|reply|are\s*you\s*there)[.!? ]*$/i.test(text) ||
     /help\s*me|i\s*need\s*(help|assistance)|una\s*fit\s*help|abeg\s*help|guide\s*me|this\s*nelfund\s*thing/i.test(text)
   if (vagueHelp) {
-    return hit('current-information', 'Vague help, offer official menu', 'exploring', ['guidance'], entities, false, 0.46)
+    return hit('official-sources', 'Vague help, offer official menu', 'exploring', ['guidance'], entities, false, 0.46)
   }
   if (entities.includes('portal') && /dashboard|total\s*loans|signed\s*in/i.test(text)) {
-    return hit('current-information', 'Portal dashboard paste', 'waiting', ['portal'], entities, false, 0.5)
+    return hit('pending-application', 'Portal dashboard paste', 'waiting', ['portal'], entities, false, 0.5)
   }
 
   if (entities.includes('error') || /[a-zA-Z]{3,}/.test(text)) {
-    return hit('current-information', 'General NELFUND guidance menu', 'exploring', ['guidance'], entities, false, 0.45)
+    return hit('official-sources', 'General NELFUND guidance menu', 'exploring', ['guidance'], entities, false, 0.45)
   }
 
   return hit('official-sources', 'Official NELFUND links', 'exploring', ['official'], entities, false, 0.42)
