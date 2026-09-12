@@ -25,7 +25,7 @@ export interface AnalyticsEventPayload {
   /** ISO timestamp from client */
   ts?: string
   path?: string
-  /** Coarse intent id only — never free-text questions */
+  /** Coarse intent id only, never free-text questions */
   intent?: string
   /** Institution id from local selector (not free-text PII) */
   institutionId?: string
@@ -35,7 +35,7 @@ export interface AnalyticsEventPayload {
   unresolved?: boolean
   /** true when image OCR/analysis ran */
   hasImage?: boolean
-  /** Coarse unknown-topic bucket only — never free-text questions */
+  /** Coarse unknown-topic bucket only, never free-text questions */
   topic?: string
   meta?: Record<string, string | number | boolean | null>
 }

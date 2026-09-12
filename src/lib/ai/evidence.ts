@@ -1,6 +1,6 @@
 /**
  * Evidence-layer metadata for NELFUND AI.
- * Knowledge is not the brain — it is scored, dated, attributable evidence.
+ * Knowledge is not the brain, it is scored, dated, attributable evidence.
  */
 
 export type SourceAuthority = 'official' | 'curated' | 'institutional' | 'derived' | 'unknown'
