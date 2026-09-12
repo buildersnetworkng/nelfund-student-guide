@@ -116,7 +116,7 @@ function interpretOpenState(data: LiveStatus): {
 }
 
 function isIsOpenQuestion(q?: string): boolean {
-  return /\b(is\s+(nelfund|it|the\s*portal|application)\s+open|still\s+open|still\s+accept|can\s+i\s+(still\s+)?apply|is\s+application\s+open|loan\s+window|application\s+window|dem\s+still\s+dey\s+(collect|open)|nelfund\s+dey\s+open)\b/i.test(
+  return /\b(is\s+(nelfund|it|the\s*portal|application)\s+open|still\s+open|still\s+accept|can\s+i\s+(still\s+)?apply|is\s+application\s+open|loan\s+window|application\s+window|dem\s+still\s+dey\s+(collect|open)|nelfund\s+dey\s+open|dem\s+don\s+close|una\s+don\s+close)\b/i.test(
     q || '',
   )
 }
@@ -263,7 +263,7 @@ export function questionNeedsCurrentLive(text: string): boolean {
   if (/\b(my\s+)?(application|loan)\s+status\b|check\s+(my\s+)?status|\bpending\b|under\s*review/i.test(q) && !/is\s+(nelfund|it|portal|application)\s+(still\s+)?open/i.test(q)) {
     return false
   }
-  return /\b(is\s+(nelfund|it|the\s*portal|application|loan)\s+(currently\s+)?open|still\s+open|still\s+accept|still\s+dey\s+(open|accept|collect)|dem\s+still\s+dey\s+(collect|accept|open)|deadline|closing\s+date|opening\s+date|when\s+(can|do|will)\s+.{0,20}(apply|open|close)|application\s*(window|period)|loan\s*window|latest\s+(update|news)|current\s+(status|information|update)|as\s+of\s+today|any\s+official\s+update|news\s+about\s+nelfund)\b/i.test(
+  return /\b(is\s+(nelfund|it|the\s*portal|application|loan)\s+(currently\s+)?open|still\s+open|still\s+accept|still\s+dey\s+(open|accept|collect)|dem\s+still\s+dey\s+(collect|accept|open)|dem\s+don\s+close|una\s+don\s+close|deadline|closing\s+date|opening\s+date|when\s+(can|do|will)\s+.{0,20}(apply|open|close)|application\s*(window|period)|loan\s*window|latest\s+(update|news)|current\s+(status|information|update)|as\s+of\s+today|any\s+official\s+update|news\s+about\s+nelfund)\b/i.test(
     q,
   )
 }
