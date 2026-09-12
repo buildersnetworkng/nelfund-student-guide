@@ -71,6 +71,8 @@ type SlotPayload = {
 
 type Body = {
   messages?: { role: 'user' | 'assistant'; content?: string; text?: string }[]
+  question?: string
+  text?: string
   institutionId?: string | null
   institutionName?: string | null
   ocrText?: string | null
@@ -195,7 +197,8 @@ async function runTool(name: string, argsJson: string): Promise<string> {
   return 'Unknown tool'
 }
 
-const PURPOSE_LIVE = /what\s*(is|are)\s*(the\s+)?(purpose|aim|point|goal|meaning|reason).{0,40}(nelfund|loan|scheme)|what\s*is\s*(this\s+)?nelfund|wetin\s*(be|mean)\s*(this\s+)?(nelfund|loan|scheme)|why\s+.{0,48}(nelfund|this\s+loan|dis\s+loan|scheme).{0,24}(creat|establish|start|form|set\s*up|bring|make|exist)|why\s+(dem|they|una|fg|government).{0,20}(create|make|start|bring|form)\s+(nelfund|am|it|this\s+loan)|why\s+nelfund|purpose\s+of\s+(nelfund|the\s+(student\s+)?loan)|nelfund\s+(purpose|mission|aim|meaning)|who\s+(created|established|started|signed|bring)\s+nelfund|how\s+come\s+.{0,28}(nelfund|this\s+loan)|reason\s+(for|behind)\s+.{0,24}nelfund|nelfund\s+for\s+wetin|student\s+loans?\s+act|wetin\s+be\s+(nelfund|dis\s+loan)/i
+const PURPOSE_LIVE =
+  /what\s*(is|are)\s*(the\s+)?(purpose|aim|point|goal|meaning|reason|use).{0,40}(nelfund|loan|scheme)|what\s*is\s*(this\s+)?nelfund|wetin\s*(be|mean)\s*(this\s+)?(nelfund|loan|scheme)|why\s+.{0,48}(nelfund|this\s+loan|dis\s+loan|scheme).{0,24}(creat|establish|start|form|set\s*up|bring|make|exist)|why\s+(dem|they|una|fg|government|e).{0,24}(create|make|start|bring|form|introduce|set\s*up)|why\s+nelfund|purpose\s+of\s+(nelfund|the\s+(student\s+)?loan)|nelfund\s+(purpose|mission|aim|meaning|stand\s+for)|who\s+(created|established|started|signed|bring|start)\s+nelfund|how\s+come\s+.{0,28}(nelfund|this\s+loan)|reason\s+(for|behind)\s+.{0,24}nelfund|nelfund\s+for\s+wetin|nelfund\s+dey\s+for\s+wetin|student\s+loans?\s+act|wetin\s+be\s+(nelfund|dis\s+loan|the\s+point|the\s+use)|what\s+problem\s+.{0,20}nelfund|why\s+(this|dis)\s+(student\s+)?loan|wetin\s+una\s+dey\s+try\s+do|all\s+about\s+nelfund|what\s+is\s+nelfund\s+all\s+about|why\s+e\s+dey|why\s+e\s+exist/i
 const LIVE_ONLY = /is\s+(nelfund|it|portal|application|loan)\s+(still\s+)?(open|closed)|deadline|as\s+of\s+today|still\s+accept|can\s+i\s+still\s+apply|closing\s+date|opening\s+date|loan\s*window/i
 
 function lastUserText(messages: { role: string; content?: string; text?: string }[]): string {
@@ -233,6 +236,19 @@ function purposePlaybook(): string {
   return `**Why NELFUND was created:** to remove financial barriers so eligible students in **public** tertiary institutions can access higher education without paying school charges upfront.\n\n**What it is:** the Nigeria Education Loan Fund: **interest-free** loans for **institutional charges** (paid to the school) and optional **monthly upkeep** (paid to the student), under the Students Loans (Access to Higher Education) Act.\n\nIt is a **loan**, not a scholarship. Official FAQ: repayment starts **2 years after NYSC** (10% of salary / profit).\n\nOfficial site: ${SITE} · Apply: ${PORTAL} · FAQ: ${FAQ_PAGE}`
 }
 
+function isPurposeHit(latestUser: string): boolean {
+  if (!latestUser.trim()) return false
+  if (LIVE_ONLY.test(latestUser) && !/why|purpose|wetin|what\s*is|meaning|created|create|exist|aim/i.test(latestUser)) {
+    return false
+  }
+  return (
+    PURPOSE_LIVE.test(latestUser) ||
+    /why\s+(was|is|dem|they|una|e).{0,40}nelfund|wetin\s+be\s+(this\s+)?nelfund|what\s+is\s+nelfund|why\s+dem\s+create|why\s+they\s+create/i.test(
+      latestUser,
+    )
+  )
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -249,13 +265,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const incoming = Array.isArray(body.messages) ? body.messages.slice(-16) : []
+  const looseQ = (body.question || body.text || '').trim()
+  if (!incoming.length && looseQ) {
+    incoming.push({ role: 'user', content: looseQ })
+  }
   if (!incoming.length) return res.status(400).json({ error: 'messages required' })
 
-  const latestUser = lastUserText(incoming)
-  const purposeHit =
-    PURPOSE_LIVE.test(latestUser) ||
-    /why\s+(was|is|dem|they|una).{0,40}nelfund|wetin\s+be\s+(this\s+)?nelfund|what\s+is\s+nelfund/i.test(latestUser)
-  if (purposeHit && !LIVE_ONLY.test(latestUser)) {
+  const latestUser = lastUserText(incoming) || looseQ
+  const purposeHit = isPurposeHit(latestUser)
+  if (purposeHit) {
     return res.status(200).json({
       reply: purposePlaybook(),
       mode: 'llm-agent',
@@ -383,9 +401,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       if (!r.ok) {
         return res.status(200).json({
-          reply: purposeHit
-            ? purposePlaybook()
-            : `I can still help with NELFUND without inventing dates.\n\n• Purpose / what it is\n• How to apply: ${PORTAL}\n• Login: ${SITE}\n• Pending / JAMB / missing school\n• Support: ${ESUPPORT}\n\nAsk in English or Pidgin. Official pages only.`,
+          reply: `I can still help with NELFUND without inventing dates.\n\n• Purpose / what it is\n• How to apply: ${PORTAL}\n• Login: ${SITE}\n• Pending / JAMB / missing school\n• Support: ${ESUPPORT}\n\nAsk in English or Pidgin. Official pages only.`,
           mode: 'llm-agent',
           provider: 'playbook-llm-fallback',
           latencyMs: Date.now() - started,
@@ -427,7 +443,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       provider: cfg.provider,
       latencyMs: Date.now() - started,
     })
-  } catch (e) {
+  } catch {
     return res.status(200).json({
       reply: `I can still help with NELFUND without inventing dates.\nPortal: ${PORTAL} · Site: ${SITE} · Ticket: ${ESUPPORT}`,
       mode: 'llm-agent',
