@@ -75,6 +75,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'upkeep') {
+    if (/how\s*much|amount|wetin\s*(dem|they)\s*dey\s*(pay|give)|20,?000/i.test(t)) {
+      return `**How much:** this guide's currently confirmed upkeep figure is **₦20,000 per month**, paid to you only if you applied for upkeep.\n\nTreat other figures on WhatsApp as unconfirmed. Institutional charges (school fees) are a different amount paid **to the school**, not to you.\n\nLive amount and pay date: ${PORTAL} · FAQ: ${FAQ}. I will not invent a new official figure.`
+    }
     return `**Upkeep** is the monthly living allowance paid **to you** if you applied for it.\n\nIt is separate from school fees (paid to the school). Official FAQ: apply for institutional charges and upkeep in the same registration session.\n\nAmounts and payment dates only on ${PORTAL}. FAQ: ${FAQ}`
   }
 
