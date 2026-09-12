@@ -5,6 +5,7 @@ import {
   createInitialSlots,
   extractTextFromImage,
   disposeOcrWorker,
+  classifyIntent,
 } from '../lib/ai'
 import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai'
 import { useInstitution, OTHER_INSTITUTION } from '../context/InstitutionContext'
@@ -94,10 +95,13 @@ export default function Ask() {
       const nextSlots = result.slots
       const assistantWithAnswer = result.messages.find((m) => m.role === 'assistant' && m.answer)
       const intentRaw = assistantWithAnswer?.answer?.intent || nextSlots.intent || null
+      const classified = classifyIntent(text || ocrText || '', hist).intent
       const intent =
         intentRaw && intentRaw !== 'unknown' && !String(intentRaw).endsWith(':unknown')
           ? intentRaw
-          : 'unknown'
+          : classified && classified !== 'unknown'
+            ? classified
+            : 'official-sources'
       const answer = assistantWithAnswer?.answer
       const unresolved =
         !answer || (answer.clarifyingQuestions?.length ?? 0) > 0 || !result.diagnosed
