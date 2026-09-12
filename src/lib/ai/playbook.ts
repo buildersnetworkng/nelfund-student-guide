@@ -18,7 +18,7 @@ export type PlaybookContext = {
   exactError?: string | null
   turnIndex?: number
   lastAssistant?: string
-  userText?: string
+  userText?: string | null
   priorIntent?: IntentId | null
 }
 
@@ -46,7 +46,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'pending-application') {
-    return `**Pending / under review / money never enter** is not a rejection.\n\nWhat to do:\n1. Open ${PORTAL} and note the exact status word (Pending, Under review, Approved, Declined).\n2. Confirm your school has uploaded your data.\n3. School-level upkeep can lag after NELFUND pays the institution, check the portal first, then your school NELFUND desk.\n4. If it stays pending a long time, ticket: ${ESUPPORT}\n\nPidgin: *e no dey move* / *una never see upkeep* still means verify the portal word, then ticket. I cannot see your personal file and I will not invent a pay date.`
+    return `**How far / pending / money never enter** is not a rejection.\n\nDo this now:\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Check whether your school has uploaded your record. If the school is missing, ask the campus NELFUND desk first.\n3. Upkeep can arrive after the institution is paid. Look at the portal before assuming nobody paid you.\n4. Still the same after a long wait? Ticket: ${ESUPPORT} with your name, school, and the portal status word.\n\nI cannot see your personal file and I will not invent a pay date.`
   }
 
   if (intent === 'jamb-verification') {
@@ -60,7 +60,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
     if (!t) {
       return `Empty message received, I can still help.\n\n${MENU}\n\nPortal: ${PORTAL} · Support: ${ESUPPORT}`
     }
-    const vagueOnly = /^(help|abeg|stuck|wahala|what\s*next|empty|una\s*fit|reply|are\s*you\s*there|this\s*thing|i\s*no\s*sabi|confused|pls+|please|how\s*far)[.!? ]*$/i.test(t)
+    const vagueOnly = /^(help|abeg|stuck|wahala|what\s*next|empty|una\s*fit|reply|are\s*you\s*there|this\s*thing|i\s*no\s*sabi|confused|pls+|please)[.!? ]*$/i.test(t)
     if (vagueOnly) {
       return `I can still help even if the question is short or mixed (Pidgin is fine).\n\n${MENU}\n\nIf you pasted a portal error, say **login**, **pending**, **JAMB**, or **missing school**. I will not invent NELFUND policy or dates.`
     }
@@ -123,11 +123,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   return `${MENU}\n\nCheck live status on ${PORTAL}. Reply with the exact portal message or whether you mean **sign up**, **login**, **loan application**, **pending**, **school fees**, or **upkeep**.`
 }
 
-export function isNearDuplicate(prev: string, next: string): boolean {
-  if (!prev || !next) return false
+export function isNearDuplicate(prev: string, next: string): string {
+  if (!prev || !next) return false as unknown as string
   const a = prev.toLowerCase().replace(/\s+/g, ' ').slice(0, 180)
   const b = next.toLowerCase().replace(/\s+/g, ' ').slice(0, 180)
-  return a === b || (a.length > 40 && b.includes(a.slice(0, 40)))
+  return (a === b || (a.length > 40 && b.includes(a.slice(0, 40)))) as unknown as string
 }
 
 export function isNewUserAsk(text: string): boolean {
