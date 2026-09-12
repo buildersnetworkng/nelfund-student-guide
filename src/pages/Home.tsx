@@ -102,7 +102,7 @@ export default function Home() {
             Ask questions, capture portal errors, and find relevant support contacts.
           </p>
 
-          <div className="slide-up mt-8 flex flex-wrap gap-3">
+          <div className="slide-up mt-8 flex flex-wrap items-center gap-3">
             <Link to="/ask" className="btn-gold shadow-md hover:shadow-lg">
               Ask support
             </Link>
@@ -114,6 +114,9 @@ export default function Home() {
             </Link>
             <ShareGuide variant="hero" />
           </div>
+          <p className="slide-up mt-3 text-xs text-white/55">
+            Pass the guide to a classmate on WhatsApp, Telegram, or SMS.
+          </p>
 
           <div className="slide-up mt-6 flex flex-wrap gap-2">
             {PROBLEM_SHORTCUTS.map((p) => (
