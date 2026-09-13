@@ -106,8 +106,11 @@ export default function MobileNav() {
             </NavLink>
           </li>
         ))}
-        <li className="flex items-center justify-center">
-          <ShareGuide variant="tab" />
+        <li className="flex items-center justify-center px-0.5">
+          <ShareGuide
+            variant="icon"
+            className="!h-auto !min-h-[44px] !flex-col !rounded-xl !border-gold-500/50 !bg-gold-500/20 !px-1.5 !py-1 !shadow-none !text-forest-800"
+          />
         </li>
       </ul>
     </nav>
