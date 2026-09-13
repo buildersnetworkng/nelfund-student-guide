@@ -7,6 +7,8 @@ import {
   type LiveApplicationStatus,
 } from '../lib/knowledge/client'
 import type { ApplicationCycleStatus } from '../lib/types'
+import { stripLongDashes } from '../lib/copyHygiene'
+import ShareGuide from './ShareGuide'
 
 const STATUS_DOT: Record<ApplicationCycleStatus, string> = {
   not_announced: 'bg-ink/30',
@@ -14,10 +16,6 @@ const STATUS_DOT: Record<ApplicationCycleStatus, string> = {
   closed: 'bg-rust-500',
   extended: 'bg-gold-300',
   pending_verification: 'bg-gold-300',
-}
-
-function stripLongDashes(s: string) {
-  return s.replace(/[\u2010-\u2015\u2212]/g, '-')
 }
 
 function toView(s: LiveApplicationStatus | typeof staticStatus) {
@@ -179,6 +177,10 @@ export default function StatusCard() {
         >
           Sign up / apply
         </a>
+        <ShareGuide
+          variant="button"
+          className="!min-h-[36px] !border-white/20 !bg-white/10 !px-3 !py-1.5 !text-xs !text-paper !shadow-none hover:!bg-white/15"
+        />
       </div>
     </div>
   )
