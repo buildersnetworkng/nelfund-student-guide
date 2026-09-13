@@ -49,6 +49,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
     if (/\b(approv(ed|al)|successful)\b/i.test(t) && /(no|never|not|nothing|no\s*see|no\s*alert).{0,30}(money|upkeep|alert|pay|enter|drop)|but\s*(no|never|nothing)/i.test(t)) {
       return `**Approved / successful on the portal does not mean upkeep is already in your bank.**\n\n1. Open ${PORTAL} and copy the exact status word plus whether **institutional charges** show paid to the school.\n2. School fees go to the **institution first**. Upkeep (only if you ticked it in the same session) can arrive later.\n3. Confirm the account number on the profile is a real bank account, not a wallet.\n4. I will not invent a pay date. Same status for a long time? Ticket ${ESUPPORT} with name, school, and that status word.`
     }
+    if (/institution(al)?\s*(fee|charge)|school\s*(don|has|have)\s*(receive|collect|get)|paid\s*to\s*(the\s*)?school/i.test(t)) {
+      return `**School paid, you still waiting** is still a status question.\n\n1. Institutional charges go **to the school first**. That is not the same as upkeep in your account.\n2. Open ${PORTAL} and copy the exact status word plus whether upkeep is listed.\n3. Upkeep only if you ticked it in the **same** registration session.\n4. I will not invent when your alert will drop. Long same-word wait: ticket ${ESUPPORT}.`
+    }
     if (/how\s*(do\s*i|i\s*go|can\s*i)\s*(know|confirm|see)/i.test(t)) {
       return `**How to confirm payment or approval**\n\n1. Only ${PORTAL} shows *your* status word (Pending, Under review, Approved, Declined).\n2. Institutional charges paid = money to the **school**, not always an alert to you.\n3. Upkeep alert comes to the account on your profile, and only if you applied for upkeep.\n4. I cannot see your file. Long wait on the same word: ticket ${ESUPPORT}.`
     }
@@ -111,6 +114,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
 
   if (intent === 'missing-information' || intent === 'school-not-found') {
     const school = ctx.institutionName ? ` You mentioned **${ctx.institutionName}**.` : ''
+    if (/^(unilag|lasu|oou|yabatech|unilorin|uniben|oau|unijos|noun|futo|futa|abu|my\s*school)[.!? ]*$/i.test(t)) {
+      return `School name noted.${school}\n\nIf the portal says **missing information** or the school is not on the list:\n1. Confirm it is a **public** institution on the NELFUND list.\n2. Ask the campus NELFUND desk whether your record is uploaded.\n3. Retry ${PORTAL}. Still missing? Ticket ${ESUPPORT}.\n\nIf you meant how to apply instead, say **sign up** or **next step**.`
+    }
     return `**Missing information / school not on the list** usually means the institution has not finished uploading your record, or the name does not match NELFUND's public-institution list.${school}\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. Retry on ${PORTAL}. If the school still does not appear, ticket: ${ESUPPORT}\n\nPrivate institutions are not in the current public-institution scheme described on nelf.gov.ng.`
   }
 
@@ -142,6 +148,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'documents-needed') {
+    if (/bank|account\s*number|wrong\s*account|update\s*(my\s*)?(bank|account|profile)/i.test(t)) {
+      return `**Bank / profile details**\n\n1. Sign **in** at ${SITE} (do not create a second account).\n2. Open profile and correct the bank account used for upkeep. Use a real bank account, not a wallet, if the portal asks for one.\n3. Do **not** send account numbers, BVN, or NIN in this chat.\n4. If the portal will not save the change, ticket ${ESUPPORT} with a screenshot of the error only.\n\nPortal: ${PORTAL} · FAQ: ${FAQ}`
+    }
     return `**Typical portal profile items** (confirm live on the portal):\n• NIN and BVN\n• JAMB registration number\n• Admission / matric details\n• Bank account for upkeep if you apply for it.\n\nExact document list can change, use ${PORTAL} and FAQ: ${FAQ}. Do not email BVN/NIN to strangers.`
   }
 

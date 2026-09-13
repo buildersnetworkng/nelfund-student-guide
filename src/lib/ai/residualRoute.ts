@@ -12,7 +12,7 @@ export function detectEntities(q: string): string[] {
     [/upkeep|monthly\s*allowance|stipend|20,?000/i, 'upkeep'],
     [/school\s*fees?|institutional\s*charges|tuition/i, 'fees'],
     [/repay|gsi|pay\s*back|scholarship|after\s*nysc/i, 'repayment'],
-    [/missing\s*info|school\s*not|not\s*on\s*(the\s*)?list|institution\s*not/i, 'school'],
+    [/missing\s*info|school\s*not|not\s*on\s*(the\s*)?list|institution\s*not|unilag|lasu|\boou\b|yabatech|unilorin|my\s*school/i, 'school'],
     [/admission\s*letter|matric|documents?\s*need|requirements?/i, 'documents'],
     [/help|abeg|assist|guide|stuck|wahala/i, 'help'],
     [/portal|dashboard|nelf\.gov|nelfund/i, 'portal'],
@@ -79,7 +79,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('official-sources', 'Greeting, offer menu', 'exploring', ['greeting', 'guidance'], entities, false, 0.65)
   }
 
-  if (/how\s*far|pending|under\s*review|money\s*never|never\s*(see|enter|collect|receive|pay|send)|i\s*don\s*apply|already\s*appl|money\s*no\s*drop|no\s*alert|no\s*credit|alert\s*(no|not|never)|still\s*waiting|dem\s*never\s*(pay|send)|una\s*never\s*pay|next\s*batch|second\s*batch|declin|reject(ed|ion)|unsuccessful|check\s*(my\s*)?(loan|application|status)|when\s*(will|go)\s*(they|dem|una)\s*(pay|send)|application\s*(no|not)\s*move/i.test(text) && !liveishOpen(text)) {
+  if (/how\s*far|pending|under\s*review|money\s*never|never\s*(see|enter|collect|receive|pay|send)|i\s*don\s*apply|already\s*appl|money\s*no\s*drop|no\s*alert|no\s*credit|alert\s*(no|not|never)|still\s*waiting|dem\s*never\s*(pay|send)|una\s*never\s*pay|next\s*batch|second\s*batch|declin|reject(ed|ion)|unsuccessful|check\s*(my\s*)?(loan|application|status)|when\s*(will|go)\s*(they|dem|una)\s*(pay|send)|application\s*(no|not)\s*move|approv(ed|al).{0,40}(no|never|not).{0,20}(money|alert|upkeep|enter)/i.test(text) && !liveishOpen(text)) {
     return hit('pending-application', 'Pending / declined / wait', 'waiting', ['pending-status', 'pending'], entities, true, 0.72)
   }
   if (/\bjamb\b|utme|invalid\s*format|verification\s*fail|wrong\s*jamb/i.test(text)) {
@@ -88,9 +88,12 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (liveishOpen(text) || /deadline|closing\s+date|nelfund\s+(open|close)|dem\s+don\s+close|can\s+i\s+still\s+apply/i.test(text)) {
     return hit('current-information', 'Open status / is NELFUND open', 'exploring', ['open-status', 'current'], entities, false, 0.72)
   }
-  if (/\brepay|repayment|pay\s*back|after\s*nysc|gsi\b|scholarship|grant/i.test(text)) {
-    if (/scholarship|grant|free\s*money/i.test(text)) {
+  if (/\brepay|repayment|pay\s*back|after\s*nysc|gsi\b|scholarship|grant|free\s*money|interest[\s-]*free|na\s+(loan|scholarship)|is\s+(nelfund|it|this)\s+(a\s+)?(loan|scholarship|grant)/i.test(text)) {
+    if (/scholarship|grant|free\s*money|is\s+(nelfund|it|this)\s+(a\s+)?(loan|scholarship)/i.test(text)) {
       return hit('loan-or-scholarship', 'Loan vs scholarship', 'exploring', ['loan'], entities, false, 0.7)
+    }
+    if (/interest[\s-]*free/i.test(text)) {
+      return hit('what-is-nelfund', 'Interest-free loan purpose', 'exploring', ['what is', 'purpose'], entities, false, 0.7)
     }
     return hit('repayment', 'Repayment rules', 'repaying', ['repayment'], entities, false, 0.7)
   }
@@ -109,13 +112,22 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (/upkeep|monthly\s*allowance|20,?000|hostel|feeding|living\s*money/i.test(text) && !liveishOpen(text)) {
     return hit('upkeep', 'Upkeep allowance', 'exploring', ['upkeep'], entities, false, 0.7)
   }
-  if (/missing\s*information|school\s*not|not\s*on\s*(the\s*)?list|transfer\s*student|change\s*(of\s*)?(course|school)/i.test(text) || entities.includes('school')) {
+  if (/institution(al)?\s*(fee|charge|pay).{0,28}(paid|pay|done)|school\s*(don|has|have)\s*(receive|collect|get)|pay(ment)?\s*(to\s*)?(my\s*)?school.{0,24}(me|upkeep|alert|student)/i.test(text)) {
+    return hit('pending-application', 'School paid, student still waiting', 'waiting', ['pending-status', 'disbursement'], entities, true, 0.7)
+  }
+  if (/change\s*(my\s*)?(bank|account)|wrong\s*(bank\s*)?account|update\s*(my\s*)?(bank|account|profile)|account\s*number\s*(no|not|wrong)/i.test(text)) {
+    return hit('documents-needed', 'Bank / profile update', 'preparing', ['documents', 'bank'], entities, true, 0.7)
+  }
+  if (/^(unilag|lasu|oou|yabatech|unilorin|uniben|oau|unijos|noun|futo|futa|abu|my\s*school)[.!? ]*$/i.test(text)) {
+    return hit('missing-information', 'School name only', 'applying', ['school-list', 'school'], entities, true, 0.62)
+  }
+  if (/missing\s*information|school\s*not|not\s*on\s*(the\s*)?list|transfer\s*student|change\s*(of\s*)?(course|school)|school\s*(no|not|never)\s*(upload|show)|dem\s*never\s*upload/i.test(text) || entities.includes('school')) {
     return hit('missing-information', 'School / missing information', 'applying', ['missing-info', 'school'], entities, true, 0.68)
   }
   if (/(name|details?).{0,24}(no|not|never)\s*(match|gree)|mismatch|\bbvn\b|\bnin\b/i.test(text) && !/\bjamb\b/i.test(text)) {
     return hit('documents-needed', 'Documents / mismatch', 'preparing', ['documents'], entities, true, 0.7)
   }
-  if (/private\s*(uni|university)|part[\s-]*time|\bnoun\b|masters?\b|\bphd\b|foreign\s*student|not\s*a\s*nigerian|400\s*level|final\s*year|who\s*can\s*apply|eligib/i.test(text)) {
+  if (/private\s*(uni|university)|part[\s-]*time|\bnoun\b|masters?\b|\bphd\b|foreign\s*student|not\s*a\s*nigerian|400\s*level|final\s*year|who\s*can\s*apply|eligib|vocational|nursing\s*student/i.test(text)) {
     return hit('eligibility', 'Eligibility', 'exploring', ['eligibility'], entities, false, 0.7)
   }
   if (/\b(scam|fake\s*agent|whatsapp\s*agent)\b/i.test(text)) {
