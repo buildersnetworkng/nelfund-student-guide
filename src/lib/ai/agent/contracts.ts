@@ -84,7 +84,7 @@ export interface ToolResult {
   callId: string
   name: ToolName
   status: ToolResultStatus
-  /** Structured evidence for the model — not a final user answer */
+  /** Structured evidence for the model, not a final user answer */
   data: Record<string, unknown>
   evidenceIds?: string[]
   warnings?: string[]

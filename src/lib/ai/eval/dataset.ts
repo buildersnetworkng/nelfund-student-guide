@@ -1,5 +1,5 @@
 /**
- * Agent evaluation dataset — architecture expectations, not FAQ answers.
+ * Agent evaluation dataset: architecture expectations, not FAQ answers.
  */
 
 import type { AgentObjective, ToolName } from '../agent/contracts'

@@ -30,7 +30,7 @@ export type AgentSlotsPayload = {
   phase?: string | null
 }
 
-/** Optional health check — not used for UI banners. */
+/** Optional health check, not used for UI banners. */
 export async function checkAgentStatus(): Promise<{
   agent: 'ready' | 'unconfigured'
   mode: string
