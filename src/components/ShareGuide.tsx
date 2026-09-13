@@ -266,7 +266,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
         className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition duration-150 hover:border-white/50 hover:bg-white/15 active:scale-[0.98] ${nudge} ${className}`}
       >
         <ShareIcon className="opacity-90" />
-        Share guide
+        Share with a classmate
       </button>
     ) : (
       <button
