@@ -14,3 +14,244 @@ export const PURPOSE_RE =
 export function liveOpenRe(): RegExp {
   return /is\s+(nelfund|it|portal|application|loan)\s+(still\s+)?(open|dey\s+open|closed)|deadline|as\s+of\s+today|still\s+accept|can\s+i\s+still\s+apply|dem\s+still\s+dey\s+(collect|accept|open)|una\s+still\s+dey\s+(collect|open|accept)|nelfund\s+dey\s+(still\s+)?open|portal\s+(still\s+)?(dey\s+)?open|application\s+dey\s+open|closing\s+date|opening\s+date|open\s*status|loan\s*window|nelfund\s+(still\s+)?(open|closed)|application\s+(still\s+)?open|dem\s+don\s+close\s+(nelfund|am|portal)|una\s+don\s+close|when\s*(will|go)\s*(nelfund|the\s+portal|the\s+loan)\s*(open|start|begin|reopen)|nelfund\s+open\s+(now|today)/i
 }
+
+/** Last user utterance only — never classify from concatenated history. */
+export function lastUtterance(text: string): string {
+  const q = (text || '').trim()
+  if (!q) return ''
+  const parts = q.split(/\n+/).map((s) => s.trim()).filter(Boolean)
+  return parts[parts.length - 1] || q
+}
+
+const PURPOSE_PHRASES = [
+  'why was nelfund created',
+  'why is nelfund created',
+  'why they create nelfund',
+  'why they created nelfund',
+  'why they introduce nelfund',
+  'why e dey exist',
+  'wetin be the point of nelfund',
+  'what is nelfund meant for',
+  'what is nelfund meant to do',
+  'why nigeria start student loan',
+  'why e exist',
+  'why una start am',
+  'why una bring am',
+  'wetin una dey try do',
+  'what problem nelfund dey solve',
+  'what problem does nelfund solve',
+  'why they set up nelfund',
+  'why fg set up nelfund',
+  'why government set up nelfund',
+  'what is nelfund all about',
+  'all about nelfund',
+  'why we get nelfund',
+  'wetin nelfund stand for',
+  'what nelfund stand for',
+  'why this fund dey',
+  'why this fund exist',
+  'nelfund na wetin exactly',
+  'what is nigeria education loan fund',
+  'why this nelfund dey',
+  'why una create am',
+  'what is the reason for nelfund',
+  'why dem set up nelfund',
+  'why government start student loan',
+  'reason dem start nelfund',
+  'why student loan scheme',
+  'why they introduced nelfund',
+  'wetin una create nelfund for',
+  'nelfund stand for wetin',
+  'wetin be nigeria education loan fund',
+  'purpose dem create nelfund',
+  'why e take dem create nelfund',
+  'why e take them create nelfund',
+  'why e take una start nelfund',
+  'wetin make una create nelfund',
+  'wetin make nelfund',
+  'na why nelfund',
+  'what nelfund is',
+  'why nelfund start',
+  'wetin be dis loan',
+  'why dem create nelfund',
+  'why dem take create nelfund',
+  'why dem form nelfund',
+  'why dem bring nelfund',
+  'why una create nelfund',
+  'why they form nelfund',
+  'why they bring nelfund',
+  'why nelfund was created',
+  'why nelfund exist',
+  'why nelfund dey',
+  'wetin be nelfund',
+  'wetin be this nelfund',
+  'wetin be dis nelfund',
+  'wetin nelfund dey do',
+  'na wetin nelfund dey do',
+  'what is nelfund',
+  'what is this nelfund',
+  'what is the student loan',
+  'what does nelfund do',
+  'purpose of nelfund',
+  'reason for nelfund',
+  'nelfund meaning',
+  'what nelfund mean',
+  'tell me about nelfund',
+  'explain nelfund',
+  'why this student loan',
+  'why this scheme',
+  'who created nelfund',
+  'how nelfund come about',
+  'nelfund na wetin',
+  'na wetin nelfund',
+]
+
+export function isPurposeAsk(text: string): boolean {
+  const q = lastUtterance(text)
+  if (!q.trim()) return false
+  const compact = q.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+  const statusish = /\b(pending|under\s*review|missing\s*information|invalid\s*jamb|deadline|still\s+open|still\s+accept|how\s+far\s+(my|with))\b/i.test(q)
+  if (liveOpenRe().test(q) && !/why|purpose|wetin|what\s*is|meaning|created|create|establish|mission|aim|introduce|exist/i.test(q)) {
+    return false
+  }
+  if (statusish && !/purpose|created|establish|wetin\s+be\s+(nelfund|dis|this)|what\s+is\s+nelfund|origin|mission|aim\s+of/i.test(q)) {
+    return false
+  }
+  if (PURPOSE_PHRASES.some((p) => compact.includes(p) || compact === p)) {
+    return true
+  }
+  if (PURPOSE_RE.test(q)) return true
+  if (
+    /\b(why|wetin|purpose|meaning|aim|mission|reason|explain)\b/i.test(q) &&
+    /\b(nelfund|student\s+loan|dis\s+loan|this\s+loan|this\s+scheme|education\s+loan)\b/i.test(q) &&
+    !liveOpenRe().test(q) &&
+    !/\b(pending|missing|jamb|apply|login|upkeep|fees|deadline|open)\b/i.test(q)
+  ) {
+    return true
+  }
+  if (
+    /\bnelfund\b/i.test(q) &&
+    /\b(why|wetin|purpose|meaning|na\s+wetin|for\s+wetin)\b/i.test(q) &&
+    !liveOpenRe().test(q) &&
+    !/\b(pending|missing|jamb|deadline|still\s+open)\b/i.test(q)
+  ) {
+    return true
+  }
+  return false
+}
+
+function isContrastFeesUpkeep(q: string): boolean {
+  const fees = /school\s*fees|institutional\s*charges|tuition|school\s*money/i.test(q)
+  const upkeep = /\bupkeep\b|monthly\s*allowance|stipend|20,?000/i.test(q)
+  const contrast = /\bvs\b|versus|difference|between|or\s+the\s+|and\s+upkeep|upkeep\s+and|fees\s+and/i.test(q)
+  return fees && upkeep && contrast
+}
+
+function isContrastLoginSignup(q: string): boolean {
+  const login = /(\blogin\b|log\s*in|sign\s*in)/i.test(q)
+  const signup = /sign\s*up|create\s*(an?\s*)?account|register/i.test(q)
+  const contrast = /\bvs\b|versus|difference|between|or\s+|and\s+/i.test(q)
+  return login && signup && contrast
+}
+
+export function classifyIntent(question: string, history?: ConversationTurn[]): IntentResult {
+  const raw = lastUtterance(question || '')
+  const q = expandWithContext(question, history).trim()
+  const entities = detectEntities(raw || q)
+
+  if (isPurposeAsk(raw) || (PURPOSE_RE.test(raw) && !liveOpenRe().test(raw))) {
+    return { intent: 'what-is-nelfund', confidence: 0.94, topics: ['what is', 'purpose'], problem: 'What NELFUND is / why it was created', stage: 'exploring', entities, isTroubleshooting: false }
+  }
+
+  if (isContrastFeesUpkeep(raw) || isContrastFeesUpkeep(q)) {
+    return { intent: 'school-fees', confidence: 0.91, topics: ['fees', 'upkeep', 'contrast'], problem: 'School fees vs upkeep', stage: 'exploring', entities, isTroubleshooting: false }
+  }
+  if (isContrastLoginSignup(raw) || isContrastLoginSignup(q)) {
+    return { intent: 'portal-login', confidence: 0.91, topics: ['login', 'signup', 'contrast'], problem: 'Login vs sign up', stage: 'preparing', entities, isTroubleshooting: false }
+  }
+
+  if (/\bupkeep\b|monthly\s*allowance|20,?000/i.test(q) && !/school\s*fees|institutional\s*charges|tuition/i.test(q) && !/never\s*see|pending|how\s*far|dem\s*never/i.test(q)) {
+    return { intent: 'upkeep', confidence: 0.9, topics: ['upkeep'], problem: 'Upkeep allowance', stage: 'exploring', entities, isTroubleshooting: false }
+  }
+  if (/school\s*fees|institutional\s*charges|tuition/i.test(q) && !/\bupkeep\b/i.test(q)) {
+    return { intent: 'school-fees', confidence: 0.9, topics: ['fees'], problem: 'School fees / institutional charges', stage: 'exploring', entities, isTroubleshooting: false }
+  }
+  if (
+    /sign\s*up|create\s*(an?\s*)?account|register(\s|$)|how\s*(do\s*i|to)\s*apply|i\s*wan(t)?\s*(to\s*)?apply|how\s*i\s*go\s*(apply|start)|step\s*by\s*step|guide\s*me\s*(step|through|with)?|walk\s*me\s*through|one\s*by\s*one|creating\s*(it|account|profile)|help\s*me\s*(create|apply|register)|first\s*time|i\s*no\s*apply\s*yet|new\s*applicant|what\s*(do\s*i\s*do\s*)?next|next\s*step|after\s*(i\s*)?(register|sign\s*up|create)/i.test(
+      q,
+    ) && !/sign\s*in|\blogin\b|log\s*in|password|\bpending\b|how\s*far|money\s*never/i.test(q)
+  ) {
+    return { intent: 'how-to-apply', confidence: 0.9, topics: ['apply', 'signup', 'how-to-apply'], problem: 'Create account / sign up', stage: 'preparing', entities, isTroubleshooting: false }
+  }
+  if (/(\blogin\b|log\s*in|sign\s*in|password|session\s*expired)/i.test(q) && !/sign\s*up|create\s*(an?\s*)?account/i.test(q)) {
+    return { intent: 'portal-login', confidence: 0.9, topics: ['login'], problem: 'Sign in / login', stage: 'applying', entities, isTroubleshooting: false }
+  }
+  if (/invalid\s*jamb|jamb\s*invalid|jamb.*(invalid|fail|verif|format)|jamb\s*no\s*(gree|work)|utme\s*(number|verif)/i.test(q)) {
+    return { intent: 'jamb-verification', confidence: 0.88, topics: ['jamb'], problem: 'JAMB verification', stage: 'applying', entities, isTroubleshooting: true }
+  }
+  if (/missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)|institution\s*not\s*found|school\s*no\s*(dey|gree)\s*show|my\s*school\s*no\s*dey|school\s*no\s*upload|data\s*no\s*dey|dem\s*never\s*upload/i.test(raw) || /missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)/i.test(q)) {
+    return { intent: 'missing-information', confidence: 0.88, topics: ['missing'], problem: 'Missing information on portal', stage: 'applying', entities, isTroubleshooting: true }
+  }
+  if (/^(how\s*far|howfar)[.!? ]*$/i.test(raw) || /how\s*far\s*(with|about|on)?\s*(my\s*)?(loan|application|nelfund|status|upkeep|money)?/i.test(raw)) {
+    return { intent: 'pending-application', confidence: 0.9, topics: ['pending-status', 'pending'], problem: 'How far / pending status', stage: 'waiting', entities, isTroubleshooting: true }
+  }
+  if (/last\s*(year|session|batch|cycle)|applied\s*last|renew\s*(my\s*)?(loan|application)|second\s*batch|next\s*batch/i.test(raw) && !liveOpenRe().test(raw) && !isPurposeAsk(raw)) {
+    return { intent: 'pending-application', confidence: 0.86, topics: ['pending-status', 'batch'], problem: 'Last batch / renew wait', stage: 'waiting', entities, isTroubleshooting: true }
+  }
+  if (/change\s*(my\s*)?(bank|account)|wrong\s*(bank\s*)?account|update\s*(my\s*)?(bank|account)/i.test(raw)) {
+    return { intent: 'documents-needed', confidence: 0.86, topics: ['documents', 'bank'], problem: 'Bank account change', stage: 'preparing', entities, isTroubleshooting: true }
+  }
+  if (/they\s*say\s*.{0,20}(scam|fake)|na\s*scam|is\s*nelfund\s*(a\s*)?(scam|fake)/i.test(raw)) {
+    return { intent: 'scam-safety', confidence: 0.88, topics: ['scam'], problem: 'Scam rumour', stage: 'exploring', entities, isTroubleshooting: true }
+  }
+  if (/una\s+never\s+pay|money\s+never\s+enter|application\s+no\s+move|status\s+no\s+change|dem\s+never\s+approve|e\s+never\s+drop|i\s+don\s+apply|pending\s*status|never\s+(see|enter|collect|receive)\s+(my\s+)?(money|upkeep|loan)/i.test(raw) && !liveOpenRe().test(raw)) {
+    return { intent: 'pending-application', confidence: 0.86, topics: ['pending'], problem: 'Application still pending', stage: 'waiting', entities, isTroubleshooting: true }
+  }
+  if (/\bpending\b|under\s*review|check\s*(my\s*)?(application\s*)?status|how\s*far\s*(with)?/i.test(q) && !liveOpenRe().test(raw)) {
+    return { intent: 'pending-application', confidence: 0.86, topics: ['pending'], problem: 'Application still pending', stage: 'waiting', entities, isTroubleshooting: true }
+  }
+  if ((liveOpenRe().test(raw) || /current\s*(status|info|information|update)|latest\s*(update|news)/i.test(raw)) && !isPurposeAsk(raw)) {
+    return { intent: 'current-information', confidence: 0.86, topics: ['current'], problem: 'Current or time-sensitive information', stage: 'exploring', entities, isTroubleshooting: false }
+  }
+
+  if (isPortalDump(q)) {
+    if (/\bpending\b|under\s*review/i.test(q) || entities.includes('status')) {
+      return { intent: 'pending-application', confidence: 0.72, topics: ['pending', 'portal-dump'], problem: 'Portal dump, pending', stage: 'waiting', entities, isTroubleshooting: true }
+    }
+    return { intent: 'current-information', confidence: 0.68, topics: ['current', 'portal-dump'], problem: 'Portal dashboard dump', stage: 'waiting', entities, isTroubleshooting: false }
+  }
+
+  const prior = lastUserIntent(history)
+  const priorOverrideBlocked =
+    PURPOSE_RE.test(raw) ||
+    isPurposeAsk(raw) ||
+    /\b(repay|repayment|pay\s*back|after\s*nysc)\b/i.test(raw) ||
+    /invalid\s*jamb|jamb\s*invalid|\bjamb\b/i.test(raw) ||
+    /missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)/i.test(raw) ||
+    /\bpending\b|under\s*review|how\s*far/i.test(raw) ||
+    liveOpenRe().test(raw)
+  if (prior && prior !== 'unknown' && raw.length < 60 && !priorOverrideBlocked) {
+    return { intent: prior, confidence: 0.55, topics: prior === 'how-to-apply' ? ['how-to-apply'] : [], problem: null, stage: 'unknown', entities, isTroubleshooting: false }
+  }
+
+  if (/\b(scam|fake\s*agent|whatsapp\s*agent|pay\s*(me|us)\s*to\s*apply)\b/i.test(q)) {
+    return { intent: 'scam-safety', confidence: 0.88, topics: ['scam'], problem: 'Scam warning', stage: 'exploring', entities, isTroubleshooting: true }
+  }
+  if (/\b(document|admission\s*letter|what\s*do\s*i\s*need|requirements?|\bnin\b|\bbvn\b)\b/i.test(q) && !/school\s*not/i.test(q)) {
+    return { intent: 'documents-needed', confidence: 0.8, topics: ['documents'], problem: 'Documents needed', stage: 'preparing', entities, isTroubleshooting: false }
+  }
+  if (/\b(repay|repayment|pay\s*back|after\s*nysc|when\s*(i|we)\s*go\s*pay|10\s*%\s*(of\s*)?(salary|profit))\b/i.test(q)) {
+    return { intent: 'repayment', confidence: 0.86, topics: ['repayment'], problem: 'Repayment', stage: 'repaying', entities, isTroubleshooting: false }
+  }
+  if (/\b(eligib|who\s*can\s*apply|do\s*i\s*qualify|am\s*i\s*eligible)\b/i.test(q)) {
+    return { intent: 'eligibility', confidence: 0.86, topics: ['eligibility'], problem: 'Eligibility', stage: 'exploring', entities, isTroubleshooting: false }
+  }
+  if (/^(hi|hello|hey|good\s*(morning|afternoon|evening))[.!? ]*$/i.test(raw)) {
+    return { intent: 'official-sources', confidence: 0.7, topics: ['greeting'], problem: 'Greeting', stage: 'exploring', entities, isTroubleshooting: false }
+  }
+
+  const residual = residualSoftRoute(raw || q, entities)
+  if (residual) return residual
+
+  return { intent: 'official-sources', confidence: 0.4, topics: ['guidance'], problem: 'Official NELFUND links', stage: 'exploring', entities, isTroubleshooting: false }
+}
