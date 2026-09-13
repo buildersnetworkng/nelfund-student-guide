@@ -79,7 +79,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('official-sources', 'Greeting, offer menu', 'exploring', ['greeting', 'guidance'], entities, false, 0.65)
   }
 
-  if (/how\s*far|pending|under\s*review|money\s*never|never\s*(see|enter|collect|receive|pay)|i\s*don\s*apply|already\s*appl|money\s*no\s*drop|no\s*alert|still\s*waiting|dem\s*never\s*pay|una\s*never\s*pay|next\s*batch|second\s*batch|declin|reject(ed|ion)|unsuccessful/i.test(text) && !liveishOpen(text)) {
+  if (/how\s*far|pending|under\s*review|money\s*never|never\s*(see|enter|collect|receive|pay|send)|i\s*don\s*apply|already\s*appl|money\s*no\s*drop|no\s*alert|no\s*credit|alert\s*(no|not|never)|still\s*waiting|dem\s*never\s*(pay|send)|una\s*never\s*pay|next\s*batch|second\s*batch|declin|reject(ed|ion)|unsuccessful|check\s*(my\s*)?(loan|application|status)|when\s*(will|go)\s*(they|dem|una)\s*(pay|send)|application\s*(no|not)\s*move/i.test(text) && !liveishOpen(text)) {
     return hit('pending-application', 'Pending / declined / wait', 'waiting', ['pending-status', 'pending'], entities, true, 0.72)
   }
   if (/\bjamb\b|utme|invalid\s*format|verification\s*fail|wrong\s*jamb/i.test(text)) {
@@ -94,13 +94,13 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     }
     return hit('repayment', 'Repayment rules', 'repaying', ['repayment'], entities, false, 0.7)
   }
-  if (/which\s*(website|site|link)|abeg\s*which\s*site|forgot\s*(my\s*)?password|cannot\s*login|otp|verification\s*code|portal\s*(no|not)\s*(load|open|work)/i.test(text)) {
+  if (/which\s*(website|site|link)|abeg\s*which\s*site|forgot\s*(my\s*)?password|cannot\s*login|otp|verification\s*code|portal\s*(no|not)\s*(load|open|work|gree)|e\s*no\s*(gree|work)|site\s*(no|not)\s*(open|load)/i.test(text)) {
     return hit('portal-login', 'Login / site / OTP', 'applying', ['login'], entities, true, 0.72)
   }
   if (/why\s+(was|is|dem|they|una)|purpose|wetin\s*(be|mean)|what\s*is\s*(this\s*)?nelfund|explain\s*(nelfund|this\s*loan)/i.test(text)) {
     return hit('what-is-nelfund', 'Why NELFUND was created / purpose', 'exploring', ['what is', 'purpose'], entities, false, 0.74)
   }
-  if (/how\s*(to|do\s*i|i\s*go)\s*apply|i\s*wan(t)?\s*(to\s*)?apply|sign\s*up|create\s*(an?\s*)?account|step\s*by\s*step|guide\s*me|first\s*time|what\s*(do\s*i\s*do\s*)?next|e\s*no\s*(gree|work)|cannot\s*submit/i.test(text) && !liveishOpen(text)) {
+  if (/how\s*(to|do\s*i|i\s*go)\s*apply|i\s*wan(t)?\s*(to\s*)?apply|sign\s*up|create\s*(an?\s*)?account|step\s*by\s*step|guide\s*me|first\s*time|what\s*(do\s*i\s*do\s*)?next|cannot\s*submit/i.test(text) && !liveishOpen(text)) {
     return hit('how-to-apply', 'How to apply / next step', 'preparing', ['how-to-apply'], entities, false, 0.7)
   }
   if (/refund|already\s*paid\s*(school|fees)|i\s*don\s*pay\s*(my\s*)?(school\s*)?fees/i.test(text)) {
@@ -123,6 +123,12 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   }
   if (/official\s*(email|contact)|how\s*(do\s*i|i\s*go)\s*contact|esupport|nelfund\s*(email|phone)/i.test(text) || entities.includes('contact')) {
     return hit('contact-support', 'Official contact', 'exploring', ['contact'], entities, false, 0.7)
+  }
+  if (/^(help|please\s*help|i\s*(need|wan(t)?)\s*help|abeg\s*help|i\s*get\s*(issue|problem|wahala)|there\s*is\s*(an?\s*)?(issue|problem))[.!? ]*$/i.test(text)) {
+    return hit('official-sources', 'Vague help, offer lanes', 'exploring', ['guidance'], entities, false, 0.62)
+  }
+  if (/help\s*me|i\s*(need|wan(t)?)\s*help|i\s*get\s*(issue|problem|wahala)|problem\s*with|issue\s*with/i.test(text) && /nelfund|loan|portal|apply/i.test(text) && !liveishOpen(text)) {
+    return hit('how-to-apply', 'Help applying / issue with process', 'preparing', ['how-to-apply', 'guidance'], entities, false, 0.6)
   }
   if (entities.includes('login')) return hit('portal-login', 'Sign in / login', 'applying', ['login'], entities, false, 0.7)
   if (entities.includes('apply') || entities.includes('documents')) {
