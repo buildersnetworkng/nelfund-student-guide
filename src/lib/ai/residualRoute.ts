@@ -104,6 +104,21 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     }
     return hit('repayment', 'Repayment rules', 'repaying', ['repayment'], entities, false, 0.7)
   }
+  if (/which\s*(website|site|link|url)|where\s*(do\s*i|i\s*go)\s*(go\s*)?(login|sign|apply|register)|abeg\s*which\s*site/i.test(text)) {
+    return hit('portal-login', 'Which official website', 'preparing', ['login', 'guidance'], entities, false, 0.72)
+  }
+  if (/forgot\s*(my\s*)?password|reset\s*(my\s*)?password|password\s*(no|never|not)\s*(gree|work)|cannot\s*login|can\s*not\s*login/i.test(text)) {
+    return hit('portal-login', 'Password reset / cannot login', 'applying', ['login', 'password-reset'], entities, true, 0.74)
+  }
+  if (/how\s*long\s*(does|do|go)\s*(approval|pending|it)|when\s*(will|go)\s*(money|upkeep|loan|alert)\s*(enter|come|drop|pay)|when\s*(dem|they|una)\s*(go\s*)?pay/i.test(text) && !liveishOpen(text)) {
+    return hit('pending-application', 'How long / when will money enter', 'waiting', ['pending-status', 'pending'], entities, true, 0.74)
+  }
+  if (/official\s*(email|mail|contact)|how\s*(do\s*i|i\s*go)\s*contact|nelfund\s*(email|phone|hotline)/i.test(text)) {
+    return hit('contact-support', 'Official contact / email', 'exploring', ['contact'], entities, false, 0.72)
+  }
+  if (/help\s*me\s*understand|i\s*want\s*to\s*understand|explain\s*(nelfund|this\s*loan|the\s*loan)/i.test(text) && !liveishOpen(text) && !/\bpending\b|how\s*far/i.test(text)) {
+    return hit('what-is-nelfund', 'Help understand NELFUND', 'exploring', ['what is', 'purpose'], entities, false, 0.74)
+  }
   if (/list\s*of\s*schools|which\s*schools|school\s*list|schools\s*(that\s*)?(dey|are)\s*(on|for)\s*nelfund/i.test(text)) {
     return hit('school-not-found', 'School list question', 'applying', ['school-list', 'school'], entities, true, 0.65)
   }
