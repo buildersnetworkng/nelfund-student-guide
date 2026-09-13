@@ -15,7 +15,7 @@ interface ScopeRestrictedProps {
  * institution-specific item directly by URL (bookmark, shared link, typed
  * address) without having that institution selected. This is what stops a
  * direct link from bypassing the same scope rule every list page already
- * enforces via getRelevantContent()/isContentVisible() — the item's content
+ * enforces via getRelevantContent()/isContentVisible(). The item's content
  * is simply never rendered, not hidden with CSS or shown-then-warned.
  */
 export default function ScopeRestricted({ institutionId, backTo, backLabel }: ScopeRestrictedProps) {
