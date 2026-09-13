@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Offline NELFUND agent regression — large matrix. Run: npx tsx scripts/offline-eval.mjs */
+/** Offline NELFUND agent regression: large matrix. Run: npx tsx scripts/offline-eval.mjs */
 import { processUserTurn, createInitialSlots } from '../src/lib/ai/processTurn.ts'
 import { runArchitectureTests } from '../src/lib/ai/agent/runArchitectureTests.ts'
 import { classifyIntent } from '../src/lib/ai/intent.ts'
