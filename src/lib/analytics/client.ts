@@ -136,10 +136,13 @@ export function track(
 export function deriveUnknownTopic(userText?: string | null): string {
   const t = (userText || '').toLowerCase().trim()
   if (!t) return 'empty'
-  if (/pending|under\s*review|status|how\s*far|never\s*(pay|see|come)/.test(t)) return 'pending-status'
+  if (/pending|under\s*review|status|how\s*far|never\s*(pay|see|come)|last\s*(year|batch|cycle)|next\s*batch|e\s*no\s*dey\s*show/.test(t)) return 'pending-status'
   if (/jamb|utme|verification\s*fail|invalid\s*format/.test(t)) return 'jamb'
   if (/open|deadline|still\s*accept|as\s*of/.test(t)) return 'open-status'
   if (/repay|gsi|nysc|10\s*%/.test(t)) return 'repayment'
+  if (/change\s*(bank|account)|wrong\s*account|account\s*number/.test(t)) return 'documents'
+  if (/graduate|finish\s*school|already\s*finish/.test(t)) return 'eligibility-level'
+  if (/na\s*scam|is\s*nelfund\s*(a\s*)?(scam|fake)|they\s*say.{0,12}scam/.test(t)) return 'scam-safety'
   if (/account\s*creat|create\s*account|register|sign\s*up/.test(t)) return 'account-create'
   if (/password|reset\s*password|forgot/.test(t)) return 'password-reset'
   if (/approv|not\s*yet\s*approv/.test(t)) return 'approval'
