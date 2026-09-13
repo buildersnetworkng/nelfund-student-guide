@@ -6,6 +6,8 @@
  * Safe (no raw HTML injection).
  */
 
+import { stripLongDashes } from '../lib/copyHygiene'
+
 const URL_RE = /(https?:\/\/[^\s<>"')\]*]+)/gi
 
 type Part =
@@ -99,7 +101,7 @@ function renderParts(parts: Part[], keyPrefix: string) {
 }
 
 export function LinkifiedText({ text, className }: { text: string; className?: string }) {
-  const lines = (text || '').split('\n')
+  const lines = stripLongDashes(text || '').split('\n')
   return (
     <div className={className}>
       {lines.map((line, li) => (
