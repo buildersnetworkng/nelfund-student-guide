@@ -12,7 +12,7 @@ let total = 0
 function check(name, ok, detail = '') {
   total++
   if (ok) { pass++; console.log('PASS', name) }
-  else { fails.push(name); console.log('FAIL', name, detail ? `— ${detail}` : '') }
+  else { fails.push(name); console.log('FAIL', name, detail ? `: ${detail}` : '') }
 }
 function hasBrokenBoldUrl(text) {
   return /\*\*https?:\/\//.test(text) || /\*\*\$\{/.test(text)
@@ -299,5 +299,5 @@ console.log('\n========== PERFECTION SUITE ==========')
 console.log(`PASS ${pass}/${total}`)
 console.log(`FAIL ${fails.length}`)
 if (fails.length) { console.log('Failed cases:'); for (const f of fails) console.log(' -', f); process.exit(1) }
-console.log('ALL PASS — suite clean')
+console.log('ALL PASS: suite clean')
 process.exit(0)
