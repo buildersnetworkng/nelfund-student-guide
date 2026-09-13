@@ -3,7 +3,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 /**
  * Live official-source lookup for time-sensitive NELFUND questions.
  * Fetches nelf.gov.ng / portal.nelf.gov.ng, extracts plain text, and returns
- * short grounded snippets — never invents policy.
+ * short grounded snippets, never invents policy.
  */
 
 const OFFICIAL = [
