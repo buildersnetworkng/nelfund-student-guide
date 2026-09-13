@@ -107,10 +107,7 @@ export default function MobileNav() {
           </li>
         ))}
         <li className="flex items-center justify-center">
-          <ShareGuide
-            variant="icon"
-            className="!h-auto !min-h-[52px] !flex-col !rounded-none !border-0 !bg-transparent !px-0 !shadow-none !text-ink/45"
-          />
+          <ShareGuide variant="tab" />
         </li>
       </ul>
     </nav>
