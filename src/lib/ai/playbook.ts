@@ -46,8 +46,14 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'pending-application') {
-    if (/already\s*appl|i\s*don\s*apply|i\s*have\s*appl|submitted|money\s*no\s*drop|when\s*(will|go)\s*(they|dem)/i.test(t)) {
-      return `You already applied: that is a **wait / status** question, not a new sign-up.\n\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Institution charges go to the **school first**. Upkeep (if you ticked it) can arrive later.\n3. I will not invent a pay date. If the same status sits for a long time, ticket ${ESUPPORT} with name, school, and that status word.`
+    if (/\b(approv(ed|al)|successful)\b/i.test(t) && /(no|never|not|nothing|no\s*see|no\s*alert).{0,30}(money|upkeep|alert|pay|enter|drop)|but\s*(no|never|nothing)/i.test(t)) {
+      return `**Approved / successful on the portal does not mean upkeep is already in your bank.**\n\n1. Open ${PORTAL} and copy the exact status word plus whether **institutional charges** show paid to the school.\n2. School fees go to the **institution first**. Upkeep (only if you ticked it in the same session) can arrive later.\n3. Confirm the account number on the profile is a real bank account, not a wallet.\n4. I will not invent a pay date. Same status for a long time? Ticket ${ESUPPORT} with name, school, and that status word.`
+    }
+    if (/how\s*(do\s*i|i\s*go|can\s*i)\s*(know|confirm|see)/i.test(t)) {
+      return `**How to confirm payment or approval**\n\n1. Only ${PORTAL} shows *your* status word (Pending, Under review, Approved, Declined).\n2. Institutional charges paid = money to the **school**, not always an alert to you.\n3. Upkeep alert comes to the account on your profile, and only if you applied for upkeep.\n4. I cannot see your file. Long wait on the same word: ticket ${ESUPPORT}.`
+    }
+    if (/already\s*appl|i\s*don\s*apply|i\s*have\s*appl|submitted|money\s*no\s*drop|when\s*(will|go)\s*(they|dem)|next\s*(batch|payment)|second\s*batch/i.test(t)) {
+      return `You already applied: that is a **wait / status** question, not a new sign-up.\n\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Institution charges go to the **school first**. Upkeep (if you ticked it) can arrive later.\n3. I will not invent a pay date or a batch date. If the same status sits for a long time, ticket ${ESUPPORT} with name, school, and that status word.`
     }
     return `**How far / pending / money never enter** is not a rejection.\n\nDo this now:\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Check whether your school has uploaded your record. If the school is missing, ask the campus NELFUND desk first.\n3. Upkeep can arrive after the institution is paid. Look at the portal before assuming nobody paid you.\n4. Still the same after a long wait? Ticket: ${ESUPPORT} with your name, school, and the portal status word.\n\nI cannot see your personal file and I will not invent a pay date.`
   }
@@ -106,6 +112,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'how-to-apply') {
+    if (/(cannot|can\s*not|e\s*no\s*gree|no\s*gree)\s*(submit|send)|submit\s*(button\s*)?(no|not|never)\s*(gree|work)|form\s*(no|not)\s*(gree|submit)/i.test(t)) {
+      return `**If the form will not submit**\n\n1. Use ${PORTAL} (new) or ${SITE} (existing login). Do not open a second account.\n2. Finish every required profile field: NIN, BVN, JAMB number, admission / matric, bank account.\n3. If a red line appears, copy the **exact** sentence (invalid JAMB, missing school, session expired).\n4. Tick institutional charges and upkeep in the **same** session before submit.\n5. Still blocked? Ticket ${ESUPPORT} with that exact sentence and a screenshot.`
+    }
     if (/what\s*(do\s*i\s*do\s*)?next|wetin\s*(i\s*)?go\s*do|after\s*(i\s*)?(register|sign\s*up|create)|then\s*what|next\s*step|i\s*don\s*(create|register)/i.test(t)) {
       return `**Next after the account**\n1. Sign in only if the account already exists: ${SITE}\n2. Finish **profile**: NIN, BVN, JAMB number, admission / matric.\n3. Submit **institutional charges**. If you need living money, tick **upkeep in the same session**.\n4. After submit, track the exact status word on ${PORTAL}. That is not the same as creating the account.\n\nStuck on a red error? Send the exact portal sentence (JAMB invalid, school missing, or pending).`
     }
