@@ -52,6 +52,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
     if (/how\s*(do\s*i|i\s*go|can\s*i)\s*(know|confirm|see)/i.test(t)) {
       return `**How to confirm payment or approval**\n\n1. Only ${PORTAL} shows *your* status word (Pending, Under review, Approved, Declined).\n2. Institutional charges paid = money to the **school**, not always an alert to you.\n3. Upkeep alert comes to the account on your profile, and only if you applied for upkeep.\n4. I cannot see your file. Long wait on the same word: ticket ${ESUPPORT}.`
     }
+    if (/how\s*long|when\s*(will|go)\s*(money|upkeep|loan|alert)|when\s*(dem|they|una)\s*(go\s*)?pay/i.test(t)) {
+      return `**How long / when money enters** is a wait question, not a new application.\n\n1. Only ${PORTAL} shows *your* status word. There is no public SLA I can invent.\n2. Institutional charges go to the **school first**. Upkeep (if you ticked it) can land later.\n3. Same word for a long time? Ticket ${ESUPPORT} with name, school, and that exact status.\n\nI will not invent a pay date or batch date.`
+    }
     if (/already\s*appl|i\s*don\s*apply|i\s*have\s*appl|submitted|money\s*no\s*drop|when\s*(will|go)\s*(they|dem)|next\s*(batch|payment)|second\s*batch|re-?apply/i.test(t)) {
       return `You already applied: that is a **wait / status** question, not a new sign-up.\n\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Institution charges go to the **school first**. Upkeep (if you ticked it) can arrive later.\n3. I will not invent a pay date or a batch date. If the same status sits for a long time, ticket ${ESUPPORT} with name, school, and that status word.`
     }
