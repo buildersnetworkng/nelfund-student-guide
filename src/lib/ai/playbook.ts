@@ -52,7 +52,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
     if (/how\s*(do\s*i|i\s*go|can\s*i)\s*(know|confirm|see)/i.test(t)) {
       return `**How to confirm payment or approval**\n\n1. Only ${PORTAL} shows *your* status word (Pending, Under review, Approved, Declined).\n2. Institutional charges paid = money to the **school**, not always an alert to you.\n3. Upkeep alert comes to the account on your profile, and only if you applied for upkeep.\n4. I cannot see your file. Long wait on the same word: ticket ${ESUPPORT}.`
     }
-    if (/already\s*appl|i\s*don\s*apply|i\s*have\s*appl|submitted|money\s*no\s*drop|when\s*(will|go)\s*(they|dem)|next\s*(batch|payment)|second\s*batch/i.test(t)) {
+    if (/already\s*appl|i\s*don\s*apply|i\s*have\s*appl|submitted|money\s*no\s*drop|when\s*(will|go)\s*(they|dem)|next\s*(batch|payment)|second\s*batch|re-?apply/i.test(t)) {
       return `You already applied: that is a **wait / status** question, not a new sign-up.\n\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Institution charges go to the **school first**. Upkeep (if you ticked it) can arrive later.\n3. I will not invent a pay date or a batch date. If the same status sits for a long time, ticket ${ESUPPORT} with name, school, and that status word.`
     }
     return `**How far / pending / money never enter** is not a rejection.\n\nDo this now:\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Check whether your school has uploaded your record. If the school is missing, ask the campus NELFUND desk first.\n3. Upkeep can arrive after the institution is paid. Look at the portal before assuming nobody paid you.\n4. Still the same after a long wait? Ticket: ${ESUPPORT} with your name, school, and the portal status word.\n\nI cannot see your personal file and I will not invent a pay date.`
@@ -117,6 +117,12 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
     }
     if (/what\s*(do\s*i\s*do\s*)?next|wetin\s*(i\s*)?go\s*do|after\s*(i\s*)?(register|sign\s*up|create)|then\s*what|next\s*step|i\s*don\s*(create|register)/i.test(t)) {
       return `**Next after the account**\n1. Sign in only if the account already exists: ${SITE}\n2. Finish **profile**: NIN, BVN, JAMB number, admission / matric.\n3. Submit **institutional charges**. If you need living money, tick **upkeep in the same session**.\n4. After submit, track the exact status word on ${PORTAL}. That is not the same as creating the account.\n\nStuck on a red error? Send the exact portal sentence (JAMB invalid, school missing, or pending).`
+    }
+    if (/re-?apply|apply\s*(again|twice|two\s*times)|second\s*application|another\s*application/i.test(t)) {
+      return `**Apply again / second application**\n\n1. Do **not** open a second account if one already exists. Sign **in** at ${SITE}.\n2. If this cycle still shows Pending / Under review, wait on that file - a duplicate does not speed pay.\n3. A new academic session is a live portal question: check ${PORTAL}, I will not invent the next window date.\n4. Same status for a long time? Ticket ${ESUPPORT} with name, school, and the exact status word.`
+    }
+    if (/screenshot|screen\s*shot|picture|photo|image/i.test(t)) {
+      return `I can work from a short description if the picture does not load.\n\nTell me the **exact portal sentence** you see (Pending, Under review, invalid JAMB, school not on list, cannot submit). Then I route that error - not a generic template.\n\nPortal: ${PORTAL} · Ticket: ${ESUPPORT}`
     }
     if (/\bnin\b|\bbvn\b/i.test(t)) {
       return `**NIN and BVN** are profile fields on the application, not a separate loan.\n\n1. Open ${PORTAL} (new account) or ${SITE} (existing login).\n2. Enter NIN and BVN exactly as issued. Do not send them in this chat.\n3. Then add JAMB + admission / matric and submit institutional charges + optional upkeep together.\n\nMismatch after several tries: ticket ${ESUPPORT} with a screenshot, not a second account.`
