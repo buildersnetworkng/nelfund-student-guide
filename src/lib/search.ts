@@ -143,7 +143,7 @@ const SYNONYMS: [RegExp, string][] = [
  *     ahead so an institution-specific match (e.g. "I already paid my school
  *     fees" while OOU is selected) surfaces before generic results.
  * A student who selects UNILAG will never have OOU's institution-specific
- * results returned, searched, or ranked — those entries are excluded from
+ * results returned, searched, or ranked. Those entries are excluded from
  * the candidate pool entirely, not just hidden in the UI.
  */
 export function search(query: string, institutionId: string | null = null): SearchableEntry[] {
