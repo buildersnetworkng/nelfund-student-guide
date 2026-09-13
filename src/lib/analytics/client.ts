@@ -136,7 +136,7 @@ export function track(
 export function deriveUnknownTopic(userText?: string | null): string {
   const t = (userText || '').toLowerCase().trim()
   if (!t) return 'empty'
-  if (/pending|under\s*review|status|how\s*far|never\s*(pay|see|come)|last\s*(year|batch|cycle)|next\s*batch|e\s*no\s*dey\s*show/.test(t)) return 'pending-status'
+  if (/pending|under\s*review|status|how\s*far|never\s*(pay|see|come|send)|last\s*(year|batch|cycle)|next\s*batch|e\s*no\s*dey\s*show|no\s*credit|no\s*alert|check\s*(my\s*)?(loan|application)/.test(t)) return 'pending-status'
   if (/jamb|utme|verification\s*fail|invalid\s*format/.test(t)) return 'jamb'
   if (/open|deadline|still\s*accept|as\s*of/.test(t)) return 'open-status'
   if (/repay|gsi|nysc|10\s*%/.test(t)) return 'repayment'
