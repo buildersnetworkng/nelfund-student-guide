@@ -132,7 +132,6 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('pending-application', 'Check status follow-up', 'waiting', ['pending-status'], entities, true, 0.6)
   }
 
-  // Residual other: approval wait, pay-date, password, school-upload, dashboard, OTP
   if (
     /how\s*long\s*(does|do|go)\s*(approval|approve|processing)|when\s*(will|go)\s*(they|dem|una)?\s*(approve|pay|disburse)|approval\s*take|not\s*yet\s*approv|dem\s*never\s*approv|e\s*never\s*approv/i.test(
       text,
@@ -164,7 +163,6 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('scam-safety', 'OTP / agent / pay-to-apply', 'exploring', ['scam'], entities, true, 0.74)
   }
 
-  // Leftover other bucket: portal down, add-upkeep-later, school-paid-no-upkeep, wetin dey happen
   if (
     /wetin\s*dey\s*happen|application\s*no\s*(move|change)|status\s*no\s*(move|change)|e\s*no\s*dey\s*move|nothing\s*dey\s*happen|my\s*own\s*no\s*dey\s*move/i.test(
       text,
@@ -194,7 +192,34 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('portal-login', 'Portal / site will not open', 'applying', ['login', 'portal'], entities, true, 0.68)
   }
   if (/change\s*of\s*(course|institution|school)|i\s*(don|have)\s*change\s*(school|course)|transfer\s*(to\s*)?(another\s*)?school/i.test(text) && !/\bpending\b|how\s*far/i.test(text)) {
-    return hit('missing-information', 'Change of school / course record', 'applying', ['upload', 'missing'], entities, true, 0.66)
+    return hit('profile-update', 'Change of school / course record', 'applying', ['profile-update', 'guidance'], entities, true, 0.68)
+  }
+  if (/\b(declin|reject|disapprov|not\s*approv|application\s*(was\s*)?(not\s*)?(successful|accepted))\b/i.test(text) && !liveishOpen(text)) {
+    return hit('rejected-application', 'Declined / rejected application', 'rejected', ['rejected', 'guidance'], entities, true, 0.72)
+  }
+  if (/wrong\s*(bank|account)|change\s*(my\s*)?(bank|account)|update\s*(my\s*)?(bank|account)|account\s*number\s*(wrong|no\s*gree)|i\s*no\s*get\s*bvn|bvn\s*(reject|fail|no\s*gree)/i.test(text) && !/\bjamb\b|how\s*far/i.test(text)) {
+    return hit('bank-information', 'Bank / BVN / account update', 'preparing', ['bank', 'documents'], entities, true, 0.7)
+  }
+  if (/portal\s*stuck|i\s*am\s*stuck|stuck\s*on\s*(the\s*)?portal|blank\s*(white\s*)?screen|page\s*keeps?\s*loading|captcha|account\s*suspend|session\s*expir|my\s*account\s*no\s*open|cannot\s*create\s*account/i.test(text) && !liveishOpen(text)) {
+    return hit('portal-login', 'Portal stuck / blank / session', 'applying', ['login', 'portal'], entities, true, 0.68)
+  }
+  if (/school\s*(has\s*not|never|no)\s*(confirm|upload|submit)|data\s*no\s*upload|institution\s*verif|school\s*data\s*no/i.test(text)) {
+    return hit('institution-verification', 'School has not confirmed / uploaded', 'applying', ['upload', 'institution'], entities, true, 0.7)
+  }
+  if (/ticket\s*(no|not|never)\s*(reply|respond)|how\s*long\s*(does|do)\s*support|support\s*(no|never)\s*reply/i.test(text)) {
+    return hit('contact-support', 'Ticket / support wait', 'exploring', ['contact', 'guidance'], entities, false, 0.68)
+  }
+  if (/guarantor/i.test(text)) {
+    return hit('guarantor', 'Guarantor question', 'preparing', ['documents', 'guidance'], entities, false, 0.7)
+  }
+  if (/\bgsi\b/i.test(text) && !/repay|pay\s*back/i.test(text)) {
+    return hit('gsi', 'GSI question', 'repaying', ['repayment', 'gsi'], entities, false, 0.7)
+  }
+  if (/i\s*(am|dey)\s*(a\s*)?(part[\s-]*time|hnd|post\s*grad|postgraduate|msc|phd|distance|industrial\s*training|repeating)|i\s*graduated|i\s*deferred|direct\s*entry|100\s*level|200\s*level/i.test(text) && !/\bpending\b|how\s*far|money\s*never/i.test(text)) {
+    return hit('eligibility', 'Level / mode / graduate eligibility', 'exploring', ['eligibility', 'guidance'], entities, false, 0.7)
+  }
+  if (/i\s*need\s*money\s*for\s*(accommodation|feeding|hostel|transport)|application\s*successful\s*but\s*no\s*money/i.test(text) && !liveishOpen(text)) {
+    return hit('upkeep', 'Need living money / successful but no money', 'exploring', ['upkeep', 'guidance'], entities, false, 0.66)
   }
 
   if (
