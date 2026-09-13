@@ -42,6 +42,10 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
       ? 'Official FAQ language is **full-time** public tertiary students. Confirm part-time on the live portal, do not assume.\n\n'
       : /post\s*grad|postgraduate|masters?|phd/.test(raw)
         ? 'This chat will not invent a postgraduate rule. Confirm the open cycle on the official portal.\n\n'
+        : /graduate|graduated|finish(ed)?\s*school|don\s*done\s*nysc|no\s*dey\s*school\s*again/.test(raw)
+          ? 'NELFUND on the official FAQ is for **current** students in public tertiary institutions. If you have already finished and left school, do not assume a new loan. Confirm any graduate / NYSC-only case on the live portal.\n\n'
+        : /\b(coe|college\s*of\s*education|vocational|nce|\bnd\b|\bhnd\b|polytechnic)\b/.test(raw)
+          ? 'Public **polytechnics, colleges of education, and vocational schools** are in the official institution types. Private campuses are not.\n\n'
         : ''
   return (
     `**Eligibility (official FAQ)**\n\n` +
