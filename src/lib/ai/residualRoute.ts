@@ -82,7 +82,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (/^(how\s*far|howfar)[.!? ]*$/i.test(text) || /how\s*far\s*(with|about|on)?\s*(my\s*)?(loan|application|nelfund|status|upkeep|money)?/i.test(text)) {
     return hit('pending-application', 'How far / pending status', 'waiting', ['pending-status', 'pending'], entities, true, 0.72)
   }
-  if (/\bpending\b|under\s*review|still\s*waiting|no\s*update|money\s*never|never\s*(see|enter|collect|receive|pay)|una\s*never\s*pay|dem\s*never\s*pay|check\s*(my\s*)?(status|application|loan)|application\s*status|alert\s*(never|no)\s*(enter|come|drop)|no\s*alert|application\s*don\s*tey|e\s*don\s*tey|since\s*(last\s*)?(month|year|january|february|march|april|may|june|july|august|september)/i.test(text)) {
+  if (/\bpending\b|under\s*review|still\s*waiting|no\s*update|money\s*never|never\s*(see|enter|collect|receive|pay)|una\s*never\s*pay|dem\s*never\s*pay|check\s*(my\s*)?(status|application|loan)|application\s*status|alert\s*(never|no)\s*(enter|come|drop)|no\s*alert|application\s*don\s*tey|e\s*don\s*tey|since\s*(last\s*)?(month|year|january|february|march|april|may|june|july|august|september)|nothing\s*(for|in)\s*(my\s*)?(account|bank)|zero\s*(naira|alert)|e\s*no\s*(dey\s*)?show|no\s*payment|people\s*don\s*(collect|receive|see)|una\s*don\s*pay\s*(people|others|everybody|my\s*school)|dem\s*don\s*pay\s*(people|others)|my\s*own\s*never|nothing\s*don\s*happen/i.test(text)) {
     return hit('pending-application', 'Pending / under review status', 'waiting', ['pending-status', 'pending'], entities, true, 0.7)
   }
   if (
@@ -92,10 +92,10 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   ) {
     return hit('pending-application', 'Already applied / waiting for pay', 'waiting', ['pending-status', 'guidance'], entities, true, 0.7)
   }
-  if (/\bjamb\b|utme|invalid\s*format|verification\s*fail|could\s*not\s*verify|jamb\s*(no|number|id)\s*(no|never|dey)\s*(gree|work|enter)|portal\s*(no|never)\s*(gree|accept)\s*(my\s*)?jamb|jamb\s*dey\s*reject/i.test(text)) {
+  if (/\bjamb\b|utme|invalid\s*format|verification\s*fail|could\s*not\s*verify|jamb\s*(no|number|id)\s*(no|never|dey)\s*(gree|work|enter)|portal\s*(no|never)\s*(gree|accept)\s*(my\s*)?jamb|jamb\s*dey\s*reject|wrong\s*jamb|jamb\s*(no|never)\s*match|jamb\s*(reject|fail)/i.test(text)) {
     return hit('jamb-verification', 'JAMB verification', 'applying', ['jamb'], entities, true, 0.7)
   }
-  if (/is\s+(nelfund|it|portal|loan|application)\s+(still\s+)?(open|dey\s+open)|still\s+accept|can\s+i\s+still\s+apply|deadline|closing\s+date|opening\s+date|loan\s*window/i.test(text)) {
+  if (/is\s+(nelfund|it|portal|loan|application)\s+(still\s+)?(open|dey\s+open|close[d]?)|still\s+accept|can\s+i\s+still\s+apply|deadline|closing\s+date|opening\s+date|loan\s*window|when\s*(will|go)\s*(nelfund|the\s+portal|the\s+loan|am)\s*(open|start|begin|reopen)|nelfund\s+(open|close[d]?)\s*(now|today)?|dem\s+don\s+close|una\s+don\s+close/i.test(text)) {
     return hit('current-information', 'Open status / is NELFUND open', 'exploring', ['open-status', 'current'], entities, false, 0.72)
   }
   if (/\brepay|repayment|pay\s*back|after\s*nysc|10\s*%|gsi\b|loan\s*or\s*scholarship|is\s*(it|this)\s*(a\s*)?(scholarship|grant)/i.test(text)) {
@@ -199,14 +199,17 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (/why\s+(was|is|dem|they|una)|purpose|wetin\s*(be|mean)|what\s*is\s*(this\s*)?nelfund|why\s+dem\s+create/i.test(text)) {
     return hit('what-is-nelfund', 'Why NELFUND was created / purpose', 'exploring', ['what is', 'purpose'], entities, false, 0.72)
   }
+  if (/wallet|opay|palmpay|moniepoint|change\s*(my\s*)?(bank|account)|wrong\s*(bank\s*)?account/i.test(text) && !liveishOpen(text)) {
+    return hit('documents-needed', 'Bank / wallet account for upkeep', 'preparing', ['documents', 'bank'], entities, true, 0.7)
+  }
   if (/(\blogin\b|log\s*in|sign\s*in|password|session\s*expired)/i.test(text) || entities.includes('login')) {
     return hit('portal-login', 'Sign in / login', 'applying', ['login'], entities, false, 0.7)
   }
   if (/missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)|institution\s*not\s*found/i.test(text) || entities.includes('school')) {
     return hit('school-not-found', 'School list / school not found', 'applying', ['school'], entities, true, 0.65)
   }
-  if (/\bupkeep\b|monthly\s*allowance/i.test(text)) {
-    return hit('upkeep', 'Upkeep allowance', 'exploring', ['upkeep'], entities, false, 0.65)
+  if (/\bupkeep\b|monthly\s*allowance|how\s*much(\s*(dem|they|una)\s*(dey\s*)?(pay|give))?|wetin\s*(dem|they)\s*dey\s*(pay|give)|amount\s*(for|of)\s*(upkeep|allowance|stipend)|20,?000/i.test(text) && !liveishOpen(text) && !/\bpending\b|how\s*far|money\s*never/i.test(text)) {
+    return hit('upkeep', 'Upkeep allowance / how much', 'exploring', ['upkeep'], entities, false, 0.65)
   }
   if (/school\s*fees|institutional\s*charges|tuition/i.test(text)) {
     return hit('school-fees', 'School fees / institutional charges', 'exploring', ['fees'], entities, false, 0.65)
