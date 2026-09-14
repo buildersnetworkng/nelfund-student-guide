@@ -101,5 +101,29 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   if (/change\s*(my\s*)?(bank|account)|wrong\s*(bank\s*)?account|update\s*(my\s*)?(bank|account)/i.test(q)) {
     return hit('bank-information', 0.84, ['bank'], 'Bank change leftover', 'preparing', entities, true)
   }
+  if (/change\s*(of\s*)?(institution|school)|i\s*(don|have)\s*transfer|transfer(red)?\s*(to|from)\s*(another|new)\s*school|new\s*school\s*(no|not)\s*(dey|show)/i.test(q)) {
+    return hit('school-not-found', 0.84, ['missing', 'change-school'], 'Change of institution leftover', 'applying', entities, true)
+  }
+  if (/session\s*(no|not|never)\s*(dey|show|appear)|no\s*session|cannot\s*see\s*session|request\s*(for\s*)?(student\s*)?loan\s*(button)?\s*(no|not|never)|button\s*(no|not)\s*(dey|show)/i.test(q)) {
+    return hit('missing-information', 0.84, ['missing', 'session-button'], 'Session / apply button missing leftover', 'applying', entities, true)
+  }
+  if (/verif(y|ication)\s*(mail|email)|email\s*(no|not|never)\s*(come|drop|enter|arrive)|no\s*(verification\s*)?(mail|email)|didn'?t\s*get\s*(the\s*)?(mail|email)/i.test(q)) {
+    return hit('portal-login', 0.84, ['login', 'email'], 'Verification email leftover', 'applying', entities, true)
+  }
+  if (/\binterest\b|interest[\s-]*free|dem\s*dey\s*charge\s*interest|is\s*it\s*free\s*loan/i.test(q) && !liveish(q)) {
+    return hit('loan-or-scholarship', 0.84, ['loan', 'interest'], 'Interest / free-loan leftover', 'exploring', entities)
+  }
+  if (/\bnysc\b|after\s*(service|youth\s*service)|when\s*(do|go)\s*i\s*(start\s*)?pay/i.test(q) && !liveish(q)) {
+    return hit('repayment', 0.84, ['repayment', 'nysc'], 'NYSC / when repayment starts leftover', 'repaying', entities)
+  }
+  if (/i\s*(don|have)\s*(graduate|finish(\s*school)?)|already\s*graduate|alumni|i\s*don\s*pass\s*out/i.test(q) && !/pending|how\s*far/i.test(q)) {
+    return hit('eligibility', 0.84, ['eligibility', 'graduate'], 'Already graduated leftover', 'exploring', entities)
+  }
+  if (/phone\s*number|nelfund\s*number|call\s*nelfund|wetin\s*be\s*(una|their)\s*number/i.test(q)) {
+    return hit('contact-support', 0.84, ['contact', 'phone'], 'Phone / call leftover', 'waiting', entities)
+  }
+  if (/invalid\s*(bvn|nin)|(bvn|nin)\s*(invalid|fail|reject|no\s*gree)|verify\s*(my\s*)?(bvn|nin)/i.test(q)) {
+    return hit('nin-verification', 0.86, ['nin', 'bvn'], 'Invalid BVN / NIN leftover', 'applying', entities, true)
+  }
   return null
 }

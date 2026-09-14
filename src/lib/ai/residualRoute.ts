@@ -41,7 +41,7 @@ export function detectEntities(text: string): string[] {
   if (/school\s*fees|tuition|institutional/.test(q)) out.push('fees')
   if (/portal|dashboard|sign\s*in|login/.test(q)) out.push('portal')
   if (SCHOOL_HINTS.some((s) => q.includes(s))) out.push('school')
-  if (/missing\s*information|not\s*(on\s*)?(the\s*)?list/.test(q)) out.push('missing')
+  if (/missing\s*information|not\s*(on\s*)?(the\s*)?list|change\s*of\s*institution|session\s*(no|not)\s*(dey|show)/.test(q)) out.push('missing')
   if (/repay|nysc|scholarship|grant/.test(q)) out.push('policy')
   return out
 }
@@ -121,6 +121,12 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   }
   if (entities.includes('missing')) {
     return hit('missing-information', 0.62, ['missing'], 'Entity missing fallback', 'applying', entities, true)
+  }
+  if (entities.includes('bvn') || entities.includes('nin')) {
+    return hit('nin-verification', 0.64, ['nin', 'bvn'], 'Entity BVN/NIN fallback', 'applying', entities, true)
+  }
+  if (entities.includes('otp')) {
+    return hit('portal-login', 0.64, ['login', 'otp'], 'Entity OTP fallback', 'applying', entities, true)
   }
   return null
 }
