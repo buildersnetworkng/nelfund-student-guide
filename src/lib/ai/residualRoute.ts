@@ -148,6 +148,29 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   }
 
   if (
+    /part[\s-]*time|sandwich|evening\s*(programme|program|student)|distance\s*learn|open\s*and\s*distance|\bodl\b|weekend\s*(programme|program|student)/i.test(
+      q,
+    )
+  ) {
+    return hit('eligibility', 0.84, ['eligibility', 'study-mode'], 'Part-time / sandwich / distance mode', 'exploring', entities)
+  }
+
+  if (
+    /post\s*grad|postgraduate|\bmasters?\b|\bmsc\b|\bm\.a\b|\bphd\b|doctorate|pgd/i.test(q) &&
+    !/\bpending\b|how\s*far|money\s*never/i.test(q)
+  ) {
+    return hit('eligibility', 0.84, ['eligibility', 'postgrad'], 'Postgraduate eligibility', 'exploring', entities)
+  }
+
+  if (
+    /direct\s*entry|\bde\s*student\b|\bde\s*applicant\b|transfer\s*student|inter[\s-]*university\s*transfer/i.test(
+      q,
+    )
+  ) {
+    return hit('eligibility', 0.82, ['eligibility', 'entry-path'], 'Direct entry / transfer eligibility', 'exploring', entities)
+  }
+
+  if (
     /\b(fresher|100\s*l|100l|just\s*admitted|newly\s*admitted|year\s*one|100\s*level)\b/i.test(q) &&
     !/\bpending\b|how\s*far|money\s*never/i.test(q)
   ) {
@@ -182,6 +205,10 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
     return hit('school-fees', 0.78, ['fees', 'amount'], 'School fee amount question', 'exploring', entities)
   }
 
+  if (/hostel|accommodation|accomodation|house\s*rent|off[\s-]*campus\s*rent/i.test(q)) {
+    return hit('upkeep', 0.76, ['upkeep', 'hostel'], 'Hostel / living cost vs upkeep', 'exploring', entities)
+  }
+
   if (
     /interest[- ]?free|is\s*(there|e\s*get)\s*interest|interest\s*rate|dem\s*go\s*add\s*interest/i.test(q)
   ) {
@@ -197,6 +224,26 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
 
   if (/invalid\s*jamb|jamb\s*(no|not|never)|jamb\s*(number|reg|profile)|utme/i.test(q)) {
     return hit('jamb-verification', 0.82, ['jamb'], 'JAMB leftover phrasing', 'applying', entities, true)
+  }
+
+  if (
+    /already\s*used\s*by\s*another|used\s*by\s*another\s*student|email\s*(already|don)\s*(exist|dey|register)|two\s*accounts?|second\s*account|duplicate\s*account|account\s*already\s*(exist|dey)/i.test(
+      q,
+    )
+  ) {
+    return hit('portal-login', 0.84, ['login', 'duplicate'], 'Account already exists / dual account', 'applying', entities, true)
+  }
+
+  if (
+    /change\s*(my\s*)?(phone|email|number|profile)|edit\s*(my\s*)?(profile|phone|email)|update\s*(my\s*)?(phone|email|profile)|wrong\s*(phone|email|number)/i.test(
+      q,
+    )
+  ) {
+    return hit('documents-needed', 0.82, ['documents', 'profile'], 'Change phone / email / profile', 'preparing', entities, true)
+  }
+
+  if (/session\s*registration|register\s*(this|the)\s*session|new\s*session\s*(loan|apply|application)/i.test(q) && !liveish(q)) {
+    return hit('how-to-apply', 0.78, ['how-to-apply', 'session'], 'Session registration leftover', 'preparing', entities)
   }
 
   if (

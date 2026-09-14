@@ -38,10 +38,12 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
       : `Being **${levelLabel}** does **not** by itself block you.`
   const typeNote = /private/.test(raw)
     ? 'Private universities/polys are **not** in the current public-institution scheme described on nelf.gov.ng.\n\n'
-    : /part[\s-]*time/.test(raw)
-      ? 'Official FAQ language is **full-time** public tertiary students. Confirm part-time on the live portal, do not assume.\n\n'
-      : /post\s*grad|postgraduate|masters?|phd/.test(raw)
-        ? 'This chat will not invent a postgraduate rule. Confirm the open cycle on the official portal.\n\n'
+    : /part[\s-]*time|sandwich|evening\s*(programme|program|student)|weekend\s*(programme|program)|distance\s*learn|\bodl\b/.test(raw)
+      ? 'Official FAQ language is **full-time** students in public tertiary institutions. This chat will **not invent** a part-time, sandwich, evening, or distance-learning exception. Confirm the live portal list only.\n\n'
+      : /post\s*grad|postgraduate|masters?|\bmsc\b|\bphd\b|pgd/.test(raw)
+        ? 'This chat will not invent a postgraduate / Masters / PhD rule. Confirm whether that cycle is on the official portal before you apply.\n\n'
+        : /direct\s*entry|\bde\s*student\b|transfer\s*student/.test(raw)
+          ? 'Direct Entry and transfer students still need a **JAMB number** and a school record the institution has uploaded. Confirm on the live portal; do not open a second account if one already exists.\n\n'
         : /graduate|graduated|finish(ed)?\s*school|don\s*done\s*nysc|no\s*dey\s*school\s*again/.test(raw)
           ? 'NELFUND on the official FAQ is for **current** students in public tertiary institutions. If you have already finished and left school, do not assume a new loan. Confirm any graduate / NYSC-only case on the live portal.\n\n'
         : /\b(coe|college\s*of\s*education|vocational|nce|\bnd\b|\bhnd\b|polytechnic)\b/.test(raw)

@@ -20,7 +20,7 @@ export type PlaybookContext = {
   exactError?: string | null
   turnIndex?: number
   lastAssistant?: string
-  userText?: string
+  userText?: string | null
   priorIntent?: IntentId | null
 }
 
@@ -91,6 +91,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'upkeep') {
+    if (/hostel|accommodation|accomodation|house\s*rent/i.test(t)) {
+      return `**Hostel / rent is not a separate NELFUND product.**\n\n1. Institutional charges go **to the school**.\n2. Monthly **upkeep** (only if you ticked it in the same session) is the living-cost line paid **to you**.\n3. NELFUND does not run a hostel allocation desk in this chat.\n4. Amounts and pay dates: ${PORTAL} · FAQ: ${FAQ}`
+    }
     if (/how\s*much|amount|wetin\s*(dem|they)\s*dey\s*(pay|give)|20,?000/i.test(t)) {
       return `**How much:** this guide's currently confirmed upkeep figure is **₦20,000 per month**, paid to you only if you applied for upkeep.\n\nTreat other figures on WhatsApp as unconfirmed. Institutional charges (school fees) are a different amount paid **to the school**, not to you.\n\nLive amount and pay date: ${PORTAL} · FAQ: ${FAQ}. I will not invent a new official figure.`
     }
@@ -152,6 +155,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'documents-needed') {
+    if (/phone|email|profile|number/i.test(t) && /change|edit|update|wrong/i.test(t)) {
+      return `**Change phone / email / profile**\n\n1. Sign **in** at ${SITE}. Do not create a second account to fix a typo.\n2. Open profile and edit the field the portal allows.\n3. Do **not** send NIN, BVN, or OTPs in this chat.\n4. If the field is locked, ticket ${ESUPPORT} with a screenshot of the locked field only.\n\nPortal: ${PORTAL} · FAQ: ${FAQ}`
+    }
     if (/bank|account\s*number|wrong\s*account|update\s*(my\s*)?(bank|account|profile)/i.test(t)) {
       return `**Bank / profile details**\n\n1. Sign **in** at ${SITE} (do not create a second account).\n2. Open profile and correct the bank account used for upkeep. Use a real bank account, not a wallet, if the portal asks for one.\n3. Do **not** send account numbers, BVN, or NIN in this chat.\n4. If the portal will not save the change, ticket ${ESUPPORT} with a screenshot of the error only.\n\nPortal: ${PORTAL} · FAQ: ${FAQ}`
     }
