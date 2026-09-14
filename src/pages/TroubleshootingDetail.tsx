@@ -59,10 +59,16 @@ export default function TroubleshootingDetail() {
             </li>
           ))}
         </ol>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-forest-100 bg-forest-50/70 px-3 py-2.5">
+          <p className="text-xs text-ink/60 sm:text-sm">
+            If this matched what you saw, send the guide to a classmate who is stuck on the same issue.
+          </p>
+          <ShareGuide variant="button" className="!min-h-[36px] shrink-0 !px-3 !py-1.5 !text-xs" />
+        </div>
       </section>
 
       <section className="card mt-4 border-rust-500/30 bg-rust-100/40">
-        <h2 className="font-display text-base font-semibold text-rust-500">Avoid this</h2>
+        <h2 className="font-display text-base font-semibold text-ink text-rust-500">Avoid this</h2>
         <ul className="mt-2 space-y-2">
           {item.avoid_this.map((point, i) => (
             <li key={i} className="flex gap-2 text-sm text-ink/70">
