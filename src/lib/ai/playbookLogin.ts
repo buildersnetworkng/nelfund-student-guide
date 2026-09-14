@@ -6,6 +6,9 @@ export function playbookPortalLogin(t: string): string {
   if (/already\s*used\s*by\s*another|used\s*by\s*another\s*student|email\s*(already|don)\s*(exist|dey|register)|two\s*accounts?|second\s*account|duplicate\s*account|account\s*already\s*(exist|dey)/i.test(t)) {
     return `**Email / account already exists**\n\n1. Do **not** open a second account. Sign **in** at ${SITE} with the first email.\n2. Use **Forgot password** on that same page if you cannot remember it.\n3. If the portal says the JAMB or email is already used by another student, ticket ${ESUPPORT} with a screenshot of that exact sentence. Do not invent a workaround here.\n\nNew sign-up is only ${PORTAL} when you truly have no account.`
   }
+  if (/\botp\b|one[\s-]*time/i.test(t)) {
+    return `**OTP not arriving**\n\n1. Use only ${SITE} (existing account) or ${PORTAL} (new). Ignore WhatsApp links.\n2. Check the same email/phone on the profile, plus spam.\n3. Wait a few minutes and request **one** new OTP. Do not open a second account.\n4. Never send the OTP to an agent. Still nothing? Ticket ${ESUPPORT} with a screenshot of the OTP screen (hide the code).\n\nForgot password is the reset link on ${SITE}, not a new sign-up.`
+  }
   if (/password|forgot|reset|session\s*expired/i.test(t)) {
     return `**Login / password**\n\n1. Sign **in** at ${SITE} (not a WhatsApp link).\n2. Session expired = sign in again. Do not create another account.\n3. Forgot password: use the reset link on ${SITE}.\n4. Still blocked? Ticket ${ESUPPORT} with the exact error sentence.\n\nNew account only: ${PORTAL}`
   }
