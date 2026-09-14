@@ -141,6 +141,10 @@ export default function Faq() {
                     </div>
                   )}
                   {f.video_id && <RecommendedVideo videoId={f.video_id} className="mt-3" />}
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-forest-700/10 pt-3">
+                    <p className="text-xs text-ink/50">Know someone stuck on this?</p>
+                    <ShareGuide variant="button" className="!min-h-[36px] shrink-0 !px-3 !py-1.5 !text-xs" />
+                  </div>
                 </div>
               )}
             </li>
