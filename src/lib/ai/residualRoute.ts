@@ -91,7 +91,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('portal-login', 'Email already used, sign in not sign up', 'applying', ['login', 'email-used', 'existing-account'], entities, true, 0.92)
   }
 
-  // Confirm-pay / school already paid / successful — pending-status, not refund, not how-to-apply
+  // Confirm-pay / school already paid / successful: pending-status, not refund, not how-to-apply
   if (isConfirmPayAsk(text) && !liveishOpen(text)) {
     return hit('pending-application', 'Confirm pay / successful / school paid wait', 'waiting', ['pending-status', 'pending'], entities, true, 0.78)
   }
