@@ -9,7 +9,7 @@ export function detectEntities(q: string): string[] {
     [/sign\s*up|create\s*(an?\s*)?account|register|i\s*wan(t)?\s*(to\s*)?apply/i, 'apply'],
     [/(\blogin\b|log\s*in|sign\s*in|password|session)/i, 'login'],
     [/email\s*(already\s*)?(used|taken|exist)|used\s*email|already\s*register|registered\s*last\s*year/i, 'login'],
-    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|already\s*appl|i\s*don\s*apply|money\s*no\s*drop|no\s*alert/i, 'status'],
+    [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|already\s*appl|i\s*don\s*apply|money\s*no\s*drop|no\s*alert|successful|approv/i, 'status'],
     [/upkeep|monthly\s*allowance|stipend|20,?000/i, 'upkeep'],
     [/school\s*fees?|institutional\s*charges|tuition/i, 'fees'],
     [/repay|gsi|pay\s*back|scholarship|after\s*nysc/i, 'repayment'],
@@ -19,7 +19,7 @@ export function detectEntities(q: string): string[] {
     [/portal|dashboard|nelf\.gov|nelfund/i, 'portal'],
     [/error|fail|invalid|reject|denied/i, 'error'],
     [/contact|support|ticket|esupport|email/i, 'contact'],
-    [/disburse|payment|paid|credit/i, 'disbursement'],
+    [/disburse|payment|paid|credit|have\s+they\s+pay/i, 'disbursement'],
   ]
   for (const [re, name] of map) {
     if (re.test(q)) entities.push(name)
@@ -71,6 +71,12 @@ function liveishOpen(text: string): boolean {
   )
 }
 
+function isConfirmPayAsk(text: string): boolean {
+  return /how\s*(do\s*i|i\s*go|can\s*i)\s*(know|confirm|see|check).{0,48}(pay|paid|disburse|money|alert|school|loan|fees)|have\s+(they|dem|una|nelfund)\s+pay|did\s+(they|dem|nelfund)\s+pay|una\s+don\s+pay|dem\s+don\s+pay|has\s+nelfund\s+pay|application\s+(is\s+)?successful|successful\s+but|\bsuccessful\b.{0,36}(no|never|not|money|alert|upkeep)|look\s+(this|am)|see\s+(this|am)\s*(picture|screenshot|photo)|check\s+this\s*(screenshot|picture)/i.test(
+    text,
+  )
+}
+
 /** Soft map leftover / long / Pidgin / multi-issue text onto a real intent. Never returns unknown. */
 export function residualSoftRoute(q: string, entities: string[]): IntentResult | null {
   const text = q.trim()
@@ -83,6 +89,11 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   // Email already registered → sign in (not another sign-up)
   if (/email\s*(already\s*)?(used|taken|exist)|used\s*email|already\s*(used|taken|registered|register)|registered\s*last\s*year|account\s*already\s*(exist|dey)|i\s*(don|already)\s*register/i.test(text)) {
     return hit('portal-login', 'Email already used, sign in not sign up', 'applying', ['login', 'email-used', 'existing-account'], entities, true, 0.92)
+  }
+
+  // Confirm-pay / school already paid / successful — pending-status, not refund, not how-to-apply
+  if (isConfirmPayAsk(text) && !liveishOpen(text)) {
+    return hit('pending-application', 'Confirm pay / successful / school paid wait', 'waiting', ['pending-status', 'pending'], entities, true, 0.78)
   }
 
   if (/how\s*far|pending|under\s*review|money\s*never|never\s*(see|enter|collect|receive|pay|send)|i\s*don\s*apply|already\s*appl|money\s*no\s*drop|no\s*alert|no\s*credit|alert\s*(no|not|never)|still\s*waiting|dem\s*never\s*(pay|send)|una\s*never\s*pay|next\s*batch|second\s*batch|declin|reject(ed|ion)|unsuccessful|check\s*(my\s*)?(loan|application|status)|when\s*(will|go)\s*(they|dem|una)\s*(pay|send)|application\s*(no|not)\s*move|approv(ed|al).{0,40}(no|never|not).{0,20}(money|alert|upkeep|enter)|e\s*no\s*(dey\s*)?(show|drop|enter|change)|nothing\s*dey\s*happen|status\s*(no|not|never)\s*(change|move)|they\s*(don|have)\s*pay(ed)?\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive).{0,24}(me|i|upkeep|alert)|when\s*(will|go)\s*(they|dem)\s*pay\s*(my\s*)?(school\s*)?fees|dem\s*don\s*pay\s*(the\s*)?school|school\s*don\s*collect|i\s*no\s*see\s*(alert|money|credit)|my\s*(account|bank)\s*(no|not|never)\s*(credit|alert)|nothing\s*enter|loan\s*(no|not)\s*(pay|drop)|una\s*don\s*forget\s*me|dem\s*forget\s*me|why\s*(dem|they)\s*no\s*pay|why\s*no\s*(alert|credit|money)|batch\s*(no|not)\s*(come|drop)|disburs(e|ement).{0,20}(no|not|never)|i\s*still\s*dey\s*wait/i.test(text) && !liveishOpen(text)) {
@@ -109,10 +120,11 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (/why\s+(was|is|dem|they|una)|purpose|wetin\s*(be|mean)|what\s*is\s*(this\s*)?nelfund|explain\s*(nelfund|this\s*loan)/i.test(text)) {
     return hit('what-is-nelfund', 'Why NELFUND was created / purpose', 'exploring', ['what is', 'purpose'], entities, false, 0.74)
   }
-  if (/how\s*(to|do\s*i|i\s*go)\s*apply|i\s*wan(t)?\s*(to\s*)?apply|sign\s*up|create\s*(an?\s*)?account|step\s*by\s*step|guide\s*me|first\s*time|what\s*(do\s*i\s*do\s*)?next|cannot\s*submit/i.test(text) && !liveishOpen(text) && !/email\s*(already\s*)?(used|taken)|already\s*register|registered\s*last\s*year/i.test(text)) {
+  if (/how\s*(to|do\s*i|i\s*go)\s*apply|i\s*wan(t)?\s*(to\s*)?apply|sign\s*up|create\s*(an?\s*)?account|step\s*by\s*step|guide\s*me|first\s*time|what\s*(do\s*i\s*do\s*)?next|cannot\s*submit/i.test(text) && !liveishOpen(text) && !/email\s*(already\s*)?(used|taken)|already\s*register|registered\s*last\s*year/i.test(text) && !isConfirmPayAsk(text)) {
     return hit('how-to-apply', 'How to apply / next step', 'preparing', ['how-to-apply'], entities, false, 0.7)
   }
-  if (/refund|already\s*paid\s*(school|fees)|i\s*don\s*pay\s*(my\s*)?(school\s*)?fees/i.test(text)) {
+  // First-person "I already paid fees" is refund/school-fees. "They paid my school" is pending.
+  if (/refund|i\s*(already|don|have)\s*paid\s*(my\s*)?(school|fees)|i\s*don\s*pay\s*(my\s*)?(school\s*)?fees/i.test(text) && !/(they|dem|una|nelfund)\s+(already\s+)?(pay|paid)/i.test(text)) {
     return hit('school-fees', 'Fees / refund', 'exploring', ['fees'], entities, true, 0.7)
   }
   if (/upkeep|monthly\s*allowance|20,?000|hostel|feeding|living\s*money/i.test(text) && !liveishOpen(text)) {
