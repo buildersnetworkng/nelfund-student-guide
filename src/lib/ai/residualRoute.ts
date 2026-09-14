@@ -102,6 +102,27 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
     return hit('official-sources', 0.5, ['ack'], 'Short acknowledgement', 'unknown', entities)
   }
 
+  if (/^(help(\s*me)?|abeg(\s*help)?|una\s*dey(\s*there)?|please\s*help|i\s*need\s*help)[.!? ]*$/i.test(q)) {
+    return hit('how-to-apply', 0.62, ['guidance', 'how-to-apply'], 'Vague help / start ask', 'preparing', entities)
+  }
+
+  if (
+    /^(i\s*)?(need|wan(t)?|wan\s*collect|dey\s*need)\s*(the\s*)?(nelfund\s*)?(loan|upkeep)?[.!? ]*$/i.test(q) ||
+    /i\s*(need|wan(t)?)\s*(the\s*)?(student\s*)?loan|i\s*wan\s*collect(\s*(nelfund|loan|am))?|how\s*i\s*go\s*start|first\s*time\s*(apply|applicant)/i.test(
+      q,
+    )
+  ) {
+    return hit('how-to-apply', 0.8, ['how-to-apply', 'start'], 'Need loan / how I start', 'preparing', entities)
+  }
+
+  if (/^(my\s*money|check|check\s*(am|status|loan)|wetin\s*dey\s*happen)[.!? ]*$/i.test(q)) {
+    return hit('pending-application', 0.72, ['pending-status'], 'Short money / check status', 'waiting', entities, true)
+  }
+
+  if (/^(unilag|lasu|oou|yabatech|unilorin|uniben|oau|unijos|noun|nou|futo|futa|abu|ui)[.!? ]*$/i.test(q)) {
+    return hit('missing-information', 0.7, ['school-list', 'institution'], 'School name only', 'preparing', entities, true)
+  }
+
   if (
     /scholarship|is\s*(it|nelfund|this)\s*(a\s*)?(grant|gift|free\s*money)|not\s*(a\s*)?loan|loan\s*or\s*scholarship|na\s*scholarship|dem\s*go\s*collect\s*am\s*back/i.test(
       q,
@@ -183,7 +204,7 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   }
 
   if (
-    /still\s*(open|dey\s*open)|deadline|as\s*of\s*today|can\s*i\s*still\s*apply|closing\s*date|dem\s*don\s*close/i.test(
+    /still\s*(open|dey\s*open)|deadline|as\s*of\s*today|can\s*i\s*still\s*apply|closing\s*date|dem\s*don\s*close|go\s*open(\s*again)?|open\s*again|next\s*(window|cycle|session)/i.test(
       q,
     )
   ) {
