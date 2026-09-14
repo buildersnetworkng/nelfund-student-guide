@@ -8,6 +8,7 @@ export function detectEntities(q: string): string[] {
     [/\bbvn\b|bank\s*verification/i, 'bvn'],
     [/sign\s*up|create\s*(an?\s*)?account|register|i\s*wan(t)?\s*(to\s*)?apply/i, 'apply'],
     [/(\blogin\b|log\s*in|sign\s*in|password|session)/i, 'login'],
+    [/email\s*(already\s*)?(used|taken|exist)|used\s*email|already\s*register|registered\s*last\s*year/i, 'login'],
     [/pending|status|under\s*review|how\s*far|never\s*(pay|come|enter|see|collect|receive)|already\s*appl|i\s*don\s*apply|money\s*no\s*drop|no\s*alert/i, 'status'],
     [/upkeep|monthly\s*allowance|stipend|20,?000/i, 'upkeep'],
     [/school\s*fees?|institutional\s*charges|tuition/i, 'fees'],
@@ -79,6 +80,11 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('official-sources', 'Greeting, offer menu', 'exploring', ['greeting', 'guidance'], entities, false, 0.65)
   }
 
+  // Email already registered → sign in (not another sign-up)
+  if (/email\s*(already\s*)?(used|taken|exist)|used\s*email|already\s*(used|taken|registered|register)|registered\s*last\s*year|account\s*already\s*(exist|dey)|i\s*(don|already)\s*register/i.test(text)) {
+    return hit('portal-login', 'Email already used, sign in not sign up', 'applying', ['login', 'email-used', 'existing-account'], entities, true, 0.92)
+  }
+
   if (/how\s*far|pending|under\s*review|money\s*never|never\s*(see|enter|collect|receive|pay|send)|i\s*don\s*apply|already\s*appl|money\s*no\s*drop|no\s*alert|no\s*credit|alert\s*(no|not|never)|still\s*waiting|dem\s*never\s*(pay|send)|una\s*never\s*pay|next\s*batch|second\s*batch|declin|reject(ed|ion)|unsuccessful|check\s*(my\s*)?(loan|application|status)|when\s*(will|go)\s*(they|dem|una)\s*(pay|send)|application\s*(no|not)\s*move|approv(ed|al).{0,40}(no|never|not).{0,20}(money|alert|upkeep|enter)|e\s*no\s*(dey\s*)?(show|drop|enter|change)|nothing\s*dey\s*happen|status\s*(no|not|never)\s*(change|move)|they\s*(don|have)\s*pay(ed)?\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive).{0,24}(me|i|upkeep|alert)|when\s*(will|go)\s*(they|dem)\s*pay\s*(my\s*)?(school\s*)?fees/i.test(text) && !liveishOpen(text)) {
     return hit('pending-application', 'Pending / declined / wait', 'waiting', ['pending-status', 'pending'], entities, true, 0.72)
   }
@@ -103,7 +109,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (/why\s+(was|is|dem|they|una)|purpose|wetin\s*(be|mean)|what\s*is\s*(this\s*)?nelfund|explain\s*(nelfund|this\s*loan)/i.test(text)) {
     return hit('what-is-nelfund', 'Why NELFUND was created / purpose', 'exploring', ['what is', 'purpose'], entities, false, 0.74)
   }
-  if (/how\s*(to|do\s*i|i\s*go)\s*apply|i\s*wan(t)?\s*(to\s*)?apply|sign\s*up|create\s*(an?\s*)?account|step\s*by\s*step|guide\s*me|first\s*time|what\s*(do\s*i\s*do\s*)?next|cannot\s*submit/i.test(text) && !liveishOpen(text)) {
+  if (/how\s*(to|do\s*i|i\s*go)\s*apply|i\s*wan(t)?\s*(to\s*)?apply|sign\s*up|create\s*(an?\s*)?account|step\s*by\s*step|guide\s*me|first\s*time|what\s*(do\s*i\s*do\s*)?next|cannot\s*submit/i.test(text) && !liveishOpen(text) && !/email\s*(already\s*)?(used|taken)|already\s*register|registered\s*last\s*year/i.test(text)) {
     return hit('how-to-apply', 'How to apply / next step', 'preparing', ['how-to-apply'], entities, false, 0.7)
   }
   if (/refund|already\s*paid\s*(school|fees)|i\s*don\s*pay\s*(my\s*)?(school\s*)?fees/i.test(text)) {
@@ -159,7 +165,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (/e\s*no\s*dey|nothing\s*happen|still\s*the\s*same|no\s*update|silent|dem\s*forget\s*me/i.test(text)) {
     return hit('pending-application', 'No update leftover', 'waiting', ['pending-status'], entities, true, 0.55)
   }
-  if (/create|account|register|apply|profile|submit|step/i.test(text)) {
+  if (/create|account|register|apply|profile|submit|step/i.test(text) && !/email\s*(already\s*)?(used|taken)|already\s*register|registered\s*last\s*year/i.test(text)) {
     return hit('how-to-apply', 'Apply leftover', 'preparing', ['how-to-apply'], entities, false, 0.5)
   }
   return hit('official-sources', 'Official NELFUND links', 'exploring', ['guidance'], entities, false, 0.42)
