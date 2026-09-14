@@ -21,6 +21,9 @@ function buildShareText(url: string) {
 
 const SHARE_TITLE = 'NELFUND Student Guide'
 
+/** Only the first mounted ShareGuide should consume ?share=1 / #share */
+let shareDeepLinkConsumed = false
+
 type Channel = {
   id: string
   label: string
@@ -160,6 +163,18 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
   useEffect(() => {
     setMounted(true)
     setCanNative(typeof navigator !== 'undefined' && typeof navigator.share === 'function')
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const hash = window.location.hash.replace(/^#/, '')
+    if (!shareDeepLinkConsumed && (params.get('share') === '1' || hash === 'share')) {
+      shareDeepLinkConsumed = true
+      setOpen(true)
+      trackFeature('share_open', { variant: 'deep-link' })
+      params.delete('share')
+      const qs = params.toString()
+      const next = `${window.location.pathname}${qs ? `?${qs}` : ''}${hash === 'share' ? '' : window.location.hash}`
+      window.history.replaceState({}, '', next || window.location.pathname)
+    }
   }, [])
 
   useEffect(() => {
