@@ -52,6 +52,7 @@ export function detectEntities(text: string): string[] {
   if (/\bjamb\b|utme/.test(q)) out.push('jamb')
   if (/\bnin\b/.test(q)) out.push('nin')
   if (/\bbvn\b/.test(q)) out.push('bvn')
+  if (/\botp\b|one[\s-]*time/.test(q)) out.push('otp')
   if (/\bpending\b|under\s*review|how\s*far/.test(q)) out.push('status')
   if (/upkeep|stipend|allowance|20,?000/.test(q)) out.push('upkeep')
   if (/school\s*fees|tuition|institutional/.test(q)) out.push('fees')
@@ -227,6 +228,22 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   }
 
   if (
+    /\b(bvn|nin)\b.{0,40}(invalid|mismatch|not\s*match|no\s*(gree|work|dey)|fail|verif|reject)|invalid\s*(bvn|nin)|(bvn|nin)\s*(no|not|never)\s*(gree|work|match)|verify\s*(my\s*)?(bvn|nin)/i.test(
+      q,
+    )
+  ) {
+    return hit('documents-needed', 0.84, ['documents', 'bvn-nin'], 'BVN / NIN mismatch leftover', 'preparing', entities, true)
+  }
+
+  if (
+    /\botp\b.{0,30}(no|not|never|no\s*dey)|otp\s*(no|not|never)\s*(enter|come|drop|gree)|no\s*otp|didn'?t\s*get\s*(the\s*)?otp|one[\s-]*time\s*(password|code)/i.test(
+      q,
+    )
+  ) {
+    return hit('portal-login', 0.84, ['login', 'otp'], 'OTP not arriving leftover', 'applying', entities, true)
+  }
+
+  if (
     /already\s*used\s*by\s*another|used\s*by\s*another\s*student|email\s*(already|don)\s*(exist|dey|register)|two\s*accounts?|second\s*account|duplicate\s*account|account\s*already\s*(exist|dey)/i.test(
       q,
     )
@@ -331,6 +348,12 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
 
   if (entities.includes('jamb')) {
     return hit('jamb-verification', 0.62, ['jamb'], 'Entity jamb fallback', 'applying', entities, true)
+  }
+  if (entities.includes('bvn') || entities.includes('nin')) {
+    return hit('documents-needed', 0.64, ['documents', 'bvn-nin'], 'Entity BVN/NIN fallback', 'preparing', entities, true)
+  }
+  if (entities.includes('otp')) {
+    return hit('portal-login', 0.64, ['login', 'otp'], 'Entity OTP fallback', 'applying', entities, true)
   }
   if (entities.includes('status') || (entities.includes('upkeep') && /never|pending|wait/.test(compact))) {
     return hit('pending-application', 0.6, ['pending-status'], 'Entity status fallback', 'waiting', entities, true)
