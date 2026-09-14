@@ -85,7 +85,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     return hit('portal-login', 'Email already used, sign in not sign up', 'applying', ['login', 'email-used', 'existing-account'], entities, true, 0.92)
   }
 
-  if (/how\s*far|pending|under\s*review|money\s*never|never\s*(see|enter|collect|receive|pay|send)|i\s*don\s*apply|already\s*appl|money\s*no\s*drop|no\s*alert|no\s*credit|alert\s*(no|not|never)|still\s*waiting|dem\s*never\s*(pay|send)|una\s*never\s*pay|next\s*batch|second\s*batch|declin|reject(ed|ion)|unsuccessful|check\s*(my\s*)?(loan|application|status)|when\s*(will|go)\s*(they|dem|una)\s*(pay|send)|application\s*(no|not)\s*move|approv(ed|al).{0,40}(no|never|not).{0,20}(money|alert|upkeep|enter)|e\s*no\s*(dey\s*)?(show|drop|enter|change)|nothing\s*dey\s*happen|status\s*(no|not|never)\s*(change|move)|they\s*(don|have)\s*pay(ed)?\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive).{0,24}(me|i|upkeep|alert)|when\s*(will|go)\s*(they|dem)\s*pay\s*(my\s*)?(school\s*)?fees/i.test(text) && !liveishOpen(text)) {
+  if (/how\s*far|pending|under\s*review|money\s*never|never\s*(see|enter|collect|receive|pay|send)|i\s*don\s*apply|already\s*appl|money\s*no\s*drop|no\s*alert|no\s*credit|alert\s*(no|not|never)|still\s*waiting|dem\s*never\s*(pay|send)|una\s*never\s*pay|next\s*batch|second\s*batch|declin|reject(ed|ion)|unsuccessful|check\s*(my\s*)?(loan|application|status)|when\s*(will|go)\s*(they|dem|una)\s*(pay|send)|application\s*(no|not)\s*move|approv(ed|al).{0,40}(no|never|not).{0,20}(money|alert|upkeep|enter)|e\s*no\s*(dey\s*)?(show|drop|enter|change)|nothing\s*dey\s*happen|status\s*(no|not|never)\s*(change|move)|they\s*(don|have)\s*pay(ed)?\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive).{0,24}(me|i|upkeep|alert)|when\s*(will|go)\s*(they|dem)\s*pay\s*(my\s*)?(school\s*)?fees|dem\s*don\s*pay\s*(the\s*)?school|school\s*don\s*collect|i\s*no\s*see\s*(alert|money|credit)|my\s*(account|bank)\s*(no|not|never)\s*(credit|alert)|nothing\s*enter|loan\s*(no|not)\s*(pay|drop)|una\s*don\s*forget\s*me|dem\s*forget\s*me|why\s*(dem|they)\s*no\s*pay|why\s*no\s*(alert|credit|money)|batch\s*(no|not)\s*(come|drop)|disburs(e|ement).{0,20}(no|not|never)|i\s*still\s*dey\s*wait/i.test(text) && !liveishOpen(text)) {
     return hit('pending-application', 'Pending / declined / wait', 'waiting', ['pending-status', 'pending'], entities, true, 0.72)
   }
   if (/\bjamb\b|utme|invalid\s*format|verification\s*fail|wrong\s*jamb/i.test(text)) {
@@ -121,7 +121,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (/institution(al)?\s*(fee|charge|pay).{0,28}(paid|pay|done)|school\s*(don|has|have)\s*(receive|collect|get)|pay(ment)?\s*(to\s*)?(my\s*)?school.{0,24}(me|upkeep|alert|student)/i.test(text)) {
     return hit('pending-application', 'School paid, student still waiting', 'waiting', ['pending-status', 'disbursement'], entities, true, 0.7)
   }
-  if (/change\s*(my\s*)?(bank|account)|wrong\s*(bank\s*)?account|update\s*(my\s*)?(bank|account|profile)|account\s*number\s*(no|not|wrong)/i.test(text)) {
+  if (/change\s*(my\s*)?(bank|account)|wrong\s*(bank\s*)?account|update\s*(my\s*)?(bank|account|profile)|account\s*number\s*(no|not|wrong)|\b(opay|palmpay|moniepoint|wallet)\b/i.test(text)) {
     return hit('documents-needed', 'Bank / profile update', 'preparing', ['documents', 'bank'], entities, true, 0.7)
   }
   if (/^(unilag|lasu|oou|yabatech|unilorin|uniben|oau|unijos|noun|futo|futa|abu|my\s*school)[.!? ]*$/i.test(text)) {
