@@ -28,3 +28,20 @@ export function lastUserIntent(history?: ConversationTurn[]): IntentId | null {
   }
   return null
 }
+
+export function expandWithContext(question: string, history?: ConversationTurn[]): string {
+  const raw = (question || '').trim()
+  if (!history?.length) return raw
+  if (raw.length >= 80) return raw
+  if (raw.length < 48) {
+    const priorUsers = history
+      .filter((h) => h.role === 'user')
+      .map((h) => h.text.trim())
+      .filter(Boolean)
+    if (!priorUsers.length) return raw
+    const last = priorUsers[priorUsers.length - 1]
+    if (!last || last === raw) return raw
+    return `${last}\n${raw}`
+  }
+  return raw
+}
