@@ -19,5 +19,11 @@ export function playbookPendingExtras(t: string): string | null {
   if (/when\s*(will|go)\s*(they|dem|una|nelfund)?\s*(pay|send|disburse)|how\s*long\s*(does|go)\s*(approval|disburse|pay)|pay\s*date/i.test(t)) {
     return `**I will not invent a pay date.**\n\n1. Open ${PORTAL} and copy the exact status word.\n2. School fees go to the institution; upkeep (if you applied for it in the same session) goes to your bank.\n3. Same-word Pending for a long time: campus NELFUND desk, then ${ESUPPORT}.\n4. Live window questions (is it still open) are separate from payout wait.`
   }
+  if (/e\s*no\s*(move|change)|status\s*(still|dey)\s*(the\s*same|same|pending)|nothing\s*(don|has)\s*happen|no\s*update|application\s*(still|dey)\s*(there|pending)/i.test(t)) {
+    return `**Status not moving is still a wait, not a new apply.**\n\n1. Open ${PORTAL} and copy the exact status word. Same word for weeks is common while the school record or batch is processed.\n2. Institutional charges go to the school first. No personal alert does not mean the file is dead.\n3. Ask the campus NELFUND desk if your record is uploaded.\n4. I will not invent a batch or pay date. Long same-word wait: ticket ${ESUPPORT} with name, school, and that status word.`
+  }
+  if (/\bbatch\b|una\s*don\s*pay\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive)/i.test(t)) {
+    return `**Batch / school already paid** is still your portal status, not a public list I can invent.\n\n1. Only ${PORTAL} shows *your* file. There is no official public "batch 3 paid" sheet I can quote here.\n2. If the school already received institutional charges, upkeep (only if you ticked it) can still be later.\n3. Copy the exact status word from the portal.\n4. Same word for a long time: campus desk, then ${ESUPPORT}. I will not invent a pay date.`
+  }
   return null
 }

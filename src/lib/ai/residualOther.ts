@@ -69,5 +69,37 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   if (/^(abeg(\s*check(\s*am)?)?|check\s*am|look\s*am|una\s*don\s*pay|don\s*pay\s*\??)[.!? ]*$/i.test(q)) {
     return hit('pending-application', 0.7, ['pending-status'], 'Short pidgin check / pay ask', 'waiting', entities, true)
   }
+
+  if (
+    /e\s*no\s*(move|change|dey\s*move)|application\s*(still|dey)\s*(there|there\s*so|pending)|status\s*(still|dey)\s*(the\s*same|same|pending)|nothing\s*(don|has)\s*happen|no\s*update/i.test(
+      q,
+    )
+  ) {
+    return hit('pending-application', 0.84, ['pending-status', 'no-move'], 'Status not moving leftover', 'waiting', entities, true)
+  }
+  if (/\b(third|3rd|fourth|4th|first|second)\s*batch\b|\bbatch\s*[1-9]\b|which\s*batch|una\s*don\s*pay\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.84, ['pending-status', 'batch'], 'Batch / school already paid leftover', 'waiting', entities, true)
+  }
+  if (/otp\s*(no|not|never)|no\s*otp|otp\s*(no|not)\s*(dey|come|enter|arrive)|one[\s-]*time\s*(pin|password)\s*(no|not)/i.test(q)) {
+    return hit('portal-login', 0.84, ['login', 'otp'], 'OTP not arriving leftover', 'applying', entities, true)
+  }
+  if (/institution(al)?\s*verif|school\s*(data|record)\s*(no|not|never)|upload\s*(my\s*)?(data|record)|school\s*never\s*verify/i.test(q)) {
+    return hit('institution-verification', 0.84, ['missing', 'institution-verification'], 'School / institution verification leftover', 'applying', entities, true)
+  }
+  if (/wallet|opay|palmpay|moniepoint|virtual\s*account|fintech\s*account/i.test(q) && /bank|account|upkeep|alert|pay/i.test(q)) {
+    return hit('bank-information', 0.82, ['bank', 'wallet'], 'Wallet vs bank leftover', 'preparing', entities, true)
+  }
+  if (/\b(declin(ed|e)|reject(ed)?|unsuccessful)\b/i.test(q) && !liveish(q)) {
+    return hit('rejected-application', 0.84, ['pending-status', 'declined'], 'Declined / rejected leftover', 'rejected', entities, true)
+  }
+  if (/noun|national\s*open\s*university|part[\s-]*time|weekend\s*programme/i.test(q) && /eligib|qualify|fit\s*apply|can\s*(i|we)\s*apply/i.test(q)) {
+    return hit('eligibility', 0.82, ['eligibility', 'noun'], 'NOUN / part-time leftover', 'exploring', entities)
+  }
+  if (/guarantor|surety|who\s*(go|will)\s*stand/i.test(q)) {
+    return hit('guarantor', 0.82, ['guarantor'], 'Guarantor leftover', 'preparing', entities)
+  }
+  if (/change\s*(my\s*)?(bank|account)|wrong\s*(bank\s*)?account|update\s*(my\s*)?(bank|account)/i.test(q)) {
+    return hit('bank-information', 0.84, ['bank'], 'Bank change leftover', 'preparing', entities, true)
+  }
   return null
 }
