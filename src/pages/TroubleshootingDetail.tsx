@@ -68,7 +68,7 @@ export default function TroubleshootingDetail() {
       </section>
 
       <section className="card mt-4 border-rust-500/30 bg-rust-100/40">
-        <h2 className="font-display text-base font-semibold text-ink text-rust-500">Avoid this</h2>
+        <h2 className="font-display text-base font-semibold text-rust-500">Avoid this</h2>
         <ul className="mt-2 space-y-2">
           {item.avoid_this.map((point, i) => (
             <li key={i} className="flex gap-2 text-sm text-ink/70">
