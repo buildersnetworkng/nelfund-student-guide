@@ -127,8 +127,15 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (/(name|details?).{0,24}(no|not|never)\s*(match|gree)|mismatch|\bbvn\b|\bnin\b/i.test(text) && !/\bjamb\b/i.test(text)) {
     return hit('documents-needed', 'Documents / mismatch', 'preparing', ['documents'], entities, true, 0.7)
   }
-  if (/private\s*(uni|university)|part[\s-]*time|\bnoun\b|masters?\b|\bphd\b|foreign\s*student|not\s*a\s*nigerian|400\s*level|final\s*year|who\s*can\s*apply|eligib|vocational|nursing\s*student/i.test(text)) {
+  if (
+    /private\s*(uni|university)|part[\s-]*time|\bnoun\b|masters?\b|\bphd\b|foreign\s*student|not\s*a\s*nigerian|400\s*level|final\s*year|who\s*can\s*apply|eligib|vocational|nursing\s*student|polytechnic|\bpoly\b|\bcoe\b|college\s*of\s*education|\bnd\b|\bhnd\b|i\s*don\s*graduate|already\s*graduate|i\s*dey\s*nysc/i.test(
+      text,
+    )
+  ) {
     return hit('eligibility', 'Eligibility', 'exploring', ['eligibility'], entities, false, 0.7)
+  }
+  if (/how\s*many\s*(students?|people|applications?)|total\s*(disburse|loan|beneficiar)|n355|355\s*billion|disbursement\s*report/i.test(text)) {
+    return hit('current-information', 'Programme scale / latest figures', 'exploring', ['current'], entities, false, 0.7)
   }
   if (/\b(scam|fake\s*agent|whatsapp\s*agent)\b/i.test(text)) {
     return hit('scam-safety', 'Scam / fake agent warning', 'exploring', ['scam'], entities, true, 0.7)
