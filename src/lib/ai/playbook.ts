@@ -6,6 +6,7 @@
 
 import type { IntentId } from './types'
 import { eligibilityAnswer } from './eligibilityAnswer'
+import { playbookPortalLogin } from './playbookLogin'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -140,7 +141,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'portal-login') {
-    return `**Login / sign in:** ${SITE}\n**New account / apply:** ${PORTAL}\n\nThose are different pages. Sign up creates the account; login opens an existing one; submitting a loan is a later step after profile.\n\nForgot password, use the portal reset, do not create a second profile. Never send OTP to anyone.\nTicket if login keeps failing: ${ESUPPORT}`
+    return playbookPortalLogin(t)
   }
 
   if (intent === 'scam-safety') {
