@@ -3,9 +3,11 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import StatusCard from '../components/StatusCard'
 import StaySafe from '../components/StaySafe'
 import InstitutionSelect from '../components/InstitutionSelect'
-import ShareGuide, { whatsappShareHref } from '../components/ShareGuide'
+import ShareGuide, { SHARE_TEXT } from '../components/ShareGuide'
 import { QuickActionCard } from '../components/Card'
 import { getCurrentAcademicCycle } from '../lib/academicCycle'
+
+const WHATSAPP_SHARE_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
 // Driven by production top pages + unknown topics (admin analytics)
 const PROBLEM_SHORTCUTS = [
@@ -225,7 +227,7 @@ export default function Home() {
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <ShareGuide variant="button" />
             <a
-              href={whatsappShareHref()}
+              href={WHATSAPP_SHARE_HREF}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
