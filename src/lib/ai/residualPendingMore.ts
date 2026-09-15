@@ -35,5 +35,11 @@ export function residualPendingMore(text: string, entities: string[]): IntentRes
   if (/tracking\s*(number|id)|track\s*(my\s*)?(application|loan)|where\s*(is|dey)\s*(my\s*)?(application|loan)/i.test(q) && !liveish(q)) {
     return hit('pending-application', 0.8, ['pending-status', 'track'], 'Track application leftover', 'waiting', entities, true)
   }
+  if (/school\s*(don|has)\s*(collect|receive|get).{0,40}(upkeep|i|me|alert).{0,16}(no|never|not)|upkeep\s*(no|never|not)\s*(enter|drop|show|come|dey)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.86, ['pending-status', 'upkeep-wait'], 'School paid, upkeep wait leftover', 'waiting', entities, true)
+  }
+  if (/since\s+(january|february|march|april|may|june|july|august|september|october|november|december|last\s+(month|year)|\d{4}).{0,40}(never|no|not)\s+(pay|enter|drop|approve)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.84, ['pending-status', 'long-wait'], 'Long wait since date leftover', 'waiting', entities, true)
+  }
   return null
 }

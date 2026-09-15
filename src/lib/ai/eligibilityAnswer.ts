@@ -44,6 +44,14 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
         ? 'This chat will not invent a postgraduate / Masters / PhD rule. Confirm whether that cycle is on the official portal before you apply.\n\n'
         : /direct\s*entry|\bde\s*student\b|transfer\s*student/.test(raw)
           ? 'Direct Entry and transfer students still need a **JAMB number** and a school record the institution has uploaded. Confirm on the live portal; do not open a second account if one already exists.\n\n'
+        : /no\s*admission|never\s*(get|got|collect)\s*admission|awaiting\s*admission|admission\s*(no|not|never)\s*(dey|ready|come)|defer(red)?\s*admission/.test(raw)
+          ? 'Official FAQ language is students with **admission** into a public tertiary institution. If admission is not yet out, wait for the school record and matric upload before treating the portal as ready. This chat will not invent a pre-admission exception.\n\n'
+        : /\bijmb\b|\bjupeb\b|a[\s-]*level|pre[\s-]*degree|remedial|preliminary/.test(raw)
+          ? 'IJMB, JUPEB, A-level, pre-degree, and remedial programmes are **not** confirmed as standalone NELFUND cycles on the public FAQ. Confirm only if the live portal lists that school and session after a real tertiary admission.\n\n'
+        : /i\s*dey\s*nysc|during\s*nysc|serving\s*(now|currently)|corps\s*member/.test(raw)
+          ? 'Official FAQ repayment clock is **2 years after NYSC**. Serving now does not automatically open a new student-loan cycle. Confirm any current-student rule on the live portal; do not assume corps members can start a fresh loan here.\n\n'
+        : /\bcgpa\b|\bgpa\b|grade\s*point|minimum\s*(grade|score|cgpa)|age\s*limit|how\s*old|maximum\s*age/.test(raw)
+          ? 'This chat will not invent a CGPA cut-off or age cap. Official student-facing pages emphasise citizenship, public-institution admission, and matching NIN / JAMB / school data. Confirm any extra field on the live form only.\n\n'
         : /graduate|graduated|finish(ed)?\s*school|don\s*done\s*nysc|no\s*dey\s*school\s*again/.test(raw)
           ? 'NELFUND on the official FAQ is for **current** students in public tertiary institutions. If you have already finished and left school, do not assume a new loan. Confirm any graduate / NYSC-only case on the live portal.\n\n'
         : /\b(coe|college\s*of\s*education|vocational|nce|\bnd\b|\bhnd\b|polytechnic)\b/.test(raw)
@@ -64,7 +72,7 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
     `• Name and date of birth matching across NIN, JAMB, and school records\n\n` +
     `${levelNote} What blocks many students is **missing or unmatched school data**, especially **matric number** not yet on the portal.\n\n` +
     `If matric is not ready, ask your school ICT / Registry / NELFUND desk to upload your record first, then retry ${PORTAL}.\n\n` +
-    `Exact checklist for the open cycle: ${PORTAL} · ${SITE}\n\n` +
+    `Exact checklist for the open cycle: ${PORTAL} \u00b7 ${SITE}\n\n` +
     `This guide does not invent individual approval decisions.`
   )
 }
