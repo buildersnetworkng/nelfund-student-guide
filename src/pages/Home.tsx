@@ -4,6 +4,7 @@ import StatusCard from '../components/StatusCard'
 import StaySafe from '../components/StaySafe'
 import InstitutionSelect from '../components/InstitutionSelect'
 import ShareGuide, { SHARE_TEXT } from '../components/ShareGuide'
+import ShareSoftPrompt from '../components/ShareSoftPrompt'
 import { QuickActionCard } from '../components/Card'
 import { getCurrentAcademicCycle } from '../lib/academicCycle'
 
@@ -75,6 +76,7 @@ export default function Home() {
 
   return (
     <div className="pb-16">
+      <ShareSoftPrompt />
       <section className="relative overflow-hidden bg-forest-900 pb-16 pt-10 sm:pb-20 sm:pt-14">
         <div
           aria-hidden

@@ -179,7 +179,7 @@ export default function StatusCard() {
         </a>
         <ShareGuide
           variant="button"
-          className="!min-h-[36px] !border-white/20 !bg-white/10 !px-3 !py-1.5 !text-xs !text-paper !shadow-none hover:!bg-white/15"
+          className="!min-h-[36px] !border-gold-400/40 !bg-gold-500/15 !px-3 !py-1.5 !text-xs !text-gold-200 !shadow-none hover:!bg-gold-500/25"
         />
       </div>
     </div>
