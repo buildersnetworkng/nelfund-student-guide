@@ -3,7 +3,8 @@
  */
 
 export { answerQuestion } from './answer'
-export { classifyIntent } from './intent'
+export { classifyIntent, isPurposeAsk } from './intentClassify'
+export { PURPOSE_RE, liveOpenRe, lastUtterance } from './intent'
 export { resolveCapability, detectCapabilityOverride } from './capabilities'
 export { retrieveEvidence, retrieveRelevantVideo } from './retrieve'
 export {
