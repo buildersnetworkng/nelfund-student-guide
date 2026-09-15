@@ -3,7 +3,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import StatusCard from '../components/StatusCard'
 import StaySafe from '../components/StaySafe'
 import InstitutionSelect from '../components/InstitutionSelect'
-import ShareGuide from '../components/ShareGuide'
+import ShareGuide, { whatsappShareHref } from '../components/ShareGuide'
 import { QuickActionCard } from '../components/Card'
 import { getCurrentAcademicCycle } from '../lib/academicCycle'
 
@@ -222,8 +222,16 @@ export default function Home() {
             Share the NELFUND Guide so other students can check readiness, apply correctly, and
             troubleshoot portal issues before they get stuck.
           </p>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             <ShareGuide variant="button" />
+            <a
+              href={whatsappShareHref()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
+            >
+              WhatsApp a classmate
+            </a>
           </div>
         </div>
       </RevealSection>
