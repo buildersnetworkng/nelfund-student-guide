@@ -1,5 +1,6 @@
 import type { ConversationTurn, IntentId, IntentResult } from './types'
 import { residualOtherRoute } from './residualOther'
+import { residualPendingMore } from './residualPendingMore'
 
 const SCHOOL_HINTS = [
   'unilag', 'lasu', 'oou', 'yabatech', 'unilorin', 'uniben', 'oau', 'unijos',
@@ -76,6 +77,9 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   const q = (text || '').trim()
   if (!q) return hit('official-sources', 0.45, ['empty'], 'Empty or unclear message', 'unknown', entities)
   const compact = q.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+
+  const pendingMore = residualPendingMore(q, entities)
+  if (pendingMore) return pendingMore
 
   const extra = residualOtherRoute(q, entities)
   if (extra) return extra

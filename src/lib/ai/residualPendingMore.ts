@@ -1,0 +1,39 @@
+import type { IntentId, IntentResult } from './types'
+
+function hit(
+  intent: IntentId,
+  confidence: number,
+  topics: string[],
+  problem: string,
+  stage: IntentResult['stage'],
+  entities: string[],
+  isTroubleshooting = false,
+): IntentResult {
+  return { intent, confidence, topics, problem, stage, entities, isTroubleshooting }
+}
+
+function liveish(q: string): boolean {
+  return /still\s*(open|dey\s*open)|deadline|as\s*of\s*today|can\s*i\s*still\s*apply|closing\s*date|dem\s*don\s*close/i.test(q)
+}
+
+/** Pending-status leftovers that previously fell into admin topic `other`. */
+export function residualPendingMore(text: string, entities: string[]): IntentResult | null {
+  const q = (text || '').trim()
+  if (!q) return null
+  if (/my\s*(application|loan|file)\s*(status|na\s*wetin)|wetin\s*(be|dey)\s*(my\s*)?(status|application)|check\s*(my\s*)?(application|loan|status)|status\s*(of\s*)?(my\s*)?(loan|application)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.86, ['pending-status', 'status-check'], 'Check my application leftover', 'waiting', entities, true)
+  }
+  if (/still\s*(waiting|dey\s*wait)|i\s*dey\s*wait|waiting\s*(for\s*)?(approval|payment|upkeep|money)|dem\s*never\s*(pay|approve)\s*me|never\s*(pay|approve)\s*me/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.86, ['pending-status', 'still-waiting'], 'Still waiting leftover', 'waiting', entities, true)
+  }
+  if (/approv(ed|al).{0,40}(no|never|not|nothing).{0,24}(money|alert|upkeep|pay|enter|drop)|successful.{0,24}(no|never).{0,16}(money|alert)/i.test(q)) {
+    return hit('pending-application', 0.88, ['pending-status', 'approved-no-pay'], 'Approved but no money leftover', 'waiting', entities, true)
+  }
+  if (/how\s*far\s*(my\s*)?(loan|application|nelfund|am)|my\s*loan\s*how\s*far/i.test(q)) {
+    return hit('pending-application', 0.88, ['pending-status', 'how-far'], 'How far my loan leftover', 'waiting', entities, true)
+  }
+  if (/tracking\s*(number|id)|track\s*(my\s*)?(application|loan)|where\s*(is|dey)\s*(my\s*)?(application|loan)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.8, ['pending-status', 'track'], 'Track application leftover', 'waiting', entities, true)
+  }
+  return null
+}
