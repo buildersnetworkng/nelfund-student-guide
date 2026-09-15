@@ -60,5 +60,41 @@ export function residualOtherMore(text: string, entities: string[]): IntentResul
   if (/help\s*me\s*(login|sign\s*in)|i\s*no\s*fit\s*(login|sign\s*in)|cannot\s*(login|sign\s*in)/i.test(q)) {
     return hit('portal-login', 0.86, ['login'], 'Cannot login leftover', 'applying', entities, true)
   }
+
+  // Hourly residual expansion: phrases still landing in admin topic `other`.
+  if (/passport\s*(photo|picture)|upload\s*(my\s*)?(photo|picture|passport|image)|passport\s*(no|not)\s*(upload|accept)|picture\s*(no|not)\s*(dey|upload)/i.test(q)) {
+    return hit('documents-needed', 0.86, ['documents', 'passport'], 'Passport photo leftover', 'preparing', entities)
+  }
+  if (/next\s*of\s*kin|kin\s*details|emergency\s*contact/i.test(q)) {
+    return hit('documents-needed', 0.84, ['documents', 'nok'], 'Next of kin leftover', 'preparing', entities)
+  }
+  if (/law\s*school|nigerian\s*law\s*school|\bnls\b|bar\s*part/i.test(q) && !liveish(q)) {
+    return hit('eligibility', 0.86, ['eligibility', 'law-school'], 'Law school leftover', 'exploring', entities)
+  }
+  if (/collate(d)?\s*list|school\s*(list|data)\s*(no|not|never)\s*(ready|upload)|they\s*never\s*collate/i.test(q)) {
+    return hit('institution-verification', 0.86, ['missing', 'collate'], 'Collate list leftover', 'applying', entities, true)
+  }
+  if (/nelfund\s*(don|has|have)\s*(pause|stop|suspend)|dem\s*(don|has)\s*(pause|stop|suspend)\s*(nelfund|the\s*loan)|loan\s*(don|has)\s*(pause|stop)|una\s*don\s*suspend/i.test(q)) {
+    return hit('current-information', 0.84, ['open-status', 'pause-rumour'], 'Pause / suspend rumour leftover', 'exploring', entities)
+  }
+  if (/how\s*many\s*(students?|people|persons)\s*(don|have|has)\s*(collect|receive|get)|how\s*many\s*beneficiar|total\s*(disburse|paid|applications)/i.test(q) && !liveish(q)) {
+    return hit('official-sources', 0.8, ['other', 'disbursement-totals'], 'How many beneficiaries leftover', 'exploring', entities)
+  }
+  if (/print\s*(slip|form|acknowledgement)|download\s*(slip|pdf|form)|acknowledgement\s*(slip|form)/i.test(q)) {
+    return hit('pending-application', 0.82, ['pending-status', 'slip'], 'Print slip leftover', 'waiting', entities, true)
+  }
+  if (/repeat\s*(a\s*)?year|i\s*dey\s*repeat|extra\s*year|spillover\s*student/i.test(q) && !liveish(q)) {
+    return hit('eligibility', 0.82, ['eligibility', 'repeat'], 'Repeat year leftover', 'exploring', entities)
+  }
+  if (/defer(ment|red)?\s*(my\s*)?(admission|session)|i\s*don\s*defer/i.test(q) && !liveish(q)) {
+    return hit('eligibility', 0.84, ['eligibility', 'defer'], 'Deferred admission leftover', 'exploring', entities)
+  }
+  if (/medical\s*student|mbbs|clinical\s*year|extra\s*years?\s*(for\s*)?(medicine|pharmacy|law)/i.test(q) && !liveish(q) && !/pending|how\s*far/.test(q)) {
+    return hit('eligibility', 0.82, ['eligibility', 'long-course'], 'Long professional course leftover', 'exploring', entities)
+  }
+  if (/change\s*of\s*name|affidavit\s*for\s*name|name\s*on\s*jamb\s*(no|not)\s*match/i.test(q)) {
+    return hit('nin-verification', 0.84, ['nin', 'name-change'], 'Change of name leftover', 'applying', entities, true)
+  }
+
   return null
 }
