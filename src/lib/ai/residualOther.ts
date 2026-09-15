@@ -141,5 +141,35 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   if (/^(unilag|lasu|oou|yabatech|unilorin|ui|oau|uniben|futa|futo|abu|noun|nou)[.!? ]*$/i.test(q)) {
     return hit('missing-information', 0.6, ['school-list', 'other'], 'School-name-only leftover', 'applying', entities)
   }
+  if (/how\s*much|loan\s*amount|maximum\s*(loan|amount)|wetin\s*(dem|they)\s*dey\s*(pay|give)|how\s*many\s*naira|una\s*dey\s*pay\s*how\s*much/i.test(q) && !liveish(q)) {
+    if (/\bupkeep\b|stipend|allowance|20,?000/.test(q) && !/school\s*fees|tuition|institutional/.test(q)) {
+      return hit('upkeep', 0.84, ['upkeep', 'amount'], 'How much upkeep leftover', 'exploring', entities)
+    }
+    if (/school\s*fees|tuition|institutional/.test(q) && !/\bupkeep\b/.test(q)) {
+      return hit('school-fees', 0.84, ['fees', 'amount'], 'How much school fees leftover', 'exploring', entities)
+    }
+    return hit('loan-or-scholarship', 0.78, ['loan', 'amount', 'other'], 'How much is the loan leftover', 'exploring', entities)
+  }
+  if (/hostel|accommodation|accomodation|house\s*rent|where\s*(i|to)\s*(go\s*)?stay|school\s*lodge/i.test(q)) {
+    return hit('upkeep', 0.82, ['upkeep', 'hostel'], 'Hostel / rent leftover', 'exploring', entities)
+  }
+  if (/foreign\s*student|international\s*student|non[\s-]*nigerian|i\s*be\s*foreigner|not\s*a\s*nigerian/i.test(q)) {
+    return hit('eligibility', 0.86, ['eligibility', 'foreign'], 'Foreign student leftover', 'exploring', entities)
+  }
+  if (/\b(masters?|msc|mba|post\s*graduate|postgraduate|pgd)\b/i.test(q) && !liveish(q) && !/pending|how\s*far/.test(q)) {
+    return hit('eligibility', 0.84, ['eligibility', 'postgrad'], 'Postgraduate leftover', 'exploring', entities)
+  }
+  if (/freshers?|100\s*level|\b100l\b|nd\s*1|year\s*one|first\s*year|can\s*(a\s*)?(fresher|100l|year\s*1)/i.test(q) && !liveish(q)) {
+    return hit('eligibility', 0.84, ['eligibility', 'level'], 'Fresher / 100L leftover', 'exploring', entities)
+  }
+  if (/application\s*id|loan\s*id|reference\s*number|where\s*(is|dey)\s*(my\s*)?(id|number)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.78, ['pending-status', 'app-id'], 'Application ID leftover', 'waiting', entities, true)
+  }
+  if (/wetin\s*i\s*go\s*(gain|benefit|collect|see)|what\s*(do\s*i|will\s*i)\s*(get|gain|benefit)|benefit\s*of\s*(the\s*)?(loan|nelfund)/i.test(q) && !liveish(q)) {
+    return hit('what-is-nelfund', 0.8, ['what-is', 'benefit'], 'What do I get leftover', 'exploring', entities)
+  }
+  if (/can\s*i\s*apply\s*now|i\s*wan(t)?\s*apply\s*now|apply\s*today|start\s*application\s*now/i.test(q) && liveish(q)) {
+    return hit('current-information', 0.86, ['open-status'], 'Apply now / live window leftover', 'exploring', entities)
+  }
   return null
 }
