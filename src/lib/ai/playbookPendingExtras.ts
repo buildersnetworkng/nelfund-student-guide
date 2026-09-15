@@ -22,6 +22,15 @@ export function playbookPendingExtras(t: string): string | null {
   if (/e\s*no\s*(move|change)|status\s*(still|dey)\s*(the\s*same|same|pending)|nothing\s*(don|has)\s*happen|no\s*update|application\s*(still|dey)\s*(there|pending)/i.test(t)) {
     return `**Status not moving is still a wait, not a new apply.**\n\n1. Open ${PORTAL} and copy the exact status word. Same word for weeks is common while the school record or batch is processed.\n2. Institutional charges go to the school first. No personal alert does not mean the file is dead.\n3. Ask the campus NELFUND desk if your record is uploaded.\n4. I will not invent a batch or pay date. Long same-word wait: ticket ${ESUPPORT} with name, school, and that status word.`
   }
+  if (/still\s*(waiting|dey\s*wait)|i\s*dey\s*wait|waiting\s*(for\s*)?(approval|payment|upkeep|money)|dem\s*never\s*(pay|approve)\s*me/i.test(t)) {
+    return `**Still waiting is a status question, not a new apply.**\n\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Institutional charges go to the **school first**. No personal alert does not mean the file is dead.\n3. Upkeep only if you ticked it in the same session, and it can arrive later.\n4. I will not invent a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+  }
+  if (/approv(ed|al).{0,40}(no|never|not|nothing).{0,24}(money|alert|upkeep|pay|enter|drop)|successful.{0,24}(no|never).{0,16}(money|alert)/i.test(t)) {
+    return `**Approved on the portal is not the same as money in your bank.**\n\n1. Open ${PORTAL} and note whether **institutional charges** show paid to the school.\n2. School fees go to the institution. Upkeep (only if you applied for it) can land later.\n3. Confirm the profile bank account is a real bank, not only a wallet.\n4. I will not invent a pay date. Same word for a long time: ticket ${ESUPPORT}.`
+  }
+  if (/how\s*far\s*(my\s*)?(loan|application|nelfund|am)|check\s*(my\s*)?(application|loan|status)|track\s*(my\s*)?(application|loan)/i.test(t)) {
+    return `**How far / check my loan** starts on the portal, not in this chat.\n\n1. Sign in at ${SITE} then open ${PORTAL}. Copy the exact status word.\n2. Do not create a second account to “check faster”.\n3. School paid ≠ upkeep paid. Ask the campus desk if the school record is uploaded.\n4. I cannot see your file. Long same-word wait: ${ESUPPORT}.`
+  }
   if (/\bbatch\b|una\s*don\s*pay\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive)/i.test(t)) {
     return `**Batch / school already paid** is still your portal status, not a public list I can invent.\n\n1. Only ${PORTAL} shows *your* file. There is no official public "batch 3 paid" sheet I can quote here.\n2. If the school already received institutional charges, upkeep (only if you ticked it) can still be later.\n3. Copy the exact status word from the portal.\n4. Same word for a long time: campus desk, then ${ESUPPORT}. I will not invent a pay date.`
   }
