@@ -98,6 +98,9 @@ const CASES = [
   { q: 'do I need to repay the loan', expectIntent: 'repayment' },
   { q: 'wetin be upkeep for NELFUND', expectIntent: 'upkeep' },
   { q: 'my school data no upload yet', expectIntent: 'institution-verification' },
+  { q: 'portal no gree upload my passport photo', expectIntent: 'documents-needed' },
+  { q: 'can Nigerian Law School students apply', expectIntent: 'eligibility' },
+  { q: 'dem don pause NELFUND', expectIntent: 'current-information' },
 ]
 
 const CAP_CASES = [
