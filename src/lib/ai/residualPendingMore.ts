@@ -59,5 +59,23 @@ export function residualPendingMore(text: string, entities: string[]): IntentRes
   if (/disburse(d|ment)?\s*(no|never|not)|no\s*disburse|when\s*disburse/i.test(q) && !liveish(q)) {
     return hit('pending-application', 0.84, ['pending-status', 'disburse'], 'Disbursement leftover', 'waiting', entities, true)
   }
+  if (/dashboard\s*(empty|blank|no\s*dey|nothing)|no\s*(loan|application)\s*(on\s*)?(my\s*)?(dashboard|portal)|i\s*no\s*see\s*(anything|loan)\s*(for|on)\s*(dashboard|portal)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.84, ['pending-status', 'empty-dashboard'], 'Empty dashboard leftover', 'waiting', entities, true)
+  }
+  if (/dem\s*never\s*(call|message|text|sms)|nobody\s*(don|has)\s*(call|contact)|no\s*(mail|sms|call)\s*from\s*nelfund|una\s*never\s*reach\s*me/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.84, ['pending-status', 'no-contact'], 'Never called leftover', 'waiting', entities, true)
+  }
+  if (/invalid\s*matric|matric\s*(no|not|never|invalid)|matriculation\s*(number\s*)?(no|not|invalid)/i.test(q) && !/jamb/i.test(q)) {
+    return hit('missing-information', 0.84, ['missing', 'matric'], 'Invalid matric leftover', 'applying', entities, true)
+  }
+  if (/institution\s*(not\s*)?(captured|listed|found)|school\s*(not\s*)?captured|record\s*(no|not)\s*(captured|uploaded)/i.test(q) && !liveish(q)) {
+    return hit('institution-verification', 0.86, ['missing', 'institution-verification'], 'Institution not captured leftover', 'applying', entities, true)
+  }
+  if (/^(any\s*update|update\s*abeg|una\s*update|new\s*update|wetin\s*be\s*update)[.!? ]*$/i.test(q)) {
+    return hit('pending-application', 0.8, ['pending-status', 'any-update'], 'Any update leftover', 'waiting', entities, true)
+  }
+  if (/i\s*no\s*see\s*(my\s*)?(upkeep|stipend|allowance)|upkeep\s*(never|no)\s*(land|enter|drop)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.86, ['pending-status', 'upkeep-wait'], 'No upkeep leftover', 'waiting', entities, true)
+  }
   return null
 }

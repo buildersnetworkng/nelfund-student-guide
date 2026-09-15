@@ -40,5 +40,17 @@ export function playbookPendingExtras(t: string): string | null {
   if (/pending\s*since|under\s*review\s*since|e\s*dey\s*pending|still\s*under\s*review|i\s*apply\s*(last|since)|disburse/i.test(t)) {
     return `**Long pending / under review is still a wait.**\n\n1. Copy the exact status sentence from ${PORTAL}.\n2. Ask the campus NELFUND desk whether your student record is uploaded for this session.\n3. Institutional charges and upkeep are separate lines. One can move while the other stays.\n4. No invented SLA. Ticket ${ESUPPORT} with name, school, and that exact sentence if the word has not changed for a long time.`
   }
+  if (/dashboard\s*(empty|blank|no\s*dey|nothing)|i\s*no\s*see\s*(anything|loan)\s*(for|on)\s*(dashboard|portal)/i.test(t)) {
+    return `**Empty dashboard is usually a record or login problem, not a new apply.**\n\n1. Sign in at ${SITE} with the **same** email. Do not create a second account.\n2. Confirm you land on ${PORTAL}, not a forwarded WhatsApp link.\n3. Ask the campus NELFUND desk if your student record is uploaded for this session.\n4. Still blank: ticket ${ESUPPORT} with name, school, and that email. I cannot see your file from this chat.`
+  }
+  if (/dem\s*never\s*(call|message|text|sms)|nobody\s*(don|has)\s*(call|contact)|no\s*(mail|sms|call)\s*from\s*nelfund|una\s*never\s*reach\s*me/i.test(t)) {
+    return `**No call or SMS from NELFUND does not mean the file is dead.**\n\n1. Status lives on ${PORTAL}. Copy the exact word there. Do not wait for a phone call.\n2. School fees go to the institution first. You may get no personal alert.\n3. I will not invent a call or pay date.\n4. Long same-word wait: campus desk, then ${ESUPPORT}.`
+  }
+  if (/^(any\s*update|update\s*abeg|una\s*update|new\s*update|wetin\s*be\s*update)[.!? ]*$/i.test(t)) {
+    return `**Any update?** I cannot see your file from this chat.\n\n1. Open ${PORTAL} and copy the exact status word.\n2. Same word for weeks is common while the school record or a batch is processed.\n3. I will not invent a batch list or pay date.\n4. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+  }
+  if (/i\s*no\s*see\s*(my\s*)?(upkeep|stipend|allowance)|upkeep\s*(never|no)\s*(land|enter|drop)/i.test(t)) {
+    return `**No upkeep yet is still a wait question.**\n\n1. Upkeep only if you ticked it in the **same** session as institutional charges.\n2. It can land later than school fees, and only into the bank account on your profile (not a wallet-only account).\n3. Copy the exact status word from ${PORTAL}. I will not invent a pay date.\n4. Long same-word wait: ${ESUPPORT}.`
+  }
   return null
 }
