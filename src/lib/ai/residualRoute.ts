@@ -1,5 +1,6 @@
 import type { ConversationTurn, IntentId, IntentResult } from './types'
 import { residualOtherRoute } from './residualOther'
+import { residualOtherMore } from './residualOtherMore'
 import { residualPendingMore } from './residualPendingMore'
 
 const SCHOOL_HINTS = [
@@ -84,6 +85,9 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
 
   const extra = residualOtherRoute(q, entities)
   if (extra) return extra
+
+  const more = residualOtherMore(q, entities)
+  if (more) return more
 
   if (/^(ok|okay|thanks|thank\s*you|alright|seen|noted|yes|no|pls|abeg)[.!? ]*$/i.test(q)) {
     return hit('official-sources', 0.5, ['ack'], 'Short acknowledgement', 'unknown', entities)
