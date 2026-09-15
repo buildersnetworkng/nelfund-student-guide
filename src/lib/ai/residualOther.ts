@@ -105,8 +105,14 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   if (/\binterest\b|interest[\s-]*free|dem\s*dey\s*charge\s*interest|is\s*it\s*free\s*loan/i.test(q) && !liveish(q)) {
     return hit('loan-or-scholarship', 0.84, ['loan', 'interest'], 'Interest / free-loan leftover', 'exploring', entities)
   }
-  if (/\bnysc\b|after\s*(service|youth\s*service)|when\s*(do|go)\s*i\s*(start\s*)?pay/i.test(q) && !liveish(q)) {
+  if (/i\s*dey\s*nysc|during\s*nysc|serving\s*(now|currently)|corps\s*member/i.test(q) && /apply|loan|eligib|qualify|fit/i.test(q)) {
+    return hit('eligibility', 0.84, ['eligibility', 'nysc-now'], 'NYSC now apply leftover', 'exploring', entities)
+  }
+  if (/(when\s*(do|go)\s*i\s*(start\s*)?pay|after\s*(service|youth\s*service)|repay).{0,40}\bnysc\b|\bnysc\b.{0,40}(repay|start\s*pay|after\s*service)/i.test(q) && !liveish(q)) {
     return hit('repayment', 0.84, ['repayment', 'nysc'], 'NYSC / when repayment starts leftover', 'repaying', entities)
+  }
+  if (/\bnysc\b/i.test(q) && /when\s*(do|go)\s*i\s*(start\s*)?pay|after\s*(nysc|service)|repayment/i.test(q) && !liveish(q)) {
+    return hit('repayment', 0.84, ['repayment', 'nysc'], 'NYSC repayment leftover', 'repaying', entities)
   }
   if (/i\s*(don|have)\s*(graduate|finish(\s*school)?)|already\s*graduate|alumni|i\s*don\s*pass\s*out/i.test(q) && !/pending|how\s*far/i.test(q)) {
     return hit('eligibility', 0.84, ['eligibility', 'graduate'], 'Already graduated leftover', 'exploring', entities)
@@ -184,7 +190,6 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
     return hit('contact-support', 0.84, ['contact', 'email'], 'Email contact leftover', 'waiting', entities)
   }
 
-  // Hourly: peel remaining `other` bucket leftovers.
   if (/school\s*(on|dey)\s*(the\s*)?list|is\s*(my\s*)?school\s*(listed|on\s*the\s*list)|my\s*school\s*(no|not|never)\s*(dey|show|appear)|check\s*if\s*(my\s*)?school/i.test(q)) {
     return hit('missing-information', 0.84, ['school-list'], 'Is my school on the list leftover', 'applying', entities, true)
   }
@@ -208,6 +213,33 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   }
   if (/i\s*no\s*understand|make\s+you\s+guide\s+me|explain\s+am\s+small|break\s+am\s+down/i.test(q)) {
     return hit('how-to-apply', 0.7, ['how-to-apply', 'guidance'], 'Vague guide leftover', 'preparing', entities)
+  }
+  if (/no\s*admission|never\s*(get|got|collect)\s*admission|awaiting\s*admission|i\s*never\s*gain\s*admission|admission\s*(no|not|never)\s*(dey|ready|come)|defer(red)?\s*admission/i.test(q)) {
+    return hit('eligibility', 0.86, ['eligibility', 'no-admission'], 'No admission yet leftover', 'exploring', entities)
+  }
+  if (/\bijmb\b|\bjupeb\b|a[\s-]*level|pre[\s-]*degree|remedial|preliminary\s*(year|programme)/i.test(q) && !liveish(q)) {
+    return hit('eligibility', 0.84, ['eligibility', 'predegree'], 'IJMB / JUPEB / predegree leftover', 'exploring', entities)
+  }
+  if (/\bcgpa\b|\bgpa\b|grade\s*point|minimum\s*(grade|score|cgpa)/i.test(q) && !liveish(q)) {
+    return hit('eligibility', 0.82, ['eligibility', 'cgpa'], 'CGPA leftover', 'exploring', entities)
+  }
+  if (/age\s*limit|how\s*old|maximum\s*age|too\s*old|i\s*be\s*\d{2}\s*years/i.test(q)) {
+    return hit('eligibility', 0.8, ['eligibility', 'age'], 'Age limit leftover', 'exploring', entities)
+  }
+  if (/whats?app\s*(agent|link|group)|telegram\s*(agent|link)|pay\s*(an?\s*)?agent|agent\s*(fee|charge)|process(ing)?\s*fee|una\s*account\s*number\s*make\s*i\s*pay/i.test(q)) {
+    return hit('scam-safety', 0.9, ['scam'], 'Agent / WhatsApp fee leftover', 'exploring', entities)
+  }
+  if (/two\s*schools|apply\s*(for|to)\s*two\s*(schools|institutions)|double\s*application|second\s*school/i.test(q) && !/pending|how\s*far/.test(q)) {
+    return hit('how-to-apply', 0.78, ['how-to-apply', 'two-schools'], 'Two schools leftover', 'preparing', entities)
+  }
+  if (/course\s*(no|not|never)\s*(dey|show|appear|on\s*the\s*list)|department\s*(no|not)\s*(dey|show)|programme\s*(no|not)\s*(dey|show)/i.test(q)) {
+    return hit('missing-information', 0.84, ['missing', 'course-list'], 'Course not listed leftover', 'applying', entities, true)
+  }
+  if (/second\s*loan|another\s*loan|two\s*loans|apply\s*twice\s*(same|this)\s*session/i.test(q) && !liveish(q)) {
+    return hit('reapplication', 0.82, ['how-to-apply', 'second-loan'], 'Second loan leftover', 'preparing', entities)
+  }
+  if (/no\s*bank\s*account|i\s*no\s*get\s*(bank\s*)?account|open\s*account\s*for\s*upkeep/i.test(q)) {
+    return hit('bank-information', 0.84, ['bank'], 'No bank account leftover', 'preparing', entities, true)
   }
   return null
 }
