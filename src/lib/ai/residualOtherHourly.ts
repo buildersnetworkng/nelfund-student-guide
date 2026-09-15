@@ -58,5 +58,43 @@ export function residualOtherHourly(text: string, entities: string[]): IntentRes
     return hit('how-to-apply', 0.86, ['how-to-apply', 'signup'], 'How to create account leftover', 'preparing', entities)
   }
 
+  // 16 Sep hourly: leftover `other` that still fell through to official-sources
+  if (/passport\s*(photo|picture)|passport\s*photograph|upload\s*(my\s*)?(photo|picture|passport)|profile\s*picture\s*(no|not)/i.test(q)) {
+    return hit('documents-needed', 0.86, ['documents', 'passport'], 'Passport photo leftover', 'preparing', entities, true)
+  }
+  if (/signature\s*(no|not|never)|upload\s*(my\s*)?signature|sign(ature)?\s*(field|box)/i.test(q)) {
+    return hit('documents-needed', 0.84, ['documents', 'signature'], 'Signature upload leftover', 'preparing', entities, true)
+  }
+  if (/state\s*of\s*origin|indigene|lga\s*(no|not)|local\s*government\s*(no|not|wrong)|origin\s*(no|not)\s*(dey|match)/i.test(q)) {
+    return hit('profile-update', 0.84, ['profile', 'indigene'], 'State of origin / LGA leftover', 'applying', entities, true)
+  }
+  if (/disabilit|special\s*need|physically\s*challenged|i\s*be\s*disabled|wheelchair/i.test(q) && !liveish(q)) {
+    return hit('eligibility', 0.82, ['eligibility', 'disability'], 'Disability leftover', 'exploring', entities)
+  }
+  if (/another\s*(bank\s*)?loan|existing\s*loan|i\s*(don|have)\s*(a\s*)?(bank\s*)?loan|student\s*loan\s*already|two\s*loans\s*same\s*time/i.test(q) && !liveish(q) && !/pending|how\s*far/.test(q)) {
+    return hit('eligibility', 0.84, ['eligibility', 'other-loan'], 'Already have another loan leftover', 'exploring', entities)
+  }
+  if (/evening\s*(class|programme|program|student)|night\s*class|after\s*work\s*(class|school)|working\s*and\s*school/i.test(q) && !liveish(q)) {
+    return hit('eligibility', 0.84, ['eligibility', 'evening'], 'Evening / working student leftover', 'exploring', entities)
+  }
+  if (/married|i\s*(get|have)\s*(wife|husband)|i\s*be\s*married/i.test(q) && /eligib|qualify|fit\s*apply|can\s*i\s*apply/i.test(q)) {
+    return hit('eligibility', 0.82, ['eligibility', 'married'], 'Married student leftover', 'exploring', entities)
+  }
+  if (/how\s*(do\s*i|to|i\s*go)\s*(check|see)\s*(am|my\s*)?(loan|file|dashboard)|where\s*(i|to)\s*see\s*(my\s*)?(loan|file)|check\s*(my\s*)?(loan|file)\s*(status)?/i.test(q)) {
+    return hit('pending-application', 0.86, ['pending-status', 'check-file'], 'Check my loan / file leftover', 'waiting', entities, true)
+  }
+  if (/dem\s*don\s*(approve|pay)\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive)\s*(the\s*)?(money|fee)|institutional\s*(don|has)\s*pay/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.86, ['pending-status', 'school-paid'], 'School already received leftover', 'waiting', entities, true)
+  }
+  if (/how\s*many\s*(students?|people)\s*(don|have|una)\s*(pay|collect|benefit)|how\s*much\s*(don|have)\s*(una|they|dem)\s*disburse|total\s*(loan|disburse)/i.test(q)) {
+    return hit('official-sources', 0.78, ['disbursement-totals'], 'Disbursement totals leftover', 'exploring', entities)
+  }
+  if (/gtbank|zenith|uba|access\s*bank|first\s*bank|fidelity|kuda|which\s*bank\s*(dey|work|accept)/i.test(q) && /upkeep|account|alert|pay/i.test(q)) {
+    return hit('bank-information', 0.84, ['bank', 'which-bank'], 'Which bank leftover', 'preparing', entities)
+  }
+  if (/next\s*of\s*kin|emergency\s*contact|who\s*(i|to)\s*put\s*(as\s*)?(kin|contact)/i.test(q)) {
+    return hit('documents-needed', 0.8, ['documents', 'nok'], 'Next of kin leftover', 'preparing', entities)
+  }
+
   return null
 }
