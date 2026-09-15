@@ -22,3 +22,5 @@ export function lastUtterance(text: string): string {
   const parts = q.split(/\n+/).map((s) => s.trim()).filter(Boolean)
   return parts[parts.length - 1] || q
 }
+
+export { classifyIntent, isPurposeAsk } from './intentClassify'
