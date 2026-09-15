@@ -183,8 +183,31 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   if (/una\s*email|nelfund\s*email|which\s*mail\s*(i|to)\s*send|contact\s*email/i.test(q)) {
     return hit('contact-support', 0.84, ['contact', 'email'], 'Email contact leftover', 'waiting', entities)
   }
-  if (/wetin\s*dey\s*happen|i\s*no\s*understand|make\s+you\s+guide\s+me|explain\s+am\s+small|break\s+am\s+down/i.test(q)) {
-    return hit('official-sources', 0.7, ['guidance'], 'Vague help leftover', 'exploring', entities)
+
+  // Hourly: peel remaining `other` bucket leftovers.
+  if (/school\s*(on|dey)\s*(the\s*)?list|is\s*(my\s*)?school\s*(listed|on\s*the\s*list)|my\s*school\s*(no|not|never)\s*(dey|show|appear)|check\s*if\s*(my\s*)?school/i.test(q)) {
+    return hit('missing-information', 0.84, ['school-list'], 'Is my school on the list leftover', 'applying', entities, true)
+  }
+  if (/\bpoly(technic)?\b|can\s*poly|poly\s*(fit|can)\s*apply|state\s*(uni|university|poly)|federal\s*(uni|poly)|college\s*of\s*education|\bcoe\b/i.test(q) && !liveish(q) && !/pending|how\s*far/.test(q)) {
+    return hit('eligibility', 0.84, ['eligibility', 'institution-type'], 'Poly / state / COE leftover', 'exploring', entities)
+  }
+  if (/\bsiwes\b|industrial\s*train|it\s*attachment| intern(ship)?/i.test(q)) {
+    return hit('eligibility', 0.8, ['eligibility', 'siwes'], 'SIWES leftover', 'exploring', entities)
+  }
+  if (/acceptance\s*fee|school\s*charges\s*only|tuition\s*only/i.test(q) && !/pending|how\s*far/.test(q)) {
+    return hit('school-fees', 0.82, ['fees', 'acceptance'], 'Acceptance / charges leftover', 'exploring', entities)
+  }
+  if (/use\s*(my\s*)?(mama|papa|parent|brother|sister|friend).{0,20}(nin|bvn)|someone\s*else.?s\s*(nin|bvn)|another\s*person.?s\s*(nin|bvn)/i.test(q)) {
+    return hit('nin-verification', 0.86, ['nin', 'proxy'], 'Someone else NIN leftover', 'applying', entities, true)
+  }
+  if (/screenshot|i\s*(go\s*)?send\s*(pic|photo|picture)|look\s*(this|dis)\s*(pic|photo|screen)/i.test(q)) {
+    return hit('pending-application', 0.62, ['pending-status', 'screenshot'], 'Screenshot leftover', 'waiting', entities, true)
+  }
+  if (/wetin\s*dey\s*happen/i.test(q)) {
+    return hit('pending-application', 0.78, ['pending-status'], 'Wetin dey happen leftover', 'waiting', entities, true)
+  }
+  if (/i\s*no\s*understand|make\s+you\s+guide\s+me|explain\s+am\s+small|break\s+am\s+down/i.test(q)) {
+    return hit('how-to-apply', 0.7, ['how-to-apply', 'guidance'], 'Vague guide leftover', 'preparing', entities)
   }
   return null
 }
