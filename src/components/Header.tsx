@@ -57,7 +57,7 @@ export default function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <ShareGuide variant="icon" />
+          <ShareGuide variant="icon" className="!border-gold-500/45 !bg-gold-500/20 hover:!bg-gold-500/30" />
           <NavLink
             to="/ask"
             className="inline-flex min-h-[40px] items-center justify-center whitespace-nowrap rounded-full bg-gold-500 px-3.5 py-2 text-xs font-bold text-forest-950 shadow-md ring-2 ring-gold-600/40 transition duration-150 hover:bg-gold-400 hover:shadow-lg active:scale-[0.98] sm:min-h-[42px] sm:px-4 sm:text-sm"
