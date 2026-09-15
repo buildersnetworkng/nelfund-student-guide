@@ -38,12 +38,13 @@ export function detectEntities(text: string): string[] {
   if (/\bbvn\b/.test(q)) out.push('bvn')
   if (/\botp\b|one[\s-]*time/.test(q)) out.push('otp')
   if (/\bpending\b|under\s*review|how\s*far/.test(q)) out.push('status')
-  if (/upkeep|stipend|allowance|20,?000/.test(q)) out.push('upkeep')
+  if (/upkeep|stipend|allowance|20,?000|25,?000/.test(q)) out.push('upkeep')
   if (/school\s*fees|tuition|institutional/.test(q)) out.push('fees')
   if (/portal|dashboard|sign\s*in|login/.test(q)) out.push('portal')
   if (SCHOOL_HINTS.some((s) => q.includes(s))) out.push('school')
   if (/missing\s*information|not\s*(on\s*)?(the\s*)?list|change\s*of\s*institution|session\s*(no|not)\s*(dey|show)/.test(q)) out.push('missing')
   if (/repay|nysc|scholarship|grant/.test(q)) out.push('policy')
+  if (/disburse|billion|beneficiar|how\s*many\s*students/.test(q)) out.push('totals')
   return out
 }
 
@@ -138,8 +139,14 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   if (entities.includes('portal')) {
     return hit('portal-login', 0.55, ['login', 'other'], 'Portal leftover residual', 'applying', entities, true)
   }
-  if (entities.includes('fees') || entities.includes('upkeep')) {
-    return hit('school-fees', 0.55, ['fees', 'other'], 'Fees/upkeep leftover residual', 'exploring', entities)
+  if (entities.includes('upkeep') && !entities.includes('fees')) {
+    return hit('upkeep', 0.58, ['upkeep', 'other'], 'Upkeep leftover residual', 'exploring', entities)
+  }
+  if (entities.includes('fees')) {
+    return hit('school-fees', 0.55, ['fees', 'other'], 'Fees leftover residual', 'exploring', entities)
+  }
+  if (entities.includes('totals')) {
+    return hit('official-sources', 0.55, ['other', 'disbursement-totals'], 'Totals leftover residual', 'exploring', entities)
   }
   if (entities.includes('policy')) {
     return hit('repayment', 0.55, ['repayment', 'other'], 'Policy leftover residual', 'repaying', entities)
