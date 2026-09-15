@@ -34,6 +34,16 @@ function feesVsUpkeepAnswer(): string {
   return `**School fees vs upkeep** (two different things)\n\n• **Institutional charges / school fees:** paid **to your school**, not your personal account.\n• **Upkeep:** monthly living allowance paid **to you**, if you applied for it.\n\nOfficial FAQ: apply for **both** at registration. An institutional-only application does not later get upkeep.\n\nAmounts and pay dates only on ${PORTAL} / ${SITE}. FAQ: ${FAQ}`
 }
 
+function howToApplyAnswer(t: string): string {
+  if (/create\s*(account|profile)|sign\s*up|register\s*(first|now)/i.test(t)) {
+    return `**Create the account first** (this is not login and not the loan form).\n\n1. Open ${PORTAL} on a browser, not a WhatsApp link.\n2. New students only: Sign **up** with your own email, then verify it.\n3. Fill NIN, BVN, and JAMB number exactly as issued.\n4. After the profile saves, use **Request for Student Loan** for fees and, if you need it, upkeep in the **same** session.\n\nAlready have an account? Sign **in** at ${SITE} instead of creating another one.`
+  }
+  if (/next\s*step|step\s*(2|two|3|three)|one\s*by\s*one|continue|then\s*wetin|what\s*next/i.test(t)) {
+    return `**Next after the account exists:**\n\n1. Sign **in** at ${SITE} (do not sign up again).\n2. Confirm school / session appears. If it does not, that is a school-upload issue, not a second form.\n3. Click **Request for Student Loan**. Tick institutional charges (to the school). Tick upkeep only if you want monthly living money **now**.\n4. Submit once, then watch the status word on the portal.\n\nI will not invent a closing date. Live window: ${PORTAL}`
+  }
+  return `**How to apply (step by step)**\n1. New account only: ${PORTAL}\n2. Fill profile: NIN, BVN, JAMB registration number, admission / matric.\n3. Submit **institutional charges** (paid to the school). If you need monthly living money, apply for **upkeep in the same session**.\n4. After submit, watch status on the portal. Approval notice also shows in profile (official FAQ).\n\nExisting account = sign **in** at ${SITE}, not another sign-up. I will not invent a closing date here.`
+}
+
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   const t = (ctx.userText || '').trim()
 
@@ -94,7 +104,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'how-to-apply') {
-    return `**How to apply (step by step)**\n1. New account only: ${PORTAL}\n2. Fill profile: NIN, BVN, JAMB registration number, admission / matric.\n3. Submit **institutional charges** (paid to the school). If you need monthly living money, apply for **upkeep in the same session**.\n4. After submit, watch status on the portal. Approval notice also shows in profile (official FAQ).\n\nExisting account = sign **in** at ${SITE}, not another sign-up. I will not invent a closing date here.`
+    return howToApplyAnswer(t)
   }
 
   if (intent === 'portal-login') {
