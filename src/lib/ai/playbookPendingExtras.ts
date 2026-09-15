@@ -34,5 +34,11 @@ export function playbookPendingExtras(t: string): string | null {
   if (/\bbatch\b|una\s*don\s*pay\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive)/i.test(t)) {
     return `**Batch / school already paid** is still your portal status, not a public list I can invent.\n\n1. Only ${PORTAL} shows *your* file. There is no official public "batch 3 paid" sheet I can quote here.\n2. If the school already received institutional charges, upkeep (only if you ticked it) can still be later.\n3. Copy the exact status word from the portal.\n4. Same word for a long time: campus desk, then ${ESUPPORT}. I will not invent a pay date.`
   }
+  if (/^(how\s*far|how\s*far\s*na|how\s*far\s*now|abeg\s*how\s*far)[.!? ]*$/i.test(t) || /money\s*(never|no)\s*(enter|drop|show)|e\s*never\s*(enter|drop)|never\s*enter/i.test(t)) {
+    return `**How far / money never enter** is a pending-status question.\n\n1. Open ${PORTAL} and copy the **exact** status word. I cannot see your file from this chat.\n2. School fees go to the **institution**. You can wait weeks with no personal alert even after the school is paid.\n3. Upkeep only lands in *your* bank if you ticked it in the same session, and it can come later than school fees.\n4. I will not invent a pay date or closing date. Same word for a long time: campus NELFUND desk, then ${ESUPPORT}.`
+  }
+  if (/pending\s*since|under\s*review\s*since|e\s*dey\s*pending|still\s*under\s*review|i\s*apply\s*(last|since)|disburse/i.test(t)) {
+    return `**Long pending / under review is still a wait.**\n\n1. Copy the exact status sentence from ${PORTAL}.\n2. Ask the campus NELFUND desk whether your student record is uploaded for this session.\n3. Institutional charges and upkeep are separate lines. One can move while the other stays.\n4. No invented SLA. Ticket ${ESUPPORT} with name, school, and that exact sentence if the word has not changed for a long time.`
+  }
   return null
 }

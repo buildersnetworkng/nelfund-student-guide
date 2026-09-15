@@ -41,5 +41,23 @@ export function residualPendingMore(text: string, entities: string[]): IntentRes
   if (/since\s+(january|february|march|april|may|june|july|august|september|october|november|december|last\s+(month|year)|\d{4}).{0,40}(never|no|not)\s+(pay|enter|drop|approve)/i.test(q) && !liveish(q)) {
     return hit('pending-application', 0.84, ['pending-status', 'long-wait'], 'Long wait since date leftover', 'waiting', entities, true)
   }
+  if (/^(how\s*far|how\s*far\s*na|how\s*far\s*now|abeg\s*how\s*far)[.!? ]*$/i.test(q)) {
+    return hit('pending-application', 0.9, ['pending-status', 'how-far'], 'Bare how far leftover', 'waiting', entities, true)
+  }
+  if (/money\s*(never|no|not)\s*(enter|drop|show|come|dey)|e\s*never\s*(enter|drop|show)|never\s*enter\s*(my\s*)?(account|bank)|account\s*(never|no)\s*(see|show)\s*(money|alert)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.88, ['pending-status', 'money-never-enter'], 'Money never enter leftover', 'waiting', entities, true)
+  }
+  if (/dem\s*never\s*(credit|pay|send)|una\s*never\s*(credit|pay)|no\s*(credit|alert)\s*(since|at\s*all)|i\s*never\s*see\s*(my\s*)?(money|alert|upkeep)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.86, ['pending-status', 'no-credit'], 'Never credited leftover', 'waiting', entities, true)
+  }
+  if (/pending\s*since|under\s*review\s*since|e\s*dey\s*pending|still\s*under\s*review|na\s*pending\s*i\s*see/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.86, ['pending-status', 'still-pending'], 'Still pending leftover', 'waiting', entities, true)
+  }
+  if (/i\s*apply\s*(last|since)|i\s*don\s*apply\s*(since|last)|submitted\s*(since|last)|apply\s*(for|since)\s*(months?|weeks?)/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.84, ['pending-status', 'applied-long'], 'Applied long ago leftover', 'waiting', entities, true)
+  }
+  if (/disburse(d|ment)?\s*(no|never|not)|no\s*disburse|when\s*disburse/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.84, ['pending-status', 'disburse'], 'Disbursement leftover', 'waiting', entities, true)
+  }
   return null
 }
