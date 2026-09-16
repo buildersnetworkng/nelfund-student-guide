@@ -50,7 +50,7 @@ function howToApplyText(t: string): string {
 
 function documentsAnswer(t: string): string {
   if (/admission|offer\s*letter/i.test(t)) {
-    return `**Admission / offer letter upload**\n\n1. Sign **in** at ${SITE} (do not create a second account).\n2. Open the profile / documents page on ${PORTAL}.\n3. Upload a clear scan or photo of the **same** letter your school issued. Crop extra wallpaper; keep the name and JAMB / matric visible.\n4. If the field is missing, your school may not have uploaded you yet — ask the campus NELFUND desk, then ticket ${ESUPPORT} with a screenshot of the empty field (not the letter itself in chat).\n\nExact required files only exist on the live form.`
+    return `**Admission / offer letter upload**\n\n1. Sign **in** at ${SITE} (do not create a second account).\n2. Open the profile / documents page on ${PORTAL}.\n3. Upload a clear scan or photo of the **same** letter your school issued. Crop extra wallpaper; keep the name and JAMB / matric visible.\n4. If the field is missing, your school may not have uploaded you yet, ask the campus NELFUND desk, then ticket ${ESUPPORT} with a screenshot of the empty field (not the letter itself in chat).\n\nExact required files only exist on the live form.`
   }
   if (/passport|photo|picture/i.test(t)) {
     return `**Passport photograph**\n\n1. Use a recent clear headshot on a plain background.\n2. Upload only where ${PORTAL} shows a photo field.\n3. If upload fails, compress the image and retry on the **same** account.\n4. Locked field → ticket ${ESUPPORT} with the error text, not the photo.`
@@ -168,7 +168,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'guarantor') {
-    return `Official student-facing pages describe NIN, BVN, JAMB, and school data. They do **not** list a separate guarantor form on ${SITE}.\n\nIf a portal field asks for a next of kin or similar, fill only what the live form shows. Anyone asking you to pay a guarantor agent is a scam. Ticket: ${ESUPPORT}`
+    return `Official student-facing pages describe NIN, BVN, JAMB, and school data. They do **not** list a separate guarantor form on ${SITE}.\n\nIf a portal field asks for a next of kin or similar, fill only what the live form shows. Anyone asking you to pay a gurantor agent is a scam. Ticket: ${ESUPPORT}`
   }
 
   if (intent === 'readiness' || intent === 'institution-verification') {
