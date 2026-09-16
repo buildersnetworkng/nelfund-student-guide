@@ -42,7 +42,7 @@ function howToApplyText(t: string): string {
   if (/create\s*(account|profile)|sign\s*up|register\s*(first|now)/i.test(t)) {
     return `**Create the account first** (this is not login and not the loan form).\n\n1. Open ${PORTAL} on a browser, not a WhatsApp link.\n2. New students only: Sign **up** with your own email, then verify it.\n3. Fill NIN, BVN, and JAMB number exactly as issued.\n4. After the profile saves, use **Request for Student Loan** for fees and, if you need it, upkeep in the **same** session.\n\nAlready have an account? Sign **in** at ${SITE} instead of creating another one.`
   }
-  if (/next\s*step|step\s*(2|two|3|three)|one\s*by\s*one|continue|then\s*wetin|what\s*next/i.test(t)) {
+  if (/next\s*step|step\s*(2|two|3|three)|one\s*by\s*one|continue|then\s*wetin|what\s*next|wetin\s*i\s*go\s*do\s*now|what\s*should\s*i\s*do\s*now/i.test(t)) {
     return `**Next after the account exists:**\n\n1. Sign **in** at ${SITE} (do not sign up again).\n2. Confirm school / session appears. If it does not, that is a school-upload issue, not a second form.\n3. Click **Request for Student Loan**. Tick institutional charges (to the school). Tick upkeep only if you want monthly living money **now**.\n4. Submit once, then watch the status word on the portal.\n\nI will not invent a closing date. Live window: ${PORTAL}`
   }
   return `**How to apply (step by step)**\n1. New account only: ${PORTAL}\n2. Fill profile: NIN, BVN, JAMB registration number, admission / matric.\n3. Submit **institutional charges** (paid to the school). If you need monthly living money, apply for **upkeep in the same session**.\n4. After submit, watch status on the portal. Approval notice also shows in profile (official FAQ).\n\nExisting account = sign **in** at ${SITE}, not another sign-up. I will not invent a closing date here.`
@@ -64,6 +64,13 @@ function documentsAnswer(t: string): string {
   return `**Typical portal profile items** (confirm live on the portal):\n• NIN and BVN\n• JAMB registration number\n• Admission / matric details\n• Bank account for upkeep if you apply for it.\n\nExact document list can change, use ${PORTAL} and FAQ: ${FAQ}. Do not email BVN/NIN to strangers.`
 }
 
+function contactAnswer(t: string): string {
+  if (/whatsapp|phone|hotline|customer\s*care|call/i.test(t)) {
+    return `**No official student WhatsApp / random phone line.** NELFUND support for students is the ticket form, not a chat group.\n\n1. Open ${ESUPPORT} and create a ticket with name, school, JAMB number, and the exact portal error.\n2. Campus NELFUND desk is for school-upload issues (missing school / session).\n3. Ignore numbers posted in groups. Do not send OTP, BVN, or NIN there.\n\nPortal: ${PORTAL} · Site: ${SITE} · FAQ: ${FAQ}`
+  }
+  return `Official support:\n• Ticket: ${ESUPPORT}\n• Site: ${SITE}\n• Portal: ${PORTAL}\n• FAQ: ${FAQ}\n\nSay your full name, school, JAMB number, and the exact portal error. Do not send BVN/NIN in random chats.`
+}
+
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   const t = (ctx.userText || '').trim()
 
@@ -80,6 +87,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   if (intent === 'pending-application') {
     const extra = playbookPendingExtras(t)
     if (extra) return extra
+    if (/next\s*batch|last\s*batch|when\s*(dem|they)\s*(go|will)\s*(pay|disburse)/i.test(t)) {
+      return `**Next / last batch** is not a date I can invent.\n\n1. Open ${PORTAL} and copy the exact status word.\n2. Institutional charges go to the school first; upkeep can follow later.\n3. Batch rumours on WhatsApp are not official.\n4. Long wait with no change: ticket ${ESUPPORT} with name, school, and that status word.\n\nLive only: ${SITE}`
+    }
     return `**How far / pending / money never enter** is not a rejection.\n\nDo this now:\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Check whether your school has uploaded your record. If the school is missing, ask the campus NELFUND desk first.\n3. Upkeep can arrive after the institution is paid. Look at the portal before assuming nobody paid you.\n4. Still the same after a long wait? Ticket: ${ESUPPORT} with your name, school, and the portal status word.\n\nI cannot see your personal file and I will not invent a pay date.`
   }
 
@@ -120,6 +130,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
 
   if (intent === 'missing-information' || intent === 'school-not-found') {
     const school = ctx.institutionName ? ` You mentioned **${ctx.institutionName}**.` : ''
+    if (/button\s*(no|not|never)|cannot\s*submit|submit\s*(no|not)|request\s*for\s*student\s*loan/i.test(t)) {
+      return `**Submit / Request button missing** usually means the school record or session is not on your profile yet.${school}\n\n1. Sign **in** at ${SITE} (do not create a second account).\n2. Confirm school and session appear. If they do not, ask the campus NELFUND desk to upload you.\n3. Retry **Request for Student Loan** on ${PORTAL}.\n4. Still no button: ticket ${ESUPPORT} with a screenshot of the page that has no button.\n\nI will not invent a deadline.`
+    }
     return `**Missing information / school not on the list** usually means the institution has not finished uploading your record, or the name does not match NELFUND's public-institution list.${school}\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. Retry on ${PORTAL}. If the school still does not appear, ticket: ${ESUPPORT}\n\nPrivate institutions are not in the current public-institution scheme described on nelf.gov.ng.`
   }
 
@@ -184,7 +197,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'contact-support' || intent === 'email-draft') {
-    return `Official support:\n• Ticket: ${ESUPPORT}\n• Site: ${SITE}\n• Portal: ${PORTAL}\n• FAQ: ${FAQ}\n\nSay your full name, school, JAMB number, and the exact portal error. Do not send BVN/NIN in random chats.`
+    return contactAnswer(t)
   }
 
   if (intent === 'unknown' || !intent) {
