@@ -31,7 +31,7 @@ export function playbookPendingExtras(t: string): string | null {
   if (/how\s*far\s*(my\s*)?(loan|application|nelfund|am)|check\s*(my\s*)?(application|loan|status)|track\s*(my\s*)?(application|loan)/i.test(t)) {
     return `**How far / check my loan** starts on the portal, not in this chat.\n\n1. Sign in at ${SITE} then open ${PORTAL}. Copy the exact status word.\n2. Do not create a second account to “check faster”.\n3. School paid ≠ upkeep paid. Ask the campus desk if the school record is uploaded.\n4. I cannot see your file. Long same-word wait: ${ESUPPORT}.`
   }
-  if (/\bbatch\b|una\s*don\s*pay\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive)/i.test(t)) {
+  if (/\bbatch\b|una\s*don\s*pay\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive)|dem\s*don\s*pay\s*(the\s*)?school|school\s*fees?\s*(don|has)\s*(enter|pay|paid)/i.test(t)) {
     return `**Batch / school already paid** is still your portal status, not a public list I can invent.\n\n1. Only ${PORTAL} shows *your* file. There is no official public "batch 3 paid" sheet I can quote here.\n2. If the school already received institutional charges, upkeep (only if you ticked it) can still be later.\n3. Copy the exact status word from the portal.\n4. Same word for a long time: campus desk, then ${ESUPPORT}. I will not invent a pay date.`
   }
   if (/^(how\s*far|how\s*far\s*na|how\s*far\s*now|abeg\s*how\s*far)[.!? ]*$/i.test(t) || /money\s*(never|no)\s*(enter|drop|show)|e\s*never\s*(enter|drop)|never\s*enter/i.test(t)) {
@@ -51,6 +51,12 @@ export function playbookPendingExtras(t: string): string | null {
   }
   if (/i\s*no\s*see\s*(my\s*)?(upkeep|stipend|allowance)|upkeep\s*(never|no)\s*(land|enter|drop)/i.test(t)) {
     return `**No upkeep yet is still a wait question.**\n\n1. Upkeep only if you ticked it in the **same** session as institutional charges.\n2. It can land later than school fees, and only into the bank account on your profile (not a wallet-only account).\n3. Copy the exact status word from ${PORTAL}. I will not invent a pay date.\n4. Long same-word wait: ${ESUPPORT}.`
+  }
+  if (/appeal|i\s*wan\s*appeal|contest\s*(the\s*)?(decision|decline)|review\s*(my\s*)?(decline|rejection)/i.test(t)) {
+    return `**Appeal / review a decline** is not a second application.\n\n1. Copy the exact declined sentence from ${PORTAL}.\n2. Stay on the same login at ${SITE}. Do not create another account to “appeal faster”.\n3. Fixable checks: JAMB format, school record uploaded, public-institution eligibility.\n4. Ticket ${ESUPPORT} with that exact sentence and a screenshot. I cannot reverse a decision from this chat.`
+  }
+  if (/screenshot|i\s*(send|don\s*send)\s*(pic|picture|photo|image)|see\s*(the\s*)?(pic|photo|image)|look\s*(this|dis)\s*(pic|photo)/i.test(t)) {
+    return `**A screenshot is useful only if I know the exact status word.**\n\n1. Type the sentence on ${PORTAL} (Pending, Under review, Approved, Declined, invalid JAMB, missing school).\n2. Do not send BVN, NIN, or full account numbers in chat.\n3. School fees go to the institution; upkeep (if ticked) can land later.\n4. Long same-word wait: campus desk, then ${ESUPPORT}.`
   }
   return null
 }
