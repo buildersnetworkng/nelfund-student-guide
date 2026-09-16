@@ -36,7 +36,11 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
     levelLabel === 'your level'
       ? `Your **year of study does not by itself** block you.`
       : `Being **${levelLabel}** does **not** by itself block you.`
-  const typeNote = /private/.test(raw)
+  const typeNote = /parent(s)?\s*(fit|can|wan)\s*apply|apply\s*for\s*(my\s*)?(child|son|daughter)|guardian\s*apply|i\s*be\s*parent/.test(raw)
+    ? 'The portal account is for the **student**. A parent can help gather NIN / BVN / JAMB details, but do not create a parent-only profile or pay an agent to apply on the child\'s behalf.\n\n'
+    : /international\s*student|foreign\s*student|i\s*no\s*be\s*nigerian|not\s*a\s*nigerian/.test(raw)
+    ? 'Official FAQ language is **Nigerian citizens** in public tertiary institutions. This chat will not invent a foreign-student exception.\n\n'
+    : /private/.test(raw)
     ? 'Private universities/polys are **not** in the current public-institution scheme described on nelf.gov.ng.\n\n'
     : /part[\s-]*time|sandwich|evening\s*(programme|program|student)|weekend\s*(programme|program)|distance\s*learn|\bodl\b/.test(raw)
       ? 'Official FAQ language is **full-time** students in public tertiary institutions. This chat will **not invent** a part-time, sandwich, evening, or distance-learning exception. Confirm the live portal list only.\n\n'
@@ -72,7 +76,7 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
     `• Name and date of birth matching across NIN, JAMB, and school records\n\n` +
     `${levelNote} What blocks many students is **missing or unmatched school data**, especially **matric number** not yet on the portal.\n\n` +
     `If matric is not ready, ask your school ICT / Registry / NELFUND desk to upload your record first, then retry ${PORTAL}.\n\n` +
-    `Exact checklist for the open cycle: ${PORTAL} \u00b7 ${SITE}\n\n` +
+    `Exact checklist for the open cycle: ${PORTAL} · ${SITE}\n\n` +
     `This guide does not invent individual approval decisions.`
   )
 }
