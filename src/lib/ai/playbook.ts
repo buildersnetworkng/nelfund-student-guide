@@ -168,7 +168,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   }
 
   if (intent === 'guarantor') {
-    return `Official student-facing pages describe NIN, BVN, JAMB, and school data. They do **not** list a separate guarantor form on ${SITE}.\n\nIf a portal field asks for a next of kin or similar, fill only what the live form shows. Anyone asking you to pay a gurantor agent is a scam. Ticket: ${ESUPPORT}`
+    return `Official student-facing pages describe NIN, BVN, JAMB, and school data. They do **not** list a separate guarantor form on ${SITE}.\n\nIf a portal field asks for a next of kin or similar, fill only what the live form shows. Anyone asking you to pay a guarantor agent is a scam. Ticket: ${ESUPPORT}`
   }
 
   if (intent === 'readiness' || intent === 'institution-verification') {
