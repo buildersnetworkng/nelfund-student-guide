@@ -8,6 +8,7 @@ import { diagnosticAssemble } from './diagnostics'
 import { buildEscalationPlan, needsInstitutionForEscalation, resolveInstitutionFromText } from '../escalation'
 import { understandPortalText } from './screenshotUnderstand'
 import { playbookAnswer } from './playbook'
+import { sanitizeGroundedAnswer } from '../copyHygiene'
 
 const OFFICIAL_PORTAL = 'https://portal.nelf.gov.ng/'
 const OFFICIAL_SITE = 'https://nelf.gov.ng/'
@@ -67,6 +68,14 @@ function insufficientAnswer(intent: IntentId, intentMeta: IntentResult): Grounde
 }
 
 export function answerQuestion(
+  question: string,
+  institutionId: string | null = null,
+  history?: ConversationTurn[],
+): GroundedAnswer {
+  return sanitizeGroundedAnswer(buildAnswer(question, institutionId, history))
+}
+
+function buildAnswer(
   question: string,
   institutionId: string | null = null,
   history?: ConversationTurn[],
