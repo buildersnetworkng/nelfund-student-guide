@@ -4,6 +4,7 @@ import { troubleshootingItems, getRelevantContent } from '../lib/data'
 import { useInstitution } from '../context/InstitutionContext'
 import InstitutionNotice from '../components/InstitutionNotice'
 import ShareGuide from '../components/ShareGuide'
+import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function Troubleshooting() {
   const { institutionId } = useInstitution()
@@ -15,6 +16,7 @@ export default function Troubleshooting() {
 
   return (
     <div className="container-page py-8 sm:py-10">
+      <ShareSoftPrompt />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="eyebrow">Problems</p>

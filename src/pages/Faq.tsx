@@ -9,6 +9,7 @@ import InstitutionNotice from '../components/InstitutionNotice'
 import InstitutionTip from '../components/InstitutionTip'
 import { trackFaqOpen } from '../lib/analytics'
 import ShareGuide from '../components/ShareGuide'
+import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function Faq() {
   const [query, setQuery] = useState('')
@@ -31,6 +32,7 @@ export default function Faq() {
 
   return (
     <div className="container-page py-8 sm:py-10">
+      <ShareSoftPrompt />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="eyebrow">FAQ</p>
