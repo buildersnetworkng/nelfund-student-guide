@@ -117,6 +117,14 @@ export default function Home() {
               How to apply
             </Link>
             <ShareGuide variant="hero" />
+            <a
+              href={WHATSAPP_SHARE_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
+            >
+              WhatsApp
+            </a>
           </div>
           <p className="slide-up mt-3 text-xs text-white/55">
             Pass the guide to a classmate on WhatsApp, Telegram, or SMS.

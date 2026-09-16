@@ -17,7 +17,7 @@ export default function ShareSoftPrompt() {
     const timer = window.setTimeout(() => {
       setVisible(true)
       trackFeature('share_open', { variant: 'soft-prompt-shown' })
-    }, 18000)
+    }, 12000)
     return () => window.clearTimeout(timer)
   }, [])
 
