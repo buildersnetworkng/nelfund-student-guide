@@ -65,7 +65,7 @@ export function residualOtherHourly5(text: string, entities: string[]): IntentRe
   }
 
   if (/how\s*many\s*times|apply\s*again|next\s*(year|session)|second\s*application|i\s*apply\s*last\s*year/i.test(q)) {
-    return hit('reapplication', 0.84, ['other', 'reapply'], 'Apply again leftover', 'applying', entities)
+    return hit('reapplication', 0.84, ['other', 'reapply'], 'Apply again leftover', 'preparing', entities)
   }
 
   if (/vocational|innovation\s*enterprise|ieis|monotechnic|college\s*of\s*health/i.test(q)) {
