@@ -61,6 +61,14 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('jamb-verification', 0.9, ['jamb'], 'JAMB invalid / verification', 'applying', entities, true)
   }
 
+  if (/life\s*(jail|imprison)|jail\s*for\s*life|prison\s*for\s*(unpaid|default)/i.test(raw)) {
+    return hitIntent('repayment', 0.92, ['repayment', 'life-jail-rumour'], 'Life-jail rumour', 'repaying', entities)
+  }
+
+  if (/\bgsi\b|global\s*standing\s*instruction/i.test(raw)) {
+    return hitIntent('gsi', 0.9, ['gsi'], 'GSI question', 'repaying', entities)
+  }
+
   if (/repay|after\s*nysc|nysc.*pay|scholarship|loan\s*or\s*scholarship|na\s*scholarship/i.test(raw) && !/pending|how\s*far|never\s*enter/i.test(raw)) {
     if (/scholarship|grant|free\s*money|loan\s*or\s*scholarship/i.test(raw)) {
       return hitIntent('loan-or-scholarship', 0.88, ['scholarship', 'loan'], 'Loan vs scholarship', 'exploring', entities)
