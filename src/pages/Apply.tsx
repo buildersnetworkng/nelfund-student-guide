@@ -30,56 +30,73 @@ export default function Apply() {
           rel="noopener noreferrer"
           className="card flex flex-col gap-1 border-forest-700/25 p-4 transition hover:border-forest-700/50"
         >
-          <span className="text-xs font-semibold uppercase tracking-wide text-forest-800">Official website</span>
-          <span className="text-sm font-semibold text-ink">nelf.gov.ng</span>
-          <span className="text-xs text-ink/55">Log in or sign in if you already have an account.</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-forest-700">Log in / sign in</span>
+          <span className="text-sm font-medium text-ink">nelf.gov.ng</span>
+          <span className="text-xs text-ink/55">Existing account, official website</span>
         </a>
         <a
           href="https://portal.nelf.gov.ng/"
           target="_blank"
           rel="noopener noreferrer"
-          className="card flex flex-col gap-1 border-gold-500/30 p-4 transition hover:border-gold-500/60"
+          className="card flex flex-col gap-1 border-forest-700/25 p-4 transition hover:border-forest-700/50"
         >
-          <span className="text-xs font-semibold uppercase tracking-wide text-gold-700">Official portal</span>
-          <span className="text-sm font-semibold text-ink">portal.nelf.gov.ng</span>
-          <span className="text-xs text-ink/55">Create an account or continue an application.</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-forest-700">Sign up / apply</span>
+          <span className="text-sm font-medium text-ink">portal.nelf.gov.ng</span>
+          <span className="text-xs text-ink/55">Create account & application portal</span>
         </a>
       </div>
 
-      <InstitutionTip className="mt-6" />
+      <ol className="mt-8 space-y-4">
+        {guide.steps.map((step) => {
+          const source = getSource(step.source_id)
+          return (
+            <li key={step.step} className="card relative pl-14">
+              <span className="absolute left-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-forest-700 font-display text-sm font-bold text-paper">
+                {step.step}
+              </span>
+              <h2 className="font-display text-base font-semibold text-ink">{step.title}</h2>
+              <p className="mt-1 text-sm text-ink/70">{step.explanation}</p>
 
-      <ol className="mt-8 space-y-3">
-        {guide.steps.map((step, i) => (
-          <li key={i} className="card flex gap-3 p-4">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-forest-900 text-xs font-bold text-paper">
-              {i + 1}
-            </span>
-            <p className="text-sm leading-relaxed text-ink/80">{step}</p>
-          </li>
-        ))}
+              <dl className="mt-3 space-y-2 text-sm">
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-rust-500">Common mistake</dt>
+                  <dd className="text-ink/70">{step.common_mistake}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-teal-700">What to check</dt>
+                  <dd className="text-ink/70">{step.what_to_check}</dd>
+                </div>
+              </dl>
+
+              <InstitutionTip tips={step.institution_tips} />
+
+              <div className="mt-3">
+                <RecommendedVideo videoIds={step.video_id ? [step.video_id] : []} topicLabel={step.title.toLowerCase()} />
+              </div>
+
+              {source && (
+                <a href={source.url || undefined} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-forest-700 underline underline-offset-2">
+                  {source.label}
+                </a>
+              )}
+            </li>
+          )
+        })}
       </ol>
 
-      {guide.common_mistakes.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold text-ink">Common mistakes</h2>
-          <ul className="mt-3 space-y-2">
-            {guide.common_mistakes.map((m) => (
-              <li key={m} className="text-sm text-ink/70">
-                · {m}
-              </li>
-            ))}
-          </ul>
+      <div className="card mt-8 flex flex-col gap-3 border-forest-200 bg-forest-50/40 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-ink">Help another student apply correctly</p>
+          <p className="mt-0.5 text-xs text-ink/55">Share this step-by-step guide before they open the portal.</p>
         </div>
-      )}
-
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-forest-100 bg-forest-50/50 p-4">
-        <p className="text-sm text-ink/70">Pass this apply guide to a classmate who is still guessing.</p>
         <ShareGuide variant="button" className="shrink-0" />
       </div>
 
-      <RecommendedVideo topic="apply" className="mt-8" />
-      <div className="mt-6">
-        <TrustBadge sources={guide.source_ids.map((id) => getSource(id)).filter(Boolean) as ReturnType<typeof getSource>[]} />
+      <div className="mt-8">
+        <TrustBadge status="guidance" sourceId="nelfund-portal" lastVerified="2026-08-11" />
+        <p className="mt-2 text-xs text-ink/50">
+          The portal's own on-screen instructions always take precedence over this guide if they differ.
+        </p>
       </div>
     </div>
   )
