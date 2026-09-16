@@ -60,6 +60,16 @@ export function eligibilityAnswer(ctx: { userText?: string | null }): string {
           ? 'NELFUND on the official FAQ is for **current** students in public tertiary institutions. If you have already finished and left school, do not assume a new loan. Confirm any graduate / NYSC-only case on the live portal.\n\n'
         : /\b(coe|college\s*of\s*education|vocational|nce|\bnd\b|\bhnd\b|polytechnic)\b/.test(raw)
           ? 'Public **polytechnics, colleges of education, and vocational schools** are in the official institution types. Private campuses are not.\n\n'
+        : /hostel|accommodation|school\s*lodge/.test(raw)
+          ? 'Hostel or accommodation is **not** a separate NELFUND product on the public FAQ. Institutional charges go to the school; optional **upkeep** is living money to you if you ticked it in the same application. This chat will not invent a hostel-only loan.\n\n'
+        : /hnd\s*(to|2)\s*bsc|top[\s-]*up|conversion/.test(raw)
+          ? 'HND-to-BSc / conversion only counts if you have a current **full-time public** admission the school has uploaded, plus a JAMB number. Confirm that programme on the live portal list; do not assume every conversion campus is covered.\n\n'
+        : /disab(led|ility)|physically\s*challenged|special\s*need/.test(raw)
+          ? 'Official student-facing pages do **not** list a separate disability quota here. Eligibility still turns on citizenship, public-institution admission, and matching NIN / JAMB / school data. Confirm any extra portal field live; do not pay an agent for a “special list”.\n\n'
+        : /orphan|indigent|i\s*(dey|am)\s*poor|no\s*sponsor/.test(raw)
+          ? 'Need or poverty is **not** a published extra form on nelf.gov.ng. The scheme is an interest-free **loan** for eligible public-institution students, not a hardship grant. Apply only on the official portal if you meet the published checks.\n\n'
+        : /state\s*of\s*origin|catchment|indigene|federal\s*character/.test(raw)
+          ? 'This chat will not invent a catchment / indigene quota. Official pages emphasise Nigerian citizenship and a public-institution record, not state-of-origin ranking.\n\n'
         : ''
   return (
     `**Eligibility (official FAQ)**\n\n` +
