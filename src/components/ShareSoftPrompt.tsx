@@ -34,14 +34,14 @@ export default function ShareSoftPrompt() {
 
   return (
     <div
-      className="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-md sm:left-auto sm:right-5 sm:w-[22rem]"
+      className="fixed bottom-20 left-4 right-4 z-40 mx-auto max-w-md sm:bottom-4 sm:left-auto sm:right-5 sm:w-[22rem]"
       role="status"
     >
-      <div className="flex items-start gap-3 rounded-2xl border border-forest-100 bg-white p-3 shadow-xl">
+      <div className="flex items-start gap-3 rounded-2xl border border-gold-500/35 bg-white p-3 shadow-xl">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-ink">Send this to a classmate</p>
           <p className="mt-0.5 text-xs leading-relaxed text-ink/55">
-            If the guide helped you, share it so another student is not guessing on the portal.
+            If the guide helped you, share it on WhatsApp so another student is not guessing on the portal.
           </p>
           <div className="mt-2">
             <ShareGuide variant="button" className="!min-h-[36px] !px-3 !py-1.5 !text-xs" />
