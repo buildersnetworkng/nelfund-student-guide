@@ -63,6 +63,21 @@ function parsePortalDate(s: string | undefined): Date | null {
   return new Date(Date.UTC(Number(m[3]), month, Number(m[2])))
 }
 
+/** Follow-up when a student asks what the dashboard screenshot means. */
+export function dashboardFollowUpExplanation(): string {
+  return [
+    '**What this dashboard means**',
+    '',
+    'You are signed into the **Student Loan Portal**. The counters (Total / Approved / Pending / Declined) show loan requests on **this** account.',
+    '',
+    '• **0 pending and 0 approved** usually means you have not submitted a loan request yet, or your school has not uploaded your data for this session.',
+    '• Session registration dates on the notice are what the portal is advertising. Always re-check live on the portal before you rely on a deadline.',
+    '• **Account creation** is different from **loan / upkeep application**. Being logged in does not automatically mean a loan window is open.',
+    '',
+    `Next: confirm school and session on ${PORTAL}. If something is stuck, ticket ${ESUPPORT} with a clear screenshot. Site: ${SITE}.`,
+  ].join('\n')
+}
+
 /**
  * Classify portal/website OCR text into a screen kind and student-facing next steps.
  * Returns null when the text does not look like a portal/website dump.
@@ -78,7 +93,6 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     )
   if (!looksPortal && raw.length < 80) return null
 
-  // Explicit error messages first
   const errorMatch =
     raw.match(/invalid\s+jamb[^\n.]{0,40}/i) ||
     raw.match(/missing\s+information[^\n.]{0,60}/i) ||
