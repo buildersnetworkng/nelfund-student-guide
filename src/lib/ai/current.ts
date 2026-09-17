@@ -125,38 +125,39 @@ function isIsOpenQuestion(q?: string): boolean {
   )
 }
 
-export function buildCurrentInformationAnswer(): GroundedAnswer {
-  const cycle = getCurrentAcademicCycle()
-  const answer = `**As of ${todayWatLabel()}** (${cycle})\n\nI do not invent opening or closing dates.\n\n**Loan / upkeep application** and **account creation** are different:\n• Sign **up** (new account): ${PORTAL}\n• Sign **in** / login: ${SITE}\n• Confirm live status only on those official pages\n\nWhat do you need: sign up, login, or submit a loan?`
-
-  return {
-    hasEvidence: true,
-    intent: 'current-information',
-    confidence: 0.85,
-    responseMode: 'conversation',
-    problem: null,
-    answer,
-    whatThisMeans: null,
-    nextActions: [PORTAL, SITE],
-    clarifyingQuestions: [],
-    evidence: [],
-    sources: [
-      { id: 'site', label: 'NELFUND website', url: SITE, official: true },
-      { id: 'portal', label: 'NELFUND portal', url: PORTAL, official: true },
-    ],
-    video: null,
-    insufficientReason: null,
-    officialFallbackUrl: PORTAL,
-    escalation: null,
-  }
-}
-
 function answerIsOpen(data: LiveStatus): GroundedAnswer {
-  const { loanLine, accountLine } = interpretOpenState(data)
+  const { loanWindow, accountCreation, loanLine, accountLine } = interpretOpenState(data)
   const cycle = cycleLabel(data)
   const when = todayWatLabel()
 
-  const answer = `**Is NELFUND open?** (as of **${when}**)\n\n**${cycle}**\n\n${loanLine}\n\n${accountLine}\n\n**Where to go**\n• **Sign up** (create account): ${PORTAL}\n• **Login / sign in** (existing account): ${SITE}\n• Support ticket: https://nelfund.esupport.ng/create\n\nI will not invent a closing date. Re-check the portal before you rely on a deadline.`
+  const loanPlain =
+    loanWindow === 'open'
+      ? 'NELFUND loan / upkeep application is currently **open**.'
+      : loanWindow === 'closed'
+        ? 'NELFUND loan / upkeep application is currently **closed**.'
+        : 'NELFUND loan / upkeep application is **not confirmed open** yet for this cycle.'
+
+  const accountPlain =
+    accountCreation === 'open'
+      ? 'Account creation (sign up) is currently **open**.'
+      : 'Account creation (sign up) is unconfirmed, try the portal.'
+
+  const answer = `**Is NELFUND open?** (as of **${when}**)
+
+**${cycle}**
+
+${loanPlain}
+${accountPlain}
+
+${loanLine}
+${accountLine}
+
+**Where to go**
+• **Sign up** (new account): ${PORTAL}
+• **Login / sign in** (existing account): ${SITE}
+• Support ticket: https://nelfund.esupport.ng/create
+
+I will not invent a closing date. Always re-check the official portal.`
 
   return {
     hasEvidence: true,
@@ -181,16 +182,59 @@ function answerIsOpen(data: LiveStatus): GroundedAnswer {
 }
 
 function answerGeneralStatus(data: LiveStatus): GroundedAnswer {
-  const { loanLine, accountLine } = interpretOpenState(data)
   const cycle = cycleLabel(data)
-  const when = todayWatLabel()
+  const when = data.last_checked_iso ? formatWat(data.last_checked_iso) : todayWatLabel()
+  const label = data.status_label || data.status || 'See official portal'
+  const note = (data.note || '').trim()
+  const answer = `**NELFUND status** (as of **${when}**)
 
-  const answer = `**NELFUND status as of ${when}** (${cycle})\n\n${loanLine}\n\n${accountLine}\n\n• **Sign up:** ${PORTAL}\n• **Login / sign in:** ${SITE}\n\nAlways verify on the official portal before acting.`
+**${cycle}** · ${label}
+
+${note ? note + '\n\n' : ''}Sign **up** and loan/upkeep application are different steps.
+• Sign up: ${PORTAL}
+• Login: ${SITE}
+
+Always verify on the official portal before you act on a deadline.`
 
   return {
     hasEvidence: true,
     intent: 'current-information',
-    confidence: data.confidence === 'high' ? 0.9 : 0.82,
+    confidence: 0.8,
+    responseMode: 'conversation',
+    problem: null,
+    answer,
+    whatThisMeans: null,
+    nextActions: [PORTAL, SITE],
+    clarifyingQuestions: [],
+    evidence: [],
+    sources: [
+      { id: 'portal', label: 'NELFUND portal', url: PORTAL, official: true },
+      { id: 'site', label: 'NELFUND website', url: SITE, official: true },
+    ],
+    video: null,
+    insufficientReason: null,
+    officialFallbackUrl: PORTAL,
+    escalation: null,
+  }
+}
+
+export function buildCurrentInformationAnswer(): GroundedAnswer {
+  const cycle = getCurrentAcademicCycle()
+  const answer = `**As of ${todayWatLabel()}** (${cycle})
+
+I do not invent opening or closing dates.
+
+**Loan / upkeep application** and **account creation** are different:
+• Sign **up** (new account): ${PORTAL}
+• Sign **in** / login: ${SITE}
+• Confirm live status only on those official pages
+
+What do you need: sign up, login, or submit a loan?`
+
+  return {
+    hasEvidence: true,
+    intent: 'current-information',
+    confidence: 0.7,
     responseMode: 'conversation',
     problem: null,
     answer,
@@ -210,21 +254,10 @@ function answerGeneralStatus(data: LiveStatus): GroundedAnswer {
 }
 
 async function loadStatus(): Promise<LiveStatus | null> {
-  if (typeof fetch === 'undefined') return null
   try {
-    let res = await fetch('/api/knowledge/status', {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-    })
-    let data = res.ok ? ((await res.json().catch(() => null)) as LiveStatus | null) : null
-
-    if (!data || isStale(data.last_checked_iso || data.last_checked)) {
-      try {
-        await fetch('/api/knowledge/refresh', { method: 'GET' })
-      } catch {
-        /* ignore */
-      }
-      res = await fetch('/api/knowledge/status', {
+    let data: LiveStatus | null = null
+    if (typeof fetch !== 'undefined') {
+      const res = await fetch('/api/knowledge/status', {
         method: 'GET',
         headers: { Accept: 'application/json' },
       })
