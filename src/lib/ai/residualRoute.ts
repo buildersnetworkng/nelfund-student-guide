@@ -26,6 +26,7 @@ import { residualOtherHourly21 } from './residualOtherHourly21'
 import { residualOtherHourly22 } from './residualOtherHourly22'
 import { residualOtherHourly23 } from './residualOtherHourly23'
 import { residualOtherHourly24 } from './residualOtherHourly24'
+import { residualOtherHourly25 } from './residualOtherHourly25'
 import { residualPendingMore } from './residualPendingMore'
 
 const SCHOOL_HINTS = [
@@ -105,7 +106,6 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   if (!q) return hit('official-sources', 0.45, ['empty'], 'Empty or unclear message', 'unknown', entities)
   const compact = q.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
 
-  // Official FAQ topics (any wording) -> correct intent so playbook returns FAQ answer
   const faqIntent = officialFaqIntent(q)
   if (faqIntent) {
     return hit(faqIntent, 0.92, ['official-faq'], 'Official FAQ topic', 'exploring', entities)
@@ -191,6 +191,9 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
 
   const hourly24 = residualOtherHourly24(q, entities)
   if (hourly24) return hourly24
+
+  const hourly25 = residualOtherHourly25(q, entities)
+  if (hourly25) return hourly25
 
   if (liveish(q)) {
     return hit('current-information', 0.9, ['open-status'], 'Is NELFUND open / deadline', 'applying', entities)
