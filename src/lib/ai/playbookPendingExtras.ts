@@ -4,6 +4,9 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Extra pending-status answers for leftover unknown phrasings. */
 export function playbookPendingExtras(t: string): string | null {
+  if (/wetin\s*(be|mean)\s*under\s*review|what\s*(does|is)\s*under\s*review|under\s*review\s*(mean|meaning)/i.test(t)) {
+    return `**Under review means NELFUND / the school is still checking the file. It is not a pay date and not a rejection.**\n\n1. Open ${PORTAL} and copy the exact sentence, do not invent a new status.\n2. Institutional charges go to the **school** first. No personal alert does not mean declined.\n3. Upkeep (only if you ticked it in the same session) can move later.\n4. I will not invent how many days review takes. Same word for a long time: campus NELFUND desk, then ${ESUPPORT}.`
+  }
   if (/\b(declin(ed|e)|reject(ed)?|unsuccessful|not\s*approv)/i.test(t)) {
     return `**Declined / unsuccessful is a status word, not a new application.**\n\n1. Open ${PORTAL} and copy the **exact** sentence (reason if shown).\n2. Do not open a second account. Sign in at ${SITE} if you already have one.\n3. Common next checks: JAMB number format, school record uploaded, public-institution eligibility.\n4. Ask the campus NELFUND desk if the school must re-upload. Then ticket ${ESUPPORT} with that exact sentence and a screenshot.\n\nI cannot reverse a decision from this chat.`
   }
@@ -25,7 +28,7 @@ export function playbookPendingExtras(t: string): string | null {
   if (/still\s*(waiting|dey\s*wait)|i\s*dey\s*wait|waiting\s*(for\s*)?(approval|payment|upkeep|money)|dem\s*never\s*(pay|approve)\s*me/i.test(t)) {
     return `**Still waiting is a status question, not a new apply.**\n\n1. Open ${PORTAL} and copy the exact status word (Pending, Under review, Approved, Declined).\n2. Institutional charges go to the **school first**. No personal alert does not mean the file is dead.\n3. Upkeep only if you ticked it in the same session, and it can arrive later.\n4. I will not invent a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
   }
-  if (/approv(ed|al).{0,40}(no|never|not|nothing).{0,24}(money|alert|upkeep|pay|enter|drop)|successful.{0,24}(no|never).{0,16}(money|alert)/i.test(t)) {
+  if (/approv(ed|al).{0,40}(no|never|not|nothing).{0,24}(money|alert|upkeep|pay|enter|drop)|successful.{0,24}(no|never).{0,16}(money|alert)|i\s*don\s*see\s*approved|e\s*don\s*show\s*approved|status\s*na\s*approved/i.test(t)) {
     return `**Approved on the portal is not the same as money in your bank.**\n\n1. Open ${PORTAL} and note whether **institutional charges** show paid to the school.\n2. School fees go to the institution. Upkeep (only if you applied for it) can land later.\n3. Confirm the profile bank account is a real bank, not only a wallet.\n4. I will not invent a pay date. Same word for a long time: ticket ${ESUPPORT}.`
   }
   if (/how\s*far\s*(my\s*)?(loan|application|nelfund|am)|check\s*(my\s*)?(application|loan|status)|track\s*(my\s*)?(application|loan)/i.test(t)) {
