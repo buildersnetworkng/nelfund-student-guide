@@ -343,7 +343,7 @@ export default function Home() {
         </div>
       </RevealSection>
 
-      <RevealSection className="container-page mt-14">
+      <RevealSection id="home-help" className="container-page mt-14">
         <div className="rounded-2xl border border-forest-100 bg-gradient-to-br from-forest-50 to-white p-5 sm:p-6">
           <h2 className="font-display text-base font-semibold text-ink sm:text-lg">
             Help your class, not just one friend
