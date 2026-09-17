@@ -18,7 +18,7 @@ export type LiveApplicationStatus = {
 }
 
 const CACHE_KEY = 'nsg_live_app_status_v2'
-const CACHE_TTL_MS = 1000 * 60 * 15 // 15 minutes browser cache
+const CACHE_TTL_MS = 1000 * 60 * 5 // 5 minutes so open/close changes show quickly
 
 function todayUtc(): string {
   return new Date().toISOString().slice(0, 10)
