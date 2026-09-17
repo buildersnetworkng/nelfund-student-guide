@@ -77,8 +77,9 @@ export default function Ask() {
     const url = URL.createObjectURL(f)
     setPreview(url)
     try {
-      const text = await extractTextFromImage(f)
-      setOcrText(text || null)
+      const ocr = await extractTextFromImage(f)
+      const text = typeof ocr === 'string' ? ocr : ocr?.text
+      setOcrText(text && text.trim().length >= 8 ? text : null)
     } catch {
       setOcrText(null)
     }
