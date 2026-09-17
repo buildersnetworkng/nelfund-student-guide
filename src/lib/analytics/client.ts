@@ -266,4 +266,34 @@ export function trackFaqOpen(faqId: string) {
   track('faq_open', { faqId, feature: 'faq' })
 }
 
+export function trackFeature(feature: string) {
+  if (!feature) return
+  track('feature_use', { feature: feature.slice(0, 48) })
+}
+
+export function trackInstitution(institutionId: string) {
+  if (!institutionId || institutionId.length > 48) return
+  track('institution_set', { institutionId })
+}
+
+export async function fetchAnalyticsStats(adminKey: string): Promise<AnalyticsStats | null> {
+  try {
+    const res = await fetch('/api/analytics/stats', {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'x-admin-key': adminKey,
+      },
+    })
+    if (!res.ok) return null
+    return (await res.json()) as AnalyticsStats
+  } catch {
+    return null
+  }
+}
+
+export async function flushAnalytics(): Promise<void> {
+  await flushQueue()
+}
+
 export type { AnalyticsStats }
