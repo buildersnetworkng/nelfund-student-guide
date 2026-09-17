@@ -3,23 +3,81 @@ import ShareGuide, { SHARE_TEXT } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
 
 const STORAGE_KEY = 'nelfund-share-soft-dismissed'
+const VALUE_KEY = 'nelfund-share-value-seen'
 const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
+
+/** Call after a student gets a useful answer or finishes a guide step. */
+export function markShareValue() {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.setItem(VALUE_KEY, '1')
+  } catch {
+    /* private mode */
+  }
+  window.dispatchEvent(new Event('nelfund-share-value'))
+}
+
+function alreadyDismissed() {
+  try {
+    return window.sessionStorage.getItem(STORAGE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function hasValue() {
+  try {
+    return window.sessionStorage.getItem(VALUE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
 
 export default function ShareSoftPrompt() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    try {
-      if (window.sessionStorage.getItem(STORAGE_KEY) === '1') return
-    } catch {
-      /* private mode */
-    }
-    const timer = window.setTimeout(() => {
+    if (alreadyDismissed()) return
+
+    let shown = false
+    let valueTimer: number | undefined
+
+    function reveal() {
+      if (shown || alreadyDismissed()) return
+      shown = true
       setVisible(true)
       trackFeature('share_prompt_shown', { variant: 'soft-prompt' })
-    }, 9000)
-    return () => window.clearTimeout(timer)
+    }
+
+    function onValue() {
+      if (shown || alreadyDismissed()) return
+      if (valueTimer) window.clearTimeout(valueTimer)
+      valueTimer = window.setTimeout(reveal, 2200)
+    }
+
+    function onScroll() {
+      if (shown || alreadyDismissed()) return
+      const help = document.getElementById('home-help')
+      const helpVisible = help ? help.getBoundingClientRect().top < window.innerHeight * 0.92 : false
+      const scrolledPastStatus = window.scrollY > 420
+      if (helpVisible || scrolledPastStatus) {
+        markShareValue()
+        onValue()
+      }
+    }
+
+    window.addEventListener('nelfund-share-value', onValue)
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    if (hasValue()) onValue()
+    onScroll()
+
+    return () => {
+      window.removeEventListener('nelfund-share-value', onValue)
+      window.removeEventListener('scroll', onScroll)
+      if (valueTimer) window.clearTimeout(valueTimer)
+    }
   }, [])
 
   function dismiss() {
