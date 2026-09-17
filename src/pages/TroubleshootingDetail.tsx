@@ -7,6 +7,7 @@ import RecommendedVideo from '../components/RecommendedVideo'
 import ScopeRestricted from '../components/ScopeRestricted'
 import NotFound from './NotFound'
 import ShareGuide from '../components/ShareGuide'
+import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function TroubleshootingDetail() {
   const { id } = useParams()
@@ -27,6 +28,7 @@ export default function TroubleshootingDetail() {
 
   return (
     <div className="container-page py-10">
+      <ShareSoftPrompt />
       <Link to="/troubleshooting" className="text-sm text-forest-700 underline underline-offset-2">← All problems</Link>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-2">

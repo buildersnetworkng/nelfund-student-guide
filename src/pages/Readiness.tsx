@@ -4,6 +4,7 @@ import { useInstitution } from '../context/InstitutionContext'
 import ScopeBadge from '../components/ScopeBadge'
 import InstitutionNotice from '../components/InstitutionNotice'
 import ShareGuide from '../components/ShareGuide'
+import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function Readiness() {
   const [checked, setChecked] = useState<Record<string, boolean>>({})
@@ -29,6 +30,7 @@ export default function Readiness() {
 
   return (
     <div className="container-page py-10">
+      <ShareSoftPrompt />
       <p className="eyebrow">Preparation checklist</p>
       <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Am I ready to apply?</h1>
       <p className="mt-2 max-w-xl text-sm text-ink/65">
