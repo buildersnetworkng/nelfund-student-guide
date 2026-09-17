@@ -247,20 +247,18 @@ export default function Ask() {
       <div className="mx-auto w-full max-w-lg flex-1 px-3 py-4 sm:px-4">
         <div className="space-y-3 pb-32">
           {messages.length === 0 && (
-            <div className="space-y-3">
-              <div className="rounded-2xl border border-forest-100 bg-white p-4 shadow-sm">
-                <p className="font-display text-sm font-semibold text-ink">
-                  Ask anything about NELFUND
-                </p>
-                <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
+            <div className="space-y-4">
+              <div className="px-1">
+                <p className="text-[12px] font-medium text-ink/45">Ask anything about NELFUND</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-ink/35">
                   Application steps, pending status, portal errors, school fees vs upkeep. Pidgin or
                   English is fine.
                 </p>
                 {schoolLabel && (
-                  <p className="mt-2 text-xs text-forest-700">School set: {schoolLabel}</p>
+                  <p className="mt-1.5 text-[11px] text-ink/30">School set: {schoolLabel}</p>
                 )}
               </div>
-              <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-ink/45">
+              <p className="px-1 text-[10px] font-semibold uppercase tracking-wide text-ink/35">
                 Frequent student questions
               </p>
               <div className="flex flex-wrap gap-2">
@@ -270,7 +268,7 @@ export default function Ask() {
                     type="button"
                     disabled={busy}
                     onClick={() => void sendQuestion(q)}
-                    className="rounded-full border border-forest-100 bg-white px-3.5 py-2 text-left text-xs font-medium text-ink/75 shadow-sm transition hover:border-forest-300 hover:bg-forest-50 hover:text-ink disabled:opacity-50"
+                    className="rounded-full border border-forest-100/80 bg-transparent px-3 py-1.5 text-left text-[11px] font-medium text-ink/55 transition hover:border-forest-200 hover:text-ink/80 disabled:opacity-50"
                   >
                     {q}
                   </button>
