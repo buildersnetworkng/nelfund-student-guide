@@ -17,6 +17,7 @@ import { residualOtherHourly13 } from './residualOtherHourly13'
 import { residualOtherHourly14 } from './residualOtherHourly14'
 import { residualOtherHourly15 } from './residualOtherHourly15'
 import { residualOtherHourly16 } from './residualOtherHourly16'
+import { residualOtherHourly17 } from './residualOtherHourly17'
 import { residualPendingMore } from './residualPendingMore'
 
 const SCHOOL_HINTS = [
@@ -152,6 +153,9 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
 
   const hourly16 = residualOtherHourly16(q, entities)
   if (hourly16) return hourly16
+
+  const hourly17 = residualOtherHourly17(q, entities)
+  if (hourly17) return hourly17
 
   if (/^(ok|okay|thanks|thank\s*you|alright|seen|noted|yes|no|pls|abeg)[.!? ]*$/i.test(q)) {
     return hit('official-sources', 0.5, ['ack'], 'Short acknowledgement', 'unknown', entities)
