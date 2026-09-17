@@ -1,16 +1,58 @@
-import { Link, useLocation } from 'react-router-dom'
+import { FormEvent, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, type ReactNode } from 'react'
 import StatusCard from '../components/StatusCard'
 import StaySafe from '../components/StaySafe'
 import InstitutionSelect from '../components/InstitutionSelect'
 import ShareGuide, { SHARE_TEXT } from '../components/ShareGuide'
 import ShareSoftPrompt from '../components/ShareSoftPrompt'
-import { QuickActionCard } from '../components/Card'
 import { getCurrentAcademicCycle } from '../lib/academicCycle'
 
 const WHATSAPP_SHARE_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
-// Driven by production top pages + unknown topics (admin analytics)
+const FEATURES = [
+  {
+    to: '/apply',
+    title: 'Apply',
+    description: 'Step-by-step guide',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M7 4h7l3 3v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
+      </svg>
+    ),
+  },
+  {
+    to: '/ask',
+    title: 'Check Status',
+    description: 'Live updates',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+      </svg>
+    ),
+  },
+  {
+    to: '/ask',
+    title: 'Get Support',
+    description: 'AI assistant',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-5l-4 4v-4z" />
+      </svg>
+    ),
+  },
+  {
+    to: '/sources',
+    title: 'Official Links',
+    description: 'Trusted sources',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1" />
+      </svg>
+    ),
+  },
+]
+
 const PROBLEM_SHORTCUTS = [
   { to: '/ask', label: 'Application pending' },
   { to: '/ask', label: 'Invalid JAMB number' },
@@ -63,6 +105,8 @@ function RevealSection({
 
 export default function Home() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [askDraft, setAskDraft] = useState('')
 
   useEffect(() => {
     if (location.hash) {
@@ -74,68 +118,109 @@ export default function Home() {
     }
   }, [location.hash])
 
+  function onAskSubmit(e: FormEvent) {
+    e.preventDefault()
+    const q = askDraft.trim()
+    if (q) {
+      navigate(`/ask?q=${encodeURIComponent(q)}`)
+    } else {
+      navigate('/ask')
+    }
+  }
+
   return (
     <div className="pb-16">
       <ShareSoftPrompt />
-      <section className="relative overflow-hidden bg-forest-900 pb-16 pt-10 sm:pb-20 sm:pt-14">
+
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-forest-50/40 to-paper pb-10 pt-8 sm:pb-14 sm:pt-12">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-gold-500/20 blur-3xl"
+          className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-forest-100/70 blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-forest-300/25 blur-3xl"
+          className="pointer-events-none absolute -left-16 bottom-0 h-56 w-56 rounded-full bg-gold-100/50 blur-3xl"
         />
 
         <div className="container-page relative">
-          <p className="fade-in text-[11px] font-semibold uppercase tracking-[0.16em] text-gold-300">
-            NELFUND · {getCurrentAcademicCycle()}
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-forest-600">
+            NELFUND · {getCurrentAcademicCycle()} · Independent guide
           </p>
 
-          <h1 className="slide-up mt-4 max-w-xl text-balance font-display text-3xl font-semibold leading-[1.18] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
-            <span className="block text-white">Understand your</span>
-            <span className="block text-white">NELFUND application.</span>
-            <span className="mt-1 block text-gold-300">Know what to do next.</span>
+          <h1 className="mt-4 max-w-2xl font-display text-3xl font-semibold leading-[1.15] tracking-tight text-forest-900 sm:text-4xl lg:text-[2.75rem]">
+            Your NELFUND Student Guide
           </h1>
 
-          <p className="slide-up mt-5 max-w-md text-sm leading-relaxed text-white/80 sm:text-base">
-            Get clear guidance on your NELFUND application, portal issues, and next steps, backed by
-            verified information.
-          </p>
-          <p className="slide-up mt-2 max-w-md text-sm leading-relaxed text-white/60">
-            Ask questions, capture portal errors, and find relevant support contacts.
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-ink/65 sm:text-base">
+            Get clear answers, official links and step-by-step help for your NELFUND journey.
           </p>
 
-          <div className="slide-up mt-8 flex flex-wrap items-center gap-3">
-            <Link to="/ask" className="btn-gold shadow-md hover:shadow-lg">
-              Ask support
-            </Link>
-            <Link
-              to="/apply"
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/25 bg-transparent px-5 py-2.5 text-sm font-semibold text-white transition duration-150 hover:border-white/40 hover:bg-white/10 active:scale-[0.98]"
-            >
-              How to apply
-            </Link>
-            <ShareGuide variant="hero" />
+          <form onSubmit={onAskSubmit} className="mt-8 max-w-xl">
+            <label htmlFor="home-ask" className="sr-only">
+              Ask a question about NELFUND
+            </label>
+            <div className="flex items-center gap-2 rounded-2xl border border-forest-100 bg-white p-1.5 shadow-lift sm:p-2">
+              <span className="pl-3 text-forest-400" aria-hidden>
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="7" />
+                  <path strokeLinecap="round" d="M20 20l-3-3" />
+                </svg>
+              </span>
+              <input
+                id="home-ask"
+                value={askDraft}
+                onChange={(e) => setAskDraft(e.target.value)}
+                placeholder="Ask a question..."
+                className="min-w-0 flex-1 border-0 bg-transparent py-2.5 text-sm text-ink placeholder:text-ink/40 focus:outline-none focus:ring-0"
+              />
+              <button
+                type="submit"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-forest-700 text-white shadow-sm transition hover:bg-forest-600 active:scale-[0.97]"
+                aria-label="Ask support"
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                  <path d="M8 5v14l11-7L8 5z" />
+                </svg>
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {FEATURES.map((f) => (
+              <Link
+                key={f.title}
+                to={f.to}
+                className="group flex flex-col items-start gap-3 rounded-2xl border border-forest-100/90 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-forest-300 hover:shadow-md"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-forest-50 text-forest-700 transition group-hover:bg-forest-100">
+                  {f.icon}
+                </span>
+                <span>
+                  <span className="block font-display text-sm font-semibold text-ink sm:text-[15px]">{f.title}</span>
+                  <span className="mt-0.5 block text-xs text-ink/55">{f.description}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <ShareGuide variant="button" />
             <a
               href={WHATSAPP_SHARE_HREF}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
+              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
             >
               WhatsApp
             </a>
           </div>
-          <p className="slide-up mt-3 text-xs text-white/55">
-            Pass the guide to a classmate on WhatsApp, Telegram, or SMS.
-          </p>
 
-          <div className="slide-up mt-6 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             {PROBLEM_SHORTCUTS.map((p) => (
               <Link
                 key={p.label}
                 to={p.to}
-                className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/85 transition duration-150 hover:border-white/30 hover:bg-white/12"
+                className="rounded-full border border-forest-100 bg-white px-3 py-1.5 text-xs font-medium text-forest-800 transition hover:border-forest-300 hover:bg-forest-50"
               >
                 {p.label}
               </Link>
@@ -144,7 +229,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="container-page relative -mt-8 sm:-mt-10">
+      <div className="container-page relative mt-6 sm:mt-8">
         <StatusCard />
       </div>
 
@@ -181,31 +266,62 @@ export default function Home() {
               </p>
             </div>
           </Link>
-
-          <QuickActionCard
-            to="/troubleshooting"
-            title="Troubleshooting"
-            description="Common portal errors and how students usually resolve them."
-          />
-          <QuickActionCard
-            to="/apply"
-            title="How to apply"
-            description="Official steps, links, and what you need before you start."
-          />
-          <QuickActionCard
-            to="/readiness"
-            title="Am I ready?"
-            description="Quick checklist before you open the portal."
-          />
+          <Link to="/apply" className="card-interactive group flex items-start gap-4 p-5">
+            <span
+              aria-hidden
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-forest-50 text-base font-semibold text-forest-800"
+            >
+              1
+            </span>
+            <div>
+              <p className="font-display text-base font-semibold text-ink group-hover:text-forest-700">
+                How to apply
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-ink/60">
+                Account creation, profile, institutional charges, and upkeep in the right order.
+              </p>
+            </div>
+          </Link>
+          <Link to="/troubleshooting" className="card-interactive group flex items-start gap-4 p-5">
+            <span
+              aria-hidden
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-forest-50 text-base font-semibold text-forest-800"
+            >
+              !
+            </span>
+            <div>
+              <p className="font-display text-base font-semibold text-ink group-hover:text-forest-700">
+                Portal problems
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-ink/60">
+                Missing information, school not on list, JAMB errors, and pending status.
+              </p>
+            </div>
+          </Link>
+          <Link to="/sources" className="card-interactive group flex items-start gap-4 p-5">
+            <span
+              aria-hidden
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-forest-50 text-base font-semibold text-forest-800"
+            >
+              ✓
+            </span>
+            <div>
+              <p className="font-display text-base font-semibold text-ink group-hover:text-forest-700">
+                Official sources
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-ink/60">
+                Portal, website, FAQ, and eSupport, verified links only.
+              </p>
+            </div>
+          </Link>
         </div>
       </RevealSection>
 
       <RevealSection className="container-page mt-12">
-        <h2 className="section-title">Also useful</h2>
-        <p className="section-sub">Fees, upkeep, FAQs, and verified videos.</p>
-        <div className="mt-5 flex flex-wrap gap-2">
+        <h2 className="section-title">Quick links</h2>
+        <div className="mt-4 flex flex-wrap gap-2">
           <Link to="/fees" className="tag">
-            Fees
+            School fees
           </Link>
           <Link to="/upkeep" className="tag">
             Upkeep
