@@ -32,7 +32,7 @@ export function playbookPendingExtras(t: string): string | null {
     return `**Approved on the portal is not the same as money in your bank.**\n\n1. Open ${PORTAL} and note whether **institutional charges** show paid to the school.\n2. School fees go to the institution. Upkeep (only if you applied for it) can land later.\n3. Confirm the profile bank account is a real bank, not only a wallet.\n4. I will not invent a pay date. Same word for a long time: ticket ${ESUPPORT}.`
   }
   if (/how\s*far\s*(my\s*)?(loan|application|nelfund|am)|check\s*(my\s*)?(application|loan|status)|track\s*(my\s*)?(application|loan)/i.test(t)) {
-    return `**How far / check my loan** starts on the portal, not in this chat.\n\n1. Sign in at ${SITE} then open ${PORTAL}. Copy the exact status word.\n2. Do not create a second account to “check faster”.\n3. School paid ≠ upkeep paid. Ask the campus desk if the school record is uploaded.\n4. I cannot see your file. Long same-word wait: ${ESUPPORT}.`
+    return `**How far / check my loan** starts on the portal, not in this chat.\n\n1. Sign in at ${SITE} then open ${PORTAL}. Copy the exact status word.\n2. Do not create a second account to "check faster".\n3. School paid is not the same as upkeep paid. Ask the campus desk if the school record is uploaded.\n4. I cannot see your file. Long same-word wait: ${ESUPPORT}.`
   }
   if (/\bbatch\b|una\s*don\s*pay\s*(my\s*)?school|school\s*(don|has)\s*(collect|receive)|dem\s*don\s*pay\s*(the\s*)?school|school\s*fees?\s*(don|has)\s*(enter|pay|paid)/i.test(t)) {
     return `**Batch / school already paid** is still your portal status, not a public list I can invent.\n\n1. Only ${PORTAL} shows *your* file. There is no official public "batch 3 paid" sheet I can quote here.\n2. If the school already received institutional charges, upkeep (only if you ticked it) can still be later.\n3. Copy the exact status word from the portal.\n4. Same word for a long time: campus desk, then ${ESUPPORT}. I will not invent a pay date.`
@@ -56,10 +56,17 @@ export function playbookPendingExtras(t: string): string | null {
     return `**No upkeep yet is still a wait question.**\n\n1. Upkeep only if you ticked it in the **same** session as institutional charges.\n2. It can land later than school fees, and only into the bank account on your profile (not a wallet-only account).\n3. Copy the exact status word from ${PORTAL}. I will not invent a pay date.\n4. Long same-word wait: ${ESUPPORT}.`
   }
   if (/appeal|i\s*wan\s*appeal|contest\s*(the\s*)?(decision|decline)|review\s*(my\s*)?(decline|rejection)/i.test(t)) {
-    return `**Appeal / review a decline** is not a second application.\n\n1. Copy the exact declined sentence from ${PORTAL}.\n2. Stay on the same login at ${SITE}. Do not create another account to “appeal faster”.\n3. Fixable checks: JAMB format, school record uploaded, public-institution eligibility.\n4. Ticket ${ESUPPORT} with that exact sentence and a screenshot. I cannot reverse a decision from this chat.`
+    return `**Appeal / review a decline** is not a second application.\n\n1. Copy the exact declined sentence from ${PORTAL}.\n2. Stay on the same login at ${SITE}. Do not create another account to "appeal faster".\n3. Fixable checks: JAMB format, school record uploaded, public-institution eligibility.\n4. Ticket ${ESUPPORT} with that exact sentence and a screenshot. I cannot reverse a decision from this chat.`
   }
   if (/screenshot|i\s*(send|don\s*send)\s*(pic|picture|photo|image)|see\s*(the\s*)?(pic|photo|image)|look\s*(this|dis)\s*(pic|photo)/i.test(t)) {
     return `**A screenshot is useful only if I know the exact status word.**\n\n1. Type the sentence on ${PORTAL} (Pending, Under review, Approved, Declined, invalid JAMB, missing school).\n2. Do not send BVN, NIN, or full account numbers in chat.\n3. School fees go to the institution; upkeep (if ticked) can land later.\n4. Long same-word wait: campus desk, then ${ESUPPORT}.`
+  }
+  if (
+    /glitch|system\s*(fail|failure|down)|two\s*months?\s*(no|never|without)|upkeep\s*(delay|delayed|hold|on\s*hold)|allowance\s*(delay|delayed)|stipend\s*(never|no)\s*(enter|drop|come)|nans/i.test(
+      t,
+    )
+  ) {
+    return `**Upkeep delay / portal glitch is still a wait on your file, not a new apply.**\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. School charges go to the institution. Upkeep (only if you ticked it) goes to the bank on your profile and can lag behind.\n3. I will not invent when a glitch ends or when the next stipend drops. Confirm only on ${PORTAL} and ${SITE}.\n4. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}. Do not pay an agent.`
   }
   if (/\basuu\b|school\s*(dey|is)\s*(on\s*)?strike|lecturers?\s*(dey\s*)?strike/i.test(t)) {
     return `**A campus strike does not invent a new NELFUND pay date.**\n\n1. Status still lives on ${PORTAL}. Copy the exact word (Pending, Under review, Approved).\n2. Institutional charges go to the **school**. A strike can slow the school desk that uploads records, not a public batch list I can quote.\n3. I will not invent when lectures or disbursement resume.\n4. Ask the campus NELFUND desk first, then ticket ${ESUPPORT} with name, school, and that status word.`
