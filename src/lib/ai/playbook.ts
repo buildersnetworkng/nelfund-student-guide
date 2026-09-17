@@ -61,6 +61,10 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Upkeep** is living support, separate from school charges.\n\n1. Tick it in the **same** session as institutional charges when the loan window is open.\n2. It goes to the bank account on your profile, not a wallet-only account.\n3. I will not invent a monthly figure or pay date. Confirm on ${PORTAL}.`
   }
   if (intent === 'repayment' || intent === 'gsi') {
+    const rumour = ctx.userText && /life\s*(jail|imprison)|jail\s*for\s*life|prison|fake\s*(news|headline)/i.test(ctx.userText)
+    if (rumour) {
+      return `**Life jail for unpaid student loans is not official NELFUND policy.** Treat circulating newspaper graphics as fake unless you see the same text on ${SITE}.\n\nRepayment, when it starts, follows the Students Loans Act: after the applicable NYSC / study period, and only under the official rules. Confirm on ${SITE} and ${PORTAL}. I will not invent a jail term, start date, or percentage.`
+    }
     return `**Repayment** generally starts after the applicable NYSC / study period under official NELFUND rules. Confirm on ${SITE} and ${PORTAL}. I will not invent a start date or percentage here.`
   }
   if (intent === 'current-information' || intent === 'deadline') {
