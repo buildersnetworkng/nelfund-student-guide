@@ -8,6 +8,7 @@ import type { IntentId } from './types'
 import { eligibilityAnswer } from './eligibilityAnswer'
 import { playbookPortalLogin } from './playbookLogin'
 import { playbookPendingExtras } from './playbookPendingExtras'
+import { matchOfficialFaq } from './officialFaq'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -32,10 +33,6 @@ function isFeesUpkeepContrast(t: string): boolean {
 
 function feesVsUpkeepAnswer(): string {
   return `**School fees vs upkeep** (two different things)\n\n• **Institutional charges / school fees:** paid **to your school**, not your personal account.\n• **Upkeep:** monthly living allowance paid **to you**, if you applied for it.\n\nOfficial FAQ: apply for **both** at registration. An institutional-only application does not later get upkeep.\n\nAmounts and pay dates only on ${PORTAL} / ${SITE}. FAQ: ${FAQ}`
-}
-
-function howToApplyAnswer(t: string): boolean {
-  return false
 }
 
 function howToApplyText(t: string): string {
@@ -73,6 +70,10 @@ function contactAnswer(t: string): string {
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string {
   const t = (ctx.userText || '').trim()
+
+  // Official nelf.gov.ng FAQ: answer regardless of how the student phrased it
+  const official = matchOfficialFaq(t)
+  if (official) return official.answer
 
   if (intent === 'eligibility') return eligibilityAnswer({ userText: t })
 
