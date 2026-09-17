@@ -7,6 +7,7 @@ import InstitutionSelect from '../components/InstitutionSelect'
 import ShareGuide, { SHARE_TEXT } from '../components/ShareGuide'
 import ShareSoftPrompt from '../components/ShareSoftPrompt'
 import { getCurrentAcademicCycle } from '../lib/academicCycle'
+import { trackFeature } from '../lib/analytics'
 
 const WHATSAPP_SHARE_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
@@ -209,9 +210,10 @@ export default function Home() {
               href={WHATSAPP_SHARE_HREF}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source: 'home-hero' })}
               className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
             >
-              WhatsApp
+              Send to class group
             </a>
           </div>
 
@@ -344,11 +346,11 @@ export default function Home() {
       <RevealSection className="container-page mt-14">
         <div className="rounded-2xl border border-forest-100 bg-gradient-to-br from-forest-50 to-white p-5 sm:p-6">
           <h2 className="font-display text-base font-semibold text-ink sm:text-lg">
-            Help another student
+            Help your class, not just one friend
           </h2>
           <p className="mt-1 max-w-lg text-sm leading-relaxed text-ink/60">
-            Share the NELFUND Guide so other students can check readiness, apply correctly, and
-            troubleshoot portal issues before they get stuck.
+            Drop the NELFUND Guide in your class or department WhatsApp group so many classmates can
+            check readiness, apply correctly, and fix portal issues before they get stuck.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <ShareGuide variant="button" />
@@ -356,9 +358,10 @@ export default function Home() {
               href={WHATSAPP_SHARE_HREF}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source: 'home-help' })}
               className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
             >
-              WhatsApp a classmate
+              Send to class group
             </a>
           </div>
         </div>
