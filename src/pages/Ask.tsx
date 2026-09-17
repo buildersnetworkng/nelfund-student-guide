@@ -5,7 +5,6 @@ import {
   createInitialSlots,
   extractTextFromImage,
   disposeOcrWorker,
-  classifyIntent,
 } from '../lib/ai'
 import type { ChatMessage, ConversationSlots, ConversationTurn } from '../lib/ai'
 import { useInstitution, OTHER_INSTITUTION } from '../context/InstitutionContext'
@@ -43,6 +42,7 @@ export default function Ask() {
   const [ocrText, setOcrText] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [helpfulShareId, setHelpfulShareId] = useState<string | null>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -78,45 +78,35 @@ export default function Ask() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     const text = input.trim()
-    if (!text && !file && !ocrText) return
+    if ((!text && !ocrText) || busy) return
     setBusy(true)
     setInput('')
-    const hadUserMessage = messages.some((m) => m.role === 'user')
     try {
-      const hist = historyFromMessages(messages, slots.intent)
+      const history = historyFromMessages(messages, slots.intent)
       const result = await processUserTurn({
-        userText: text || (ocrText ? 'Please read this portal screenshot.' : ''),
+        userText: text,
         ocrText,
         imagePreview: preview,
-        uiInstitutionId: institutionId === OTHER_INSTITUTION ? null : institutionId,
-        slots,
-        history: hist,
+        uiInstitutionId: institutionId,
+        slots: {
+          ...slots,
+          institutionId: institutionId || slots.institutionId,
+        },
+        history,
       })
+
       const nextSlots = result.slots
-      const assistantWithAnswer = result.messages.find((m) => m.role === 'assistant' && m.answer)
-      const intentRaw = assistantWithAnswer?.answer?.intent || nextSlots.intent || null
-      const classified = classifyIntent(text || ocrText || '', hist).intent
-      const intent =
-        intentRaw && intentRaw !== 'unknown' && !String(intentRaw).endsWith(':unknown')
-          ? intentRaw
-          : classified && classified !== 'unknown'
-            ? classified
-            : 'official-sources'
-      const answer = assistantWithAnswer?.answer
-      const unresolved =
-        !answer || (answer.clarifyingQuestions?.length ?? 0) > 0 || !result.diagnosed
-      const resolutionClosed =
-        result.diagnosed &&
-        Boolean(answer) &&
-        (answer?.hasEvidence !== false || Boolean(answer?.escalation))
-      const escalationFired = Boolean(answer?.escalation)
+      const asst = result.messages.find((m) => m.role === 'assistant')
+      const intent = asst?.answer?.intent || nextSlots.intent || 'unknown'
+      const resolutionClosed = !!asst?.answer?.hasEvidence && !asst?.answer?.insufficientReason
+      const escalationFired = !!asst?.answer?.escalation
 
       trackAiQuestion({
         intent,
         institutionId: nextSlots.institutionId || institutionId,
-        hasImage: !!file,
-        unresolved,
-        isNewConversation: !hadUserMessage,
+        hasImage: !!ocrText,
+        unresolved: !!asst?.answer?.insufficientReason || intent === 'unknown',
+        isNewConversation: messages.length === 0,
         resolutionClosed,
         escalationFired,
         userText: text || (ocrText ? ocrText.slice(0, 200) : null),
@@ -125,8 +115,7 @@ export default function Ask() {
       setSlots(nextSlots)
       setMessages((prev) => [...prev, ...result.messages])
       clearFile()
-    } catch (err) {
-      console.error(err)
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
@@ -147,8 +136,6 @@ export default function Ask() {
     }
   }
 
-  const [helpfulShareId, setHelpfulShareId] = useState<string | null>(null)
-
   function onFeedback(messageId: string, vote: 'up' | 'down', intent?: string | null) {
     trackFeedback(vote, {
       intent: intent || slots.intent,
@@ -158,70 +145,131 @@ export default function Ask() {
     else if (helpfulShareId === messageId) setHelpfulShareId(null)
   }
 
+  const schoolLabel =
+    institutions.find((i) => i.id === institutionId)?.shortName ||
+    institutions.find((i) => i.id === institutionId)?.name ||
+    (institutionId === OTHER_INSTITUTION ? 'Other school' : null)
+
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-canvas">
-      <header className="sticky top-0 z-10 border-b border-ink/10 bg-canvas/95 px-4 py-3 backdrop-blur">
+    <div className="flex min-h-[100dvh] flex-col bg-paper">
+      <header className="sticky top-0 z-20 border-b border-forest-100 bg-white/95 px-3 py-2.5 backdrop-blur-xl sm:px-4">
         <div className="mx-auto flex max-w-lg items-center justify-between gap-2">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-brand">NELFUND Support</p>
-            <h1 className="text-base font-semibold text-ink">Ask</h1>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <img
+              src="/brand/logo.svg"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0 rounded-lg object-contain ring-1 ring-forest-900/10"
+              decoding="async"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-semibold tracking-tight text-forest-800">
+                NELFUND Support
+              </p>
+              <label className="sr-only" htmlFor="ask-school">
+                School
+              </label>
+              <select
+                id="ask-school"
+                className="max-w-[11rem] truncate border-0 bg-transparent p-0 text-[11px] font-medium text-ink/55 focus:outline-none focus:ring-0 sm:max-w-[14rem]"
+                value={institutionId || ''}
+                onChange={(e) => setInstitutionId(e.target.value || null)}
+              >
+                <option value="">Select school</option>
+                {institutions.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.shortName || i.name}
+                  </option>
+                ))}
+                <option value={OTHER_INSTITUTION}>Other / not listed</option>
+              </select>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              className="rounded-full px-2.5 py-1.5 text-xs font-medium text-forest-700 hover:bg-forest-50"
+              onClick={() => {
+                setMessages([])
+                setSlots(createInitialSlots(institutionId))
+                clearFile()
+                setHelpfulShareId(null)
+              }}
+            >
+              New chat
+            </button>
             <ShareGuide variant="icon" />
-            <Link to="/" className="text-sm text-ink/60 hover:text-ink">
+            <Link
+              to="/"
+              className="rounded-full px-2.5 py-1.5 text-xs font-medium text-ink/55 hover:bg-forest-50 hover:text-ink"
+            >
               Exit
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-lg flex-1 px-4 py-4">
-        <label className="mb-3 block text-xs font-medium text-ink/60">School (optional)</label>
-        <select
-          className="mb-4 w-full rounded-xl border border-ink/10 bg-white px-3 py-2 text-sm"
-          value={institutionId || ''}
-          onChange={(e) => setInstitutionId(e.target.value || null)}
-        >
-          <option value="">Select institution</option>
-          {institutions.map((i) => (
-            <option key={i.id} value={i.id}>
-              {i.shortName || i.name}
-            </option>
-          ))}
-          <option value={OTHER_INSTITUTION}>Other / not listed</option>
-        </select>
-
-        <div className="space-y-3 pb-28">
+      <div className="mx-auto w-full max-w-lg flex-1 px-3 py-4 sm:px-4">
+        <div className="space-y-3 pb-32">
           {messages.length === 0 && (
-            <div className="rounded-2xl border border-ink/10 bg-white p-4 text-sm text-ink/70">
-              Ask about apply, login, pending status, JAMB, school fees vs upkeep, or paste a portal error.
-              Pidgin is fine. Official portal: portal.nelf.gov.ng
+            <div className="rounded-2xl border border-forest-100 bg-white p-4 shadow-sm">
+              <p className="font-display text-sm font-semibold text-ink">
+                Ask anything about NELFUND
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
+                Application steps, pending status, portal errors, school fees vs upkeep. Pidgin or
+                English is fine.
+              </p>
+              {schoolLabel && (
+                <p className="mt-2 text-xs text-forest-700">School set: {schoolLabel}</p>
+              )}
+              <p className="mt-2 text-xs text-ink/45">
+                Official portal: portal.nelf.gov.ng · Independent student guide
+              </p>
             </div>
           )}
+
           {messages.map((m) => (
-            <div
-              key={m.id}
-              className={
-                m.role === 'user'
-                  ? 'ml-8 rounded-2xl bg-brand px-3 py-2 text-sm text-white'
-                  : 'mr-4 rounded-2xl border border-ink/10 bg-white px-3 py-2 text-sm text-ink'
-              }
-            >
-              <p className="whitespace-pre-wrap">{m.text}</p>
-              {m.answer && <AnswerCards answer={m.answer} />}
+            <div key={m.id} className="space-y-1.5">
+              <div
+                className={
+                  m.role === 'user'
+                    ? 'ml-auto max-w-[92%] rounded-2xl rounded-br-md bg-forest-800 px-3.5 py-2.5 text-sm text-paper shadow-sm'
+                    : 'mr-auto max-w-[92%] rounded-2xl rounded-bl-md border border-forest-100 bg-white px-3.5 py-2.5 text-sm text-ink shadow-sm'
+                }
+              >
+                {m.imagePreview && m.role === 'user' && (
+                  <img
+                    src={m.imagePreview}
+                    alt="Uploaded"
+                    className="mb-2 max-h-40 rounded-lg object-cover"
+                  />
+                )}
+                <p className="whitespace-pre-wrap leading-relaxed">{m.text}</p>
+                {m.answer && <AnswerCards answer={m.answer} />}
+              </div>
               {m.role === 'assistant' && (
-                <div className="mt-2 space-y-2">
-                  <div className="flex gap-2 text-xs text-ink/50">
-                    <button type="button" onClick={() => onFeedback(m.id, 'up', m.answer?.intent)}>
+                <div className="mr-auto max-w-[92%] space-y-2 px-1">
+                  <div className="flex gap-3 text-xs text-ink/45">
+                    <button
+                      type="button"
+                      className="hover:text-forest-700"
+                      onClick={() => onFeedback(m.id, 'up', m.answer?.intent)}
+                    >
                       Helpful
                     </button>
-                    <button type="button" onClick={() => onFeedback(m.id, 'down', m.answer?.intent)}>
+                    <button
+                      type="button"
+                      className="hover:text-forest-700"
+                      onClick={() => onFeedback(m.id, 'down', m.answer?.intent)}
+                    >
                       Not helpful
                     </button>
                   </div>
                   {helpfulShareId === m.id && (
                     <div className="flex flex-wrap items-center gap-2 rounded-xl bg-forest-50 px-2.5 py-2 text-xs text-ink/70">
-                      <span>If this helped, send the guide to a classmate.</span>
+                      <span>If this helped, send the guide to another student.</span>
                       <ShareGuide variant="button" className="!min-h-[32px] !px-3 !py-1 !text-xs" />
                     </div>
                   )}
@@ -234,12 +282,12 @@ export default function Ask() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 border-t border-ink/10 bg-canvas/95 px-4 py-3 backdrop-blur">
+      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-forest-100 bg-white/95 px-3 py-3 backdrop-blur-xl sm:px-4">
         <div className="mx-auto max-w-lg">
           {preview && (
-            <div className="mb-2 flex items-center gap-2 text-xs">
-              <img src={preview} alt="upload" className="h-12 w-12 rounded object-cover" />
-              <button type="button" className="text-brand" onClick={clearFile}>
+            <div className="mb-2 flex items-center gap-2 text-xs text-ink/60">
+              <img src={preview} alt="upload" className="h-12 w-12 rounded-lg object-cover ring-1 ring-forest-100" />
+              <button type="button" className="font-medium text-forest-700" onClick={clearFile}>
                 Remove
               </button>
             </div>
@@ -248,25 +296,28 @@ export default function Ask() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickFile} />
             <button
               type="button"
-              className="rounded-xl border border-ink/10 px-2 py-2 text-sm"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-forest-100 bg-white text-lg text-forest-700 shadow-sm hover:bg-forest-50"
               onClick={() => fileRef.current?.click()}
               aria-label="Attach screenshot"
             >
-              ＋
+              +
             </button>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               rows={1}
-              placeholder="Ask in English or Pidgin…"
-              className="max-h-28 min-h-[40px] flex-1 resize-none rounded-xl border border-ink/10 bg-white px-3 py-2 text-sm"
+              placeholder="Ask anything about NELFUND..."
+              className="max-h-28 min-h-[44px] flex-1 resize-none rounded-2xl border border-forest-100 bg-white px-3.5 py-2.5 text-sm text-ink shadow-sm placeholder:text-ink/40 focus:border-forest-300 focus:outline-none focus:ring-2 focus:ring-forest-100"
             />
             <button
               type="submit"
               disabled={busy}
-              className="rounded-xl bg-brand px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-forest-700 text-white shadow-sm transition hover:bg-forest-600 disabled:opacity-50"
+              aria-label="Send"
             >
-              ↑
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+                <path d="M12 4l-1.4 1.4 5.6 5.6H4v2h12.2l-5.6 5.6L12 20l8-8-8-8z" />
+              </svg>
             </button>
           </form>
           <p className="mt-2 text-center text-[10px] text-ink/40">

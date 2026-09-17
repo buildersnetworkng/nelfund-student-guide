@@ -11,7 +11,6 @@ export {
   processUserTurn,
   createInitialSlots,
   createWelcomeMessage,
-  extractErrorSignals,
 } from './processTurn'
 export type {
   ConversationSlots,
@@ -30,8 +29,12 @@ export { ARCH_DATASET } from './eval/dataset'
 export type { ArchCase } from './eval/dataset'
 export { freshnessFromDates, formatEvidenceForPrompt } from './evidence'
 export type { EvidenceMeta, SourceAuthority, SourceType, Freshness } from './evidence'
-export { understandPortalText, SAMPLE_DASHBOARD_OCR } from './screenshotUnderstand'
-export type { ScreenshotUnderstanding, PortalScreenKind } from './screenshotUnderstand'
+export {
+  understandPortalText,
+  SAMPLE_DASHBOARD_OCR,
+  dashboardFollowUpExplanation,
+} from './screenshotUnderstand'
+export type { ScreenUnderstanding, ScreenKind } from './screenshotUnderstand'
 
 export { emptyAgentState } from './agent/contracts'
 export type {
