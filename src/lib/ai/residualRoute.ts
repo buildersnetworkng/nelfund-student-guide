@@ -92,7 +92,7 @@ function hit(
 }
 
 function liveish(q: string): boolean {
-  return /still\s*(open|dey\s*open)|deadline|as\s*of\s*today|can\s*i\s*still\s*apply|closing\s*date|dem\s*don\s*close/i.test(q)
+  return /is\s+(nelfund\s+)?(loan\s*)?(upkeep\s*)?(application\s*)?(still\s+|currently\s+)?(open|closed|dey\s+open)|loan\s+application\s+(still\s+)?(open|closed)|still\s*(open|dey\s*open)|deadline|as\s*of\s*today|can\s*i\s*still\s*apply|closing\s*date|dem\s*don\s*close|nelfund\s+(loan\s+)?(application\s+)?open/i.test(q)
 }
 
 export function residualSoftRoute(text: string, entities: string[]): IntentResult | null {
