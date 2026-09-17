@@ -32,6 +32,10 @@ function uid(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+function schoolOptionLabel(i: { short_name?: string; shortName?: string; name: string }) {
+  return i.short_name || i.shortName || i.name
+}
+
 function historyFromMessages(
   messages: ChatMessage[],
   currentIntent?: string | null,
@@ -173,16 +177,17 @@ export default function Ask() {
     else if (helpfulShareId === messageId) setHelpfulShareId(null)
   }
 
+  const selectedSchool = institutions.find((i) => i.id === institutionId)
   const schoolLabel =
-    institutions.find((i) => i.id === institutionId)?.shortName ||
-    institutions.find((i) => i.id === institutionId)?.name ||
+    selectedSchool?.short_name ||
+    selectedSchool?.name ||
     (institutionId === OTHER_INSTITUTION ? 'Other school' : null)
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-paper">
-      <header className="sticky top-0 z-20 border-b border-forest-100 bg-white/95 px-3 py-2.5 backdrop-blur-xl sm:px-4">
-        <div className="mx-auto flex max-w-lg items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2.5">
+      <header className="sticky top-0 z-20 border-b border-forest-100 bg-white/95 backdrop-blur-xl">
+        <div className="mx-auto max-w-lg px-3 py-2 sm:px-4">
+          <div className="flex items-center gap-2">
             <img
               src="/brand/logo.svg"
               alt=""
@@ -191,50 +196,53 @@ export default function Ask() {
               className="h-8 w-8 shrink-0 rounded-lg object-contain ring-1 ring-forest-900/10"
               decoding="async"
             />
-            <div className="min-w-0">
-              <p className="truncate text-[11px] font-semibold tracking-tight text-forest-800">
-                NELFUND Support
-              </p>
-              <label className="sr-only" htmlFor="ask-school">
-                School
-              </label>
-              <select
-                id="ask-school"
-                className="max-w-[11rem] truncate border-0 bg-transparent p-0 text-[11px] font-medium text-ink/55 focus:outline-none focus:ring-0 sm:max-w-[14rem]"
-                value={institutionId || ''}
-                onChange={(e) => setInstitutionId(e.target.value || null)}
+            <p className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-forest-900">
+              NELFUND Support
+            </p>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                className="h-8 rounded-full px-2.5 text-xs font-semibold text-forest-800 hover:bg-forest-50"
+                onClick={() => {
+                  setMessages([])
+                  setSlots(createInitialSlots(institutionId))
+                  clearFile()
+                  setHelpfulShareId(null)
+                  setFeedback({})
+                }}
               >
-                <option value="">Select school</option>
-                {institutions.map((i) => (
-                  <option key={i.id} value={i.id}>
-                    {i.shortName || i.name}
-                  </option>
-                ))}
-                <option value={OTHER_INSTITUTION}>Other / not listed</option>
-              </select>
+                New
+              </button>
+              <ShareGuide
+                variant="icon"
+                className="!h-8 !min-h-0 !w-8 !gap-0 !px-0 [&_span]:hidden"
+              />
+              <Link
+                to="/"
+                className="h-8 rounded-full px-2.5 text-xs font-medium leading-8 text-ink/60 hover:bg-forest-50 hover:text-ink"
+              >
+                Exit
+              </Link>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              className="rounded-full px-2 py-1.5 text-xs font-medium text-forest-700 hover:bg-forest-50"
-              onClick={() => {
-                setMessages([])
-                setSlots(createInitialSlots(institutionId))
-                clearFile()
-                setHelpfulShareId(null)
-                setFeedback({})
-              }}
+          <div className="mt-1.5">
+            <label className="sr-only" htmlFor="ask-school">
+              School
+            </label>
+            <select
+              id="ask-school"
+              className="h-8 w-full rounded-lg border border-forest-100 bg-forest-50/60 px-2.5 text-xs font-medium text-ink/80 focus:border-forest-300 focus:outline-none focus:ring-2 focus:ring-forest-100"
+              value={institutionId || ''}
+              onChange={(e) => setInstitutionId(e.target.value || null)}
             >
-              New
-            </button>
-            <ShareGuide variant="icon" />
-            <Link
-              to="/"
-              className="rounded-full px-2 py-1.5 text-xs font-medium text-ink/55 hover:bg-forest-50 hover:text-ink"
-            >
-              Exit
-            </Link>
+              <option value="">Select school</option>
+              {institutions.map((i) => (
+                <option key={i.id} value={i.id}>
+                  {schoolOptionLabel(i)}
+                </option>
+              ))}
+              <option value={OTHER_INSTITUTION}>Other / not listed</option>
+            </select>
           </div>
         </div>
       </header>
