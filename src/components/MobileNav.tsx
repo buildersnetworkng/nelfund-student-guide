@@ -1,9 +1,8 @@
 import { NavLink } from 'react-router-dom'
-import ShareGuide from './ShareGuide'
 
 const ITEMS = [
   { to: '/', label: 'Home', icon: HomeIcon },
-  { to: '/ask', label: 'Ask support', icon: AskIcon },
+  { to: '/ask', label: 'Ask', icon: AskIcon },
   { to: '/apply', label: 'Apply', icon: ApplyIcon },
   { to: '/troubleshooting', label: 'Problems', icon: ProblemsIcon },
   { to: '/faq', label: 'FAQ', icon: FaqIcon },
@@ -84,34 +83,28 @@ export default function MobileNav() {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-forest-700/10 bg-white/95 backdrop-blur-md md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <ul className="grid grid-cols-6">
+      <ul className="flex items-stretch">
         {ITEMS.map((item) => (
-          <li key={item.to}>
+          <li key={item.to} className="flex-1">
             <NavLink
               to={item.to}
               className={({ isActive }) =>
-                `flex min-h-[52px] flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] font-semibold tracking-wide transition-colors ${
+                `flex min-h-[56px] flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium leading-none ${
                   isActive ? 'text-forest-700' : 'text-ink/45'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <span className={`rounded-xl px-2.5 py-1 ${isActive ? 'bg-forest-50' : ''}`}>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full ${isActive ? 'bg-forest-50' : ''}`}>
                     <item.icon active={isActive} />
                   </span>
-                  {item.label}
+                  <span className="whitespace-nowrap">{item.label}</span>
                 </>
               )}
             </NavLink>
           </li>
         ))}
-        <li className="flex items-center justify-center px-0.5">
-          <ShareGuide
-            variant="icon"
-            className="!h-auto !min-h-[44px] !flex-col !rounded-xl !border-gold-500/50 !bg-gold-500/20 !px-1.5 !py-1 !shadow-none !text-forest-800"
-          />
-        </li>
       </ul>
     </nav>
   )
