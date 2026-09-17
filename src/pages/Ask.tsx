@@ -185,24 +185,26 @@ export default function Ask() {
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-paper">
-      <header className="sticky top-0 z-20 border-b border-forest-100 bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto max-w-lg px-3 py-2 sm:px-4">
-          <div className="flex items-center gap-2">
-            <img
-              src="/brand/logo.svg"
-              alt=""
-              width={32}
-              height={32}
-              className="h-8 w-8 shrink-0 rounded-lg object-contain ring-1 ring-forest-900/10"
-              decoding="async"
-            />
-            <p className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-forest-900">
-              NELFUND Support
-            </p>
-            <div className="flex shrink-0 items-center gap-1.5">
+      <header className="sticky top-0 z-20 border-b border-forest-100 bg-white">
+        <div className="mx-auto max-w-lg px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <img
+                src="/brand/logo.svg"
+                alt=""
+                width={24}
+                height={24}
+                className="h-6 w-6 shrink-0 rounded-md object-contain"
+                decoding="async"
+              />
+              <p className="truncate text-[13px] font-semibold leading-none text-forest-900">
+                NELFUND Support
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
               <button
                 type="button"
-                className="h-8 rounded-full px-2.5 text-xs font-semibold text-forest-800 hover:bg-forest-50"
+                className="h-7 px-1.5 text-[11px] font-medium text-forest-800"
                 onClick={() => {
                   setMessages([])
                   setSlots(createInitialSlots(institutionId))
@@ -215,35 +217,30 @@ export default function Ask() {
               </button>
               <ShareGuide
                 variant="icon"
-                className="!h-8 !min-h-0 !w-8 !gap-0 !px-0 [&_span]:hidden"
+                className="!h-7 !min-h-0 !w-7 !gap-0 !border-0 !bg-transparent !px-0 !shadow-none [&_span]:hidden"
               />
-              <Link
-                to="/"
-                className="h-8 rounded-full px-2.5 text-xs font-medium leading-8 text-ink/60 hover:bg-forest-50 hover:text-ink"
-              >
+              <Link to="/" className="h-7 px-1.5 text-[11px] font-medium leading-7 text-ink/55">
                 Exit
               </Link>
             </div>
           </div>
-          <div className="mt-1.5">
-            <label className="sr-only" htmlFor="ask-school">
-              School
-            </label>
-            <select
-              id="ask-school"
-              className="h-8 w-full rounded-lg border border-forest-100 bg-forest-50/60 px-2.5 text-xs font-medium text-ink/80 focus:border-forest-300 focus:outline-none focus:ring-2 focus:ring-forest-100"
-              value={institutionId || ''}
-              onChange={(e) => setInstitutionId(e.target.value || null)}
-            >
-              <option value="">Select school</option>
-              {institutions.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {schoolOptionLabel(i)}
-                </option>
-              ))}
-              <option value={OTHER_INSTITUTION}>Other / not listed</option>
-            </select>
-          </div>
+          <label className="sr-only" htmlFor="ask-school">
+            School
+          </label>
+          <select
+            id="ask-school"
+            className="mt-2.5 h-9 w-full rounded-xl border border-forest-100 bg-paper px-3 text-[12px] font-medium text-ink/80 focus:border-forest-300 focus:outline-none focus:ring-2 focus:ring-forest-100"
+            value={institutionId || ''}
+            onChange={(e) => setInstitutionId(e.target.value || null)}
+          >
+            <option value="">Select school</option>
+            {institutions.map((i) => (
+              <option key={i.id} value={i.id}>
+                {schoolOptionLabel(i)}
+              </option>
+            ))}
+            <option value={OTHER_INSTITUTION}>Other / not listed</option>
+          </select>
         </div>
       </header>
 
