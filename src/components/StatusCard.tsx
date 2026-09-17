@@ -8,7 +8,6 @@ import {
 } from '../lib/knowledge/client'
 import type { ApplicationCycleStatus } from '../lib/types'
 import { stripLongDashes } from '../lib/copyHygiene'
-import ShareGuide from './ShareGuide'
 
 const STATUS_DOT: Record<ApplicationCycleStatus, string> = {
   not_announced: 'bg-ink/30',
@@ -177,10 +176,6 @@ export default function StatusCard() {
         >
           Sign up / apply
         </a>
-        <ShareGuide
-          variant="button"
-          className="!min-h-[36px] !border-gold-400/40 !bg-gold-500/15 !px-3 !py-1.5 !text-xs !text-gold-200 !shadow-none hover:!bg-gold-500/25"
-        />
       </div>
     </div>
   )
