@@ -13,8 +13,9 @@ function getSiteUrl() {
 function buildShareText(url: string) {
   return (
     '📌 NELFUND GUIDE\n' +
-    'Students are advised to go through the NELFUND Guide before taking any further steps regarding NELFUND.\n' +
-    'It provides key information and guidance for students at every stage of the process.\n' +
+    'Before you apply or wait on the portal, open this first.\n' +
+    'Clear steps for application, pending status, and common portal errors.\n' +
+    'Send this to your class or department group so more students are not guessing alone.\n' +
     `🔗 ${url}`
   )
 }
@@ -125,7 +126,7 @@ function buildChannels(siteUrl: string, shareText: string): Channel[] {
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
           <rect x="9" y="9" width="13" height="13" rx="2" />
-          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2v1" />
         </svg>
       ),
     },
@@ -252,7 +253,6 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
     [copy, shareNative],
   )
 
-  /** Continuous rubber-band attention on every share entry point */
   const nudge =
     variant === 'icon' ? 'share-nudge share-nudge-icon' : 'share-nudge'
 
@@ -281,7 +281,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
         className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition duration-150 hover:border-white/50 hover:bg-white/15 active:scale-[0.98] ${nudge} ${className}`}
       >
         <ShareIcon className="opacity-90" />
-        Share with a classmate
+        Share with your class
       </button>
     ) : (
       <button
@@ -322,10 +322,10 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
               <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 sm:px-6 sm:pt-5">
                 <div>
                   <h2 id={titleId} className="font-display text-lg font-semibold text-ink">
-                    Share this guide
+                    One student can help ten more
                   </h2>
                   <p className="mt-1 text-sm text-ink/55">
-                    Send the short note below to classmates on any app.
+                    Post this in your class or department WhatsApp group. One share can reach many students.
                   </p>
                 </div>
                 <button
@@ -367,7 +367,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                   }}
                   className="mt-2.5 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-[#25D366] text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.99]"
                 >
-                  WhatsApp a classmate
+                  Send to class group
                 </button>
 
                 <div className="mt-4 grid grid-cols-3 gap-2.5">
