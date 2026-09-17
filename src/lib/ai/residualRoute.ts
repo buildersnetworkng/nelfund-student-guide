@@ -22,6 +22,7 @@ import { residualOtherHourly18 } from './residualOtherHourly18'
 import { residualOtherHourly19 } from './residualOtherHourly19'
 import { residualOtherHourly20 } from './residualOtherHourly20'
 import { residualOtherHourly21 } from './residualOtherHourly21'
+import { residualOtherHourly22 } from './residualOtherHourly22'
 import { residualPendingMore } from './residualPendingMore'
 
 const SCHOOL_HINTS = [
@@ -67,6 +68,8 @@ export function detectEntities(text: string): string[] {
   if (/missing\s*information|not\s*(on\s*)?(the\s*)?list|change\s*of\s*institution|session\s*(no|not)\s*(dey|show)/.test(q)) out.push('missing')
   if (/repay|nysc|scholarship|grant/.test(q)) out.push('policy')
   if (/disburse|billion|beneficiar|how\s*many\s*students/.test(q)) out.push('totals')
+  if (/hostel|accommodation/.test(q)) out.push('upkeep')
+  if (/agent|whatsapp/.test(q)) out.push('scam')
   return out
 }
 
@@ -172,6 +175,9 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
 
   const hourly21 = residualOtherHourly21(q, entities)
   if (hourly21) return hourly21
+
+  const hourly22 = residualOtherHourly22(q, entities)
+  if (hourly22) return hourly22
 
   if (/^(ok|okay|thanks|thank\s*you|alright|seen|noted|yes|no|pls|abeg)[.!? ]*$/i.test(q)) {
     return hit('official-sources', 0.5, ['ack'], 'Short acknowledgement', 'unknown', entities)
