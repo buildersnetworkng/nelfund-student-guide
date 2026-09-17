@@ -11,8 +11,11 @@ import { useInstitution, OTHER_INSTITUTION } from '../context/InstitutionContext
 import { institutions } from '../lib/data'
 import { AnswerCards } from '../components/AnswerCards'
 import { LinkifiedText } from '../components/LinkifiedText'
-import { trackAiQuestion, trackFeedback } from '../lib/analytics'
-import ShareGuide from '../components/ShareGuide'
+import { trackAiQuestion, trackFeedback, trackFeature } from '../lib/analytics'
+import ShareGuide, { SHARE_TEXT } from '../components/ShareGuide'
+import { markShareValue } from '../components/ShareSoftPrompt'
+
+const WHATSAPP_SHARE_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
 /** From live admin common intents / unknown topic buckets */
 const SUGGESTIONS = [
@@ -173,8 +176,12 @@ export default function Ask() {
       institutionId: slots.institutionId || institutionId,
     })
     setFeedback((prev) => ({ ...prev, [messageId]: vote }))
-    if (vote === 'up') setHelpfulShareId(messageId)
-    else if (helpfulShareId === messageId) setHelpfulShareId(null)
+    if (vote === 'up') {
+      setHelpfulShareId(messageId)
+      markShareValue()
+    } else if (helpfulShareId === messageId) {
+      setHelpfulShareId(null)
+    }
   }
 
   const selectedSchool = institutions.find((i) => i.id === institutionId)
@@ -346,7 +353,18 @@ export default function Ask() {
                     </div>
                     {helpfulShareId === m.id && (
                       <div className="flex flex-wrap items-center gap-2 rounded-xl bg-forest-50 px-2.5 py-2 text-xs text-ink/70">
-                        <span>If this helped, send the guide to another student.</span>
+                        <span>If this helped, send it to your class or department WhatsApp group.</span>
+                        <a
+                          href={WHATSAPP_SHARE_HREF}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() =>
+                            trackFeature('share_channel', { channel: 'whatsapp', source: 'ask-helpful' })
+                          }
+                          className="inline-flex min-h-[32px] items-center justify-center rounded-full bg-[#25D366] px-3 text-xs font-semibold text-white"
+                        >
+                          Send to class group
+                        </a>
                         <ShareGuide variant="button" className="!min-h-[32px] !px-3 !py-1 !text-xs" />
                       </div>
                     )}
