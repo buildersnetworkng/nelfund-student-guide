@@ -243,7 +243,6 @@ export async function processUserTurn(opts: {
 export {
   createInitialSlots,
   createWelcomeMessage,
-  extractErrorSignals,
 } from './conversation'
 export type {
   ConversationSlots,
