@@ -183,74 +183,102 @@ export default function Ask() {
     selectedSchool?.name ||
     (institutionId === OTHER_INSTITUTION ? 'Other school' : null)
 
+  const schoolSelect = (
+    <>
+      <label className="sr-only" htmlFor="ask-school">
+        School
+      </label>
+      <select
+        id="ask-school"
+        className="h-9 w-full rounded-xl border border-forest-100 bg-paper px-3 text-[12px] font-medium text-ink/80 focus:border-forest-300 focus:outline-none focus:ring-2 focus:ring-forest-100 lg:w-56"
+        value={institutionId || ''}
+        onChange={(e) => setInstitutionId(e.target.value || null)}
+      >
+        <option value="">Select school</option>
+        {institutions.map((i) => (
+          <option key={i.id} value={i.id}>
+            {schoolOptionLabel(i)}
+          </option>
+        ))}
+        <option value={OTHER_INSTITUTION}>Other / not listed</option>
+      </select>
+    </>
+  )
+
+  const suggestionList = (
+    <div className="flex flex-wrap gap-2 lg:flex-col lg:flex-nowrap">
+      {SUGGESTIONS.map((q) => (
+        <button
+          key={q}
+          type="button"
+          disabled={busy}
+          onClick={() => void sendQuestion(q)}
+          className="rounded-full border border-forest-100/80 bg-transparent px-3 py-1.5 text-left text-[11px] font-medium text-ink/55 transition hover:border-forest-200 hover:text-ink/80 disabled:opacity-50 lg:rounded-xl"
+        >
+          {q}
+        </button>
+      ))}
+    </div>
+  )
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-paper">
       <header className="sticky top-0 z-20 border-b border-forest-100 bg-white">
-        <div className="mx-auto max-w-lg px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <img
-                src="/brand/logo.svg"
-                alt=""
-                width={24}
-                height={24}
-                className="h-6 w-6 shrink-0 rounded-md object-contain"
-                decoding="async"
-              />
-              <p className="truncate text-[13px] font-semibold leading-none text-forest-900">
-                NELFUND Support
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                className="h-7 px-1.5 text-[11px] font-medium text-forest-800"
-                onClick={() => {
-                  setMessages([])
-                  setSlots(createInitialSlots(institutionId))
-                  clearFile()
-                  setHelpfulShareId(null)
-                  setFeedback({})
-                }}
-              >
-                New
-              </button>
-              <ShareGuide
-                variant="icon"
-                className="!h-7 !min-h-0 !w-7 !gap-0 !border-0 !bg-transparent !px-0 !shadow-none [&_span]:hidden"
-              />
-              <Link to="/" className="h-7 px-1.5 text-[11px] font-medium leading-7 text-ink/55">
-                Exit
-              </Link>
-            </div>
+        <div className="flex w-full items-center gap-3 px-3 py-2.5 sm:px-5 lg:px-6">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <img
+              src="/brand/logo.svg"
+              alt="NELFUND Student Guide"
+              width={28}
+              height={28}
+              className="h-7 w-7 shrink-0 rounded-md object-contain"
+              decoding="async"
+            />
+            <p className="truncate text-[13px] font-semibold leading-none text-forest-900">
+              NELFUND Support
+            </p>
           </div>
-          <label className="sr-only" htmlFor="ask-school">
-            School
-          </label>
-          <select
-            id="ask-school"
-            className="mt-2.5 h-9 w-full rounded-xl border border-forest-100 bg-paper px-3 text-[12px] font-medium text-ink/80 focus:border-forest-300 focus:outline-none focus:ring-2 focus:ring-forest-100"
-            value={institutionId || ''}
-            onChange={(e) => setInstitutionId(e.target.value || null)}
-          >
-            <option value="">Select school</option>
-            {institutions.map((i) => (
-              <option key={i.id} value={i.id}>
-                {schoolOptionLabel(i)}
-              </option>
-            ))}
-            <option value={OTHER_INSTITUTION}>Other / not listed</option>
-          </select>
+          <div className="ml-auto hidden lg:block">{schoolSelect}</div>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              className="h-7 px-1.5 text-[11px] font-medium text-forest-800"
+              onClick={() => {
+                setMessages([])
+                setSlots(createInitialSlots(institutionId))
+                clearFile()
+                setHelpfulShareId(null)
+                setFeedback({})
+              }}
+            >
+              New
+            </button>
+            <ShareGuide
+              variant="icon"
+              className="!h-7 !min-h-0 !w-7 !gap-0 !border-0 !bg-transparent !px-0 !shadow-none [&_span]:hidden"
+            />
+            <Link to="/" className="h-7 px-1.5 text-[11px] font-medium leading-7 text-ink/55">
+              Exit
+            </Link>
+          </div>
         </div>
+        <div className="px-3 pb-2.5 sm:px-5 lg:hidden">{schoolSelect}</div>
       </header>
 
-      <div className="mx-auto w-full max-w-lg flex-1 px-3 py-4 sm:px-4">
-        <div className="space-y-3 pb-32">
+      <div className="mx-auto flex w-full flex-1 gap-8 px-3 py-4 sm:px-5 lg:max-w-[1120px] lg:px-6 lg:py-6">
+        <aside className="hidden w-64 shrink-0 lg:block">
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-ink/35">
+            Frequent student questions
+          </p>
+          {suggestionList}
+        </aside>
+
+        <div className="min-w-0 flex-1 space-y-3 pb-32">
           {messages.length === 0 && (
             <div className="space-y-4">
               <div className="px-1">
                 <p className="text-[12px] font-medium text-ink/45">Ask anything about NELFUND</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-ink/35">
+                <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-ink/35">
                   Application steps, pending status, portal errors, school fees vs upkeep. Pidgin or
                   English is fine.
                 </p>
@@ -258,21 +286,11 @@ export default function Ask() {
                   <p className="mt-1.5 text-[11px] text-ink/30">School set: {schoolLabel}</p>
                 )}
               </div>
-              <p className="px-1 text-[10px] font-semibold uppercase tracking-wide text-ink/35">
-                Frequent student questions
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {SUGGESTIONS.map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void sendQuestion(q)}
-                    className="rounded-full border border-forest-100/80 bg-transparent px-3 py-1.5 text-left text-[11px] font-medium text-ink/55 transition hover:border-forest-200 hover:text-ink/80 disabled:opacity-50"
-                  >
-                    {q}
-                  </button>
-                ))}
+              <div className="lg:hidden">
+                <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wide text-ink/35">
+                  Frequent student questions
+                </p>
+                {suggestionList}
               </div>
             </div>
           )}
@@ -280,7 +298,7 @@ export default function Ask() {
           {messages.map((m) => (
             <div key={m.id} className="space-y-1.5">
               {m.role === 'user' ? (
-                <div className="ml-auto max-w-[92%] rounded-2xl rounded-br-md bg-forest-800 px-3.5 py-2.5 text-sm text-paper shadow-sm">
+                <div className="ml-auto max-w-[92%] rounded-2xl rounded-br-md bg-forest-800 px-3.5 py-2.5 text-sm text-paper shadow-sm lg:max-w-[70%]">
                   {m.imagePreview && (
                     <img
                       src={m.imagePreview}
@@ -292,11 +310,11 @@ export default function Ask() {
                 </div>
               ) : (
                 <>
-                  <div className="mr-auto max-w-[92%] rounded-2xl rounded-bl-md border border-forest-100 bg-white px-3.5 py-2.5 text-sm text-ink shadow-sm">
+                  <div className="mr-auto max-w-[92%] rounded-2xl rounded-bl-md border border-forest-100 bg-white px-3.5 py-2.5 text-sm text-ink shadow-sm lg:max-w-[80%]">
                     <LinkifiedText text={m.text} className="leading-relaxed" />
                     {m.answer && <AnswerCards answer={m.answer} />}
                   </div>
-                  <div className="mr-auto max-w-[92%] space-y-2 px-1">
+                  <div className="mr-auto max-w-[92%] space-y-2 px-1 lg:max-w-[80%]">
                     <div className="flex flex-wrap items-center gap-2 text-xs text-ink/55">
                       <span className="text-[11px] font-medium">
                         {feedback[m.id]
@@ -342,8 +360,8 @@ export default function Ask() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-forest-100 bg-white/95 px-3 py-3 backdrop-blur-xl sm:px-4">
-        <div className="mx-auto max-w-lg">
+      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-forest-100 bg-white/95 px-3 py-3 backdrop-blur-xl sm:px-5 lg:px-6">
+        <div className="mx-auto w-full lg:max-w-[1120px] lg:pl-72">
           {preview && (
             <div className="mb-2 flex items-center gap-2 text-xs text-ink/60">
               <img
@@ -384,7 +402,7 @@ export default function Ask() {
               </svg>
             </button>
           </form>
-          <p className="mt-2 text-center text-[10px] text-ink/40">
+          <p className="mt-2 text-center text-[10px] text-ink/40 lg:text-left">
             Independent student guide · Verify critical details on the official portal
           </p>
         </div>
