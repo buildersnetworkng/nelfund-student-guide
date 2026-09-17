@@ -47,14 +47,22 @@ async function redisGet(key: string): Promise<string | null> {
   }
 }
 
+function bulletNote(cycle: string): string {
+  return (
+    `• Account creation (sign up): OPEN. You can create your account, finish your profile, and sort out your BVN.\n` +
+    `• Loan and upkeep application: NOT confirmed open yet for ${cycle}. Wait for official opening and closing dates on the portal.\n` +
+    `Do not use social media for deadlines. Use the buttons below for sign in or sign up.`
+  )
+}
+
 function guidancePayload(freshness: LiveApplicationStatus['freshness']): LiveApplicationStatus {
   const iso = new Date().toISOString()
   const cycle = currentAcademicCycle()
   return {
     cycle,
     status: 'not_announced',
-    status_label: `Account creation open: ${cycle} loan window not yet announced`,
-    note: `NELFUND account creation is currently open and has no announced deadline, so you can create your account and sort out your BVN. The **${cycle}** loan and upkeep application window should be treated as unconfirmed until NELFUND announces official opening and closing dates. Always confirm on portal.nelf.gov.ng. Do not rely on social media for deadlines.`,
+    status_label: 'Account creation open · Loan/upkeep not confirmed yet',
+    note: bulletNote(cycle),
     last_checked: iso.slice(0, 10),
     last_checked_iso: iso,
     sources: [
@@ -66,6 +74,30 @@ function guidancePayload(freshness: LiveApplicationStatus['freshness']): LiveApp
     signals: ['account_creation_open', 'loan_window_not_announced'],
     verified: freshness === 'live' || freshness === 'cached',
   }
+}
+
+/** Prefer structured bullets over old long-paragraph Redis payloads. */
+function normalizeForUi(parsed: LiveApplicationStatus, cycle: string): LiveApplicationStatus {
+  const note = (parsed.note || '').trim()
+  const isLongParagraph =
+    !note.includes('•') &&
+    (note.includes('academic cycle') ||
+      note.includes('no announced deadline') ||
+      note.includes('home card cycle'))
+
+  if (parsed.status === 'not_announced' || isLongParagraph) {
+    return {
+      ...parsed,
+      cycle,
+      status: 'not_announced',
+      status_label: 'Account creation open · Loan/upkeep not confirmed yet',
+      note: bulletNote(cycle),
+      signals: parsed.signals?.length
+        ? parsed.signals
+        : ['account_creation_open', 'loan_window_not_announced'],
+    }
+  }
+  return { ...parsed, cycle }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -89,9 +121,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const parsed = JSON.parse(raw) as LiveApplicationStatus
         const checkedDay = (parsed.last_checked_iso || parsed.last_checked || '').slice(0, 10)
         const iso = new Date().toISOString()
+        const normalized = normalizeForUi(parsed, cycle)
         return res.status(200).json({
-          ...parsed,
-          cycle,
+          ...normalized,
           last_checked: today,
           last_checked_iso: checkedDay === today ? parsed.last_checked_iso || iso : iso,
           freshness: checkedDay === today ? ('cached' as const) : ('static_fallback' as const),
