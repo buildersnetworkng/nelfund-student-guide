@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { sources } from '../lib/data'
 import { useInstitution } from '../context/InstitutionContext'
 import ShareGuide from '../components/ShareGuide'
+import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function Sources() {
   const { institutionId, institution } = useInstitution()
@@ -16,6 +17,7 @@ export default function Sources() {
 
   return (
     <div className="container-page py-10">
+      <ShareSoftPrompt />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="eyebrow">Official links</p>

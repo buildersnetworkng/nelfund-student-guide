@@ -3,12 +3,14 @@ import TrustBadge from '../components/TrustBadge'
 import ScopeBadge from '../components/ScopeBadge'
 import RecommendedVideo from '../components/RecommendedVideo'
 import ShareGuide from '../components/ShareGuide'
+import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function Upkeep() {
   const amountFact = nelfundFacts.find((f) => f.id === 'nf-upkeep-amount')!
 
   return (
     <div className="container-page py-10">
+      <ShareSoftPrompt />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="eyebrow">Upkeep allowance</p>

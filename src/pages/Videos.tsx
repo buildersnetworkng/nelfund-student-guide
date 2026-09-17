@@ -4,6 +4,7 @@ import { useInstitution } from '../context/InstitutionContext'
 import VideoCard from '../components/VideoCard'
 import InstitutionNotice from '../components/InstitutionNotice'
 import ShareGuide from '../components/ShareGuide'
+import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function Videos() {
   const { institutionId } = useInstitution()
@@ -17,6 +18,7 @@ export default function Videos() {
 
   return (
     <div className="container-page py-10">
+      <ShareSoftPrompt />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="eyebrow">Video guides</p>
