@@ -61,5 +61,8 @@ export function playbookPendingExtras(t: string): string | null {
   if (/screenshot|i\s*(send|don\s*send)\s*(pic|picture|photo|image)|see\s*(the\s*)?(pic|photo|image)|look\s*(this|dis)\s*(pic|photo)/i.test(t)) {
     return `**A screenshot is useful only if I know the exact status word.**\n\n1. Type the sentence on ${PORTAL} (Pending, Under review, Approved, Declined, invalid JAMB, missing school).\n2. Do not send BVN, NIN, or full account numbers in chat.\n3. School fees go to the institution; upkeep (if ticked) can land later.\n4. Long same-word wait: campus desk, then ${ESUPPORT}.`
   }
+  if (/\basuu\b|school\s*(dey|is)\s*(on\s*)?strike|lecturers?\s*(dey\s*)?strike/i.test(t)) {
+    return `**A campus strike does not invent a new NELFUND pay date.**\n\n1. Status still lives on ${PORTAL}. Copy the exact word (Pending, Under review, Approved).\n2. Institutional charges go to the **school**. A strike can slow the school desk that uploads records, not a public batch list I can quote.\n3. I will not invent when lectures or disbursement resume.\n4. Ask the campus NELFUND desk first, then ticket ${ESUPPORT} with name, school, and that status word.`
+  }
   return null
 }
