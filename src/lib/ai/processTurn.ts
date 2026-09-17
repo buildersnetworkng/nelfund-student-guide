@@ -10,6 +10,8 @@ import type { ConversationTurn } from './types'
 import { understandPortalText, dashboardFollowUpExplanation } from './screenshotUnderstand'
 import type { GroundedAnswer } from './types'
 import { isPurposeAsk } from './intentClassify'
+import { buildCurrentInformationAnswerLive, questionNeedsCurrentLive } from './current'
+import { liveOpenRe } from './intent'
 import { playbookAnswer } from './playbook'
 
 function uid(prefix: string): string {
@@ -27,6 +29,45 @@ export async function processUserTurn(opts: {
   const rawUser = (opts.userText || '').trim()
   const ocr = opts.ocrText || null
   const combined = [rawUser, ocr].filter(Boolean).join('\n')
+
+  // Force live status for open/closed questions (never fall into Pick-one menu)
+  const isOpenAsk =
+    !ocr &&
+    !!rawUser &&
+    (liveOpenRe().test(rawUser) ||
+      questionNeedsCurrentLive(rawUser) ||
+      /is\s+nelfund\s+loan\s+application\s+open/i.test(rawUser) ||
+      /loan\s+application\s+(still\s+|currently\s+)?(open|closed)/i.test(rawUser))
+  if (isOpenAsk && !isPurposeAsk(rawUser)) {
+    try {
+      const live = await buildCurrentInformationAnswerLive(rawUser)
+      if (live?.answer) {
+        return {
+          messages: [
+            {
+              id: uid('user'),
+              role: 'user',
+              text: rawUser,
+              imagePreview: opts.imagePreview || null,
+              timestamp: Date.now(),
+            },
+            {
+              id: uid('asst'),
+              role: 'assistant',
+              text: live.answer,
+              answer: live,
+              timestamp: Date.now(),
+            },
+          ],
+          slots: { ...opts.slots, intent: 'current-information', phase: 'resolve' },
+          diagnosed: true,
+          capability: 'current-information',
+        }
+      }
+    } catch {
+      /* fall through */
+    }
+  }
 
   if (isPurposeAsk(rawUser) && !ocr) {
     const answerText = playbookAnswer('what-is-nelfund', { userText: rawUser })
@@ -65,80 +106,21 @@ export async function processUserTurn(opts: {
     /invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format|not\s*correct)/i.test(rawUser) ||
     /invalid\s*jamb|jamb\s*(number|reg).*(invalid|wrong|format)/i.test(ocr || '')
   ) {
-    const forced = understandPortalText(
-      [rawUser, ocr, 'Invalid jamb number format, e.g 0000 00AA', 'Jamb Profile Verification']
-        .filter(Boolean)
-        .join('\n'),
-    )
-    if (forced && forced.kind === 'error') {
-      const slots: ConversationSlots = {
-        ...opts.slots,
-        exactError: forced.exactError,
-        problemSummary: forced.exactError || 'invalid_jamb_format',
-        errorConfirmed: true,
-        phase: 'resolve',
-        awaitingInstitution: opts.slots.institutionId ? opts.slots.awaitingInstitution : true,
-        actionsTaken: [...(opts.slots.actionsTaken || [])],
-      }
-      const answer: GroundedAnswer = {
-        hasEvidence: true,
-        intent: 'jamb-verification',
-        confidence: 0.92,
-        responseMode: 'conversation',
-        problem: forced.exactError,
-        answer: forced.explanation,
-        whatThisMeans: null,
-        nextActions: forced.nextActions.slice(0, 4),
-        clarifyingQuestions: [],
-        evidence: [],
-        sources: [
-          { id: 'portal', label: 'NELFUND portal', url: 'https://portal.nelf.gov.ng/', official: true },
-        ],
-        video: null,
-        insufficientReason: null,
-        officialFallbackUrl: 'https://portal.nelf.gov.ng/',
-        escalation: null,
-      }
-      return {
-        messages: [
-          { id: uid('user'), role: 'user', text: rawUser || (ocr ? '[Screenshot uploaded]' : ''), imagePreview: opts.imagePreview || null, timestamp: Date.now() },
-          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-        ],
-        slots,
-        diagnosed: true,
-        capability: 'conversation',
-      }
-    }
-  }
-
-  const ocrish =
-    Boolean(ocr && ocr.trim().length >= 8) ||
-    (combined.length > 120 && /\n/.test(combined)) ||
-    /total\s*loans|student\s*loan\s*portal|kindly\s*provide.*login|signed\s*in\s*as/i.test(combined)
-  const screen = ocrish ? understandPortalText(combined) : null
-  const screenOk =
-    screen &&
-    (ocrish || screen.kind === 'error' || screen.kind === 'dashboard' || screen.kind === 'login' || screen.exactError != null)
-  if (screenOk && screen) {
-    const slots: ConversationSlots = { ...opts.slots, actionsTaken: [...(opts.slots.actionsTaken || [])] }
-    if (screen.exactError) {
-      slots.exactError = screen.exactError
-      slots.problemSummary = screen.exactError
-      slots.errorConfirmed = true
-      if (!slots.institutionId) slots.awaitingInstitution = true
-    } else if (screen.kind === 'dashboard') {
-      slots.problemSummary = slots.problemSummary || 'portal_dashboard'
-    }
-    slots.phase = 'resolve'
+    const forced = understandPortalText(ocr || rawUser)
+    const answerText = playbookAnswer('jamb-verification', {
+      userText: rawUser || ocr || '',
+      exactError: forced.exactError || 'Invalid JAMB number format',
+      problemSummary: forced.problemSummary,
+    })
     const answer: GroundedAnswer = {
       hasEvidence: true,
-      intent: /jamb/i.test(screen.exactError || combined) ? 'jamb-verification' : screen.kind === 'error' ? 'missing-information' : 'current-information',
-      confidence: 0.88,
-      responseMode: 'conversation',
-      problem: screen.exactError || screen.kind,
-      answer: screen.explanation,
+      intent: 'jamb-verification',
+      confidence: 0.9,
+      responseMode: 'troubleshooting',
+      problem: forced.problemSummary || 'JAMB verification',
+      answer: answerText,
       whatThisMeans: null,
-      nextActions: screen.nextActions.slice(0, 4),
+      nextActions: ['https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
       clarifyingQuestions: [],
       evidence: [],
       sources: [{ id: 'portal', label: 'NELFUND portal', url: 'https://portal.nelf.gov.ng/', official: true }],
@@ -149,57 +131,79 @@ export async function processUserTurn(opts: {
     }
     return {
       messages: [
-        { id: uid('user'), role: 'user', text: rawUser || (ocr ? '[Screenshot uploaded]' : ''), imagePreview: opts.imagePreview || null, timestamp: Date.now() },
+        { id: uid('user'), role: 'user', text: rawUser || '[screenshot]', imagePreview: opts.imagePreview || null, timestamp: Date.now() },
         { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
       ],
-      slots,
+      slots: { ...opts.slots, intent: 'jamb-verification', phase: 'resolve' },
       diagnosed: true,
-      capability: 'conversation',
+      capability: 'troubleshooting',
     }
   }
 
-  const loginAsk = /\blogin\b|log\s*in|loggin'?g\s*in|sign\s*in/i.test(rawUser)
-  const signupAsk = /sign\s*up|create\s*(an?\s*)?account|register/i.test(rawUser)
-  if (loginAsk && !isPurposeAsk(rawUser) && !signupAsk && !/missing|pending|upkeep|eligibility|scam|otp|pay\s*agent|how\s*to\s*apply/i.test(rawUser)) {
-    const slots: ConversationSlots = { ...opts.slots, phase: 'resolve', actionsTaken: [...(opts.slots.actionsTaken || [])] }
-    const text =
-      '**Log in / sign in**\n\nUse: https://nelf.gov.ng/\n\n**Sign up** (create account / apply on the portal):\nhttps://portal.nelf.gov.ng/\n\nReport portal problems to NELFUND support: https://nelfund.esupport.ng/create\n\nAvoid random social-media links. Never share OTP or password.'
-    const answer: GroundedAnswer = {
-      hasEvidence: true,
-      intent: 'portal-login',
-      confidence: 0.92,
-      responseMode: 'conversation',
-      problem: 'Official link to login',
-      answer: text,
-      whatThisMeans: null,
-      nextActions: ['https://nelf.gov.ng/', 'https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
-      clarifyingQuestions: [],
-      evidence: [],
-      sources: [
-        { id: 'site', label: 'NELFUND website (log in / sign in)', url: 'https://nelf.gov.ng/', official: true },
-        { id: 'portal', label: 'NELFUND portal (sign up / apply)', url: 'https://portal.nelf.gov.ng/', official: true },
-      ],
-      video: null,
-      insufficientReason: null,
-      officialFallbackUrl: 'https://nelf.gov.ng/',
-      escalation: null,
-    }
-    return {
-      messages: [
-        { id: uid('user'), role: 'user', text: rawUser, imagePreview: opts.imagePreview || null, timestamp: Date.now() },
-        { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
-      ],
-      slots,
-      diagnosed: true,
-      capability: 'conversation',
+  if (ocr && ocr.trim().length > 20) {
+    const screen = understandPortalText(ocr)
+    if (screen.kind !== 'unknown' || screen.exactError) {
+      const intent =
+        /jamb/i.test(screen.exactError || combined)
+          ? 'jamb-verification'
+          : screen.kind === 'error'
+            ? 'missing-information'
+            : 'current-information'
+      const answerText = playbookAnswer(intent as any, {
+        userText: rawUser || ocr,
+        exactError: screen.exactError,
+        problemSummary: screen.problemSummary,
+      })
+      const answer: GroundedAnswer = {
+        hasEvidence: true,
+        intent: intent as any,
+        confidence: 0.85,
+        responseMode: 'troubleshooting',
+        problem: screen.problemSummary || screen.kind,
+        answer: answerText,
+        whatThisMeans: null,
+        nextActions: ['https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
+        clarifyingQuestions: [],
+        evidence: [],
+        sources: [{ id: 'portal', label: 'NELFUND portal', url: 'https://portal.nelf.gov.ng/', official: true }],
+        video: null,
+        insufficientReason: null,
+        officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+        escalation: null,
+      }
+      return {
+        messages: [
+          {
+            id: uid('user'),
+            role: 'user',
+            text: rawUser || '[Screenshot uploaded]',
+            imagePreview: opts.imagePreview || null,
+            timestamp: Date.now(),
+          },
+          { id: uid('asst'), role: 'assistant', text: answer.answer, answer, timestamp: Date.now() },
+        ],
+        slots: {
+          ...opts.slots,
+          intent: intent as any,
+          problemSummary: screen.problemSummary,
+          exactError: screen.exactError,
+          phase: 'resolve',
+        },
+        diagnosed: true,
+        capability: 'troubleshooting',
+      }
     }
   }
 
   const hist = opts.history || []
   const prevAsst = [...hist].reverse().find((h) => h.role === 'assistant')?.text || ''
   if (
-    /what\s*does\s*(this|it|that)\s*mean|wetin\s*(this|e|am)\s*mean|explain\s*(this|it|the\s*screen|the\s*dashboard)|mean\s*say/i.test(rawUser) &&
-    (/dashboard|student loan portal|total\s*loans|pending\s*loans|approved\s*loans|session registration|welcome to student loan|successfully signed in/i.test(prevAsst) ||
+    /what\s*does\s*(this|it|that)\s*mean|wetin\s*(this|e|am)\s*mean|explain\s*(this|it|the\s*screen|the\s*dashboard)|mean\s*say/i.test(
+      rawUser,
+    ) &&
+    (/dashboard|student loan portal|total\s*loans|pending\s*loans|approved\s*loans|session registration|welcome to student loan|successfully signed in/i.test(
+      prevAsst,
+    ) ||
       opts.slots.problemSummary === 'portal_dashboard')
   ) {
     const slots: ConversationSlots = {
