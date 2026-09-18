@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import ShareGuide, { SHARE_TEXT } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
 
-const STORAGE_KEY = 'nelfund-share-soft-dismissed'
+const STORAGE_KEY = 'nelfund-share-soft-dismissed-at'
 const VALUE_KEY = 'nelfund-share-value-seen'
+const DISMISS_MS = 1000 * 60 * 60 * 24 * 3
 const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
 /** Call after a student gets a useful answer or finishes a guide step. */
@@ -19,7 +20,11 @@ export function markShareValue() {
 
 function alreadyDismissed() {
   try {
-    return window.sessionStorage.getItem(STORAGE_KEY) === '1'
+    const raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) return false
+    const at = Number(raw)
+    if (!Number.isFinite(at)) return false
+    return Date.now() - at < DISMISS_MS
   } catch {
     return false
   }
@@ -42,9 +47,11 @@ export default function ShareSoftPrompt() {
 
     let shown = false
     let valueTimer: number | undefined
+    const startedAt = Date.now()
 
     function reveal() {
       if (shown || alreadyDismissed()) return
+      if (Date.now() - startedAt < 1800) return
       shown = true
       setVisible(true)
       trackFeature('share_prompt_shown', { variant: 'soft-prompt' })
@@ -53,14 +60,14 @@ export default function ShareSoftPrompt() {
     function onValue() {
       if (shown || alreadyDismissed()) return
       if (valueTimer) window.clearTimeout(valueTimer)
-      valueTimer = window.setTimeout(reveal, 2200)
+      valueTimer = window.setTimeout(reveal, 2400)
     }
 
     function onScroll() {
       if (shown || alreadyDismissed()) return
       const help = document.getElementById('home-help')
-      const helpVisible = help ? help.getBoundingClientRect().top < window.innerHeight * 0.92 : false
-      const scrolledPastStatus = window.scrollY > 420
+      const helpVisible = help ? help.getBoundingClientRect().top < window.innerHeight * 0.7 : false
+      const scrolledPastStatus = window.scrollY > 520
       if (helpVisible || scrolledPastStatus) {
         markShareValue()
         onValue()
@@ -71,7 +78,6 @@ export default function ShareSoftPrompt() {
     window.addEventListener('scroll', onScroll, { passive: true })
 
     if (hasValue()) onValue()
-    onScroll()
 
     return () => {
       window.removeEventListener('nelfund-share-value', onValue)
@@ -83,7 +89,7 @@ export default function ShareSoftPrompt() {
   function dismiss() {
     setVisible(false)
     try {
-      window.sessionStorage.setItem(STORAGE_KEY, '1')
+      window.localStorage.setItem(STORAGE_KEY, String(Date.now()))
     } catch {
       /* ignore */
     }
@@ -100,9 +106,9 @@ export default function ShareSoftPrompt() {
       <div className="rounded-2xl border border-forest-100 bg-white p-3.5 shadow-xl">
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">One student can help ten more</p>
+            <p className="text-sm font-semibold text-ink">Help the whole class, not one friend</p>
             <p className="mt-1 text-xs leading-relaxed text-ink/55">
-              If this guide helped you, drop it in your class or department WhatsApp group so others
+              If this guide helped you, post it in your class or department WhatsApp group so others
               are not stuck on the portal alone.
             </p>
           </div>
@@ -125,12 +131,12 @@ export default function ShareSoftPrompt() {
             onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source: 'soft-prompt' })}
             className="inline-flex min-h-[36px] flex-1 items-center justify-center rounded-full bg-[#25D366] px-3 text-xs font-semibold text-white"
           >
-            Send to class group
+            Post in class WhatsApp
           </a>
           <ShareGuide variant="button" className="!min-h-[36px] !px-3 !py-1.5 !text-xs" />
         </div>
         <p className="mt-2 text-[11px] leading-relaxed text-ink/40">
-          Pick the group chat in WhatsApp, not one friend.
+          In WhatsApp, pick the group chat, not one classmate.
         </p>
       </div>
     </div>

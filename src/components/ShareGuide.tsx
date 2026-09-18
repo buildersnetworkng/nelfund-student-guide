@@ -15,7 +15,7 @@ function buildShareText(url: string) {
     '📌 NELFUND GUIDE\n' +
     'Before you apply or wait on the portal, open this first.\n' +
     'Clear steps for application, pending status, and common portal errors.\n' +
-    'Send this to your class or department group so more students are not guessing alone.\n' +
+    'Post this in your class or department WhatsApp group, not just to one friend.\n' +
     `🔗 ${url}`
   )
 }
@@ -265,11 +265,11 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
           setOpen(true)
         }}
         className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-forest-200 bg-white px-3 text-forest-900 shadow-sm transition hover:bg-forest-50 active:scale-[0.96] ${nudge} ${className}`}
-        aria-label="Share this guide"
-        title="Share this guide"
+        aria-label="Share this guide with your class"
+        title="Share this guide with your class"
       >
         <ShareIcon />
-        <span className="text-[11px] font-semibold sm:text-xs">Share guide</span>
+        <span className="text-[11px] font-semibold sm:text-xs">Share with class</span>
       </button>
     ) : variant === 'hero' ? (
       <button
@@ -293,7 +293,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
         className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full border border-forest-200 bg-white px-4 py-2 text-sm font-semibold text-forest-900 shadow-sm transition hover:bg-forest-50 active:scale-[0.98] ${nudge} ${className}`}
       >
         <ShareIcon />
-        Share guide
+        Share with class
       </button>
     )
 
@@ -322,10 +322,10 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
               <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 sm:px-6 sm:pt-5">
                 <div>
                   <h2 id={titleId} className="font-display text-lg font-semibold text-ink">
-                    One student can help ten more
+                    Help the whole class, not one friend
                   </h2>
                   <p className="mt-1 text-sm text-ink/55">
-                    Post this in your class or department WhatsApp group. One share can reach many students.
+                    Open WhatsApp and pick your class or department group so many students get the same steps.
                   </p>
                 </div>
                 <button
@@ -348,27 +348,27 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                   {shareText}
                 </pre>
 
-                {canNative && (
-                  <button
-                    type="button"
-                    onClick={shareNative}
-                    className="mt-4 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-forest-900 text-sm font-semibold text-paper shadow-sm transition hover:bg-forest-800 active:scale-[0.99]"
-                  >
-                    <ShareIcon />
-                    Share via phone apps
-                  </button>
-                )}
-
                 <button
                   type="button"
                   onClick={() => {
                     const wa = channels.find((c) => c.id === 'whatsapp')
                     if (wa) void onChannel(wa)
                   }}
-                  className="mt-2.5 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-[#25D366] text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.99]"
+                  className="mt-4 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-[#25D366] text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.99]"
                 >
-                  Send to class group
+                  Post in class WhatsApp
                 </button>
+
+                {canNative && (
+                  <button
+                    type="button"
+                    onClick={shareNative}
+                    className="mt-2.5 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-forest-900 text-sm font-semibold text-paper shadow-sm transition hover:bg-forest-800 active:scale-[0.99]"
+                  >
+                    <ShareIcon />
+                    Other phone apps
+                  </button>
+                )}
 
                 <div className="mt-4 grid grid-cols-3 gap-2.5">
                   {channels.map((ch) => (
@@ -393,7 +393,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                 </div>
 
                 <p className="mt-4 text-center text-[11px] text-ink/40">
-                  Opens the app you choose with the message ready to send.
+                  After WhatsApp opens, choose the group chat, not a single classmate.
                 </p>
               </div>
             </div>
