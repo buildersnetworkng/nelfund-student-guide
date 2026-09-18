@@ -129,6 +129,9 @@ export default function ShareSoftPrompt() {
           </a>
           <ShareGuide variant="button" className="!min-h-[36px] !px-3 !py-1.5 !text-xs" />
         </div>
+        <p className="mt-2 text-[11px] leading-relaxed text-ink/40">
+          Pick the group chat in WhatsApp, not one friend.
+        </p>
       </div>
     </div>
   )

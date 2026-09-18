@@ -216,6 +216,9 @@ export default function Home() {
               Send to class group
             </a>
           </div>
+          <p className="mt-2 text-xs text-ink/45">
+            In WhatsApp, pick your class or department group so the whole class can use it.
+          </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
             {PROBLEM_SHORTCUTS.map((p) => (
@@ -364,6 +367,9 @@ export default function Home() {
               Send to class group
             </a>
           </div>
+          <p className="mt-2 text-xs text-ink/45">
+            After WhatsApp opens, choose the group chat, not a single classmate.
+          </p>
         </div>
       </RevealSection>
 
