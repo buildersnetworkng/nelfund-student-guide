@@ -132,8 +132,19 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   const soft = residualSoftRoute(expanded || raw, entities)
   if (soft && soft.intent !== 'unknown') return soft
 
-  if (prior && prior !== 'unknown' && raw.length < 48) {
-    return hitIntent(prior, 0.55, ['follow-up'], 'Short follow-up keeps prior intent', 'unknown', entities)
+  // Conversational follow-ups keep the prior intent (from history or previous assistant)
+  const followish =
+    raw.length < 120 &&
+    /^(alright|okay|ok|so|and|then|now|please|abeg)?\s*(so\s+)?(what|wetin|how|where|which)?/i.test(raw) &&
+    /(next|do|solution|first|should|will\s*i|i\s*go|wattin|wetin)/i.test(raw)
+  if (prior && prior !== 'unknown' && (raw.length < 80 || followish)) {
+    return hitIntent(prior, 0.72, ['follow-up'], 'Follow-up keeps prior intent', 'unknown', entities)
+  }
+  if (followish && history && history.length > 0) {
+    const asstIntent = [...history].reverse().find((h) => h.role === 'assistant' && h.intent)?.intent
+    if (asstIntent && asstIntent !== 'unknown') {
+      return hitIntent(asstIntent, 0.7, ['follow-up'], 'Follow-up from assistant intent', 'unknown', entities)
+    }
   }
 
   return hitIntent('official-sources', 0.4, ['other'], 'Unclassified residual', 'exploring', entities)
