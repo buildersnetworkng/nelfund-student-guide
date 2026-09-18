@@ -75,7 +75,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Repayment** starts after the applicable NYSC or study period under official NELFUND rules, not on a date I invent here.\n\n1. Confirm the exact rule on ${SITE} and ${PORTAL}. I will not invent a start date, percentage, or jail term.\n2. Circulating "life jail" graphics are not official unless the same text is on ${SITE}.\n3. GSI / salary deduction, if it applies later, follows the Act, not WhatsApp rumours.\n4. Still studying or serving: you are not in a repayment window I can invent.`
   }
   if (intent === 'current-information' || intent === 'deadline') {
-    return `**As of the live knowledge check:** account creation can be open while the **loan / upkeep window is not confirmed** for 2026/2027.\n\n• Sign up / profile / BVN: ${PORTAL}\n• Sign in: ${SITE}\n\nDo not use social media for opening or closing dates. I will not invent a deadline.`
+    return `**As of today:** account creation can be OPEN while the **loan and upkeep window is not confirmed** for this cycle.\n\n• Create account, finish profile, sort BVN: ${PORTAL}\n• Already registered last year: sign **in** at ${SITE}, do not open a new account\n\nDo not use social media for opening or closing dates. Confirm on the portal. I will not invent a deadline.`
   }
   if (intent === 'jamb-verification') {
     return `**Invalid JAMB / JAMB wahala**\n\n1. Type the JAMB number exactly as on the admission letter. No extra space.\n2. Name and date of birth must match JAMB and NIN.\n3. Direct Entry still uses a JAMB registration, not a made-up number.\n4. Still failing: campus NELFUND desk, then ${ESUPPORT}. Do not create a second account.`
