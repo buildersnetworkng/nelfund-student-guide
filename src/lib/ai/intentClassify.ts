@@ -58,7 +58,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     }
   }
 
-  if (/invalid\s*jamb|jamb\s*(no|not|never|invalid|fail)|utme\s*(no|not|invalid)/i.test(raw)) {
+  if (/invalid\s*jamb|jamb\s*(no|not|never|invalid|fail)|utme\s*(no|not|invalid)|jamb\s*caps|direct\s*entry/i.test(raw)) {
     return hitIntent('jamb-verification', 0.9, ['jamb'], 'JAMB invalid / verification', 'applying', entities, true)
   }
 
@@ -70,6 +70,22 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('gsi', 0.9, ['gsi'], 'GSI question', 'repaying', entities)
   }
 
+  if (/how\s*much\s*(is\s*)?(the\s*)?(upkeep|stipend|allowance)|upkeep\s*(amount|how\s*much)/i.test(raw)) {
+    return hitIntent('upkeep', 0.9, ['upkeep'], 'How much upkeep', 'exploring', entities)
+  }
+
+  if (/part[\s-]*time|sandwich\s*student|post\s*graduate|postgraduate|private\s*(uni|university|school)|who\s*(fit|can)\s*apply/i.test(raw)) {
+    return hitIntent('eligibility', 0.88, ['eligibility'], 'Who can apply / mode of study', 'exploring', entities)
+  }
+
+  if (/already\s*paid\s*(my\s*)?(school\s*)?fee|refund\s*(my\s*)?(fee|money)|paid\s*from\s*pocket/i.test(raw)) {
+    return hitIntent('refund', 0.88, ['refund'], 'Already paid fees', 'waiting', entities, true)
+  }
+
+  if (/change\s*(my\s*)?(bank|account\s*number)|wrong\s*bank|wallet\s*(no|not)\s*(work|accept)/i.test(raw)) {
+    return hitIntent('bank-information', 0.88, ['bank'], 'Change bank', 'applying', entities, true)
+  }
+
   if (/repay|after\s*nysc|nysc.*pay|scholarship|loan\s*or\s*scholarship|na\s*scholarship/i.test(raw) && !/pending|how\s*far|never\s*enter/i.test(raw)) {
     if (/scholarship|grant|free\s*money|loan\s*or\s*scholarship/i.test(raw)) {
       return hitIntent('loan-or-scholarship', 0.88, ['scholarship', 'loan'], 'Loan vs scholarship', 'exploring', entities)
@@ -78,7 +94,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   }
 
   if (
-    /how\s*far|money\s*(never|no)\s*(enter|drop|show)|still\s*pending|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)/i.test(
+    /how\s*far|money\s*(never|no)\s*(enter|drop|show)|still\s*pending|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me/i.test(
       raw,
     )
   ) {
