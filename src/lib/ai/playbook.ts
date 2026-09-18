@@ -34,7 +34,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   if (intent === 'eligibility') return eligibilityAnswer({ userText: ctx.userText || '' })
   if (intent === 'portal-login') {
-    return `**Log in, do not create a new account** if that email was used before.\n\n1. Sign **in** at ${SITE} with the same email.\n2. Sign **up** only if you never created an account: ${PORTAL}\n3. Forgot password or OTP no dey come: use the reset on ${SITE}. Do not open a second account.\n4. Still locked: ticket ${ESUPPORT}.`
+    return `**Log in, do not create a new account** if that email was used before.\n\n1. Sign **in** at ${SITE} with the same email.\n2. Sign **up** only if you never created an account: ${PORTAL}\n3. Forgot password or OTP no dey come: use the reset on ${SITE}. Do not open a second account.\n4. Portal hang, error 500, or page no load: refresh once, try another network, then ${ESUPPORT}.`
   }
   if (intent === 'official-sources') {
     if (ctx.userText && /portal|link|website|sign\s*(in|up)|login|official|url/i.test(ctx.userText)) {
@@ -44,12 +44,12 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
   if (intent === 'missing-information' || intent === 'school-not-found') {
     const inst = ctx.institutionName ? ` at **${ctx.institutionName}**` : ''
-    return `**Missing information / school not on the list**${inst}\n\nUsually the school has not finished uploading your record, or the name does not match NELFUND public-institution list.\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. Retry ${PORTAL}. Still failing: ${ESUPPORT}`
+    return `**Missing information / school not on the list**${inst}\n\nUsually the school has not finished uploading your record, or the name / date of birth does not match JAMB and NIN.\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. If you changed school, the new school must appear on the portal list first.\n4. Retry ${PORTAL}. Still failing: ${ESUPPORT}`
   }
   if (intent === 'pending-application') {
     const extra = ctx.userText ? playbookPendingExtras(ctx.userText) : null
     if (extra) return extra
-    return `**Pending / money never enter** is a wait, not a new apply.\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session, and it can land later.\n4. I will not invent a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+    return `**Pending / money never enter / check am** is a wait, not a new apply.\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session, and it can land later.\n4. I will not invent a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
   }
   if (intent === 'how-to-apply') {
     return `**How to apply**\n\n1. Confirm school listed and record uploaded.\n2. Create or sign in at ${PORTAL}.\n3. Complete profile (JAMB, NIN, BVN).\n4. Use Request for Student Loan only when the official loan window is open. Confirm on ${SITE} / ${PORTAL}. I will not invent dates.`
