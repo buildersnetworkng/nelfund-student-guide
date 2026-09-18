@@ -161,14 +161,26 @@ function userTurnCount(history: ConversationTurn[]): number {
 
 function isShortFollowUp(text: string): boolean {
   const t = text.trim().toLowerCase()
-  if (t.length > 70) return false
-  return /^(yes|yeah|yep|ok|okay|sure|please|continue|more|thanks|thank\s*you|abeg|step\s*2|step\s*1)\.?$/i.test(t) || (t.length < 25 && /^(and|then|also|but|so)\b/i.test(t))
+  if (t.length > 120) return false
+  if (
+    /^(yes|yeah|yep|ok|okay|sure|please|continue|more|thanks|thank\s*you|abeg|alright|all\s*right|step\s*2|step\s*1)\.?$/i.test(
+      t,
+    )
+  )
+    return true
+  if (t.length < 40 && /^(and|then|also|but|so)\b/i.test(t)) return true
+  if (
+    /what\s*(should|will|can)\s*i\s*(do|take)|what'?s\s*(the\s*)?(next|solution|first)|what\s*next|so\s*what|wetin\s*(i\s*)?(go|to)\s*do|wattin\s*i\s*go\s*do|first\s*(step|thing)|alright\s+so/i.test(
+      t,
+    )
+  )
+    return true
+  return false
 }
 
 function isGreeting(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
   if (!t || t.length > 80) return false
-  // "how far" is pending-status (rule 4), never a greeting
   if (/how\s*far|money\s*never|never\s*enter|pending|under\s*review/i.test(t)) return false
   if (/nelfund|apply|portal|loan|jamb|pending|upkeep|create|account|step|guide/i.test(t)) return false
   if (/^(hi|hello|hey|good\s*(morning|afternoon|evening))[.!?\s]*$/i.test(t)) return true
@@ -269,7 +281,19 @@ export async function processUserTurn(opts: {
   }
 
   {
-    const earlyIntent = classifyIntent(rawUser || combined, history).intent
+    const classified = classifyIntent(rawUser || combined, history)
+    let earlyIntent = classified.intent
+    if (
+      priorIntent &&
+      priorIntent !== 'unknown' &&
+      priorIntent !== 'official-sources' &&
+      (earlyIntent === 'unknown' ||
+        earlyIntent === 'official-sources' ||
+        isShortFollowUp(rawUser) ||
+        classified.confidence < 0.75)
+    ) {
+      earlyIntent = priorIntent
+    }
     const early = playbookAnswer(earlyIntent !== 'unknown' ? earlyIntent : 'how-to-apply', {
       institutionName: opts.slots.institutionName,
       problemSummary: opts.slots.problemSummary,
@@ -277,11 +301,24 @@ export async function processUserTurn(opts: {
       turnIndex,
       lastAssistant: prevAsst,
       userText: rawUser || combined,
-      priorIntent: opts.slots.intent,
+      priorIntent: priorIntent || opts.slots.intent,
     })
-    if (early && early.length > 40) {
+    if (
+      early &&
+      early.length > 40 &&
+      !(
+        /How far, welcome/i.test(early) &&
+        priorIntent &&
+        priorIntent !== 'unknown' &&
+        priorIntent !== 'official-sources'
+      )
+    ) {
       const intentGuess: IntentId =
-        earlyIntent !== 'unknown' ? earlyIntent : priorIntent && priorIntent !== 'unknown' ? priorIntent : 'how-to-apply'
+        earlyIntent !== 'unknown' && earlyIntent !== 'official-sources'
+          ? earlyIntent
+          : priorIntent && priorIntent !== 'unknown'
+            ? priorIntent
+            : 'how-to-apply'
       return finalize(userMsg, { ...opts.slots, intent: intentGuess }, intentGuess, early, 'conversation', {
         next: ['https://portal.nelf.gov.ng/'],
       })
@@ -305,7 +342,6 @@ export async function processUserTurn(opts: {
   ) {
     if (!isNewUserAsk(rawUser)) intent = priorIntent
   }
-  // Step-by-step apply follow-ups keep how-to-apply
   if (
     priorIntent === 'how-to-apply' &&
     /step|one\s*by\s*one|guide|creating|create|continue|next/i.test(rawUser)
