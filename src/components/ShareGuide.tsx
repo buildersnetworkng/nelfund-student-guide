@@ -12,10 +12,10 @@ function getSiteUrl() {
 
 function buildShareText(url: string) {
   return (
-    'PIN NELFUND GUIDE\n' +
+    'PIN NELFUND GUIDE IN CLASS WHATSAPP\n' +
     'Before you apply or wait on the portal, open this first.\n' +
     'Clear steps for application, pending status, and common portal errors.\n' +
-    'Post this in your class or department WhatsApp group, not just to one friend.\n' +
+    'Post in your class or department group so the whole class can use it, not one friend.\n' +
     `Link ${url}`
   )
 }
@@ -443,9 +443,10 @@ export function WhatsAppClassLink({
   source: string
   className?: string
 }) {
+  const href = `https://wa.me/?text=${encodeURIComponent(buildShareText(getSiteUrl()))}`
   return (
     <a
-      href={WHATSAPP_HREF}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source })}
