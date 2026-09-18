@@ -34,7 +34,14 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   if (intent === 'eligibility') return eligibilityAnswer({ userText: ctx.userText || '' })
   if (intent === 'portal-login') {
+    const otherEmail = ctx.userText && /another|someone|borrow|broda|brother|sister|friend/i.test(ctx.userText)
+    if (otherEmail) {
+      return `**Use your own email.** Do not borrow a sibling or friend mailbox.\n\n1. Sign **in** at ${SITE} if that email already exists from last year.\n2. New students only: sign **up** with *your* email on ${PORTAL}.\n3. Forgot password: reset on ${SITE}. Do not open a second account.\n4. Still locked: ${ESUPPORT}`
+    }
     return `**Log in, do not create a new account** if that email was used before.\n\n1. Sign **in** at ${SITE} with the same email.\n2. Sign **up** only if you never created an account: ${PORTAL}\n3. Forgot password or OTP no dey come: use the reset on ${SITE}. Do not open a second account.\n4. Portal hang, error 500, or page no load: refresh once, try another network, then ${ESUPPORT}.`
+  }
+  if (intent === 'nin-verification') {
+    return `**NIN / BVN must be yours and must match the name on JAMB.**\n\n1. If you do not have a NIN or BVN yet, finish that first. The portal needs both in *your* name.\n2. Do not type a parent, sibling, or friend number.\n3. If the portal says invalid or name no gree, check spacing and date of birth, then retry ${PORTAL}.\n4. Still failing: campus NELFUND desk, then ${ESUPPORT}. Do not open a second account.`
   }
   if (intent === 'official-sources') {
     if (ctx.userText && /portal|link|website|sign\s*(in|up)|login|official|url/i.test(ctx.userText)) {
@@ -44,7 +51,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
   if (intent === 'missing-information' || intent === 'school-not-found') {
     const inst = ctx.institutionName ? ` at **${ctx.institutionName}**` : ''
-    return `**Missing information / school not on the list**${inst}\n\nUsually the school has not finished uploading your record, or the name / date of birth does not match JAMB and NIN.\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. If you changed school, the new school must appear on the portal list first.\n4. Retry ${PORTAL}. Still failing: ${ESUPPORT}`
+    return `**Missing information / school not on the list**${inst}\n\nUsually the school has not finished uploading your record, or the name / date of birth does not match JAMB and NIN.\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. If faculty or department is missing, that is a school-record job, not a second account.\n4. Retry ${PORTAL}. Still failing: ${ESUPPORT}`
   }
   if (intent === 'pending-application') {
     const extra = ctx.userText ? playbookPendingExtras(ctx.userText) : null
@@ -89,7 +96,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Guarantor / surety:** follow only what ${PORTAL} and ${FAQ} ask for this cycle. I will not invent extra people you must attach. If the form has no guarantor field, do not pay anyone to stand for you.`
   }
   if (intent === 'documents-needed') {
-    return `**Documents commonly asked on the portal**\n\n1. JAMB admission letter (usually required).\n2. School ID or invoice only if the form asks.\n3. NIN, BVN, and a bank account in your name.\n4. Upload JPEG or PDF on ${PORTAL}. Confirm the live form, do not invent extra papers.`
+    return `**Documents commonly asked on the portal**\n\n1. JAMB admission letter (usually required).\n2. Clear passport photo or school ID only if the form asks (JPEG or PDF).\n3. NIN, BVN, and a bank account in your name.\n4. Upload on ${PORTAL}. Confirm the live form, do not invent extra papers.`
   }
   return null
 }
