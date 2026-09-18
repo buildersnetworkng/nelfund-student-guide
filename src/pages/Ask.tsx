@@ -12,8 +12,8 @@ import { institutions } from '../lib/data'
 import { AnswerCards } from '../components/AnswerCards'
 import { LinkifiedText } from '../components/LinkifiedText'
 import { trackAiQuestion, trackFeedback } from '../lib/analytics'
-import ShareGuide from '../components/ShareGuide'
-import { markShareValue } from '../components/ShareSoftPrompt'
+import ShareGuide, { WhatsAppClassLink } from '../components/ShareGuide'
+import ShareSoftPrompt, { markShareValue } from '../components/ShareSoftPrompt'
 
 const SUGGESTIONS = [
   'Is NELFUND loan application open?',
@@ -142,6 +142,7 @@ export default function Ask() {
       setSlots(nextSlots)
       // Keep the green user bubble; only append AI replies
       setMessages((prev) => [...prev, ...asstMsgs])
+      if (asstMsgs.length > 0) markShareValue()
       clearFile()
     } catch {
       setMessages((prev) => [
@@ -185,8 +186,11 @@ export default function Ask() {
     </div>
   )
 
+  const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id
+
   return (
     <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col bg-paper">
+      <ShareSoftPrompt />
       <header className="sticky top-0 z-20 border-b border-forest-100/80 bg-paper/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2 sm:px-4">
           <Link to="/" className="flex items-center gap-2">
@@ -314,6 +318,17 @@ export default function Ask() {
                         </>
                       )}
                     </div>
+                    {m.id === lastAssistantId && (
+                      <div className="pt-1">
+                        <WhatsAppClassLink
+                          source="ask-after-answer"
+                          className="!min-h-[36px] !px-3 !py-1.5 !text-xs"
+                        />
+                        <p className="mt-1 text-[11px] leading-relaxed text-ink/40">
+                          Search your class or department group name. Do not tap one classmate.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
