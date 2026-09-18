@@ -35,8 +35,12 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'eligibility') return eligibilityAnswer({ userText: ctx.userText || '' })
   if (intent === 'portal-login') {
     const otherEmail = ctx.userText && /another|someone|borrow|broda|brother|sister|friend/i.test(ctx.userText)
+    const otp = ctx.userText && /\botp\b|verification\s*code|code\s*(no|not|never)\s*(come|enter)/i.test(ctx.userText)
     if (otherEmail) {
       return `**Use your own email.** Do not borrow a sibling or friend mailbox.\n\n1. Sign **in** at ${SITE} if that email already exists from last year.\n2. New students only: sign **up** with *your* email on ${PORTAL}.\n3. Forgot password: reset on ${SITE}. Do not open a second account.\n4. Still locked: ${ESUPPORT}`
+    }
+    if (otp) {
+      return `**OTP / code no dey come**\n\n1. Check spam and wait a few minutes. Do not open a second account.\n2. Use the official reset / resend on ${SITE}.\n3. Try another network once.\n4. Still nothing: ${ESUPPORT}`
     }
     return `**Log in, do not create a new account** if that email was used before.\n\n1. Sign **in** at ${SITE} with the same email.\n2. Sign **up** only if you never created an account: ${PORTAL}\n3. Forgot password or OTP no dey come: use the reset on ${SITE}. Do not open a second account.\n4. Portal hang, error 500, or page no load: refresh once, try another network, then ${ESUPPORT}.`
   }
@@ -51,12 +55,12 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
   if (intent === 'missing-information' || intent === 'school-not-found') {
     const inst = ctx.institutionName ? ` at **${ctx.institutionName}**` : ''
-    return `**Missing information / school not on the list**${inst}\n\nUsually the school has not finished uploading your record, or the name / date of birth does not match JAMB and NIN.\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. If faculty or department is missing, that is a school-record job, not a second account.\n4. Retry ${PORTAL}. Still failing: ${ESUPPORT}`
+    return `**Missing information / school not on the list**${inst}\n\nUsually the school has not finished uploading your record, or the name / date of birth does not match JAMB and NIN.\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. If faculty, department, or course changed, that is a school-record job, not a second account.\n4. Retry ${PORTAL}. Still failing: ${ESUPPORT}`
   }
   if (intent === 'pending-application') {
     const extra = ctx.userText ? playbookPendingExtras(ctx.userText) : null
     if (extra) return extra
-    return `**Pending / money never enter / check am** is a wait, not a new apply.\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session, and it can land later.\n4. I will not invent a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+    return `**Pending / money never enter / check am** is a wait, not a new apply.\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session, and it can land later.\n4. Approved on screen still does not give me a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
   }
   if (intent === 'how-to-apply') {
     return `**How to apply**\n\n1. Confirm school listed and record uploaded.\n2. Create or sign in at ${PORTAL}.\n3. Complete profile (JAMB, NIN, BVN).\n4. Use Request for Student Loan only when the official loan window is open. Confirm on ${SITE} / ${PORTAL}. I will not invent dates.`
@@ -87,7 +91,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Official support only**\n\n• Tickets: ${ESUPPORT}\n• Website: ${SITE}\n• Portal: ${PORTAL}\n\nI will not invent a WhatsApp group, personal phone line, or agent number. If a flyer gives a number, ignore it.`
   }
   if (intent === 'bank-information') {
-    return `**Bank on the profile**\n\n1. Use a regular Nigerian bank account in your name, not only a wallet if the portal rejects it.\n2. Name must match NIN / BVN.\n3. Fix it on ${PORTAL} while signed in. Do not open a second account.\n4. Still failing: ${ESUPPORT}`
+    return `**Bank on the profile**\n\n1. Use a regular Nigerian bank account in your name. Some wallets (OPay, PalmPay, and similar) get rejected if the portal wants a deposit bank.\n2. Name must match NIN / BVN.\n3. Fix it on ${PORTAL} while signed in. Do not open a second account.\n4. Still failing: ${ESUPPORT}`
   }
   if (intent === 'refund') {
     return `**You already paid school fees yourself.** Institutional charges from NELFUND go to the **school**, not your pocket. Ask the campus bursary / NELFUND desk about any refund process. I will not invent a refund rule. Confirm status on ${PORTAL}.`

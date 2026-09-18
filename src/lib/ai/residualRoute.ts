@@ -40,6 +40,7 @@ import { residualOtherHourly35 } from './residualOtherHourly35'
 import { residualOtherHourly36 } from './residualOtherHourly36'
 import { residualOtherHourly37 } from './residualOtherHourly37'
 import { residualOtherHourly38 } from './residualOtherHourly38'
+import { residualOtherHourly39 } from './residualOtherHourly39'
 import { residualPendingMore } from './residualPendingMore'
 
 const SCHOOL_HINTS = [
@@ -133,119 +134,51 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   const more = residualOtherMore(q, entities)
   if (more) return more
 
-  const hourly = residualOtherHourly(q, entities)
-  if (hourly) return hourly
-
-  const hourly2 = residualOtherHourly2(q, entities)
-  if (hourly2) return hourly2
-
-  const hourly3 = residualOtherHourly3(q, entities)
-  if (hourly3) return hourly3
-
-  const hourly4 = residualOtherHourly4(q, entities)
-  if (hourly4) return hourly4
-
-  const hourly5 = residualOtherHourly5(q, entities)
-  if (hourly5) return hourly5
-
-  const hourly6 = residualOtherHourly6(q, entities)
-  if (hourly6) return hourly6
-
-  const hourly7 = residualOtherHourly7(q, entities)
-  if (hourly7) return hourly7
-
-  const hourly8 = residualOtherHourly8(q, entities)
-  if (hourly8) return hourly8
-
-  const hourly9 = residualOtherHourly9(q, entities)
-  if (hourly9) return hourly9
-
-  const hourly10 = residualOtherHourly10(q, entities)
-  if (hourly10) return hourly10
-
-  const hourly11 = residualOtherHourly11(q, entities)
-  if (hourly11) return hourly11
-
-  const hourly12 = residualOtherHourly12(q, entities)
-  if (hourly12) return hourly12
-
-  const hourly13 = residualOtherHourly13(q, entities)
-  if (hourly13) return hourly13
-
-  const hourly14 = residualOtherHourly14(q, entities)
-  if (hourly14) return hourly14
-
-  const hourly15 = residualOtherHourly15(q, entities)
-  if (hourly15) return hourly15
-
-  const hourly16 = residualOtherHourly16(q, entities)
-  if (hourly16) return hourly16
-
-  const hourly17 = residualOtherHourly17(q, entities)
-  if (hourly17) return hourly17
-
-  const hourly18 = residualOtherHourly18(q, entities)
-  if (hourly18) return hourly18
-
-  const hourly19 = residualOtherHourly19(q, entities)
-  if (hourly19) return hourly19
-
-  const hourly20 = residualOtherHourly20(q, entities)
-  if (hourly20) return hourly20
-
-  const hourly21 = residualOtherHourly21(q, entities)
-  if (hourly21) return hourly21
-
-  const hourly22 = residualOtherHourly22(q, entities)
-  if (hourly22) return hourly22
-
-  const hourly23 = residualOtherHourly23(q, entities)
-  if (hourly23) return hourly23
-
-  const hourly24 = residualOtherHourly24(q, entities)
-  if (hourly24) return hourly24
-
-  const hourly25 = residualOtherHourly25(q, entities)
-  if (hourly25) return hourly25
-
-  const hourly26 = residualOtherHourly26(q, entities)
-  if (hourly26) return hourly26
-
-  const hourly27 = residualOtherHourly27(q, entities)
-  if (hourly27) return hourly27
-
-  const hourly28 = residualOtherHourly28(q, entities)
-  if (hourly28) return hourly28
-
-  const hourly29 = residualOtherHourly29(q, entities)
-  if (hourly29) return hourly29
-
-  const hourly30 = residualOtherHourly30(q, entities)
-  if (hourly30) return hourly30
-
-  const hourly31 = residualOtherHourly31(q, entities)
-  if (hourly31) return hourly31
-
-  const hourly32 = residualOtherHourly32(q, entities)
-  if (hourly32) return hourly32
-
-  const hourly33 = residualOtherHourly33(q, entities)
-  if (hourly33) return hourly33
-
-  const hourly34 = residualOtherHourly34(q, entities)
-  if (hourly34) return hourly34
-
-  const hourly35 = residualOtherHourly35(q, entities)
-  if (hourly35) return hourly35
-
-  const hourly36 = residualOtherHourly36(q, entities)
-  if (hourly36) return hourly36
-
-  const hourly37 = residualOtherHourly37(q, entities)
-  if (hourly37) return hourly37
-
-  const hourly38 = residualOtherHourly38(q, entities)
-  if (hourly38) return hourly38
+  const hourlyFns = [
+    residualOtherHourly,
+    residualOtherHourly2,
+    residualOtherHourly3,
+    residualOtherHourly4,
+    residualOtherHourly5,
+    residualOtherHourly6,
+    residualOtherHourly7,
+    residualOtherHourly8,
+    residualOtherHourly9,
+    residualOtherHourly10,
+    residualOtherHourly11,
+    residualOtherHourly12,
+    residualOtherHourly13,
+    residualOtherHourly14,
+    residualOtherHourly15,
+    residualOtherHourly16,
+    residualOtherHourly17,
+    residualOtherHourly18,
+    residualOtherHourly19,
+    residualOtherHourly20,
+    residualOtherHourly21,
+    residualOtherHourly22,
+    residualOtherHourly23,
+    residualOtherHourly24,
+    residualOtherHourly25,
+    residualOtherHourly26,
+    residualOtherHourly27,
+    residualOtherHourly28,
+    residualOtherHourly29,
+    residualOtherHourly30,
+    residualOtherHourly31,
+    residualOtherHourly32,
+    residualOtherHourly33,
+    residualOtherHourly34,
+    residualOtherHourly35,
+    residualOtherHourly36,
+    residualOtherHourly37,
+    residualOtherHourly38,
+    residualOtherHourly39,
+  ]
+  for (const fn of hourlyFns) {
+    const hourly = fn(q, entities)
+    if (hourly) return hourly
+  }
 
   if (liveish(q)) {
     return hit('current-information', 0.9, ['open-status'], 'Is NELFUND open / deadline', 'applying', entities)
