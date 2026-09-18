@@ -8,7 +8,7 @@ import RecommendedVideo from '../components/RecommendedVideo'
 import InstitutionNotice from '../components/InstitutionNotice'
 import InstitutionTip from '../components/InstitutionTip'
 import { trackFaqOpen } from '../lib/analytics'
-import ShareGuide from '../components/ShareGuide'
+import ShareGuide, { WhatsAppClassLink } from '../components/ShareGuide'
 import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function Faq() {
@@ -39,7 +39,10 @@ export default function Faq() {
           <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Frequently asked questions</h1>
           <p className="section-sub max-w-xl">Short, verified answers. For a specific portal error, use Ask support.</p>
         </div>
-        <ShareGuide variant="button" className="shrink-0" />
+        <div className="flex flex-wrap items-center gap-2">
+          <ShareGuide variant="button" className="shrink-0" />
+          <WhatsAppClassLink source="faq-header" className="shrink-0" />
+        </div>
       </div>
       <div className="mt-2">
         <InstitutionNotice />
@@ -144,8 +147,16 @@ export default function Faq() {
                   )}
                   {f.video_id && <RecommendedVideo videoId={f.video_id} className="mt-3" />}
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-forest-700/10 pt-3">
-                    <p className="text-xs text-ink/50">Know someone stuck on this?</p>
-                    <ShareGuide variant="button" className="!min-h-[36px] shrink-0 !px-3 !py-1.5 !text-xs" />
+                    <p className="text-xs text-ink/50">
+                      Post this answer in your class or department WhatsApp group.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <WhatsAppClassLink
+                        source={`faq-item:${f.id}`}
+                        className="!min-h-[36px] !px-3 !py-1.5 !text-xs"
+                      />
+                      <ShareGuide variant="button" className="!min-h-[36px] shrink-0 !px-3 !py-1.5 !text-xs" />
+                    </div>
                   </div>
                 </div>
               )}

@@ -3,7 +3,7 @@ import TrustBadge from '../components/TrustBadge'
 import RecommendedVideo from '../components/RecommendedVideo'
 import InstitutionTip from '../components/InstitutionTip'
 import InstitutionNotice from '../components/InstitutionNotice'
-import ShareGuide from '../components/ShareGuide'
+import ShareGuide, { WhatsAppClassLink } from '../components/ShareGuide'
 import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function Apply() {
@@ -19,8 +19,14 @@ export default function Apply() {
           <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">{guide.title}</h1>
           <p className="mt-2 max-w-xl text-sm text-ink/65">{guide.summary}</p>
         </div>
-        <ShareGuide variant="button" className="shrink-0" />
+        <div className="flex flex-wrap items-center gap-2">
+          <ShareGuide variant="button" className="shrink-0" />
+          <WhatsAppClassLink source="apply-header" className="shrink-0" />
+        </div>
       </div>
+      <p className="mt-2 text-xs text-ink/45">
+        In WhatsApp, pick your class or department group so the whole class can apply with the same steps.
+      </p>
       <div className="mt-2"><InstitutionNotice /></div>
 
       <div className="mt-6 grid gap-2 sm:grid-cols-2">
@@ -86,10 +92,15 @@ export default function Apply() {
 
       <div className="card mt-8 flex flex-col gap-3 border-forest-200 bg-forest-50/40 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-ink">Help another student apply correctly</p>
-          <p className="mt-0.5 text-xs text-ink/55">Share this step-by-step guide before they open the portal.</p>
+          <p className="text-sm font-semibold text-ink">Help the whole class apply correctly</p>
+          <p className="mt-0.5 text-xs text-ink/55">
+            Post this step-by-step guide in your class or department WhatsApp group before classmates open the portal.
+          </p>
         </div>
-        <ShareGuide variant="button" className="shrink-0" />
+        <div className="flex flex-wrap items-center gap-2">
+          <WhatsAppClassLink source="apply-end" className="shrink-0" />
+          <ShareGuide variant="button" className="shrink-0" />
+        </div>
       </div>
 
       <div className="mt-8">
