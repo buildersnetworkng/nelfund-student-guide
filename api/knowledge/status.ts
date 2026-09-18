@@ -17,7 +17,6 @@ type LiveApplicationStatus = {
 function currentAcademicCycle(date: Date = new Date()): string {
   const year = date.getFullYear()
   const month = date.getMonth()
-  // From August (month 7) the new session year starts
   const startYear = month >= 7 ? year : year - 1
   return `${startYear}/${startYear + 1}`
 }
@@ -50,7 +49,8 @@ async function redisGet(key: string): Promise<string | null> {
 
 function bulletNoteUnconfirmed(cycle: string): string {
   return (
-    `• Account creation (sign up): OPEN. You can create your account, finish your profile, and sort out your BVN.\n` +
+    `• Account creation (sign up): OPEN. You can start registration on the portal.\n` +
+    `• To finish account creation you still need NIN, BVN, JAMB, and the other details the portal asks for - you cannot complete it without them.\n` +
     `• Loan and upkeep application: NOT confirmed open yet for ${cycle}. Wait for official opening and closing dates on the portal.\n` +
     `Do not use social media for deadlines. Use the buttons below for sign in or sign up.`
   )
@@ -73,7 +73,7 @@ function bulletNoteClosed(cycle: string): { status_label: string; note: string }
     status_label: 'Loan/upkeep closed · Account creation may still be open',
     note:
       `• Loan and upkeep application: CLOSED (or previous cycle closed). Wait for the next ${cycle} opening dates on the official site.\n` +
-      `• Account creation (sign up): may still be open so you can prepare your profile and BVN.\n` +
+      `• Account creation (sign up): may still be open. You still need NIN, BVN, JAMB, and the other portal requirements to finish registration.\n` +
       `Do not use social media for deadlines.`,
   }
 }
@@ -99,22 +99,19 @@ function guidancePayload(freshness: LiveApplicationStatus['freshness']): LiveApp
   }
 }
 
-/**
- * Always stamp the live academic cycle (auto year).
- * Keep open/closed/extended when refresh detected a real loan window change.
- * Only rewrite long-paragraph leftovers into structured bullets.
- */
 function normalizeForUi(parsed: LiveApplicationStatus, cycle: string): LiveApplicationStatus {
   const note = (parsed.note || '').trim()
   const needsBullets =
     !note.includes('•') ||
     note.includes('academic cycle') ||
     note.includes('home card cycle') ||
-    note.includes('no announced deadline')
+    note.includes('no announced deadline') ||
+    note.includes('sort out your BVN') ||
+    note.includes('prepare your profile and BVN')
 
   const base: LiveApplicationStatus = {
     ...parsed,
-    cycle, // always current year e.g. 2026/2027 → next August rolls forward
+    cycle,
   }
 
   if (parsed.status === 'open' || parsed.status === 'extended') {
@@ -122,7 +119,6 @@ function normalizeForUi(parsed: LiveApplicationStatus, cycle: string): LiveAppli
       const c = bulletNoteOpen(cycle, parsed.status === 'extended')
       return { ...base, status_label: c.status_label, note: c.note }
     }
-    // Refresh cycle year inside existing bullet note if needed
     return {
       ...base,
       note: note.replace(/\d{4}\/\d{4}/g, cycle),
@@ -142,7 +138,6 @@ function normalizeForUi(parsed: LiveApplicationStatus, cycle: string): LiveAppli
     }
   }
 
-  // not_announced / pending_verification → structured unconfirmed copy with live cycle
   return {
     ...base,
     status: 'not_announced',

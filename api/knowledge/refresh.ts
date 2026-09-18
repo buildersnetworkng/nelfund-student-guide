@@ -1,10 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { applyCors, adminAuthorized, cronAuthorized, rateLimitOr429 } from '../lib/security'
 
-/**
- * Refreshes time-sensitive NELFUND knowledge from official sources.
- */
-
 type AppStatus =
   | 'not_announced'
   | 'open'
@@ -91,7 +87,7 @@ async function fetchText(url: string): Promise<{ ok: boolean; text: string; erro
 function copyAccountOpenLoanUnconfirmed(cycle: string): { status_label: string; note: string } {
   return {
     status_label: `Account creation open · Loan/upkeep not confirmed yet`,
-    note: `• Account creation (sign up): OPEN. You can create your account, finish your profile, and sort out your BVN.\n• Loan and upkeep application: NOT confirmed open yet for ${cycle}. Wait for official opening and closing dates on the portal.\nDo not use social media for deadlines. Use the buttons below for sign in or sign up.`,
+    note: `• Account creation (sign up): OPEN. You can start registration on the portal.\n• To finish account creation you still need NIN, BVN, JAMB, and the other details the portal asks for - you cannot complete it without them.\n• Loan and upkeep application: NOT confirmed open yet for ${cycle}. Wait for official opening and closing dates on the portal.\nDo not use social media for deadlines. Use the buttons below for sign in or sign up.`,
   }
 }
 
@@ -107,7 +103,7 @@ function copyLoanOpen(cycle: string, extended: boolean): { status_label: string;
 function copyLoanClosed(cycle: string): { status_label: string; note: string } {
   return {
     status_label: `Loan/upkeep closed · Account creation may still be open`,
-    note: `• Loan and upkeep application: CLOSED (or previous cycle closed). Wait for the next ${cycle} opening dates on the official site.\n• Account creation (sign up): may still be open so you can prepare your profile and BVN.\nDo not use social media for deadlines.`,
+    note: `• Loan and upkeep application: CLOSED (or previous cycle closed). Wait for the next ${cycle} opening dates on the official site.\n• Account creation (sign up): may still be open. You still need NIN, BVN, JAMB, and the other portal requirements to finish registration.\nDo not use social media for deadlines.`,
   }
 }
 
