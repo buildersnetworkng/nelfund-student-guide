@@ -109,19 +109,23 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('pending-application', 0.88, ['pending-status'], 'Check application status', 'waiting', entities, true)
   }
 
-  if (/documents?\s*(i\s*)?(need|required)|wetin\s*i\s*go\s*carry|requirements?\s*to\s*apply/i.test(raw)) {
+  if (/documents\?\s*(i\s*)?(need|required)|wetin\s*i\s*go\s*carry|requirements\?\s*to\s*apply/i.test(raw)) {
     return hitIntent('documents-needed', 0.86, ['documents'], 'Documents needed', 'preparing', entities)
   }
 
-  if (/account\s*(already\s*)?(exist|exists)|forgot\s*(my\s*)?password|cannot\s*(login|sign\s*in)|portal\s*(no|not)\s*(open|load)|otp\s*(no|not|never|no\s*dey)|verification\s*code\s*(no|not|never)/i.test(raw)) {
-    return hitIntent('portal-login', 0.86, ['login'], 'Login / existing account / OTP', 'applying', entities, true)
+  if (
+    /email\s*(already\s*)?(used|exist|exists|registered)|already\s*(used|registered|exist).{0,20}(email|account)|registered\s*(last|last\s*year|before)|account\s*(already\s*)?(exist|exists)|forgot\s*(my\s*)?password|cannot\s*(login|sign\s*in)|portal\s*(no|not)\s*(open|load)|otp\s*(no|not|never|no\s*dey)|verification\s*code\s*(no|not|never)/i.test(
+      raw,
+    )
+  ) {
+    return hitIntent('portal-login', 0.9, ['login'], 'Login / email already used / OTP', 'applying', entities, true)
   }
 
   if (/customer\s*care|phone\s*(number|no|line)|nelfund\s*(hotline|number)|who\s*(do\s*i|to)\s*call|office\s*address/i.test(raw)) {
     return hitIntent('contact-support', 0.88, ['other'], 'Phone / office / hotline', 'exploring', entities)
   }
 
-  if (/(pay|paid)\s*(an?\s*)?agent|buy\s*(slot|form)|nelfund\s*agent/i.test(raw)) {
+  if (/(pay|paid)\s*(an\s*)?agent|buy\s*(slot|form)|nelfund\s*agent/i.test(raw)) {
     return hitIntent('scam-safety', 0.92, ['other'], 'Agent / paid slot', 'exploring', entities)
   }
 

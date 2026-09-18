@@ -3,6 +3,14 @@ import { residualOtherRoute } from './residualOther'
 import { officialFaqIntent } from './officialFaq'
 import { residualOtherMore } from './residualOtherMore'
 import { residualOtherHourly } from './residualOtherHourly'
+import { residualOtherHourly2 } from './residualOtherHourly2'
+import { residualOtherHourly3 } from './residualOtherHourly3'
+import { residualOtherHourly4 } from './residualOtherHourly4'
+import { residualOtherHourly5 } from './residualOtherHourly5'
+import { residualOtherHourly6 } from './residualOtherHourly6'
+import { residualOtherHourly7 } from './residualOtherHourly7'
+import { residualOtherHourly8 } from './residualOtherHourly8'
+import { residualOtherHourly9 } from './residualOtherHourly9'
 import { residualOtherHourly10 } from './residualOtherHourly10'
 import { residualOtherHourly11 } from './residualOtherHourly11'
 import { residualOtherHourly12 } from './residualOtherHourly12'
@@ -17,6 +25,23 @@ import { residualOtherHourly20 } from './residualOtherHourly20'
 import { residualOtherHourly21 } from './residualOtherHourly21'
 import { residualOtherHourly22 } from './residualOtherHourly22'
 import { residualOtherHourly23 } from './residualOtherHourly23'
+import { residualOtherHourly24 } from './residualOtherHourly24'
+import { residualOtherHourly25 } from './residualOtherHourly25'
+import { residualOtherHourly26 } from './residualOtherHourly26'
+import { residualOtherHourly27 } from './residualOtherHourly27'
+import { residualOtherHourly28 } from './residualOtherHourly28'
+import { residualOtherHourly29 } from './residualOtherHourly29'
+import { residualOtherHourly30 } from './residualOtherHourly30'
+import { residualOtherHourly31 } from './residualOtherHourly31'
+import { residualOtherHourly32 } from './residualOtherHourly32'
+import { residualOtherHourly33 } from './residualOtherHourly33'
+import { residualOtherHourly34 } from './residualOtherHourly34'
+import { residualOtherHourly35 } from './residualOtherHourly35'
+import { residualOtherHourly36 } from './residualOtherHourly36'
+import { residualOtherHourly37 } from './residualOtherHourly37'
+import { residualOtherHourly38 } from './residualOtherHourly38'
+import { residualOtherHourly39 } from './residualOtherHourly39'
+import { residualOtherHourly40 } from './residualOtherHourly40'
 
 export function isPortalDump(text: string): boolean {
   const t = (text || '').toLowerCase()
@@ -99,6 +124,14 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
 
   for (const fn of [
     residualOtherHourly,
+    residualOtherHourly2,
+    residualOtherHourly3,
+    residualOtherHourly4,
+    residualOtherHourly5,
+    residualOtherHourly6,
+    residualOtherHourly7,
+    residualOtherHourly8,
+    residualOtherHourly9,
     residualOtherHourly10,
     residualOtherHourly11,
     residualOtherHourly12,
@@ -113,6 +146,23 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     residualOtherHourly21,
     residualOtherHourly22,
     residualOtherHourly23,
+    residualOtherHourly24,
+    residualOtherHourly25,
+    residualOtherHourly26,
+    residualOtherHourly27,
+    residualOtherHourly28,
+    residualOtherHourly29,
+    residualOtherHourly30,
+    residualOtherHourly31,
+    residualOtherHourly32,
+    residualOtherHourly33,
+    residualOtherHourly34,
+    residualOtherHourly35,
+    residualOtherHourly36,
+    residualOtherHourly37,
+    residualOtherHourly38,
+    residualOtherHourly39,
+    residualOtherHourly40,
   ]) {
     try {
       const hit = fn(q, entities)
