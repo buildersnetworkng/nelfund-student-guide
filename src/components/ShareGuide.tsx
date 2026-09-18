@@ -293,7 +293,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
         title="Share this guide with your class"
       >
         <ShareIcon />
-        <span className="text-[11px] font-semibold sm:text-xs">Share with class</span>
+        <span className="text-[11px] font-semibold sm:text-xs">Class WhatsApp</span>
       </button>
     ) : variant === 'hero' ? (
       <button
@@ -305,7 +305,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
         className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition duration-150 hover:border-white/50 hover:bg-white/15 active:scale-[0.98] ${nudge} ${className}`}
       >
         <ShareIcon className="opacity-90" />
-        Share with your class
+        Class WhatsApp
       </button>
     ) : (
       <button
@@ -317,7 +317,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
         className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full border border-forest-200 bg-white px-4 py-2 text-sm font-semibold text-forest-900 shadow-sm transition hover:bg-forest-50 active:scale-[0.98] ${nudge} ${className}`}
       >
         <ShareIcon />
-        Share with class
+        Class WhatsApp
       </button>
     )
 
@@ -349,7 +349,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                     Help the whole class, not one friend
                   </h2>
                   <p className="mt-1 text-sm text-ink/55">
-                    Open WhatsApp, search the class or department group name, then post so many students get the same steps.
+                    Open WhatsApp and search your class name, level, or department. Post in that group so many students get the same steps.
                   </p>
                 </div>
                 <button
@@ -374,8 +374,8 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
 
                 <ol className="mt-3 space-y-1 text-[12px] leading-relaxed text-ink/55">
                   <li>1. Tap Post to class group. The pin text is copied for you.</li>
-                  <li>2. Search the group name. Tap the group, not one classmate.</li>
-                  <li>3. Paste if the box is empty, send, then pin the message.</li>
+                  <li>2. In WhatsApp search, type your level or department (example: 300L or class rep).</li>
+                  <li>3. Open the group, paste if the box is empty, send, then pin the message.</li>
                 </ol>
 
                 <button
