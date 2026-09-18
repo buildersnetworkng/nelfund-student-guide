@@ -32,6 +32,7 @@ import { residualOtherHourly27 } from './residualOtherHourly27'
 import { residualOtherHourly28 } from './residualOtherHourly28'
 import { residualOtherHourly29 } from './residualOtherHourly29'
 import { residualOtherHourly30 } from './residualOtherHourly30'
+import { residualOtherHourly31 } from './residualOtherHourly31'
 import { residualPendingMore } from './residualPendingMore'
 
 const SCHOOL_HINTS = [
@@ -214,6 +215,9 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
 
   const hourly30 = residualOtherHourly30(q, entities)
   if (hourly30) return hourly30
+
+  const hourly31 = residualOtherHourly31(q, entities)
+  if (hourly31) return hourly31
 
   if (liveish(q)) {
     return hit('current-information', 0.9, ['open-status'], 'Is NELFUND open / deadline', 'applying', entities)
