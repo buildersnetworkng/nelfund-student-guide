@@ -109,7 +109,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('pending-application', 0.88, ['pending-status'], 'Check application status', 'waiting', entities, true)
   }
 
-  if (/documents\?\s*(i\s*)?(need|required)|wetin\s*i\s*go\s*carry|requirements\?\s*to\s*apply/i.test(raw)) {
+  if (/documents?\s*(i\s*)?(need|required)|wetin\s*i\s*go\s*carry|requirements?\s*to\s*apply/i.test(raw)) {
     return hitIntent('documents-needed', 0.86, ['documents'], 'Documents needed', 'preparing', entities)
   }
 
@@ -125,7 +125,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('contact-support', 0.88, ['other'], 'Phone / office / hotline', 'exploring', entities)
   }
 
-  if (/(pay|paid)\s*(an\s*)?agent|buy\s*(slot|form)|nelfund\s*agent/i.test(raw)) {
+  if (/(pay|paid)\s*(an?\s*)?agent|buy\s*(slot|form)|nelfund\s*agent/i.test(raw)) {
     return hitIntent('scam-safety', 0.92, ['other'], 'Agent / paid slot', 'exploring', entities)
   }
 
