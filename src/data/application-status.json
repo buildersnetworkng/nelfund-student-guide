@@ -2,6 +2,6 @@
   "cycle": "auto",
   "status": "not_announced",
   "status_label": "Account creation open · Loan/upkeep not confirmed yet",
-  "note": "• Account creation (sign up): OPEN. You can create your account, finish your profile, and sort out your BVN.\n• Loan and upkeep application: NOT confirmed open yet for the current cycle. Wait for official opening and closing dates on the portal.\nDo not use social media for deadlines. Use the buttons below for sign in or sign up.",
-  "last_checked": "2026-09-17"
+  "note": "• Account creation (sign up): OPEN. You can start registration on the portal.\n• To finish account creation you still need NIN, BVN, JAMB, and the other details the portal asks for — you cannot complete it without them.\n• Loan and upkeep application: NOT confirmed open yet for the current cycle. Wait for official opening and closing dates on the portal.\nDo not use social media for deadlines. Use the buttons below for sign in or sign up.",
+  "last_checked": "2026-09-18"
 }
