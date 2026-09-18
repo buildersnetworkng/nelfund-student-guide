@@ -37,6 +37,7 @@ import { residualOtherHourly32 } from './residualOtherHourly32'
 import { residualOtherHourly33 } from './residualOtherHourly33'
 import { residualOtherHourly34 } from './residualOtherHourly34'
 import { residualOtherHourly35 } from './residualOtherHourly35'
+import { residualOtherHourly36 } from './residualOtherHourly36'
 import { residualPendingMore } from './residualPendingMore'
 
 const SCHOOL_HINTS = [
@@ -106,7 +107,7 @@ function hit(
 }
 
 function liveish(q: string): boolean {
-  return /is\s+(nelfund\s+)?(loan\s*)?(upkeep\s*)?(application\s*)?(still\s+|currently\s+)?(open|closed|dey\s+open)|loan\s+application\s+(still\s+)?(open|closed)|still\s*(open|dey\s*open)|deadline|as\s*of\s*today|can\s*i\s*still\s*apply|closing\s*date|dem\s*don\s*close|nelfund\s+(loan\s+)?(application\s+)?open/i.test(
+  return /is\s+(nelfund\s+)?(loan\s*)?(upkeep\s*)?(application\s*)?(still\s+|currently\s+)?(open|closed|dey\s+open)|loan\s+application\s+(still\s+)?(open|closed)|still\s*(open|dey\s*open)|deadline|as\s*of\s+today|can\s*i\s*still\s*apply|closing\s*date|dem\s*don\s*close|nelfund\s+(loan\s+)?(application\s+)?open/i.test(
     q,
   )
 }
@@ -234,6 +235,9 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
 
   const hourly35 = residualOtherHourly35(q, entities)
   if (hourly35) return hourly35
+
+  const hourly36 = residualOtherHourly36(q, entities)
+  if (hourly36) return hourly36
 
   if (liveish(q)) {
     return hit('current-information', 0.9, ['open-status'], 'Is NELFUND open / deadline', 'applying', entities)
