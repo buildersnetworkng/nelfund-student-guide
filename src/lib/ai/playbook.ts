@@ -29,8 +29,50 @@ function isGreetingText(text: string): boolean {
 
 const WELCOME = `How far, welcome.\n\nI am here to help with **NELFUND**: applications, portal issues, eligibility, upkeep, repayment, and school-record problems.\n\nWhat do you need help with today?`
 
+/** True when the user is continuing the same thread (not starting a brand-new topic). */
+export function isConversationalFollowUp(text: string): boolean {
+  const t = text.trim().toLowerCase().replace(/[!?.]+$/g, '').trim()
+  if (!t || t.length > 120) return false
+  if (
+    /^(yes|yeah|yep|ok|okay|sure|please|continue|more|thanks|thank\s*you|abeg|alright|all\s*right|correct|true|go\s*on)\.?$/i.test(
+      t,
+    )
+  )
+    return true
+  if (
+    /^(alright|okay|ok|so|and|then|now|please|abeg)?\s*(so\s+)?(what|wetin|how|where)\b/i.test(t) &&
+    /(next|do|solution|first\s*step|first\s*thing|should\s*i|will\s*i|i\s*go\s*do|wattin|wetin)/i.test(t)
+  )
+    return true
+  if (
+    /what\s*(should|will|can)\s*i\s*(do|take)|what'?s\s*(the\s*)?(next|solution|first)|what\s*next|so\s*what|wetin\s*(i\s*)?(go|to)\s*do|wattin\s*i\s*go\s*do|first\s*(step|thing)/i.test(
+      t,
+    )
+  )
+    return true
+  if (t.length < 40 && /^(and|then|also|but|so)\b/i.test(t)) return true
+  return false
+}
+
+export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string {
+  const inst = ctx.institutionName ? ` at **${ctx.institutionName}**` : ''
+  if (intent === 'missing-information' || intent === 'school-not-found' || intent === 'institution-verification') {
+    return `**First step right now**${inst}\n\n1. Ask ICT / Registry / NELFUND desk to confirm your record is uploaded\n2. Retry ${PORTAL}\n3. Still failing after school confirms → ${ESUPPORT}`
+  }
+  if (intent === 'pending-application') {
+    return `**First step**\n\n1. Open ${PORTAL} and note the exact status word\n2. If pending a long time, ask school desk about institutional verification\n3. Still stuck → ${ESUPPORT}`
+  }
+  return `**Next step**\n\n1. Open ${PORTAL} and act on the exact status or error you see\n2. If the portal asks for school confirmation, use your campus NELFUND desk\n3. Still stuck after that → ${ESUPPORT}\n\n${PORTAL}`
+}
+
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
-  if (ctx.userText && isGreetingText(ctx.userText)) return WELCOME
+  // Never greet when we are already in a NELFUND thread
+  if (
+    ctx.userText &&
+    isGreetingText(ctx.userText) &&
+    !(ctx.priorIntent && ctx.priorIntent !== 'unknown' && ctx.priorIntent !== 'official-sources')
+  )
+    return WELCOME
 
   if (intent === 'eligibility') return eligibilityAnswer({ userText: ctx.userText || '' })
   if (intent === 'portal-login') {
@@ -44,16 +86,28 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     }
     return `**Log in, do not create a new account** if that email was used before.\n\n1. Sign **in** at ${SITE} with the same email.\n2. Sign **up** only if you never created an account: ${PORTAL}\n3. Forgot password or OTP no dey come: use the reset on ${SITE}. Do not open a second account.\n4. Portal hang, error 500, or page no load: refresh once, try another network, then ${ESUPPORT}.`
   }
-  if (intent === 'nin-verification') {
+  if (intent === 'nin-verification' || intent === 'nin-bvn') {
     return `**NIN / BVN must be yours and must match the name on JAMB.**\n\n1. If you do not have a NIN or BVN yet, finish that first. The portal needs both in *your* name.\n2. Do not type a parent, sibling, or friend number.\n3. If the portal says invalid or name no gree, check spacing and date of birth, then retry ${PORTAL}.\n4. Still failing: campus NELFUND desk, then ${ESUPPORT}. Do not open a second account.`
   }
   if (intent === 'official-sources') {
     if (ctx.userText && /portal|link|website|sign\s*(in|up)|login|official|url/i.test(ctx.userText)) {
       return `Official only (bookmark these):\n• **Sign in:** ${SITE}\n• **Sign up / apply:** ${PORTAL}\n• **Support ticket:** ${ESUPPORT}\n• **FAQ:** ${FAQ}\n\nSign in is not the same as sign up, and that is not the same as the loan window.`
     }
+    if (
+      ctx.priorIntent &&
+      ctx.priorIntent !== 'unknown' &&
+      ctx.priorIntent !== 'official-sources' &&
+      ctx.userText &&
+      isConversationalFollowUp(ctx.userText)
+    ) {
+      return nextStepAdvance(ctx, ctx.priorIntent)
+    }
+    if (ctx.userText && isConversationalFollowUp(ctx.userText) && ctx.lastAssistant) {
+      return nextStepAdvance(ctx, ctx.priorIntent || 'how-to-apply')
+    }
     return WELCOME
   }
-  if (intent === 'missing-information' || intent === 'school-not-found') {
+  if (intent === 'missing-information' || intent === 'school-not-found' || intent === 'institution-verification') {
     const inst = ctx.institutionName ? ` at **${ctx.institutionName}**` : ''
     return `**Missing information / school not on the list**${inst}\n\nUsually the school has not finished uploading your record, or the name / date of birth does not match JAMB and NIN.\n\n1. Confirm you attend a **public** university, poly, COE, or vocational school.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. If faculty, department, or course changed, that is a school-record job, not a second account.\n4. Retry ${PORTAL}. Still failing: ${ESUPPORT}`
   }
@@ -68,7 +122,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'what-is-nelfund' || intent === 'nelfund-purpose' || intent === 'nelfund-history') {
     return `**Why NELFUND exists:** the Students Loans (Access to Higher Education) Act set up the Nigeria Education Loan Fund so eligible students in **public** tertiary institutions can get **interest-free** loans for school charges and living costs.\n\nInstitutional charges go to the **school**. Optional monthly upkeep goes to the **student**. It is a loan, not a scholarship.\n\n${SITE} · ${PORTAL}`
   }
-  if (intent === 'upkeep') {
+  if (intent === 'upkeep' || intent === 'upkeep-payment' || intent === 'upkeep-vs-fees') {
     return `**Upkeep** is living support, separate from school charges.\n\n1. Tick it in the **same** session as institutional charges when the loan window is open.\n2. It goes to the bank account on your profile, not a wallet-only account.\n3. I will not invent a monthly figure or pay date. Confirm on ${PORTAL}.`
   }
   if (intent === 'repayment' || intent === 'gsi') {
@@ -102,6 +156,10 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'documents-needed') {
     return `**Documents commonly asked on the portal**\n\n1. JAMB admission letter (usually required).\n2. Clear passport photo or school ID only if the form asks (JPEG or PDF).\n3. NIN, BVN, and a bank account in your name.\n4. Upload on ${PORTAL}. Confirm the live form, do not invent extra papers.`
   }
+  // Follow-up style ask with a known prior intent
+  if (ctx.userText && isConversationalFollowUp(ctx.userText) && ctx.priorIntent && ctx.priorIntent !== 'unknown') {
+    return nextStepAdvance(ctx, ctx.priorIntent)
+  }
   return null
 }
 
@@ -114,18 +172,8 @@ export function isNearDuplicate(prev: string, next: string): boolean {
 
 export function isNewUserAsk(text: string): boolean {
   const t = text.trim().toLowerCase()
+  if (isConversationalFollowUp(t)) return false
   if (/^(so\s+)?(what('?s|\s+is)?\s+)?(the\s+)?(solution|next|first\s*step)/i.test(t)) return false
   if (/wetin\s*(i\s*)?(go|to)\s*do|what\s*next|what'?s\s*next/i.test(t)) return false
   return /what\s*is\s*nelfund|how\s*to\s*apply|eligib|missing\s*information|upkeep|repay|login|jamb|scam|is\s*(nelfund|application)\s*open/i.test(t)
-}
-
-export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string {
-  const inst = ctx.institutionName ? ` at **${ctx.institutionName}**` : ''
-  if (intent === 'missing-information' || intent === 'school-not-found' || intent === 'institution-verification') {
-    return `**First step right now**${inst}\n\n1. Ask ICT / Registry / NELFUND desk to confirm your record is uploaded\n2. Retry ${PORTAL}\n3. Still failing after school confirms → ${ESUPPORT}`
-  }
-  if (intent === 'pending-application') {
-    return `**First step**\n\n1. Open ${PORTAL} and note the exact status word\n2. If pending a long time, ask school desk about institutional verification\n3. Still stuck → ${ESUPPORT}`
-  }
-  return `**Next step**\n\nReply with what the portal shows, or what you are trying to do.\n\n${PORTAL} · ${ESUPPORT}`
 }
