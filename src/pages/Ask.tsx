@@ -275,10 +275,13 @@ export default function Ask() {
           )}
 
           {messages.map((m) => (
-            <div key={m.id} className="mb-3 space-y-1.5">
+            <div
+              key={m.id}
+              className={`mb-2 flex ${m.role === 'user' ? 'justify-end' : 'flex-col items-start'}`}
+            >
               {m.role === 'user' ? (
                 <div
-                  className="bubble-user ml-auto max-w-[92%] rounded-2xl rounded-br-md px-3.5 py-2.5 text-sm shadow-md lg:max-w-[70%]"
+                  className="bubble-user ml-auto w-fit max-w-[min(85%,20rem)] rounded-2xl rounded-br-sm px-3 py-1.5 text-[15px] leading-snug shadow-sm"
                   style={{ backgroundColor: '#0A4F2E', color: '#FFFFFF' }}
                 >
                   {m.imagePreview && (
@@ -288,7 +291,7 @@ export default function Ask() {
                       className="mb-2 max-h-40 rounded-lg object-cover"
                     />
                   )}
-                  <p className="whitespace-pre-wrap leading-relaxed" style={{ color: '#FFFFFF' }}>
+                  <p className="whitespace-pre-wrap" style={{ color: '#FFFFFF' }}>
                     {m.text || '\u2026'}
                   </p>
                 </div>
