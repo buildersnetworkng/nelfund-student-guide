@@ -71,5 +71,8 @@ export function playbookPendingExtras(t: string): string | null {
   if (/\basuu\b|school\s*(dey|is)\s*(on\s*)?strike|lecturers?\s*(dey\s*)?strike/i.test(t)) {
     return `**A campus strike does not invent a new NELFUND pay date.**\n\n1. Status still lives on ${PORTAL}. Copy the exact word (Pending, Under review, Approved).\n2. Institutional charges go to the **school**. A strike can slow the school desk that uploads records, not a public batch list I can quote.\n3. I will not invent when lectures or disbursement resume.\n4. Ask the campus NELFUND desk first, then ticket ${ESUPPORT} with name, school, and that status word.`
   }
+  if (/application\s*(dey|is)\s*(processing|in\s*progress)|status\s*(dey|is)\s*processing|disburs(e|ement)|tinubu\s*(list|pay)|name\s*(no|not)\s*dey\s*(the\s*)?(pay\s*)?list|i\s*wan\s*check\s*(my\s*)?(loan|application)|nothing\s*don\s*drop/i.test(t)) {
+    return `**Processing / disbursement / name no dey list is still your portal file, not a public list I can invent.**\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session, and it can land later.\n4. I will not invent a batch, Tinubu list, or pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+  }
   return null
 }
