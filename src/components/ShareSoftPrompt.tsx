@@ -59,15 +59,15 @@ export default function ShareSoftPrompt() {
     function onValue() {
       if (shown || alreadyDismissed()) return
       if (valueTimer) window.clearTimeout(valueTimer)
-      valueTimer = window.setTimeout(reveal, 2400)
+      valueTimer = window.setTimeout(reveal, 3200)
     }
 
     function onScroll() {
       if (shown || alreadyDismissed()) return
       const help = document.getElementById('home-help')
-      const helpVisible = help ? help.getBoundingClientRect().top < window.innerHeight * 0.7 : false
-      const scrolledPastStatus = window.scrollY > 520
-      if (helpVisible || scrolledPastStatus) {
+      if (!help) return
+      const helpVisible = help.getBoundingClientRect().top < window.innerHeight * 0.75
+      if (helpVisible) {
         markShareValue()
         onValue()
       }
