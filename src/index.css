@@ -76,7 +76,6 @@
   }
 
   .bubble-user {
-    /* Hard colors so user text is always visible even if Tailwind utilities miss */
     margin-left: auto;
     max-width: 92%;
     border-radius: 1rem;
@@ -88,6 +87,18 @@
     line-height: 1.25rem;
     box-shadow: 0 1px 2px rgba(19, 42, 31, 0.08);
   }
+
+  /* Emergency: older builds used bg-forest-800 (not in theme) + text-paper = invisible user text */
+  .rounded-br-md.bg-forest-800,
+  .bg-forest-800.rounded-br-md {
+    background-color: #0A4F2E !important;
+    color: #ffffff !important;
+  }
+  .rounded-br-md.bg-forest-800 p,
+  .bg-forest-800.rounded-br-md p {
+    color: #ffffff !important;
+  }
+
   .bubble-assistant {
     @apply mr-auto max-w-[92%] rounded-2xl rounded-bl-md border border-forest-100 bg-white px-4 py-2.5 text-sm text-ink shadow-sm;
   }
@@ -232,64 +243,28 @@
 }
 
 @keyframes share-rubber {
-  0%, 74%, 100% {
-    transform: scale(1, 1);
-  }
-  78% {
-    transform: scale(1.16, 0.88);
-  }
-  84% {
-    transform: scale(0.9, 1.1);
-  }
-  90% {
-    transform: scale(1.08, 0.94);
-  }
-  94% {
-    transform: scale(0.98, 1.02);
-  }
-  97% {
-    transform: scale(1, 1);
-  }
+  0%, 74%, 100% { transform: scale(1, 1); }
+  78% { transform: scale(1.16, 0.88); }
+  84% { transform: scale(0.9, 1.1); }
+  90% { transform: scale(1.08, 0.94); }
+  94% { transform: scale(0.98, 1.02); }
+  97% { transform: scale(1, 1); }
 }
 
 @keyframes share-rubber-icon {
-  0%, 74%, 100% {
-    transform: scale(1, 1);
-  }
-  78% {
-    transform: scale(1.2, 0.86);
-  }
-  84% {
-    transform: scale(0.88, 1.14);
-  }
-  90% {
-    transform: scale(1.1, 0.92);
-  }
-  94% {
-    transform: scale(0.97, 1.03);
-  }
-  97% {
-    transform: scale(1, 1);
-  }
+  0%, 74%, 100% { transform: scale(1, 1); }
+  78% { transform: scale(1.2, 0.86); }
+  84% { transform: scale(0.88, 1.14); }
+  90% { transform: scale(1.1, 0.92); }
+  94% { transform: scale(0.97, 1.03); }
+  97% { transform: scale(1, 1); }
 }
 
 @keyframes share-ring {
-  0%, 74% {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  78% {
-    opacity: 0.7;
-    transform: scale(1);
-  }
-  90% {
-    opacity: 0;
-    transform: scale(1.35);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.35);
-  }
+  0%, 74% { opacity: 0; transform: scale(0.92); }
+  78% { opacity: 0.7; transform: scale(1); }
+  90% { opacity: 0; transform: scale(1.35); }
+  100% { opacity: 0; transform: scale(1.35); }
 }
 
 @media (prefers-reduced-motion: reduce) {
