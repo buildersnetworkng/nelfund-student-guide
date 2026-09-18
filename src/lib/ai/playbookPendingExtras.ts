@@ -74,5 +74,8 @@ export function playbookPendingExtras(t: string): string | null {
   if (/application\s*(dey|is)\s*(processing|in\s*progress)|status\s*(dey|is)\s*processing|disburs(e|ement)|tinubu\s*(list|pay)|name\s*(no|not)\s*dey\s*(the\s*)?(pay\s*)?list|i\s*wan\s*check\s*(my\s*)?(loan|application)|nothing\s*don\s*drop/i.test(t)) {
     return `**Processing / disbursement / name no dey list is still your portal file, not a public list I can invent.**\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session, and it can land later.\n4. I will not invent a batch, Tinubu list, or pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
   }
+  if (/una\s*dey\s*pay|dem\s*dey\s*pay\s*me|i\s*don\s*submit|processing\s*since/i.test(t)) {
+    return `**Una dey pay / I don submit is still a wait on your file.**\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session, and it can land later.\n4. I will not invent a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+  }
   return null
 }
