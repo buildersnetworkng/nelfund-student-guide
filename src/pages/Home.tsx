@@ -142,7 +142,7 @@ export default function Home() {
 
         <div className="container-page relative">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-forest-600">
-            NELFUND · {getCurrentAcademicCycle()} · Independent guide
+            NELFUND \u00b7 {getCurrentAcademicCycle()} \u00b7 Independent guide
           </p>
 
           <h1 className="mt-4 max-w-2xl font-display text-3xl font-semibold leading-[1.15] tracking-tight text-forest-900 sm:text-4xl lg:text-[2.75rem]">
@@ -206,7 +206,7 @@ export default function Home() {
             <WhatsAppClassLink source="home-hero" />
           </div>
           <p className="mt-2 text-xs text-ink/45">
-            In WhatsApp, pick your class or department group so the whole class can use it.
+            In WhatsApp, search your class or department group name. Do not tap one classmate.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
@@ -248,7 +248,7 @@ export default function Home() {
               aria-hidden
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-forest-700 text-lg text-paper transition group-hover:scale-105"
             >
-              ✦
+              \u2726
             </span>
             <div>
               <p className="font-display text-base font-semibold text-ink group-hover:text-forest-700">
@@ -297,7 +297,7 @@ export default function Home() {
               aria-hidden
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-forest-50 text-base font-semibold text-forest-800"
             >
-              ✓
+              \u2713
             </span>
             <div>
               <p className="font-display text-base font-semibold text-ink group-hover:text-forest-700">
@@ -349,7 +349,7 @@ export default function Home() {
             <WhatsAppClassLink source="home-help" />
           </div>
           <p className="mt-2 text-xs text-ink/45">
-            After WhatsApp opens, choose the group chat, not a single classmate.
+            After WhatsApp opens, search the group name. Do not tap one classmate.
           </p>
         </div>
       </RevealSection>
