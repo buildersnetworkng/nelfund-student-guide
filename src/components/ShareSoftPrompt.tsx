@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import ShareGuide, { WhatsAppClassLink } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
 
 const STORAGE_KEY = 'nelfund-share-soft-dismissed-at'
 const VALUE_KEY = 'nelfund-share-value-seen'
 const DISMISS_MS = 1000 * 60 * 60 * 24 * 3
+
+/** Ask already has an after-answer class-group CTA. Do not stack a second prompt. */
+const SKIP_PROMPT_PATHS = ['/ask']
 
 /** Call after a student gets a useful answer or finishes a guide step. */
 export function markShareValue() {
@@ -38,10 +42,15 @@ function hasValue() {
 }
 
 export default function ShareSoftPrompt() {
+  const location = useLocation()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    if (SKIP_PROMPT_PATHS.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`))) {
+      setVisible(false)
+      return
+    }
     if (alreadyDismissed()) return
 
     let shown = false
@@ -83,7 +92,7 @@ export default function ShareSoftPrompt() {
       window.removeEventListener('scroll', onScroll)
       if (valueTimer) window.clearTimeout(valueTimer)
     }
-  }, [])
+  }, [location.pathname])
 
   function dismiss() {
     setVisible(false)
