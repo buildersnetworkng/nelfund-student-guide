@@ -62,7 +62,7 @@ export default function Ask() {
   const [ocrText, setOcrText] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({})
-  const [showShare, setShowShare] = useState(false)
+  const [helpfulShareId, setHelpfulShareId] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -108,6 +108,7 @@ export default function Ask() {
       imagePreview: preview,
       timestamp: Date.now(),
     }
+    // Optimistic: show your text in the green bubble immediately
     setMessages((prev) => [...prev, userMsg])
 
     try {
@@ -143,6 +144,7 @@ export default function Ask() {
       })
 
       setSlots(nextSlots)
+      // Keep the green user bubble; only append assistant replies
       setMessages((prev) => [...prev, ...asstMsgs])
       clearFile()
     } catch {
@@ -168,16 +170,28 @@ export default function Ask() {
   function onFeedback(id: string, value: 'up' | 'down', intent?: string) {
     setFeedback((prev) => ({ ...prev, [id]: value }))
     trackFeedback({ messageId: id, value, intent })
-    if (value === 'up') markShareValue()
+    if (value === 'up') {
+      markShareValue()
+      setHelpfulShareId(id)
+    }
   }
 
-  function startNew() {
-    setMessages([])
-    setSlots(createInitialSlots())
-    setFeedback({})
-    clearFile()
-    setInput('')
-  }
+  const schoolSelect = (
+    <select
+      className="max-w-[9rem] truncate rounded-full border border-forest-100 bg-white px-2.5 py-1.5 text-xs text-ink sm:max-w-[12rem]"
+      value={institutionId || ''}
+      onChange={(e) => setInstitutionId(e.target.value || null)}
+      aria-label="Select school"
+    >
+      <option value="">Select school</option>
+      {institutions.map((i) => (
+        <option key={i.id} value={i.id}>
+          {schoolOptionLabel(i)}
+        </option>
+      ))}
+      <option value={OTHER_INSTITUTION.id}>{OTHER_INSTITUTION.name}</option>
+    </select>
+  )
 
   const suggestionList = (
     <div className="flex flex-col gap-1.5">
@@ -206,43 +220,33 @@ export default function Ask() {
             <span className="hidden text-sm font-semibold text-ink sm:inline">NELFUND Support</span>
           </Link>
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-            <select
-              className="max-w-[9rem] truncate rounded-full border border-forest-100 bg-white px-2.5 py-1.5 text-xs text-ink sm:max-w-[12rem]"
-              value={institutionId || ''}
-              onChange={(e) => setInstitutionId(e.target.value || null)}
-              aria-label="Select school"
-            >
-              <option value="">Select school</option>
-              {institutions.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {schoolOptionLabel(i)}
-                </option>
-              ))}
-              <option value={OTHER_INSTITUTION.id}>{OTHER_INSTITUTION.name}</option>
-            </select>
+            <div className="hidden sm:block">{schoolSelect}</div>
             <button
               type="button"
-              onClick={startNew}
+              onClick={() => {
+                setMessages([])
+                setSlots(createInitialSlots())
+                clearFile()
+                setHelpfulShareId(null)
+                setFeedback({})
+              }}
               className="h-7 px-1.5 text-[11px] font-medium text-forest-800"
             >
               New
             </button>
-            <button
-              type="button"
-              onClick={() => setShowShare(true)}
-              className="share-nudge share-nudge-icon flex h-8 w-8 items-center justify-center rounded-full border border-forest-100 bg-white text-forest-700"
-              aria-label="Share"
-            >
-              ↗
-            </button>
-            <Link to="/" className="text-[11px] font-medium text-ink/50">
+            <ShareGuide
+              variant="icon"
+              className="!h-7 !min-h-0 !w-7 !gap-0 !border-0 !bg-transparent !px-0 !shadow-none [&_span]:hidden"
+            />
+            <Link to="/" className="h-7 px-1.5 text-[11px] font-medium leading-7 text-ink/55">
               Exit
             </Link>
           </div>
         </div>
+        <div className="px-3 pb-2.5 sm:px-5 lg:hidden">{schoolSelect}</div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-3 py-4 sm:px-4 lg:flex-row lg:gap-8">
+      <div className="mx-auto flex w-full flex-1 gap-8 px-3 py-4 sm:px-5 lg:max-w-[1120px] lg:px-6 lg:py-6">
         <aside className="hidden w-56 shrink-0 lg:block">
           <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wide text-ink/35">
             Frequent student questions
@@ -284,7 +288,7 @@ export default function Ask() {
                     />
                   )}
                   <p className="whitespace-pre-wrap leading-relaxed" style={{ color: '#FFFFFF' }}>
-                    {m.text || '…'}
+                    {m.text || '\u2026'}
                   </p>
                 </div>
               ) : (
@@ -323,6 +327,12 @@ export default function Ask() {
                         </>
                       )}
                     </div>
+                    {helpfulShareId === m.id && (
+                      <div className="flex flex-wrap items-center gap-2 rounded-xl bg-forest-50 px-2.5 py-2 text-xs text-ink/70">
+                        <span>Help another student — share with your class group</span>
+                        <ShareGuide variant="button" className="!min-h-[32px] !px-3 !py-1 !text-xs" />
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -348,13 +358,7 @@ export default function Ask() {
           onSubmit={onSubmit}
           className="mx-auto flex max-w-6xl items-end gap-2 px-3 py-3 sm:px-4"
         >
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={onFile}
-          />
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
@@ -389,10 +393,6 @@ export default function Ask() {
           Independent student guide · Verify critical details on the official portal
         </p>
       </div>
-
-      {showShare && (
-        <ShareGuide open={showShare} onClose={() => setShowShare(false)} href={WHATSAPP_SHARE_HREF} />
-      )}
     </div>
   )
 }
