@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { sources } from '../lib/data'
 import { useInstitution } from '../context/InstitutionContext'
-import ShareGuide from './ShareGuide'
+import ShareGuide, { WhatsAppClassLink } from './ShareGuide'
 
 export default function Footer() {
   const { institutionId, institution } = useInstitution()
@@ -24,7 +24,7 @@ export default function Footer() {
               An independent guide for Nigerian tertiary students. Not produced or endorsed by NELFUND or any
               institution. Always confirm important decisions on the official portal.
             </p>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <Link to="/ask" className="inline-flex text-sm font-semibold text-gold-300 hover:text-gold-100">
                 Ask support →
               </Link>
@@ -32,6 +32,7 @@ export default function Footer() {
                 variant="button"
                 className="!border-paper/20 !bg-paper/10 !text-paper hover:!bg-paper/15"
               />
+              <WhatsAppClassLink source="footer" className="!min-h-[36px] !px-3 !text-xs" />
             </div>
           </div>
           <div>

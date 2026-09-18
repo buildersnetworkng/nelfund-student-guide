@@ -4,12 +4,9 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import StatusCard from '../components/StatusCard'
 import StaySafe from '../components/StaySafe'
 import InstitutionSelect from '../components/InstitutionSelect'
-import ShareGuide, { SHARE_TEXT } from '../components/ShareGuide'
+import ShareGuide, { WhatsAppClassLink } from '../components/ShareGuide'
 import ShareSoftPrompt from '../components/ShareSoftPrompt'
 import { getCurrentAcademicCycle } from '../lib/academicCycle'
-import { trackFeature } from '../lib/analytics'
-
-const WHATSAPP_SHARE_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
 const FEATURES = [
   {
@@ -206,15 +203,7 @@ export default function Home() {
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <ShareGuide variant="button" />
-            <a
-              href={WHATSAPP_SHARE_HREF}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source: 'home-hero' })}
-              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
-            >
-              Send to class group
-            </a>
+            <WhatsAppClassLink source="home-hero" />
           </div>
           <p className="mt-2 text-xs text-ink/45">
             In WhatsApp, pick your class or department group so the whole class can use it.
@@ -357,15 +346,7 @@ export default function Home() {
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <ShareGuide variant="button" />
-            <a
-              href={WHATSAPP_SHARE_HREF}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source: 'home-help' })}
-              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98]"
-            >
-              Send to class group
-            </a>
+            <WhatsAppClassLink source="home-help" />
           </div>
           <p className="mt-2 text-xs text-ink/45">
             After WhatsApp opens, choose the group chat, not a single classmate.

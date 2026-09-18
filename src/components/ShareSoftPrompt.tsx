@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
-import ShareGuide, { SHARE_TEXT } from './ShareGuide'
+import ShareGuide, { WhatsAppClassLink } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
 
 const STORAGE_KEY = 'nelfund-share-soft-dismissed-at'
 const VALUE_KEY = 'nelfund-share-value-seen'
 const DISMISS_MS = 1000 * 60 * 60 * 24 * 3
-const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
 /** Call after a student gets a useful answer or finishes a guide step. */
 export function markShareValue() {
@@ -124,15 +123,10 @@ export default function ShareSoftPrompt() {
           </button>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          <a
-            href={WHATSAPP_HREF}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source: 'soft-prompt' })}
-            className="inline-flex min-h-[36px] flex-1 items-center justify-center rounded-full bg-[#25D366] px-3 text-xs font-semibold text-white"
-          >
-            Post in class WhatsApp
-          </a>
+          <WhatsAppClassLink
+            source="soft-prompt"
+            className="!min-h-[36px] flex-1 !px-3 !py-1.5 !text-xs"
+          />
           <ShareGuide variant="button" className="!min-h-[36px] !px-3 !py-1.5 !text-xs" />
         </div>
         <p className="mt-2 text-[11px] leading-relaxed text-ink/40">

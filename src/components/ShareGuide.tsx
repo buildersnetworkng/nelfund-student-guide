@@ -12,11 +12,11 @@ function getSiteUrl() {
 
 function buildShareText(url: string) {
   return (
-    '📌 NELFUND GUIDE\n' +
+    'PIN NELFUND GUIDE\n' +
     'Before you apply or wait on the portal, open this first.\n' +
     'Clear steps for application, pending status, and common portal errors.\n' +
     'Post this in your class or department WhatsApp group, not just to one friend.\n' +
-    `🔗 ${url}`
+    `Link ${url}`
   )
 }
 
@@ -432,3 +432,26 @@ function ShareIcon({ className = '' }: { className?: string }) {
 
 /** Exported for tests / other surfaces */
 export const SHARE_TEXT = buildShareText('https://nelfund-student-guide.vercel.app/')
+
+const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
+
+/** One-tap WhatsApp that asks for a class or department group, not one friend. */
+export function WhatsAppClassLink({
+  source,
+  className = '',
+}: {
+  source: string
+  className?: string
+}) {
+  return (
+    <a
+      href={WHATSAPP_HREF}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source })}
+      className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98] ${className}`}
+    >
+      Post in class WhatsApp
+    </a>
+  )
+}
