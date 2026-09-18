@@ -84,7 +84,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Safety**\n\n• Never pay an agent.\n• Never share OTP or password.\n• Apply only on ${PORTAL}\n• Tickets: ${ESUPPORT}`
   }
   if (intent === 'contact-support' || intent === 'contact-lookup') {
-    return `**Official support**\n\n• Tickets: ${ESUPPORT}\n• Website: ${SITE}\n• Portal: ${PORTAL}`
+    return `**Official support only**\n\n• Tickets: ${ESUPPORT}\n• Website: ${SITE}\n• Portal: ${PORTAL}\n\nI will not invent a WhatsApp group, personal phone line, or agent number. If a flyer gives a number, ignore it.`
   }
   if (intent === 'bank-information') {
     return `**Bank on the profile**\n\n1. Use a regular Nigerian bank account in your name, not only a wallet if the portal rejects it.\n2. Name must match NIN / BVN.\n3. Fix it on ${PORTAL} while signed in. Do not open a second account.\n4. Still failing: ${ESUPPORT}`
