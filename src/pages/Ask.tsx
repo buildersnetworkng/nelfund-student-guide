@@ -104,7 +104,6 @@ export default function Ask() {
       imagePreview: preview,
       timestamp: Date.now(),
     }
-    // Show your message in the green bubble immediately
     setMessages((prev) => [...prev, userMsg])
 
     try {
@@ -140,7 +139,6 @@ export default function Ask() {
       })
 
       setSlots(nextSlots)
-      // Keep the green user bubble; only append AI replies
       setMessages((prev) => [...prev, ...asstMsgs])
       if (asstMsgs.length > 0) markShareValue()
       clearFile()
@@ -193,11 +191,23 @@ export default function Ask() {
       <ShareSoftPrompt />
       <header className="sticky top-0 z-20 border-b border-forest-100/80 bg-paper/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2 sm:px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-forest-700 text-xs font-bold text-white">
-              N
+          <Link to="/" className="flex min-w-0 items-center gap-2">
+            <img
+              src="/brand/logo.svg"
+              alt="NELFUND Student Guide"
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0 rounded-[10px] object-contain shadow-sm ring-1 ring-forest-900/10"
+              decoding="async"
+            />
+            <span className="hidden min-w-0 sm:block">
+              <span className="block truncate text-[13px] font-semibold leading-tight text-forest-900">
+                NELFUND Student Guide
+              </span>
+              <span className="block text-[10px] font-medium leading-tight text-ink/45">
+                Independent · Official sources
+              </span>
             </span>
-            <span className="hidden text-sm font-semibold text-ink sm:inline">NELFUND Support</span>
           </Link>
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <select
