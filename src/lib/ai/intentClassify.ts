@@ -113,8 +113,20 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('documents-needed', 0.86, ['documents'], 'Documents needed', 'preparing', entities)
   }
 
-  if (/account\s*(already\s*)?(exist|exists)|forgot\s*(my\s*)?password|cannot\s*(login|sign\s*in)|portal\s*(no|not)\s*(open|load)/i.test(raw)) {
-    return hitIntent('portal-login', 0.86, ['login'], 'Login / existing account', 'applying', entities, true)
+  if (/account\s*(already\s*)?(exist|exists)|forgot\s*(my\s*)?password|cannot\s*(login|sign\s*in)|portal\s*(no|not)\s*(open|load)|otp\s*(no|not|never|no\s*dey)|verification\s*code\s*(no|not|never)/i.test(raw)) {
+    return hitIntent('portal-login', 0.86, ['login'], 'Login / existing account / OTP', 'applying', entities, true)
+  }
+
+  if (/customer\s*care|phone\s*(number|no|line)|nelfund\s*(hotline|number)|who\s*(do\s*i|to)\s*call|office\s*address/i.test(raw)) {
+    return hitIntent('contact-support', 0.88, ['other'], 'Phone / office / hotline', 'exploring', entities)
+  }
+
+  if (/(pay|paid)\s*(an?\s*)?agent|buy\s*(slot|form)|nelfund\s*agent/i.test(raw)) {
+    return hitIntent('scam-safety', 0.92, ['other'], 'Agent / paid slot', 'exploring', entities)
+  }
+
+  if (/apply\s*(last\s*)?(year|session)|reapply|re-apply|this\s*(year|session)\s*again/i.test(raw) && !/email\s*(already|used)/i.test(raw)) {
+    return hitIntent('reapplication', 0.86, ['other'], 'Last year apply / reapply', 'applying', entities)
   }
 
   const soft = residualSoftRoute(expanded || raw, entities)
