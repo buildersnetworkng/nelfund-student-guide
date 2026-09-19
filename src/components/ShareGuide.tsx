@@ -48,6 +48,7 @@ const GROUP_SEARCH_HINTS = [
   '200L',
   '300L',
   '400L',
+  '500L',
   'ND1',
   'ND2',
   'HND1',
@@ -55,6 +56,7 @@ const GROUP_SEARCH_HINTS = [
   'class group',
   'department',
   'faculty',
+  'SUG',
   'class rep',
 ]
 let shareDeepLinkConsumed = false
@@ -261,9 +263,9 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                 </pre>
                 <GroupSearchChips className="mt-3" source="share-sheet" copiedHint={copiedHint} onCopy={copyHint} />
                 <ol className="mt-3 space-y-1 text-[12px] leading-relaxed text-ink/55">
-                  <li>1. Tap Post to class group. The pin text is copied for you.</li>
-                  <li>2. If WhatsApp shows names, tap Search and paste a level or department (example: 300L, ND1, class group).</li>
-                  <li>3. Open the group, paste if the box is empty, send, then pin the message.</li>
+                  <li>1. Copy a search chip (example: 300L or class group).</li>
+                  <li>2. Tap Post to class group. The pin text is copied for you.</li>
+                  <li>3. If WhatsApp shows names, tap Search and paste. Open the group, send, then pin.</li>
                 </ol>
                 <button
                   type="button"
