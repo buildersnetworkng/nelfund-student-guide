@@ -43,6 +43,7 @@ async function copySharePayload(value: string) {
 }
 
 const SHARE_TITLE = 'NELFUND Student Guide'
+const GROUP_NAME_KEY = 'nelfund-share-group-name'
 const GROUP_SEARCH_HINTS = [
   '100L',
   '200L',
@@ -261,9 +262,10 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                 <pre className="mt-3 max-h-32 overflow-auto rounded-2xl border border-forest-100 bg-forest-50/60 p-3 text-left text-[12px] leading-relaxed text-ink/80 whitespace-pre-wrap font-sans">
                   {shareText}
                 </pre>
+                <GroupNameField source="share-sheet" />
                 <GroupSearchChips className="mt-3" source="share-sheet" copiedHint={copiedHint} onCopy={copyHint} />
                 <ol className="mt-3 space-y-1 text-[12px] leading-relaxed text-ink/55">
-                  <li>1. Copy a search chip (example: 300L or class group).</li>
+                  <li>1. Type your exact group name and copy it, or copy a search chip.</li>
                   <li>2. Tap Post to class group. The pin text is copied for you.</li>
                   <li>3. If WhatsApp shows names, tap Search and paste. Open the group, send, then pin.</li>
                 </ol>
@@ -328,6 +330,60 @@ function ShareIcon({ className = '' }: { className?: string }) {
       <circle cx="18" cy="19" r="3" />
       <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" strokeLinecap="round" />
     </svg>
+  )
+}
+
+function GroupNameField({ source }: { source: string }) {
+  const [name, setName] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(GROUP_NAME_KEY)
+      if (saved) setName(saved)
+    } catch {
+      /* private mode */
+    }
+  }, [])
+
+  async function copyName() {
+    const value = stripLongDashes(name).trim()
+    if (!value) return
+    try {
+      window.localStorage.setItem(GROUP_NAME_KEY, value)
+    } catch {
+      /* ignore */
+    }
+    const ok = await copySharePayload(value)
+    if (!ok) return
+    setCopied(true)
+    trackFeature('share_group_hint', { hint: 'custom-group-name', source })
+    window.setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="mt-3">
+      <label htmlFor="share-group-name" className="text-[11px] font-semibold uppercase tracking-wide text-ink/40">
+        Your class group name
+      </label>
+      <div className="mt-1.5 flex gap-2">
+        <input
+          id="share-group-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Example: 300L Computer Science"
+          className="min-h-[40px] min-w-0 flex-1 rounded-xl border border-forest-100 bg-white px-3 text-sm text-ink placeholder:text-ink/35"
+        />
+        <button
+          type="button"
+          onClick={() => void copyName()}
+          disabled={!name.trim()}
+          className="shrink-0 rounded-xl border border-forest-100 bg-forest-50 px-3 text-xs font-semibold text-forest-800 disabled:opacity-40"
+        >
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+    </div>
   )
 }
 
