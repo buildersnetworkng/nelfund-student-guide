@@ -346,10 +346,10 @@ export default function Home() {
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <ShareGuide variant="button" />
-            <WhatsAppClassLink source="home-help" />
+            <WhatsAppClassLink source="home-help" showHints />
           </div>
           <p className="mt-2 text-xs text-ink/45">
-            After WhatsApp opens, search the group name. Do not tap one classmate.
+            Copy a level or department name first, then search that WhatsApp group. Do not tap one classmate.
           </p>
         </div>
       </RevealSection>
