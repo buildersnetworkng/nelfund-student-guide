@@ -15,7 +15,8 @@ function buildShareText(url: string) {
     'PIN THIS IN YOUR CLASS WHATSAPP GROUP\n' +
       'Before you apply or wait on the portal, open this first.\n' +
       'Clear steps for application, pending status, and common portal issues.\n' +
-      'In WhatsApp, use Search at the top. Type your class or department group. Do not tap one classmate.\n' +
+      'In WhatsApp, tap Search at the top. Type your class or department group. Do not tap one classmate.\n' +
+      'Send in the group, then pin so new classmates see it.\n' +
       `Link ${url}`,
   )
 }

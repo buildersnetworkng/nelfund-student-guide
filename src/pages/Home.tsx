@@ -203,10 +203,10 @@ export default function Home() {
 
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <ShareGuide variant="button" />
-            <WhatsAppClassLink source="home-hero" />
+            <WhatsAppClassLink source="home-hero" showHints />
           </div>
           <p className="mt-2 text-xs text-ink/45">
-            In WhatsApp, tap Search and type your class or department group. Do not tap one classmate.
+            Copy a level or department name first. In WhatsApp, tap Search and paste it. Do not tap one classmate.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
