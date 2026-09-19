@@ -22,7 +22,7 @@ export function residualOtherHourly56(text: string, entities: string[]): IntentR
   if (!q) return null
 
   if (
-    /how\s*far\s*(na|now|my\s*own|this\s*thing)?\s*$|howfar|wetin\s*dey\s*happen\s*(na)?$|status\s*(no|never|not)\s*(change|move|update)|nothing\s*don\s*(show|enter|drop|change)|e\s*never\s*(enter|drop|show)|mates?\s*don\s*(collect|receive|see\s*money)|my\s*people\s*don\s*collect|una\s*don\s*start\s*payment|dashboard\s*(still\s*)?(pending|empty|blank)|i\s*no\s*see\s*(anything|nothing)\s*(for|on)\s*(the\s*)?(portal|dashboard)/i.test(
+    /how\s*far(\s+(na|now|my\s*own|this\s*thing|am|e\s*dey))?|howfar|wetin\s*dey\s*happen|status\s*(no|never|not)\s*(change|move|update)|nothing\s*don\s*(show|enter|drop|change)|e\s*never\s*(enter|drop|show)|mates?\s*don\s*(collect|receive|see\s*money)|my\s*people\s*don\s*collect|una\s*don\s*start\s*payment|dashboard\s*(still\s*)?(pending|empty|blank)|i\s*no\s*see\s*(anything|nothing)\s*(for|on)\s*(the\s*)?(portal|dashboard)/i.test(
       q,
     )
   ) {
