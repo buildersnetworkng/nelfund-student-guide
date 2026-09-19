@@ -56,6 +56,9 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     if (/missing\s*information|not\s*on\s*(the\s*)?list/i.test(raw)) {
       return hitIntent('missing-information', 0.86, ['missing'], 'Portal dump missing info', 'applying', entities, true)
     }
+    if (/total\s*loans|dashboard|session\s*registration/i.test(raw)) {
+      return hitIntent('pending-application', 0.84, ['pending-status'], 'Portal dump dashboard', 'waiting', entities, true)
+    }
   }
 
   if (/invalid\s*jamb|jamb\s*(no|not|never|invalid|fail)|utme\s*(no|not|invalid)|jamb\s*caps|direct\s*entry/i.test(raw)) {
@@ -86,6 +89,14 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('bank-information', 0.88, ['bank'], 'Change bank', 'applying', entities, true)
   }
 
+  if (/name\s*(no|not|never)\s*(match|gree|tally)|mismatch\s*(name|dob)|date\s*of\s*birth\s*(no|not)\s*(match|gree)/i.test(raw)) {
+    return hitIntent('missing-information', 0.9, ['missing'], 'Name / DOB mismatch', 'applying', entities, true)
+  }
+
+  if (/change\s*(of\s*)?(course|department|faculty|programme|program)/i.test(raw)) {
+    return hitIntent('missing-information', 0.88, ['missing'], 'Change of course', 'applying', entities, true)
+  }
+
   if (/repay|after\s*nysc|nysc.*pay|scholarship|loan\s*or\s*scholarship|na\s*scholarship/i.test(raw) && !/pending|how\s*far|never\s*enter/i.test(raw)) {
     if (/scholarship|grant|free\s*money|loan\s*or\s*scholarship/i.test(raw)) {
       return hitIntent('loan-or-scholarship', 0.88, ['scholarship', 'loan'], 'Loan vs scholarship', 'exploring', entities)
@@ -94,7 +105,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   }
 
   if (
-    /how\s*far|money\s*(never|no)\s*(enter|drop|show)|still\s*pending|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect/i.test(
+    /how\s*far|money\s*(never|no)\s*(enter|drop|show)|still\s*pending|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect|total\s*loans?\s*(is\s*)?(0|zero)|dashboard\s*(empty|blank)|i\s*don\s*submit/i.test(
       raw,
     )
   ) {
