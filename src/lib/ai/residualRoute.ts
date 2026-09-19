@@ -2,6 +2,7 @@ import type { ConversationTurn, IntentId, IntentResult } from './types'
 import { residualOtherRoute } from './residualOther'
 import { officialFaqIntent } from './officialFaq'
 import { residualOtherMore } from './residualOtherMore'
+import { residualPendingMore } from './residualPendingMore'
 import { residualOtherHourly } from './residualOtherHourly'
 import { residualOtherHourly2 } from './residualOtherHourly2'
 import { residualOtherHourly3 } from './residualOtherHourly3'
@@ -49,6 +50,7 @@ import { residualOtherHourly44 } from './residualOtherHourly44'
 import { residualOtherHourly45 } from './residualOtherHourly45'
 import { residualOtherHourly46 } from './residualOtherHourly46'
 import { residualOtherHourly47 } from './residualOtherHourly47'
+import { residualOtherHourly48 } from './residualOtherHourly48'
 
 export function isPortalDump(text: string): boolean {
   const t = (text || '').toLowerCase()
@@ -110,7 +112,8 @@ export function detectEntities(text: string): string[] {
   if (/\bbvn\b/.test(t)) out.push('bvn')
   if (/upkeep|stipend|allowance/.test(t)) out.push('upkeep')
   if (/school\s*fees?|tuition|institutional\s*charges?/.test(t)) out.push('fees')
-  if (/pending|under\s*review|how\s*far|never\s*enter|mates?\s*don/.test(t)) out.push('pending')
+  if (/pending|under\s*review|how\s*far|never\s*enter|mates?\s*don|processing|nothing\s*don\s*drop/.test(t))
+    out.push('pending')
   if (/login|sign\s*in|password|otp/.test(t)) out.push('login')
   if (/missing\s*information|not\s*on\s*(the\s*)?list/.test(t)) out.push('missing')
   return out
@@ -128,6 +131,9 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
 
   const more = residualOtherMore(q, entities)
   if (more) return more
+
+  const pendingMore = residualPendingMore(q, entities)
+  if (pendingMore) return pendingMore
 
   for (const fn of [
     residualOtherHourly,
@@ -177,6 +183,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     residualOtherHourly45,
     residualOtherHourly46,
     residualOtherHourly47,
+    residualOtherHourly48,
   ]) {
     try {
       const hit = fn(q, entities)
