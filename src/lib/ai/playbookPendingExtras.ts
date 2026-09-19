@@ -79,5 +79,8 @@ export function playbookPendingExtras(t: string): string | null {
   if (/account\s*(empty|blank|zero)|nothing\s*(don|has)\s*(enter|drop|show)\s*(for|in)\s*(my\s*)?(account|bank)|e\s*never\s*(show|enter)\s*(for|in)\s*(my\s*)?(account|bank)/i.test(t)) {
     return `**Empty bank account after apply is still a wait, not a new apply.**\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. School fees go to the institution. You can have zero personal alert even after the school is paid.\n3. Upkeep only if you ticked it in the same session, and only into the bank on your profile.\n4. I will not invent a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
   }
+  if (/^(check(\s*am)?|status|my\s*status|loan\s*status|application\s*status)[.!? ]*$/i.test(t) || /abeg\s*check\s*(my\s*)?(loan|status|am)/i.test(t)) {
+    return `**Check status starts on the portal, not in this chat.**\n\n1. Sign in at ${SITE} then open ${PORTAL}. Copy the exact status word.\n2. Do not create a second account to check faster.\n3. School paid is not the same as upkeep paid.\n4. I cannot see your file. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+  }
   return null
 }
