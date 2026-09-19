@@ -10,13 +10,60 @@ function getSiteUrl() {
   return 'https://nelfund-student-guide.vercel.app/'
 }
 
-function buildShareText(url: string) {
+const SHARE_TITLE = 'NELFUND Student Guide'
+const GROUP_NAME_KEY = 'nelfund-share-group-name'
+const GROUP_NAME_EVENT = 'nelfund-share-group-name'
+const GROUP_SEARCH_HINTS = [
+  '100L',
+  '200L',
+  '300L',
+  '400L',
+  '500L',
+  'ND1',
+  'ND2',
+  'HND1',
+  'HND2',
+  'class group',
+  'department',
+  'faculty',
+  'SUG',
+  'class rep',
+]
+let shareDeepLinkConsumed = false
+
+function getSavedGroupName() {
+  if (typeof window === 'undefined') return ''
+  try {
+    return stripLongDashes(window.localStorage.getItem(GROUP_NAME_KEY) || '').trim()
+  } catch {
+    return ''
+  }
+}
+
+function persistGroupName(value: string) {
+  const cleaned = stripLongDashes(value).trim()
+  try {
+    if (cleaned) window.localStorage.setItem(GROUP_NAME_KEY, cleaned)
+  } catch {
+    /* private mode */
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(GROUP_NAME_EVENT))
+  }
+  return cleaned
+}
+
+function buildShareText(url: string, groupName = '') {
+  const searchLine = groupName
+    ? `Search this exact group in WhatsApp: ${groupName}`
+    : 'In WhatsApp, tap Search at the top. Type your class or department group. Do not tap one classmate.'
   return stripLongDashes(
     'PIN THIS IN YOUR CLASS WHATSAPP GROUP\n' +
       'Before you apply or wait on the portal, open this first.\n' +
       'Clear steps for application, pending status, and common portal issues.\n' +
-      'In WhatsApp, tap Search at the top. Type your class or department group. Do not tap one classmate.\n' +
+      `${searchLine}\n` +
       'Send in the group, then pin so new classmates see it.\n' +
+      'If you are class rep, pin it after you send.\n' +
       `Link ${url}`,
   )
 }
@@ -41,26 +88,6 @@ async function copySharePayload(value: string) {
     }
   }
 }
-
-const SHARE_TITLE = 'NELFUND Student Guide'
-const GROUP_NAME_KEY = 'nelfund-share-group-name'
-const GROUP_SEARCH_HINTS = [
-  '100L',
-  '200L',
-  '300L',
-  '400L',
-  '500L',
-  'ND1',
-  'ND2',
-  'HND1',
-  'HND2',
-  'class group',
-  'department',
-  'faculty',
-  'SUG',
-  'class rep',
-]
-let shareDeepLinkConsumed = false
 
 type Channel = {
   id: string
@@ -96,14 +123,20 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
   const [posted, setPosted] = useState(false)
   const [canNative, setCanNative] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [groupName, setGroupName] = useState('')
   const titleId = useId()
   const siteUrl = getSiteUrl()
-  const shareText = buildShareText(siteUrl)
+  const shareText = buildShareText(siteUrl, groupName)
   const channels = buildChannels(siteUrl, shareText)
 
   useEffect(() => {
     setMounted(true)
     setCanNative(typeof navigator !== 'undefined' && typeof navigator.share === 'function')
+    setGroupName(getSavedGroupName())
+    function onName() {
+      setGroupName(getSavedGroupName())
+    }
+    window.addEventListener(GROUP_NAME_EVENT, onName)
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     const hash = window.location.hash.replace(/^#/, '')
@@ -116,10 +149,12 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
       const next = `${window.location.pathname}${qs ? `?${qs}` : ''}${hash === 'share' ? '' : window.location.hash}`
       window.history.replaceState({}, '', next || window.location.pathname)
     }
+    return () => window.removeEventListener(GROUP_NAME_EVENT, onName)
   }, [])
 
   useEffect(() => {
     if (!open) return
+    setGroupName(getSavedGroupName())
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
@@ -249,7 +284,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                     Help the whole class, not one friend
                   </h2>
                   <p className="mt-1 text-sm text-ink/55">
-                    WhatsApp may show a list of people first. Skip that list. Tap Search at the top and type your class, level, or department group.
+                    Type your class group name first. WhatsApp may show people. Skip that list. Tap Search and paste the group name.
                   </p>
                 </div>
                 <button type="button" onClick={close} className="rounded-full p-2 text-ink/40 transition hover:bg-forest-50 hover:text-ink" aria-label="Close">
@@ -338,22 +373,12 @@ function GroupNameField({ source }: { source: string }) {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(GROUP_NAME_KEY)
-      if (saved) setName(saved)
-    } catch {
-      /* private mode */
-    }
+    setName(getSavedGroupName())
   }, [])
 
   async function copyName() {
-    const value = stripLongDashes(name).trim()
+    const value = persistGroupName(name)
     if (!value) return
-    try {
-      window.localStorage.setItem(GROUP_NAME_KEY, value)
-    } catch {
-      /* ignore */
-    }
     const ok = await copySharePayload(value)
     if (!ok) return
     setCopied(true)
@@ -370,7 +395,10 @@ function GroupNameField({ source }: { source: string }) {
         <input
           id="share-group-name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value)
+            persistGroupName(e.target.value)
+          }}
           placeholder="Example: 300L Computer Science"
           className="min-h-[40px] min-w-0 flex-1 rounded-xl border border-forest-100 bg-white px-3 text-sm text-ink placeholder:text-ink/35"
         />
@@ -444,8 +472,19 @@ export function WhatsAppClassLink({
   showHints?: boolean
 }) {
   const [copied, setCopied] = useState(false)
+  const [groupName, setGroupName] = useState('')
   const siteUrl = getSiteUrl()
-  const shareText = buildShareText(siteUrl)
+
+  useEffect(() => {
+    setGroupName(getSavedGroupName())
+    function onName() {
+      setGroupName(getSavedGroupName())
+    }
+    window.addEventListener(GROUP_NAME_EVENT, onName)
+    return () => window.removeEventListener(GROUP_NAME_EVENT, onName)
+  }, [])
+
+  const shareText = buildShareText(siteUrl, groupName)
   const href = `https://wa.me/?text=${encodeURIComponent(shareText)}`
 
   return (
