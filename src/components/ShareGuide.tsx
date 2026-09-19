@@ -4,10 +4,11 @@ import { trackFeature } from '../lib/analytics'
 import { stripLongDashes } from '../lib/copyHygiene'
 
 function getSiteUrl() {
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return `${window.location.origin}/`
-  }
-  return 'https://nelfund-student-guide.vercel.app/'
+  const origin =
+    typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://nelfund-student-guide.vercel.app'
+  return `${origin}/?from=class-wa`
 }
 
 const SHARE_TITLE = 'NELFUND Student Guide'
@@ -422,7 +423,7 @@ export function GroupNameField({ source }: { source: string }) {
   )
 }
 
-export const SHARE_TEXT = buildShareText('https://nelfund-student-guide.vercel.app/')
+export const SHARE_TEXT = buildShareText('https://nelfund-student-guide.vercel.app/?from=class-wa')
 
 export function GroupSearchChips({
   source,
