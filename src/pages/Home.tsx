@@ -201,8 +201,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            <ShareGuide variant="button" />
+          <div className="mt-6">
             <WhatsAppClassLink source="home-hero" showHints />
           </div>
           <p className="mt-2 text-xs text-ink/45">
