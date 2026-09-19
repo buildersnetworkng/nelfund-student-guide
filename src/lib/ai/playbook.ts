@@ -60,7 +60,7 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
     return `**First step right now**${inst}\n\n1. Ask ICT / Registry / NELFUND desk to confirm your record is uploaded\n2. Retry ${PORTAL}\n3. Still failing after school confirms → ${ESUPPORT}`
   }
   if (intent === 'pending-application') {
-    return `**First step**\n\n1. Open ${PORTAL} and note the exact status word\n2. If pending a long time, ask school desk about institutional verification\n3. Still stuck → ${ESUPPORT}`
+    return `**First step for how far / pending**\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. School charges go to the school. No SMS does not mean declined.\n3. Still the same word for weeks: campus NELFUND desk, then ${ESUPPORT}.`
   }
   return `**Next step**\n\n1. Open ${PORTAL} and act on the exact status or error you see\n2. If the portal asks for school confirmation, use your campus NELFUND desk\n3. Still stuck after that → ${ESUPPORT}\n\n${PORTAL}`
 }
@@ -114,7 +114,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'pending-application') {
     const extra = ctx.userText ? playbookPendingExtras(ctx.userText) : null
     if (extra) return extra
-    return `**Pending / money never enter / how far my loan** is a wait. Do not open a second account.\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session. It can land later than school charges.\n4. Approved on screen still does not give me a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+    return `**How far / money never enter** means your file is still waiting. Do not open a second account.\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your dashboard from this chat.\n2. School charges go to the institution. You can wait weeks with no SMS even after the school is paid.\n3. Upkeep only lands in your bank if you ticked it in the same session, and it can come later than school fees.\n4. I will not invent a pay date. Same word for a long time: campus NELFUND desk, then ${ESUPPORT}.`
   }
   if (intent === 'how-to-apply') {
     return `**How to apply**\n\n1. Confirm school listed and record uploaded.\n2. Create or sign in at ${PORTAL}.\n3. Complete profile (JAMB, NIN, BVN).\n4. Use Request for Student Loan only when the official loan window is open. Confirm on ${SITE} / ${PORTAL}. I will not invent dates.`
