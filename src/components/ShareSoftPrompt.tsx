@@ -5,6 +5,7 @@ import { trackFeature } from '../lib/analytics'
 
 const STORAGE_KEY = 'nelfund-share-soft-dismissed-at'
 const VALUE_KEY = 'nelfund-share-value-seen'
+const INBOUND_KEY = 'nelfund-share-inbound'
 const DISMISS_MS = 1000 * 60 * 60 * 24 * 3
 
 /** Ask already has an after-answer class-group CTA. Do not stack a second prompt. */
@@ -41,12 +42,22 @@ function hasValue() {
   }
 }
 
+function isInbound() {
+  try {
+    return Boolean(window.sessionStorage.getItem(INBOUND_KEY))
+  } catch {
+    return false
+  }
+}
+
 export default function ShareSoftPrompt() {
   const location = useLocation()
   const [visible, setVisible] = useState(false)
+  const [inbound, setInbound] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    setInbound(isInbound())
     if (SKIP_PROMPT_PATHS.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`))) {
       setVisible(false)
       return
@@ -62,7 +73,7 @@ export default function ShareSoftPrompt() {
       if (Date.now() - startedAt < 1800) return
       shown = true
       setVisible(true)
-      trackFeature('share_prompt_shown', { variant: 'soft-prompt' })
+      trackFeature('share_prompt_shown', { variant: 'soft-prompt', inbound: isInbound() })
     }
 
     function onValue() {
@@ -114,9 +125,13 @@ export default function ShareSoftPrompt() {
       <div className="rounded-2xl border border-forest-100 bg-white p-3.5 shadow-xl">
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">Help the whole class, not one friend</p>
+            <p className="text-sm font-semibold text-ink">
+              {inbound ? 'A classmate sent you here. Help your own class next.' : 'Help the whole class, not one friend'}
+            </p>
             <p className="mt-1 text-xs leading-relaxed text-ink/55">
-              Post this guide in the class or department WhatsApp group. If WhatsApp shows people, tap Search and type the group name.
+              {inbound
+                ? 'Post this guide in YOUR class or department WhatsApp group. If WhatsApp shows people, tap Search and type the group name.'
+                : 'Post this guide in the class or department WhatsApp group. If WhatsApp shows people, tap Search and type the group name.'}
             </p>
           </div>
           <button
@@ -132,7 +147,7 @@ export default function ShareSoftPrompt() {
         </div>
         <div className="mt-3">
           <WhatsAppClassLink
-            source="soft-prompt"
+            source={inbound ? 'soft-prompt-inbound' : 'soft-prompt'}
             className="!min-h-[36px] w-full !px-3 !py-1.5 !text-xs"
           />
         </div>

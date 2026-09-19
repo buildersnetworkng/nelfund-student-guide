@@ -101,10 +101,30 @@ function RevealSection({
   )
 }
 
+function useInboundShare() {
+  const location = useLocation()
+  const [inbound, setInbound] = useState(false)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const from = params.get('from')
+    if (from === 'class-wa' || from === 'class-group') {
+      setInbound(true)
+      return
+    }
+    try {
+      setInbound(Boolean(window.sessionStorage.getItem('nelfund-share-inbound')))
+    } catch {
+      setInbound(false)
+    }
+  }, [location.search])
+  return inbound
+}
+
 export default function Home() {
   const location = useLocation()
   const navigate = useNavigate()
   const [askDraft, setAskDraft] = useState('')
+  const inbound = useInboundShare()
 
   useEffect(() => {
     if (location.hash) {
@@ -337,15 +357,16 @@ export default function Home() {
       <RevealSection id="home-help" className="container-page mt-14">
         <div className="rounded-2xl border border-forest-100 bg-gradient-to-br from-forest-50 to-white p-5 sm:p-6">
           <h2 className="font-display text-base font-semibold text-ink sm:text-lg">
-            Help your class, not just one friend
+            {inbound ? 'A classmate sent this. Put it in your own class group.' : 'Help your class, not just one friend'}
           </h2>
           <p className="mt-1 max-w-lg text-sm leading-relaxed text-ink/60">
-            Drop the NELFUND Guide in your class or department WhatsApp group so many classmates can
-            check readiness, apply correctly, and fix portal issues before they get stuck.
+            {inbound
+              ? 'Post the NELFUND Guide in YOUR class or department WhatsApp group so more classmates can check readiness, apply correctly, and fix portal issues.'
+              : 'Drop the NELFUND Guide in your class or department WhatsApp group so many classmates can check readiness, apply correctly, and fix portal issues before they get stuck.'}
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <ShareGuide variant="button" />
-            <WhatsAppClassLink source="home-help" showHints />
+            <WhatsAppClassLink source={inbound ? 'home-help-inbound' : 'home-help'} />
           </div>
           <p className="mt-2 text-xs text-ink/45">
             Copy a level or department name first. If WhatsApp shows people, tap Search and paste that name. Do not tap one classmate.

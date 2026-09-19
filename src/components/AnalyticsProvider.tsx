@@ -16,6 +16,11 @@ export default function AnalyticsProvider() {
     const from = params.get('from')
     if (from === 'class-wa' || from === 'class-group') {
       trackFeature('share_inbound', { from })
+      try {
+        window.sessionStorage.setItem('nelfund-share-inbound', from)
+      } catch {
+        /* private mode */
+      }
     }
   }, [])
 
