@@ -41,7 +41,7 @@ async function copySharePayload(value: string) {
 }
 
 const SHARE_TITLE = 'NELFUND Student Guide'
-const GROUP_SEARCH_HINTS = ['100L', '200L', '300L', '400L', 'class rep', 'department']
+const GROUP_SEARCH_HINTS = ['100L', '200L', '300L', '400L', 'ND1', 'HND1', 'class rep', 'department', 'faculty']
 let shareDeepLinkConsumed = false
 
 type Channel = {
@@ -74,6 +74,7 @@ type ShareGuideProps = {
 export default function ShareGuide({ variant = 'button', className = '' }: ShareGuideProps) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState<'text' | 'link' | null>(null)
+  const [copiedHint, setCopiedHint] = useState<string | null>(null)
   const [posted, setPosted] = useState(false)
   const [canNative, setCanNative] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -116,6 +117,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
   const close = useCallback(() => {
     setOpen(false)
     setPosted(false)
+    setCopiedHint(null)
   }, [])
 
   const copy = useCallback(
@@ -128,6 +130,14 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
     },
     [shareText, siteUrl],
   )
+
+  const copyHint = useCallback(async (hint: string) => {
+    const ok = await copySharePayload(hint)
+    if (!ok) return
+    setCopiedHint(hint)
+    trackFeature('share_group_hint', { hint })
+    window.setTimeout(() => setCopiedHint(null), 2000)
+  }, [])
 
   const shareNative = useCallback(async () => {
     try {
@@ -234,17 +244,22 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                 <pre className="mt-3 max-h-32 overflow-auto rounded-2xl border border-forest-100 bg-forest-50/60 p-3 text-left text-[12px] leading-relaxed text-ink/80 whitespace-pre-wrap font-sans">
                   {shareText}
                 </pre>
-                <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Search ideas in WhatsApp</p>
+                <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-ink/40">Tap to copy a WhatsApp search</p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {GROUP_SEARCH_HINTS.map((hint) => (
-                    <span key={hint} className="rounded-full border border-forest-100 bg-forest-50 px-2.5 py-1 text-[11px] font-medium text-forest-800">
-                      {hint}
-                    </span>
+                    <button
+                      key={hint}
+                      type="button"
+                      onClick={() => void copyHint(hint)}
+                      className="rounded-full border border-forest-100 bg-forest-50 px-2.5 py-1 text-[11px] font-medium text-forest-800 transition hover:border-forest-300 hover:bg-forest-100"
+                    >
+                      {copiedHint === hint ? 'Copied' : hint}
+                    </button>
                   ))}
                 </div>
                 <ol className="mt-3 space-y-1 text-[12px] leading-relaxed text-ink/55">
                   <li>1. Tap Post to class group. The pin text is copied for you.</li>
-                  <li>2. In WhatsApp search, type your level or department (example: 300L or class rep).</li>
+                  <li>2. In WhatsApp search, paste a level or department (example: 300L, ND1, or class rep).</li>
                   <li>3. Open the group, paste if the box is empty, send, then pin the message.</li>
                 </ol>
                 <button
