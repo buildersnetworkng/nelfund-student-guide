@@ -51,6 +51,7 @@ import { residualOtherHourly45 } from './residualOtherHourly45'
 import { residualOtherHourly46 } from './residualOtherHourly46'
 import { residualOtherHourly47 } from './residualOtherHourly47'
 import { residualOtherHourly48 } from './residualOtherHourly48'
+import { residualOtherHourly49 } from './residualOtherHourly49'
 
 export function isPortalDump(text: string): boolean {
   const t = (text || '').toLowerCase()
@@ -184,6 +185,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     residualOtherHourly46,
     residualOtherHourly47,
     residualOtherHourly48,
+    residualOtherHourly49,
   ]) {
     try {
       const hit = fn(q, entities)
