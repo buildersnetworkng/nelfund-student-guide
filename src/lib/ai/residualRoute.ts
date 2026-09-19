@@ -52,6 +52,7 @@ import { residualOtherHourly46 } from './residualOtherHourly46'
 import { residualOtherHourly47 } from './residualOtherHourly47'
 import { residualOtherHourly48 } from './residualOtherHourly48'
 import { residualOtherHourly49 } from './residualOtherHourly49'
+import { residualOtherHourly50 } from './residualOtherHourly50'
 
 export function isPortalDump(text: string): boolean {
   const t = (text || '').toLowerCase()
@@ -71,7 +72,6 @@ export function isPortalDump(text: string): boolean {
 
 export function lastUserIntent(history?: ConversationTurn[]): IntentId | null {
   if (!history?.length) return null
-  // Prefer the most recent turn that carries an intent (assistant answers store intent in history).
   for (let i = history.length - 1; i >= 0; i--) {
     const h = history[i]
     if (h.intent && h.intent !== 'unknown') return h.intent
@@ -97,7 +97,6 @@ export function expandWithContext(question: string, history?: ConversationTurn[]
     /^(alright|okay|ok|so|and|then|now|please)?\s*(what|wetin|how|where|which|who)?\s*(should|will|can|do|go)?\s*(i|we)?\s*(do|take|try)?\s*(next|now|first)?/i.test(
       q,
     )
-  // Short or conversational follow-ups inherit prior user question + last assistant topic
   if ((q.length < 12 || followUp) && priorUsers) {
     const asstSnippet = lastAsst ? lastAsst.slice(0, 180) : ''
     return `${priorUsers} ${asstSnippet} ${q}`.trim()
@@ -186,6 +185,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     residualOtherHourly47,
     residualOtherHourly48,
     residualOtherHourly49,
+    residualOtherHourly50,
   ]) {
     try {
       const hit = fn(q, entities)
