@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { trackPageView, trackSessionStart, flushAnalytics } from '../lib/analytics'
+import { trackPageView, trackSessionStart, flushAnalytics, trackFeature } from '../lib/analytics'
 
 /**
  * Mount once near the app root. Tracks session start + page views on route change.
@@ -11,6 +11,12 @@ export default function AnalyticsProvider() {
 
   useEffect(() => {
     trackSessionStart()
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const from = params.get('from')
+    if (from === 'class-wa' || from === 'class-group') {
+      trackFeature('share_inbound', { from })
+    }
   }, [])
 
   useEffect(() => {
