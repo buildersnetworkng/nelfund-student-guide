@@ -114,7 +114,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'pending-application') {
     const extra = ctx.userText ? playbookPendingExtras(ctx.userText) : null
     if (extra) return extra
-    return `**Pending / money never enter / check am** is a wait, not a new apply.\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session, and it can land later.\n4. Approved on screen still does not give me a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+    return `**Pending / money never enter / how far my loan** is a wait. Do not open a second account.\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. No personal alert does not mean declined.\n3. Upkeep only if you ticked it in the same session. It can land later than school charges.\n4. Approved on screen still does not give me a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
   }
   if (intent === 'how-to-apply') {
     return `**How to apply**\n\n1. Confirm school listed and record uploaded.\n2. Create or sign in at ${PORTAL}.\n3. Complete profile (JAMB, NIN, BVN).\n4. Use Request for Student Loan only when the official loan window is open. Confirm on ${SITE} / ${PORTAL}. I will not invent dates.`
@@ -136,7 +136,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**As of today:** account creation can be OPEN while the **loan and upkeep window is not confirmed** for this cycle.\n\n• Create account, finish profile, sort BVN: ${PORTAL}\n• Already registered last year: sign **in** at ${SITE}, do not open a new account\n\nDo not use social media for opening or closing dates. Confirm on the portal. I will not invent a deadline.`
   }
   if (intent === 'jamb-verification') {
-    return `**Invalid JAMB / JAMB wahala**\n\n1. Type the JAMB number exactly as on the admission letter. No extra space.\n2. Name and date of birth must match JAMB and NIN.\n3. Direct Entry still uses a JAMB registration, not a made-up number.\n4. Still failing: campus NELFUND desk, then ${ESUPPORT}. Do not create a second account.`
+    return `**Invalid JAMB / JAMB wahala**\n\n1. Type the JAMB number exactly as on the admission letter. No extra space.\n2. Name and date of birth must match JAMB and NIN.\n3. Direct Entry still uses a JAMB registration, not a made-up number. Old-year JAMB can fail if CAPS / school record is not aligned.\n4. Still failing: campus NELFUND desk, then ${ESUPPORT}. Do not create a second account.`
   }
   if (intent === 'scam-safety') {
     return `**Safety**\n\n• Never pay an agent.\n• Never share OTP or password.\n• Apply only on ${PORTAL}\n• Tickets: ${ESUPPORT}`
