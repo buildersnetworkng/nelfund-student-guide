@@ -90,17 +90,17 @@ export default function Apply() {
         })}
       </ol>
 
-      <div className="card mt-8 flex flex-col gap-3 border-forest-200 bg-forest-50/40 sm:flex-row sm:items-center sm:justify-between">
+      <div className="card mt-8 flex flex-col gap-3 border-forest-200 bg-forest-50/40">
         <div>
           <p className="text-sm font-semibold text-ink">Help the whole class apply correctly</p>
           <p className="mt-0.5 text-xs text-ink/55">
             Post this step-by-step guide in your class or department WhatsApp group before classmates open the portal.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <WhatsAppClassLink source="apply-end" className="shrink-0" />
-          <ShareGuide variant="button" className="shrink-0" />
-        </div>
+        <WhatsAppClassLink source="apply-end" showHints />
+        <p className="text-xs text-ink/45">
+          Copy the group name first. If WhatsApp shows people, tap Search and paste it. Do not tap one classmate.
+        </p>
       </div>
 
       <div className="mt-8">
