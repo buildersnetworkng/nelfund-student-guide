@@ -335,10 +335,11 @@ export default function Ask() {
                       <div className="pt-1">
                         <WhatsAppClassLink
                           source="ask-after-answer"
+                          showHints
                           className="!min-h-[36px] !px-3 !py-1.5 !text-xs"
                         />
                         <p className="mt-1 text-[11px] leading-relaxed text-ink/40">
-                          Search your class or department group name. Do not tap one classmate.
+                          Copy a level or department name, then search that group in WhatsApp. Do not tap one classmate.
                         </p>
                       </div>
                     )}
