@@ -4,6 +4,12 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Extra pending-status answers for leftover unknown phrasings. */
 export function playbookPendingExtras(t: string): string | null {
+  if (/when\s*(una|dem|they)\s*go\s*pay\s*(me|am)|una\s*go\s*pay\s*me\s*when|pay\s*me\s*abeg/i.test(t)) {
+    return `**When una go pay me is still a wait on your file, not a new apply.**\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. Institutional charges go to the **school**. You can wait with no personal alert even after the school is paid.\n3. Upkeep only if you ticked it in the same session, and it can land later.\n4. I will not invent a pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+  }
+  if (/status\s*(no|not)\s*dey\s*move|e\s*no\s*dey\s*move|same\s*pending\s*(abeg)?/i.test(t)) {
+    return `**Status no dey move is still a wait, not a new apply.**\n\n1. Open ${PORTAL} and copy the exact status word.\n2. Same word for weeks is common while the school record or a batch is processed.\n3. School fees go to the institution first. No personal alert does not mean the file is dead.\n4. I will not invent a batch or pay date. Long same-word wait: campus NELFUND desk, then ${ESUPPORT}.`
+  }
   if (/wetin\s*(be|mean)\s*under\s*review|what\s*(does|is)\s*under\s*review|under\s*review\s*(mean|meaning)/i.test(t)) {
     return `**Under review means NELFUND / the school is still checking the file. It is not a pay date and not a rejection.**\n\n1. Open ${PORTAL} and copy the exact sentence, do not invent a new status.\n2. Institutional charges go to the **school** first. No personal alert does not mean declined.\n3. Upkeep (only if you ticked it in the same session) can move later.\n4. I will not invent how many days review takes. Same word for a long time: campus NELFUND desk, then ${ESUPPORT}.`
   }
