@@ -185,6 +185,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
   )
 
   const copyHint = useCallback(async (hint: string) => {
+    persistGroupName(hint)
     const ok = await copySharePayload(hint)
     if (!ok) return
     setCopiedHint(hint)
@@ -368,12 +369,18 @@ function ShareIcon({ className = '' }: { className?: string }) {
   )
 }
 
-function GroupNameField({ source }: { source: string }) {
+export function GroupNameField({ source }: { source: string }) {
   const [name, setName] = useState('')
   const [copied, setCopied] = useState(false)
+  const inputId = useId()
 
   useEffect(() => {
     setName(getSavedGroupName())
+    function onName() {
+      setName(getSavedGroupName())
+    }
+    window.addEventListener(GROUP_NAME_EVENT, onName)
+    return () => window.removeEventListener(GROUP_NAME_EVENT, onName)
   }, [])
 
   async function copyName() {
@@ -388,12 +395,12 @@ function GroupNameField({ source }: { source: string }) {
 
   return (
     <div className="mt-3">
-      <label htmlFor="share-group-name" className="text-[11px] font-semibold uppercase tracking-wide text-ink/40">
+      <label htmlFor={inputId} className="text-[11px] font-semibold uppercase tracking-wide text-ink/40">
         Your class group name
       </label>
       <div className="mt-1.5 flex gap-2">
         <input
-          id="share-group-name"
+          id={inputId}
           value={name}
           onChange={(e) => {
             setName(e.target.value)
@@ -436,6 +443,7 @@ export function GroupSearchChips({
       await onCopy(hint)
       return
     }
+    persistGroupName(hint)
     const ok = await copySharePayload(hint)
     if (!ok) return
     setLocalCopied(hint)
@@ -505,7 +513,12 @@ export function WhatsAppClassLink({
       >
         {copied ? 'Copied. Search the group' : 'Post to class group'}
       </a>
-      {showHints && <GroupSearchChips source={source} />}
+      {showHints && (
+        <>
+          <GroupNameField source={source} />
+          <GroupSearchChips source={source} />
+        </>
+      )}
     </div>
   )
 }
