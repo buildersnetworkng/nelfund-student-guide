@@ -116,7 +116,7 @@ export default function ShareSoftPrompt() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink">Help the whole class, not one friend</p>
             <p className="mt-1 text-xs leading-relaxed text-ink/55">
-              If this guide helped you, search your class or department WhatsApp group and post the link so others are not stuck on the portal alone.
+              If this guide helped you, post it in the class or department WhatsApp group. If WhatsApp shows a person list, tap Search and type the group name.
             </p>
           </div>
           <button
@@ -138,7 +138,7 @@ export default function ShareSoftPrompt() {
           <ShareGuide variant="button" className="!min-h-[36px] !px-3 !py-1.5 !text-xs" />
         </div>
         <p className="mt-2 text-[11px] leading-relaxed text-ink/40">
-          In WhatsApp, search the group name. Do not tap one classmate.
+          Search the group name. Do not tap one classmate.
         </p>
       </div>
     </div>

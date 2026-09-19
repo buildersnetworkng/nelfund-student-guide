@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { trackFeature } from '../lib/analytics'
+import { stripLongDashes } from '../lib/copyHygiene'
 
 function getSiteUrl() {
   if (typeof window !== 'undefined' && window.location?.origin) {
@@ -10,12 +11,12 @@ function getSiteUrl() {
 }
 
 function buildShareText(url: string) {
-  return (
+  return stripLongDashes(
     'PIN THIS IN YOUR CLASS WHATSAPP GROUP\n' +
-    'Before you apply or wait on the portal, open this first.\n' +
-    'Clear steps for application, pending status, and common portal errors.\n' +
-    'Search your class or department group name and post there, not to one classmate.\n' +
-    `Link ${url}`
+      'Before you apply or wait on the portal, open this first.\n' +
+      'Clear steps for application, pending status, and common portal issues.\n' +
+      'In WhatsApp, use Search at the top. Type your class or department group. Do not tap one classmate.\n' +
+      `Link ${url}`,
   )
 }
 
@@ -41,7 +42,20 @@ async function copySharePayload(value: string) {
 }
 
 const SHARE_TITLE = 'NELFUND Student Guide'
-const GROUP_SEARCH_HINTS = ['100L', '200L', '300L', '400L', 'ND1', 'HND1', 'class rep', 'department', 'faculty']
+const GROUP_SEARCH_HINTS = [
+  '100L',
+  '200L',
+  '300L',
+  '400L',
+  'ND1',
+  'ND2',
+  'HND1',
+  'HND2',
+  'class group',
+  'department',
+  'faculty',
+  'class rep',
+]
 let shareDeepLinkConsumed = false
 
 type Channel = {
@@ -231,7 +245,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                     Help the whole class, not one friend
                   </h2>
                   <p className="mt-1 text-sm text-ink/55">
-                    Open WhatsApp and search your class name, level, or department. Post in that group so many students get the same steps.
+                    WhatsApp may show a list of people first. Skip that list. Tap Search at the top and type your class, level, or department group.
                   </p>
                 </div>
                 <button type="button" onClick={close} className="rounded-full p-2 text-ink/40 transition hover:bg-forest-50 hover:text-ink" aria-label="Close">
@@ -247,7 +261,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                 <GroupSearchChips className="mt-3" source="share-sheet" copiedHint={copiedHint} onCopy={copyHint} />
                 <ol className="mt-3 space-y-1 text-[12px] leading-relaxed text-ink/55">
                   <li>1. Tap Post to class group. The pin text is copied for you.</li>
-                  <li>2. In WhatsApp search, paste a level or department (example: 300L, ND1, or class rep).</li>
+                  <li>2. If WhatsApp shows names, tap Search and paste a level or department (example: 300L, ND1, class group).</li>
                   <li>3. Open the group, paste if the box is empty, send, then pin the message.</li>
                 </ol>
                 <button
@@ -286,7 +300,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                   ))}
                 </div>
                 <p className="mt-4 text-center text-[11px] text-ink/40">
-                  After WhatsApp opens, search the group name and paste if needed. Do not tap one classmate.
+                  After WhatsApp opens, search the group name. Do not tap one classmate.
                 </p>
               </div>
             </div>

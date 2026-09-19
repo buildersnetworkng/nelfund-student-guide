@@ -206,7 +206,7 @@ export default function Home() {
             <WhatsAppClassLink source="home-hero" />
           </div>
           <p className="mt-2 text-xs text-ink/45">
-            In WhatsApp, search your class or department group name. Do not tap one classmate.
+            In WhatsApp, tap Search and type your class or department group. Do not tap one classmate.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
@@ -349,7 +349,7 @@ export default function Home() {
             <WhatsAppClassLink source="home-help" showHints />
           </div>
           <p className="mt-2 text-xs text-ink/45">
-            Copy a level or department name first, then search that WhatsApp group. Do not tap one classmate.
+            Copy a level or department name first. If WhatsApp shows people, tap Search and paste that name. Do not tap one classmate.
           </p>
         </div>
       </RevealSection>
