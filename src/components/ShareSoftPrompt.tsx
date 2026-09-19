@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { WhatsAppClassLink } from './ShareGuide'
+import { GroupNameField, WhatsAppClassLink } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
 
 const STORAGE_KEY = 'nelfund-share-soft-dismissed-at'
@@ -130,6 +130,9 @@ export default function ShareSoftPrompt() {
             </svg>
           </button>
         </div>
+        <div className="mt-2">
+          <GroupNameField source="soft-prompt" />
+        </div>
         <div className="mt-3">
           <WhatsAppClassLink
             source="soft-prompt"
@@ -137,7 +140,7 @@ export default function ShareSoftPrompt() {
           />
         </div>
         <p className="mt-2 text-[11px] leading-relaxed text-ink/40">
-          Search the group name. Send there, then pin. Do not tap one classmate.
+          Name the group first. If WhatsApp shows people, tap Search and paste. Send, then pin. Do not tap one classmate.
         </p>
       </div>
     </div>
