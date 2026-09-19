@@ -66,7 +66,6 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
 }
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
-  // Never greet when we are already in a NELFUND thread
   if (
     ctx.userText &&
     isGreetingText(ctx.userText) &&
@@ -117,6 +116,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**How far / money never enter** means your file is still waiting. Do not open a second account.\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your dashboard from this chat.\n2. School charges go to the institution. You can wait weeks with no SMS even after the school is paid.\n3. Upkeep only lands in your bank if you ticked it in the same session, and it can come later than school fees.\n4. I will not invent a pay date. Same word for a long time: campus NELFUND desk, then ${ESUPPORT}.`
   }
   if (intent === 'how-to-apply') {
+    if (ctx.userText && /\b(agent|middleman|pay\s*(una|dem|somebody)|who\s*go\s*help\s*me\s*apply)\b/i.test(ctx.userText)) {
+      return `**Do not pay an agent.** NELFUND apply is free on the official portal.\n\n1. Sign up only if you never had an account: ${PORTAL}\n2. Already registered last year: sign in at ${SITE}, do not create a second account.\n3. Confirm school record is uploaded. I will not invent a loan deadline.\n4. Stuck: campus NELFUND desk, then ${ESUPPORT}`
+    }
     return `**How to apply**\n\n1. Confirm school listed and record uploaded.\n2. Create or sign in at ${PORTAL}.\n3. Complete profile (JAMB, NIN, BVN).\n4. Use Request for Student Loan only when the official loan window is open. Confirm on ${SITE} / ${PORTAL}. I will not invent dates.`
   }
   if (intent === 'what-is-nelfund' || intent === 'nelfund-purpose' || intent === 'nelfund-history') {
@@ -156,7 +158,6 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'documents-needed') {
     return `**Documents commonly asked on the portal**\n\n1. JAMB admission letter (usually required).\n2. Clear passport photo or school ID only if the form asks (JPEG or PDF).\n3. NIN, BVN, and a bank account in your name.\n4. Upload on ${PORTAL}. Confirm the live form, do not invent extra papers.`
   }
-  // Follow-up style ask with a known prior intent
   if (ctx.userText && isConversationalFollowUp(ctx.userText) && ctx.priorIntent && ctx.priorIntent !== 'unknown') {
     return nextStepAdvance(ctx, ctx.priorIntent)
   }
