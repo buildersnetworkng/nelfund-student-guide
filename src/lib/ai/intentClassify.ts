@@ -105,7 +105,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   }
 
   if (
-    /how\s*far|money\s*(never|no)\s*(enter|drop|show)|still\s*pending|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect|total\s*loans?\s*(is\s*)?(0|zero)|dashboard\s*(empty|blank)|i\s*don\s*submit/i.test(
+    /how\s*far(\s*(my|na|now|abeg|my\s*own))?|money\s*(never|no|go)\s*(enter|drop|show)|still\s*pending|status\s*(no|not|never)\s*(change|move)|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not|never)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect|total\s*loans?\s*(is\s*)?(0|zero)|dashboard\s*(empty|blank)|i\s*don\s*submit/i.test(
       raw,
     )
   ) {
