@@ -3,12 +3,10 @@ import { useLocation } from 'react-router-dom'
 import ShareGuide, { SHARE_TEXT } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
 
-/** Bumped key so older dismiss flags no longer hide the card forever */
+/** Bumped key so older dismiss flags no longer hide the card */
 const STORAGE_KEY = 'nelfund-share-soft-v2'
 const VALUE_KEY = 'nelfund-share-value-seen'
-/** After X, hide for 6 hours only */
 const DISMISS_MS = 1000 * 60 * 60 * 6
-/** Soft card only on Home */
 const SKIP_PROMPT_PATHS = [
   '/ask',
   '/apply',
@@ -68,7 +66,6 @@ export default function ShareSoftPrompt() {
       trackFeature('share_prompt_shown', { variant: 'soft-prompt' })
     }
 
-    // Show quickly on Home — do not wait for scroll or "value" events
     timer = window.setTimeout(reveal, 1500)
 
     return () => {
@@ -90,7 +87,8 @@ export default function ShareSoftPrompt() {
 
   return (
     <div
-      className="fixed bottom-24 left-3 right-3 z-[60] mx-auto max-w-md animate-[shareSoftIn_0.35s_ease-out] sm:bottom-5 sm:left-auto sm:right-5 sm:w-[22rem]"
+      className="fixed bottom-24 left-3 right-3 z-[60] mx-auto max-w-md sm:bottom-5 sm:left-auto sm:right-5 sm:w-[22rem]"
+      style={{ animation: 'soft-rise 0.4s ease-out' }}
       role="status"
       aria-live="polite"
     >
