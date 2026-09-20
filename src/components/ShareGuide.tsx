@@ -208,8 +208,6 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
     async (ch: Channel) => {
       trackFeature('share_channel', { channel: ch.id })
       if (ch.id === 'whatsapp') {
-        // Pin text is already in the WhatsApp compose URL.
-        // Copy the group name so the student can paste it into WhatsApp Search.
         const searchPaste = groupName.trim() || shareText
         await copySharePayload(searchPaste)
         setPosted(true)
@@ -305,9 +303,9 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                 <GroupNameField source="share-sheet" />
                 <GroupSearchChips className="mt-3" source="share-sheet" copiedHint={copiedHint} onCopy={copyHint} />
                 <ol className="mt-3 space-y-1 text-[12px] leading-relaxed text-ink/55">
-                  <li>1. Type your exact group name and copy it, or copy a search chip.</li>
-                  <li>2. Tap Post to class group. The pin text is copied for you.</li>
-                  <li>3. If WhatsApp shows names, tap Search and paste. Open the group, send, then pin.</li>
+                  <li>1. Type your exact group name, or copy a search chip.</li>
+                  <li>2. Tap Post to class group. Pin text opens in WhatsApp. Your group name stays on the clipboard.</li>
+                  <li>3. If WhatsApp shows people, tap Search and paste. Open the group, send, then pin.</li>
                 </ol>
                 <button
                   type="button"
