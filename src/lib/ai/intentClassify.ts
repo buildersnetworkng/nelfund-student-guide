@@ -147,7 +147,20 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('reapplication', 0.86, ['other'], 'Last year apply / reapply', 'applying', entities)
   }
 
+  if (/(100|200|300|400|500)\s*(l|level)|fresh(er|man)?\s*(fit|can)|final\s*year\s*(fit|can|apply)/i.test(raw)) {
+    return hitIntent('eligibility', 0.88, ['eligibility', 'other'], 'Level / year apply', 'exploring', entities)
+  }
+
+  if (/(apply|request)\s*(button|btn)|i\s*(no|not)\s*see\s*(apply|request)|cannot\s*submit|portal\s*(no|not|never)\s*(load|gree)/i.test(raw)) {
+    return hitIntent('how-to-apply', 0.88, ['how-to-apply', 'other'], 'Apply button / portal submit', 'applying', entities, true)
+  }
+
+  if (/how\s*much.{0,20}(loan|give|pay|nelfund)|loan\s*amount/i.test(raw) && !/upkeep\s*(amount|how\s*much)/i.test(raw)) {
+    return hitIntent('how-to-apply', 0.84, ['how-to-apply', 'other'], 'How much loan', 'exploring', entities)
+  }
+
   const soft = residualSoftRoute(expanded || raw, entities)
+
   if (soft && soft.intent !== 'unknown') return soft
 
   const followish =
