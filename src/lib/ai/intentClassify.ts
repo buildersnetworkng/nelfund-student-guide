@@ -96,7 +96,11 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('missing-information', 0.88, ['missing'], 'Change of course', 'applying', entities, true)
   }
 
-  if (/repay|after\s*nysc|nysc.*pay|scholarship|loan\s*or\s*scholarship|na\s*scholarship/i.test(raw) && !/pending|how\s*far|never\s*enter/i.test(raw)) {
+  if (/dem\s*(don\s*)?(reject|decline)|status\s*(na|is)\s*(reject|declin)|rejected\s*(application|loan)/i.test(raw)) {
+    return hitIntent('rejected-application', 0.9, ['other'], 'Rejected application', 'rejected', entities, true)
+  }
+
+  if (/repay|after\s*nysc|nysc.*pay|scholarship|loan\s*or\s*scholarship|na\s*scholarship|na\s*grant|pay\s*back/i.test(raw) && !/pending|how\s*far|never\s*enter/i.test(raw)) {
     if (/scholarship|grant|free\s*money|loan\s*or\s*scholarship/i.test(raw)) {
       return hitIntent('loan-or-scholarship', 0.88, ['scholarship', 'loan'], 'Loan vs scholarship', 'exploring', entities)
     }
@@ -111,7 +115,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('pending-application', 0.9, ['pending-status'], 'Pending / payout wait', 'waiting', entities, true)
   }
 
-  if (/create\s*(account|profile)|sign\s*up|how\s*(to|i\s*go)\s*apply|step\s*by\s*step|walk\s*me/i.test(raw)) {
+  if (/create\s*(account|profile)|sign\s*up|how\s*(to|i\s*go|i\s*fit)\s*apply|i\s*wan(t)?\s*(to\s*)?apply|step\s*by\s*step|walk\s*me|guide\s*me\s*(to\s*)?apply/i.test(raw)) {
     return hitIntent('how-to-apply', 0.88, ['how-to-apply'], 'How to apply', 'preparing', entities)
   }
 
