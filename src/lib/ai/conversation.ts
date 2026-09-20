@@ -182,8 +182,8 @@ function isGreeting(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
   if (!t || t.length > 80) return false
   if (/how\s*far|money\s*never|never\s*enter|pending|under\s*review/i.test(t)) return false
-  if (/nelfund|apply|portal|loan|jamb|pending|upkeep|create|account|step|guide/i.test(t)) return false
-  if (/^(hi|hello|hey|good\s*(morning|afternoon|evening))[.!?\s]*$/i.test(t)) return true
+  if (/nelfund|apply|portal|loan|jamb|pending|upkeep|create|account|step|guide|repay|school|email/i.test(t)) return false
+  if (/^(hi|hello|hey|heyy+|yo|yoo+|sup|howdy|good\s*(morning|afternoon|evening)|abeg(\s*help(\s*me)?)?|pls(\s*help(\s*me)?)?|help(\s*me)?|i\s*need\s*help|una\s*fit\s*help)[.!?\s]*$/i.test(t)) return true
   return false
 }
 
