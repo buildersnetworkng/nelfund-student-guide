@@ -1,10 +1,14 @@
+import { playbookHourly72 } from './playbookHourly72'
+
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
-/** Hour-71 playbook. Different angle, different wording. No invented dates. No long dashes. */
+/** Hour-71 playbook. Different angle, different wording. Delegates to Hour 72 first. */
 export function playbookHourly71(intent: string, userText: string): string | null {
   const t = userText || ''
+  const newer = playbookHourly72(intent as any, userText)
+  if (newer) return newer
 
   if (/nothing\s*(don|has|have)\s*(drop|enter|show|come)|account\s*(still\s*)?(empty|blank|zero)|i\s*never\s*collect|collect\s*(my\s*)?(own|money)\s*abeg/i.test(t)) {
     return `**Nothing don drop / you never collect:** that is still a wait on your file.\n\n1. Sign in at ${PORTAL} and copy the exact status word. I cannot see your bank or dashboard from this chat.\n2. School charges go to the school. Empty personal account does not mean declined.\n3. Upkeep only if you ticked it in the same session.\n4. I will not invent a pay day. Same word for weeks: campus NELFUND desk, then ${ESUPPORT}.`
