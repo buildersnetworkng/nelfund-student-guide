@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { WhatsAppClassLink } from './ShareGuide'
+import ShareGuide, { SHARE_TEXT } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
 
 const STORAGE_KEY = 'nelfund-share-soft-dismissed-at'
 const VALUE_KEY = 'nelfund-share-value-seen'
-const INBOUND_KEY = 'nelfund-share-inbound'
 const DISMISS_MS = 1000 * 60 * 60 * 24 * 3
-
-/** Ask already has an after-answer class-group CTA. Do not stack a second prompt. */
 const SKIP_PROMPT_PATHS = ['/ask']
+
+const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
 /** Call after a student gets a useful answer or finishes a guide step. */
 export function markShareValue() {
@@ -42,22 +41,12 @@ function hasValue() {
   }
 }
 
-function isInbound() {
-  try {
-    return Boolean(window.sessionStorage.getItem(INBOUND_KEY))
-  } catch {
-    return false
-  }
-}
-
 export default function ShareSoftPrompt() {
   const location = useLocation()
   const [visible, setVisible] = useState(false)
-  const [inbound, setInbound] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    setInbound(isInbound())
     if (SKIP_PROMPT_PATHS.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`))) {
       setVisible(false)
       return
@@ -73,7 +62,7 @@ export default function ShareSoftPrompt() {
       if (Date.now() - startedAt < 1800) return
       shown = true
       setVisible(true)
-      trackFeature('share_prompt_shown', { variant: 'soft-prompt', inbound: isInbound() })
+      trackFeature('share_prompt_shown', { variant: 'soft-prompt' })
     }
 
     function onValue() {
@@ -86,8 +75,7 @@ export default function ShareSoftPrompt() {
       if (shown || alreadyDismissed()) return
       const help = document.getElementById('home-help')
       if (!help) return
-      const helpVisible = help.getBoundingClientRect().top < window.innerHeight * 0.75
-      if (helpVisible) {
+      if (help.getBoundingClientRect().top < window.innerHeight * 0.75) {
         markShareValue()
         onValue()
       }
@@ -97,6 +85,10 @@ export default function ShareSoftPrompt() {
     window.addEventListener('scroll', onScroll, { passive: true })
 
     if (hasValue()) onValue()
+    else {
+      // Gentle fallback if they never hit a value moment
+      valueTimer = window.setTimeout(reveal, 12000)
+    }
 
     return () => {
       window.removeEventListener('nelfund-share-value', onValue)
@@ -125,13 +117,10 @@ export default function ShareSoftPrompt() {
       <div className="rounded-2xl border border-forest-100 bg-white p-3.5 shadow-xl">
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">
-              {inbound ? 'A classmate sent you here. Help your own class next.' : 'Help the whole class, not one friend'}
-            </p>
+            <p className="text-sm font-semibold text-ink">One student can help ten more</p>
             <p className="mt-1 text-xs leading-relaxed text-ink/55">
-              {inbound
-                ? 'Post this guide in YOUR class or department WhatsApp group. If WhatsApp shows people, tap Search and type the group name.'
-                : 'Post this guide in the class or department WhatsApp group. If WhatsApp shows people, tap Search and type the group name.'}
+              If this guide helped you, drop it in your class or department WhatsApp group so others are not stuck on
+              the portal alone.
             </p>
           </div>
           <button
@@ -145,16 +134,18 @@ export default function ShareSoftPrompt() {
             </svg>
           </button>
         </div>
-        <div className="mt-3">
-          <WhatsAppClassLink
-            source={inbound ? 'soft-prompt-inbound' : 'soft-prompt'}
-            compact
-            className="!min-h-[36px] w-full !px-3 !py-1.5 !text-xs"
-          />
+        <div className="mt-3 flex flex-wrap gap-2">
+          <a
+            href={WHATSAPP_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source: 'soft-prompt' })}
+            className="inline-flex min-h-[36px] flex-1 items-center justify-center rounded-full bg-[#25D366] px-3 text-xs font-semibold text-white"
+          >
+            Send to class group
+          </a>
+          <ShareGuide variant="button" className="!min-h-[36px] !px-3 !py-1.5 !text-xs" />
         </div>
-        <p className="mt-2 text-[11px] leading-relaxed text-ink/40">
-          Send in the group, then pin. Also send to department or SUG. Do not tap one classmate.
-        </p>
       </div>
     </div>
   )
