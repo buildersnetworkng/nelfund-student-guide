@@ -1,5 +1,4 @@
 import { stripLongDashes } from './copyHygiene'
-import { trackFeature } from './analytics'
 
 export const SHARE_TITLE = 'NELFUND Student Guide'
 export const GROUP_NAME_KEY = 'nelfund-share-group-name'
