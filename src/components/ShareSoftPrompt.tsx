@@ -5,9 +5,21 @@ import { trackFeature } from '../lib/analytics'
 
 const STORAGE_KEY = 'nelfund-share-soft-dismissed-at'
 const VALUE_KEY = 'nelfund-share-value-seen'
-const DISMISS_MS = 1000 * 60 * 60 * 24 * 3
-/** Keep reading pages clear — soft share card only on Home and similar surfaces */
-const SKIP_PROMPT_PATHS = ['/ask', '/apply', '/fees', '/upkeep', '/troubleshooting', '/faq', '/videos', '/sources', '/readiness']
+/** After X, stay hidden for 12 hours (not days) so students still see it again */
+const DISMISS_MS = 1000 * 60 * 60 * 12
+/** Soft card only on Home — keep reading pages clear */
+const SKIP_PROMPT_PATHS = [
+  '/ask',
+  '/apply',
+  '/fees',
+  '/upkeep',
+  '/troubleshooting',
+  '/faq',
+  '/videos',
+  '/sources',
+  '/readiness',
+  '/admin',
+]
 
 const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
@@ -60,7 +72,8 @@ export default function ShareSoftPrompt() {
 
     function reveal() {
       if (shown || alreadyDismissed()) return
-      if (Date.now() - startedAt < 1800) return
+      // Allow almost immediate show after mount
+      if (Date.now() - startedAt < 800) return
       shown = true
       setVisible(true)
       trackFeature('share_prompt_shown', { variant: 'soft-prompt' })
@@ -69,7 +82,7 @@ export default function ShareSoftPrompt() {
     function onValue() {
       if (shown || alreadyDismissed()) return
       if (valueTimer) window.clearTimeout(valueTimer)
-      valueTimer = window.setTimeout(reveal, 2800)
+      valueTimer = window.setTimeout(reveal, 1200)
     }
 
     function onScroll() {
@@ -85,9 +98,10 @@ export default function ShareSoftPrompt() {
     window.addEventListener('nelfund-share-value', onValue)
     window.addEventListener('scroll', onScroll, { passive: true })
 
+    // Always schedule on Home so the card is not easy to miss
     if (hasValue()) onValue()
     else {
-      valueTimer = window.setTimeout(reveal, 9000)
+      valueTimer = window.setTimeout(reveal, 3000)
     }
 
     return () => {
