@@ -4,18 +4,19 @@ import { trackFeature } from '../lib/analytics'
 
 /** Prefer live origin so share links match whatever domain the student is on */
 function getSiteUrl() {
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return `${window.location.origin}/`
-  }
-  return 'https://nelfund-student-guide.vercel.app/'
+  const origin =
+    typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://nelfund-student-guide.vercel.app'
+  return `${origin}/?from=class-wa`
 }
 
-function buildShareText(url: string) {
+function buildShareText(url: string, audience = 'class or department WhatsApp group') {
   return (
     'NELFUND Student Guide\n' +
     'Before you apply or wait on the portal, open this first.\n' +
     'Clear steps for application, pending status, and common portal issues.\n' +
-    'Send this to your class or department WhatsApp group so more students are not guessing alone.\n' +
+    `Send this to your ${audience} so more students are not guessing alone.\n` +
     `Link ${url}`
   )
 }
@@ -42,6 +43,12 @@ async function copySharePayload(value: string) {
 }
 
 const SHARE_TITLE = 'NELFUND Student Guide'
+
+const GROUP_HOPS = [
+  { id: 'class', label: 'Class group', audience: 'class WhatsApp group' },
+  { id: 'department', label: 'Department', audience: 'department WhatsApp group' },
+  { id: 'faculty', label: 'Faculty / SUG', audience: 'faculty or SUG WhatsApp group' },
+] as const
 
 /** Only the first mounted ShareGuide should consume ?share=1 / #share */
 let shareDeepLinkConsumed = false
@@ -341,6 +348,8 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                   Send to class group
                 </button>
 
+                <GroupHopRow source="share-sheet" />
+
                 <div className="mt-4 grid grid-cols-3 gap-2.5">
                   {channels.map((ch) => (
                     <button
@@ -399,15 +408,44 @@ function ShareIcon({ className = '' }: { className?: string }) {
   )
 }
 
+function GroupHopRow({ source }: { source: string }) {
+  const siteUrl = getSiteUrl()
+  return (
+    <div className="mt-2.5">
+      <p className="text-[11px] leading-relaxed text-ink/50">
+        One group is a start. Also drop it in department or faculty so more classmates see it.
+      </p>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {GROUP_HOPS.map((hop) => {
+          const text = buildShareText(siteUrl, hop.audience)
+          const href = `https://wa.me/?text=${encodeURIComponent(text)}`
+          return (
+            <a
+              key={hop.id}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source, hop: hop.id })}
+              className="rounded-full border border-forest-100 bg-white px-2.5 py-1 text-[11px] font-semibold text-forest-800"
+            >
+              Also {hop.label}
+            </a>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 /** Exported for tests / other surfaces */
-export const SHARE_TEXT = buildShareText('https://nelfund-student-guide.vercel.app/')
+export const SHARE_TEXT = buildShareText('https://nelfund-student-guide.vercel.app/?from=class-wa')
 
 /** Simple one-tap WhatsApp class-group link (no group-name fields). */
 export function WhatsAppClassLink({
   source,
   className = '',
   showHints: _showHints,
-  compact: _compact,
+  compact = false,
 }: {
   source: string
   className?: string
@@ -420,21 +458,24 @@ export function WhatsAppClassLink({
   const href = `https://wa.me/?text=${encodeURIComponent(shareText)}`
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={() => {
-        trackFeature('share_channel', { channel: 'whatsapp', source })
-        void copySharePayload(shareText).then((ok) => {
-          if (!ok) return
-          setCopied(true)
-          window.setTimeout(() => setCopied(false), 2500)
-        })
-      }}
-      className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98] ${className}`}
-    >
-      {copied ? 'Copied. Open WhatsApp' : 'Send to class group'}
-    </a>
+    <div className={compact ? undefined : 'space-y-1'}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => {
+          trackFeature('share_channel', { channel: 'whatsapp', source })
+          void copySharePayload(shareText).then((ok) => {
+            if (!ok) return
+            setCopied(true)
+            window.setTimeout(() => setCopied(false), 2500)
+          })
+        }}
+        className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98] ${className}`}
+      >
+        {copied ? 'Copied. Open WhatsApp' : 'Send to class group'}
+      </a>
+      {!compact && <GroupHopRow source={`${source}-more`} />}
+    </div>
   )
 }
