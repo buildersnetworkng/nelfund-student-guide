@@ -59,6 +59,7 @@ export default function ShareSoftPrompt() {
 
     function reveal() {
       if (shown || alreadyDismissed()) return
+      if (!hasValue()) return
       if (Date.now() - startedAt < 1800) return
       shown = true
       setVisible(true)
@@ -85,10 +86,6 @@ export default function ShareSoftPrompt() {
     window.addEventListener('scroll', onScroll, { passive: true })
 
     if (hasValue()) onValue()
-    else {
-      // Gentle fallback if they never hit a value moment
-      valueTimer = window.setTimeout(reveal, 12000)
-    }
 
     return () => {
       window.removeEventListener('nelfund-share-value', onValue)
