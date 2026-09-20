@@ -1,10 +1,10 @@
+import { Link } from 'react-router-dom'
 import { guides, getSource } from '../lib/data'
 import TrustBadge from '../components/TrustBadge'
 import RecommendedVideo from '../components/RecommendedVideo'
 import InstitutionTip from '../components/InstitutionTip'
 import InstitutionNotice from '../components/InstitutionNotice'
 import ShareGuide, { WhatsAppClassLink } from '../components/ShareGuide'
-import ShareSoftPrompt from '../components/ShareSoftPrompt'
 
 export default function Apply() {
   const guide = guides.find((g) => g.id === 'guide-how-to-apply')
@@ -12,10 +12,14 @@ export default function Apply() {
 
   return (
     <div className="container-page py-8 sm:py-10">
-      <ShareSoftPrompt />
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1 text-sm font-medium text-forest-800 hover:text-forest-900"
+      >
+        <span aria-hidden="true">←</span> Home
+      </Link>
 
-      {/* Title full width first — share CTAs below so mobile text never collapses to one word per line */}
-      <p className="eyebrow">Step-by-step guide</p>
+      <p className="eyebrow mt-4">Step-by-step guide</p>
       <h1 className="mt-1 text-2xl font-bold leading-tight text-ink sm:text-3xl">{guide.title}</h1>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink/65">{guide.summary}</p>
 
@@ -109,6 +113,9 @@ export default function Apply() {
         <p className="mt-2 text-xs text-ink/50">
           The portal's own on-screen instructions always take precedence over this guide if they differ.
         </p>
+        <Link to="/" className="mt-4 inline-flex text-sm font-semibold text-forest-800 underline underline-offset-2">
+          ← Back to Home
+        </Link>
       </div>
     </div>
   )

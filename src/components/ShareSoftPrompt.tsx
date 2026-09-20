@@ -6,7 +6,8 @@ import { trackFeature } from '../lib/analytics'
 const STORAGE_KEY = 'nelfund-share-soft-dismissed-at'
 const VALUE_KEY = 'nelfund-share-value-seen'
 const DISMISS_MS = 1000 * 60 * 60 * 24 * 3
-const SKIP_PROMPT_PATHS = ['/ask']
+/** Keep reading pages clear — soft share card only on Home and similar surfaces */
+const SKIP_PROMPT_PATHS = ['/ask', '/apply', '/fees', '/upkeep', '/troubleshooting', '/faq', '/videos', '/sources', '/readiness']
 
 const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
@@ -86,7 +87,6 @@ export default function ShareSoftPrompt() {
 
     if (hasValue()) onValue()
     else {
-      // Still show the soft card so students can dismiss with X
       valueTimer = window.setTimeout(reveal, 9000)
     }
 
@@ -111,7 +111,7 @@ export default function ShareSoftPrompt() {
 
   return (
     <div
-      className="fixed bottom-20 left-3 right-3 z-40 mx-auto max-w-md sm:bottom-5 sm:left-auto sm:right-5 sm:w-[22rem]"
+      className="fixed bottom-24 left-3 right-3 z-40 mx-auto max-w-md sm:bottom-5 sm:left-auto sm:right-5 sm:w-[22rem]"
       role="status"
     >
       <div className="rounded-2xl border border-forest-100 bg-white p-3.5 shadow-xl">

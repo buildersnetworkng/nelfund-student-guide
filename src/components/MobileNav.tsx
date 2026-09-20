@@ -80,7 +80,7 @@ export default function MobileNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-forest-700/10 bg-white/95 backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-forest-700/10 bg-white/95 backdrop-blur-md md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <ul className="flex items-stretch">
@@ -88,6 +88,7 @@ export default function MobileNav() {
           <li key={item.to} className="flex-1">
             <NavLink
               to={item.to}
+              end={item.to === '/'}
               className={({ isActive }) =>
                 `flex min-h-[56px] flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium leading-none ${
                   isActive ? 'text-forest-700' : 'text-ink/45'
@@ -96,7 +97,9 @@ export default function MobileNav() {
             >
               {({ isActive }) => (
                 <>
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-full ${isActive ? 'bg-forest-50' : ''}`}>
+                  <span
+                    className={`flex h-8 w-8 items-center justify-center rounded-full ${isActive ? 'bg-forest-50' : ''}`}
+                  >
                     <item.icon active={isActive} />
                   </span>
                   <span className="whitespace-nowrap">{item.label}</span>
