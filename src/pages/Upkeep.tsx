@@ -11,11 +11,9 @@ export default function Upkeep() {
   return (
     <div className="container-page py-10">
       <ShareSoftPrompt />
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="eyebrow">Upkeep allowance</p>
-          <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Understanding the upkeep allowance</h1>
-        </div>
+      <p className="eyebrow">Upkeep allowance</p>
+      <h1 className="mt-1 text-2xl font-bold leading-tight text-ink sm:text-3xl">Understanding the upkeep allowance</h1>
+      <div className="mt-4">
         <ShareGuide variant="button" className="shrink-0" />
       </div>
 
@@ -24,7 +22,9 @@ export default function Upkeep() {
           <p className="eyebrow text-gold-300">Currently confirmed amount</p>
           <ScopeBadge scope={amountFact.scope} institutionId={amountFact.institution_id} />
         </div>
-        <p className="mt-1 font-display text-4xl font-bold">₦20,000<span className="text-base font-normal text-paper/70"> / month</span></p>
+        <p className="mt-1 font-display text-4xl font-bold">
+          ₦20,000<span className="text-base font-normal text-paper/70"> / month</span>
+        </p>
         <p className="mt-2 text-sm text-paper/75">
           Figures you may see elsewhere, including ₦25,000, should not be treated as current
           unless an official NELFUND source confirms a change.
@@ -32,7 +32,11 @@ export default function Upkeep() {
       </div>
 
       <div className="card mt-4">
-        <TrustBadge status={amountFact.verification_status} sourceId={amountFact.source_id} lastVerified={amountFact.last_verified} />
+        <TrustBadge
+          status={amountFact.verification_status}
+          sourceId={amountFact.source_id}
+          lastVerified={amountFact.last_verified}
+        />
       </div>
 
       <div className="card mt-4">

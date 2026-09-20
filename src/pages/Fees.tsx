@@ -12,11 +12,9 @@ export default function Fees() {
   return (
     <div className="container-page py-10">
       <ShareSoftPrompt />
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="eyebrow">School fees</p>
-          <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">How NELFUND pays school fees</h1>
-        </div>
+      <p className="eyebrow">School fees</p>
+      <h1 className="mt-1 text-2xl font-bold leading-tight text-ink sm:text-3xl">How NELFUND pays school fees</h1>
+      <div className="mt-4">
         <ShareGuide variant="button" className="shrink-0" />
       </div>
 
