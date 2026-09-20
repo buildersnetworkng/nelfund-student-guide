@@ -208,7 +208,10 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
     async (ch: Channel) => {
       trackFeature('share_channel', { channel: ch.id })
       if (ch.id === 'whatsapp') {
-        await copySharePayload(shareText)
+        // Pin text is already in the WhatsApp compose URL.
+        // Copy the group name so the student can paste it into WhatsApp Search.
+        const searchPaste = groupName.trim() || shareText
+        await copySharePayload(searchPaste)
         setPosted(true)
         window.setTimeout(() => setPosted(false), 8000)
       }
@@ -222,7 +225,7 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
       }
       if (ch.href) window.open(ch.href, '_blank', 'noopener,noreferrer')
     },
-    [copy, shareText],
+    [copy, shareText, groupName],
   )
 
   const nudge = variant === 'icon' ? 'share-nudge share-nudge-icon' : 'share-nudge'
@@ -314,7 +317,13 @@ export default function ShareGuide({ variant = 'button', className = '' }: Share
                   }}
                   className="mt-4 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-[#25D366] text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.99]"
                 >
-                  {posted ? 'Copied. Search the group' : groupName ? `Post to ${groupName}` : 'Post to class group'}
+                  {posted
+                    ? groupName
+                      ? 'Group name copied. Paste in Search'
+                      : 'Copied. Search the group'
+                    : groupName
+                      ? `Post to ${groupName}`
+                      : 'Post to class group'}
                 </button>
                 {canNative && (
                   <button
@@ -510,7 +519,8 @@ export function WhatsAppClassLink({
         rel="noopener noreferrer"
         onClick={() => {
           trackFeature('share_channel', { channel: 'whatsapp', source })
-          void copySharePayload(shareText).then((ok) => {
+          const searchPaste = groupName.trim() || shareText
+          void copySharePayload(searchPaste).then((ok) => {
             if (!ok) return
             setCopied(true)
             window.setTimeout(() => setCopied(false), 2500)
@@ -518,7 +528,13 @@ export function WhatsAppClassLink({
         }}
         className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98] ${className}`}
       >
-        {copied ? 'Copied. Search the group' : groupName ? `Post to ${groupName}` : 'Post to class group'}
+        {copied
+          ? groupName
+            ? 'Group name copied. Paste in Search'
+            : 'Copied. Search the group'
+          : groupName
+            ? `Post to ${groupName}`
+            : 'Post to class group'}
       </a>
     </div>
   )
