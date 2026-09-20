@@ -1,4 +1,5 @@
 import type { IntentId } from './types'
+import { playbookHourly76 } from './playbookHourly76'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -6,6 +7,9 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hour-75 wording. Short menu for vague other. No invented dates. No long dashes. */
 export function playbookHourly75(intent: IntentId, userText?: string): string | null {
+  const chained = playbookHourly76(intent, userText)
+  if (chained) return chained
+
   const t = (userText || '').trim()
   if (!t) return null
 
