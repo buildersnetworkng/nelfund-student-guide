@@ -20,7 +20,7 @@ export const GROUP_SEARCH_HINTS = [
   'SUG',
   'class rep',
 ]
-export const MORE_GROUPS = ['department', 'faculty', 'SUG']
+export const MORE_GROUPS = ['class group', 'department', 'faculty', 'SUG', 'class rep']
 
 export function getSiteUrl() {
   const origin =
@@ -68,6 +68,8 @@ export function buildShareText(url: string, groupName = '') {
       'Clear steps for application, pending status, and common portal issues.\n' +
       `${searchLine}\n` +
       'Send in the group, then pin so new classmates see it.\n' +
+      'If this landed in a private chat, post it in YOUR class group next.\n' +
+      'Also post in department, faculty, or SUG so more students see it.\n' +
       'If you are class rep, pin it after you send.\n' +
       `Link ${url}`,
   )

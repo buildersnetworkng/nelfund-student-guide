@@ -153,7 +153,7 @@ export default function ShareSoftPrompt() {
           />
         </div>
         <p className="mt-2 text-[11px] leading-relaxed text-ink/40">
-          Send in the group, then pin. Do not tap one classmate.
+          Send in the group, then pin. Also send to department or SUG. Do not tap one classmate.
         </p>
       </div>
     </div>

@@ -167,7 +167,7 @@ export function MoreGroupsRow({ source, currentName }: { source: string; current
   return (
     <div className="pt-1">
       <p className="text-[11px] leading-relaxed text-ink/50">
-        One group is a start. Also post to department or SUG so more classmates see it.
+        One group is a start. Also post to class group, department, faculty, SUG, or class rep so more classmates see it.
       </p>
       <div className="mt-1.5 flex flex-wrap gap-1.5">
         {extras.map((name) => {
