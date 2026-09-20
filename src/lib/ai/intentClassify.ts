@@ -163,6 +163,14 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('how-to-apply', 0.84, ['how-to-apply', 'other'], 'How much loan', 'exploring', entities)
   }
 
+  if (
+    /^(abeg\s*)?(help|assist|guide)\s*(me)?\s*(abeg|pls|please)?\.?$|una\s*fit\s*(help|assist)|i\s*(just\s*)?(need|wan|want)\s*help|pls\s*assist|wetin\s*i\s*(suppose|go)\s*do(\s*now)?\??$|i\s*dey\s*lost|help\s*abeg|i\s*no\s*know\s*where\s*to\s*start|make\s*una\s*guide\s*me|can\s*you\s*help\s*me\??$|i\s*need\s*assistance/i.test(
+      raw,
+    )
+  ) {
+    return hitIntent('official-sources', 0.88, ['other', 'greeting-vague'], 'Vague help menu', 'exploring', entities)
+  }
+
   const soft = residualSoftRoute(expanded || raw, entities)
 
   if (soft && soft.intent !== 'unknown') return soft
