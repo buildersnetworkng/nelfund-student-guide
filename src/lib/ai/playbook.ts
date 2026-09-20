@@ -27,7 +27,6 @@ import { playbookHourly72 } from './playbookHourly72'
 import { playbookHourly73 } from './playbookHourly73'
 import { playbookHourly74 } from './playbookHourly74'
 import { playbookHourly75 } from './playbookHourly75'
-import { playbookHourly76 } from './playbookHourly76'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -47,6 +46,8 @@ export type PlaybookContext = {
 function isGreetingText(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
   if (!t || t.length > 80) return false
-  if (/nelfund|explain|eligib|\\bapply\\b|application|\\bportal\\b|missing|upkeep|repay|\\bjamb\\b|\\bnin\\b|\\bbvn\\b|\\bloan\\b|how\\s*to|pending|login|sign\\s*in/i.test(t)) return false
-  return /^(hi|hii+|hello|hey|heyy+|yo|yoo+|sup|suh|wassup|whatsup|howdy|how\\s*far|howfar|how\\s*fa|wetin\\s*dey|how\\s*you\\s*dey|good\\s*(morning|afternoon|evening)|sharp|correct|i\\s*dey|thanks|thank\\s*you)(\\s+\\w+){0,2}$/i.test(t)
+  if (/nelfund|explain|eligib|\bapply\b|application|\bportal\b|missing|upkeep|repay|\bjamb\b|\bnin\b|\bbvn\b|\bloan\b|how\s*to|pending|login|sign\s*in/i.test(t)) return false
+  return /^(hi|hii+|hello|hey|heyy+|yo|yoo+|sup|suh|wassup|whatsup|howdy|how\s*far|howfar|how\s*fa|wetin\s*dey|how\s*you\s*dey|good\s*(morning|afternoon|evening)|sharp|correct|i\s*dey|thanks|thank\s*you)(\s+\w+){0,2}$/i.test(t)
 }
+
+const WELCOME = `How far, welcome.\n\nI am here to help with **NELFUND**: applications, portal issues, eligibility, upkeep, repayment, and school-record problems.\n\nWhat do you need help with today?`
