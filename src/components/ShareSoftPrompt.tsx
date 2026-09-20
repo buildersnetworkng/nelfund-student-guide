@@ -59,7 +59,6 @@ export default function ShareSoftPrompt() {
 
     function reveal() {
       if (shown || alreadyDismissed()) return
-      if (!hasValue()) return
       if (Date.now() - startedAt < 1800) return
       shown = true
       setVisible(true)
@@ -69,7 +68,7 @@ export default function ShareSoftPrompt() {
     function onValue() {
       if (shown || alreadyDismissed()) return
       if (valueTimer) window.clearTimeout(valueTimer)
-      valueTimer = window.setTimeout(reveal, 3200)
+      valueTimer = window.setTimeout(reveal, 2800)
     }
 
     function onScroll() {
@@ -86,6 +85,10 @@ export default function ShareSoftPrompt() {
     window.addEventListener('scroll', onScroll, { passive: true })
 
     if (hasValue()) onValue()
+    else {
+      // Still show the soft card so students can dismiss with X
+      valueTimer = window.setTimeout(reveal, 9000)
+    }
 
     return () => {
       window.removeEventListener('nelfund-share-value', onValue)
