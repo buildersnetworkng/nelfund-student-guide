@@ -25,6 +25,7 @@ import { playbookHourly70 } from './playbookHourly70'
 import { playbookHourly71 } from './playbookHourly71'
 import { playbookHourly72 } from './playbookHourly72'
 import { playbookHourly73 } from './playbookHourly73'
+import { playbookHourly74 } from './playbookHourly74'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -88,6 +89,8 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   if (ctx.userText) {
+    const extra74 = playbookHourly74(intent, ctx.userText)
+    if (extra74) return extra74
     const extra73 = playbookHourly73(intent, ctx.userText)
     if (extra73) return extra73
     const extra72 = playbookHourly72(intent, ctx.userText)
@@ -144,12 +147,12 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     const otherEmail = ctx.userText && /another|someone|borrow|broda|brother|sister|friend/i.test(ctx.userText)
     const otp = ctx.userText && /\botp\b|verification\s*code|code\s*(no|not|never)\s*(come|enter)/i.test(ctx.userText)
     if (otherEmail) {
-      return `**Use your own email.** Do not borrow a sibling or friend mailbox.\n\n1. Sign **in** at ${SITE} if that email already exists from last year.\n2. New students only: sign **up** with *your* email on ${PORTAL}.\n3. Forgot password: reset on ${SITE}. Do not open a second account.\n4. Still locked: ${ESUPPORT}`
+      return `**Use your own email.** Do not borrow a sibling or friend mailbox.\n\n1. Sign in at ${SITE} if that email already exists from last year.\n2. New students only: sign up with *your* email on ${PORTAL}.\n3. Forgot password: reset on ${SITE}. Do not open a second account.\n4. Still locked: ${ESUPPORT}`
     }
     if (otp) {
       return `**OTP / code no dey come**\n\n1. Check spam and wait a few minutes. Do not open a second account.\n2. Use the official reset / resend on ${SITE}.\n3. Try another network once.\n4. Still nothing: ${ESUPPORT}`
     }
-    return `**Log in, do not create a new account** if that email was used before.\n\n1. Sign **in** at ${SITE} with the same email.\n2. Sign **up** only if you never created an account: ${PORTAL}\n3. Forgot password or OTP no dey come: use the reset on ${SITE}. Do not open a second account.\n4. Portal hang, error 500, or page no load: refresh once, try another network, then ${ESUPPORT}.`
+    return `**Log in, do not create a new account** if that email was used before.\n\n1. Sign in at ${SITE} with the same email.\n2. Sign up only if you never created an account: ${PORTAL}\n3. Forgot password or OTP no dey come: use the reset on ${SITE}. Do not open a second account.\n4. Portal hang, error 500, or page no load: refresh once, try another network, then ${ESUPPORT}.`
   }
   if (intent === 'nin-verification' || intent === 'nin-bvn') {
     return `**NIN / BVN must be yours and must match the name on JAMB.**\n\n1. If you do not have a NIN or BVN yet, finish that first. The portal needs both in *your* name.\n2. Do not type a parent, sibling, or friend number.\n3. If the portal says invalid or name no gree, check spacing and date of birth, then retry ${PORTAL}.\n4. Still failing: campus NELFUND desk, then ${ESUPPORT}. Do not open a second account.`
@@ -201,7 +204,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**Repayment** starts after the applicable NYSC or study period under official NELFUND rules, not on a date I invent here.\n\n1. Confirm the exact rule on ${SITE} and ${PORTAL}. I will not invent a start date, percentage, or jail term.\n2. Circulating life-jail graphics are not official unless the same text is on ${SITE}.\n3. GSI / salary deduction, if it applies later, follows the Act, not WhatsApp rumours.\n4. Still studying or serving: you are not in a repayment window I can invent.`
   }
   if (intent === 'current-information' || intent === 'deadline') {
-    return `**As of today:** account creation can be OPEN while the **loan and upkeep window is not confirmed** for this cycle.\n\n- Create account, finish profile, sort BVN: ${PORTAL}\n- Already registered last year: sign **in** at ${SITE}, do not open a new account\n\nDo not use social media for opening or closing dates. Confirm on the portal. I will not invent a deadline.`
+    return `**As of today:** account creation can be OPEN while the **loan and upkeep window is not confirmed** for this cycle.\n\n- Create account, finish profile, sort BVN: ${PORTAL}\n- Already registered last year: sign in at ${SITE}, do not open a new account\n\nDo not use social media for opening or closing dates. Confirm on the portal. I will not invent a deadline.`
   }
   if (intent === 'jamb-verification') {
     return `**Invalid JAMB / JAMB wahala**\n\n1. Type the JAMB number exactly as on the admission letter. No extra space.\n2. Name and date of birth must match JAMB and NIN.\n3. Direct Entry still uses a JAMB registration, not a made-up number. Old-year JAMB can fail if CAPS / school record is not aligned.\n4. Still failing: campus NELFUND desk, then ${ESUPPORT}. Do not create a second account.`
