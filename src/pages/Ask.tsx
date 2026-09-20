@@ -205,7 +205,7 @@ export default function Ask() {
                 NELFUND Student Guide
               </span>
               <span className="block text-[10px] font-medium leading-tight text-ink/45">
-                Independent \u00b7 Official sources
+                Independent · Official sources
               </span>
             </span>
           </Link>
@@ -292,7 +292,7 @@ export default function Ask() {
                     />
                   )}
                   <p className="whitespace-pre-wrap" style={{ color: '#FFFFFF' }}>
-                    {m.text || '\u2026'}
+                    {m.text || '…'}
                   </p>
                 </div>
               ) : (
@@ -335,12 +335,8 @@ export default function Ask() {
                       <div className="pt-1">
                         <WhatsAppClassLink
                           source="ask-after-answer"
-                          showHints
                           className="!min-h-[36px] !px-3 !py-1.5 !text-xs"
                         />
-                        <p className="mt-1 text-[11px] leading-relaxed text-ink/40">
-                          Copy a level or department name, then search that group in WhatsApp. Do not tap one classmate.
-                        </p>
                       </div>
                     )}
                   </div>
@@ -393,11 +389,11 @@ export default function Ask() {
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-forest-700 text-white shadow-sm transition hover:bg-forest-600 disabled:opacity-50"
             aria-label="Send"
           >
-            {'\u2192'}
+            →
           </button>
         </form>
         <p className="pb-2 text-center text-[10px] text-ink/40">
-          Independent student guide \u00b7 Verify critical details on the official portal
+          Independent student guide · Verify critical details on the official portal
         </p>
       </div>
     </div>
