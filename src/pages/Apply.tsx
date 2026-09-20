@@ -11,23 +11,22 @@ export default function Apply() {
   if (!guide) return null
 
   return (
-    <div className="container-page py-10">
+    <div className="container-page py-8 sm:py-10">
       <ShareSoftPrompt />
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="eyebrow">Step-by-step guide</p>
-          <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">{guide.title}</h1>
-          <p className="mt-2 max-w-xl text-sm text-ink/65">{guide.summary}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <ShareGuide variant="button" className="shrink-0" />
-          <WhatsAppClassLink source="apply-header" className="shrink-0" />
-        </div>
+
+      {/* Title full width first — share CTAs below so mobile text never collapses to one word per line */}
+      <p className="eyebrow">Step-by-step guide</p>
+      <h1 className="mt-1 text-2xl font-bold leading-tight text-ink sm:text-3xl">{guide.title}</h1>
+      <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink/65">{guide.summary}</p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <ShareGuide variant="button" className="shrink-0" />
+        <WhatsAppClassLink source="apply-header" className="shrink-0" />
       </div>
-      <p className="mt-2 text-xs text-ink/45">
-        In WhatsApp, pick your class or department group so the whole class can apply with the same steps.
-      </p>
-      <div className="mt-2"><InstitutionNotice /></div>
+
+      <div className="mt-3">
+        <InstitutionNotice />
+      </div>
 
       <div className="mt-6 grid gap-2 sm:grid-cols-2">
         <a
@@ -81,7 +80,12 @@ export default function Apply() {
               </div>
 
               {source && (
-                <a href={source.url || undefined} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-forest-700 underline underline-offset-2">
+                <a
+                  href={source.url || undefined}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-block text-xs text-forest-700 underline underline-offset-2"
+                >
                   {source.label}
                 </a>
               )}
@@ -97,10 +101,7 @@ export default function Apply() {
             Post this step-by-step guide in your class or department WhatsApp group before classmates open the portal.
           </p>
         </div>
-        <WhatsAppClassLink source="apply-end" showHints />
-        <p className="text-xs text-ink/45">
-          Copy the group name first. If WhatsApp shows people, tap Search and paste it. Do not tap one classmate.
-        </p>
+        <WhatsAppClassLink source="apply-end" />
       </div>
 
       <div className="mt-8">
