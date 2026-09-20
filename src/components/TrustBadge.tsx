@@ -29,14 +29,15 @@ const COPY: Record<VerificationStatus, { label: string; icon: string; className:
 }
 
 interface TrustBadgeProps {
-  status: VerificationStatus
+  status?: VerificationStatus | null
   sourceId?: string | null
   lastVerified?: string | null
   compact?: boolean
 }
 
 export default function TrustBadge({ status, sourceId, lastVerified, compact }: TrustBadgeProps) {
-  const { label, icon, className, helper } = COPY[status]
+  const meta = (status && COPY[status]) || COPY.guidance
+  const { label, icon, className, helper } = meta
   const source = getSource(sourceId ?? null)
 
   return (
@@ -45,9 +46,7 @@ export default function TrustBadge({ status, sourceId, lastVerified, compact }: 
         {icon} {label}
       </span>
       {!compact && source && (
-        <span className="text-xs text-ink/50">
-          Source: {source.official ? source.label : 'Guide notes'}
-        </span>
+        <span className="text-xs text-ink/50">Source: {source.official ? source.label : 'Guide notes'}</span>
       )}
       {!compact && (
         <span className="text-xs text-ink/50">
@@ -55,7 +54,9 @@ export default function TrustBadge({ status, sourceId, lastVerified, compact }: 
         </span>
       )}
       {!compact && status === 'unverified' && (
-        <span className="text-xs text-ink/50">Check the official portal or your institution&apos;s latest announcement.</span>
+        <span className="text-xs text-ink/50">
+          Check the official portal or your institution's latest announcement.
+        </span>
       )}
     </div>
   )
