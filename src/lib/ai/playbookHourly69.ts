@@ -1,9 +1,14 @@
+import { playbookHourly70 } from './playbookHourly70'
+
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hour-69 playbook. Answers differ by angle. No invented dates. No long dashes. */
 export function playbookHourly69(intent: string, userText: string): string | null {
+  const from70 = playbookHourly70(intent, userText)
+  if (from70) return from70
+
   const t = userText || ''
 
   if (/dashboard\s*(still\s*)?(show(ing)?|dey)\s*(0|zero|nil)/i.test(t)) {
