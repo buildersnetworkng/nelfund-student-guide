@@ -148,6 +148,7 @@ export default function ShareSoftPrompt() {
         <div className="mt-3">
           <WhatsAppClassLink
             source={inbound ? 'soft-prompt-inbound' : 'soft-prompt'}
+            compact
             className="!min-h-[36px] w-full !px-3 !py-1.5 !text-xs"
           />
         </div>

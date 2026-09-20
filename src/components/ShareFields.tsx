@@ -107,10 +107,12 @@ export function WhatsAppClassLink({
   source,
   className = '',
   showHints = false,
+  compact = false,
 }: {
   source: string
   className?: string
   showHints?: boolean
+  compact?: boolean
 }) {
   const [copied, setCopied] = useState(false)
   const [groupName, setGroupName] = useState('')
@@ -130,7 +132,7 @@ export function WhatsAppClassLink({
   const searchPaste = getGroupSearchPaste(groupName)
 
   return (
-    <div className={showHints ? 'space-y-2' : undefined}>
+    <div className={showHints ? 'space-y-2' : compact ? undefined : 'space-y-1'}>
       {showHints && (
         <>
           <GroupNameField source={source} />
@@ -142,7 +144,7 @@ export function WhatsAppClassLink({
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => {
-          trackFeature('share_channel', { channel: 'whatsapp', source, search: searchPaste })
+          trackFeature('share_channel', { channel: 'whatsapp', source, search: searchPaste, compact })
           void copySharePayload(searchPaste).then((ok) => {
             if (!ok) return
             setCopied(true)
@@ -153,7 +155,7 @@ export function WhatsAppClassLink({
       >
         {copied ? `Copied "${searchPaste}". Paste in Search` : groupName ? `Post to ${groupName}` : 'Post to class group'}
       </a>
-      <MoreGroupsRow source={`${source}-more`} currentName={groupName || searchPaste} />
+      {!compact && <MoreGroupsRow source={`${source}-more`} currentName={groupName || searchPaste} />}
     </div>
   )
 }

@@ -13,6 +13,13 @@ type ShareGuideProps = {
   className?: string
 }
 
-export default function ShareGuide({ className = '' }: ShareGuideProps) {
-  return <ClassLink source="share-guide" className={className} />
+export default function ShareGuide({ variant = 'button', className = '' }: ShareGuideProps) {
+  const compact = variant === 'icon' || variant === 'button'
+  return (
+    <ClassLink
+      source={compact ? 'header-share' : 'share-guide'}
+      compact={compact}
+      className={compact ? `!min-h-[36px] !px-3 !py-1.5 !text-xs ${className}` : className}
+    />
+  )
 }
