@@ -3,11 +3,12 @@ import { useLocation } from 'react-router-dom'
 import ShareGuide, { SHARE_TEXT } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
 
-const STORAGE_KEY = 'nelfund-share-soft-dismissed-at'
+/** Bumped key so older dismiss flags no longer hide the card forever */
+const STORAGE_KEY = 'nelfund-share-soft-v2'
 const VALUE_KEY = 'nelfund-share-value-seen'
-/** After X, stay hidden for 12 hours (not days) so students still see it again */
-const DISMISS_MS = 1000 * 60 * 60 * 12
-/** Soft card only on Home — keep reading pages clear */
+/** After X, hide for 6 hours only */
+const DISMISS_MS = 1000 * 60 * 60 * 6
+/** Soft card only on Home */
 const SKIP_PROMPT_PATHS = [
   '/ask',
   '/apply',
@@ -23,7 +24,6 @@ const SKIP_PROMPT_PATHS = [
 
 const WHATSAPP_HREF = `https://wa.me/?text=${encodeURIComponent(SHARE_TEXT)}`
 
-/** Call after a student gets a useful answer or finishes a guide step. */
 export function markShareValue() {
   if (typeof window === 'undefined') return
   try {
@@ -46,14 +46,6 @@ function alreadyDismissed() {
   }
 }
 
-function hasValue() {
-  try {
-    return window.sessionStorage.getItem(VALUE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
 export default function ShareSoftPrompt() {
   const location = useLocation()
   const [visible, setVisible] = useState(false)
@@ -67,47 +59,20 @@ export default function ShareSoftPrompt() {
     if (alreadyDismissed()) return
 
     let shown = false
-    let valueTimer: number | undefined
-    const startedAt = Date.now()
+    let timer: number | undefined
 
     function reveal() {
       if (shown || alreadyDismissed()) return
-      // Allow almost immediate show after mount
-      if (Date.now() - startedAt < 800) return
       shown = true
       setVisible(true)
       trackFeature('share_prompt_shown', { variant: 'soft-prompt' })
     }
 
-    function onValue() {
-      if (shown || alreadyDismissed()) return
-      if (valueTimer) window.clearTimeout(valueTimer)
-      valueTimer = window.setTimeout(reveal, 1200)
-    }
-
-    function onScroll() {
-      if (shown || alreadyDismissed()) return
-      const help = document.getElementById('home-help')
-      if (!help) return
-      if (help.getBoundingClientRect().top < window.innerHeight * 0.75) {
-        markShareValue()
-        onValue()
-      }
-    }
-
-    window.addEventListener('nelfund-share-value', onValue)
-    window.addEventListener('scroll', onScroll, { passive: true })
-
-    // Always schedule on Home so the card is not easy to miss
-    if (hasValue()) onValue()
-    else {
-      valueTimer = window.setTimeout(reveal, 3000)
-    }
+    // Show quickly on Home — do not wait for scroll or "value" events
+    timer = window.setTimeout(reveal, 1500)
 
     return () => {
-      window.removeEventListener('nelfund-share-value', onValue)
-      window.removeEventListener('scroll', onScroll)
-      if (valueTimer) window.clearTimeout(valueTimer)
+      if (timer) window.clearTimeout(timer)
     }
   }, [location.pathname])
 
@@ -125,10 +90,11 @@ export default function ShareSoftPrompt() {
 
   return (
     <div
-      className="fixed bottom-24 left-3 right-3 z-40 mx-auto max-w-md sm:bottom-5 sm:left-auto sm:right-5 sm:w-[22rem]"
+      className="fixed bottom-24 left-3 right-3 z-[60] mx-auto max-w-md animate-[shareSoftIn_0.35s_ease-out] sm:bottom-5 sm:left-auto sm:right-5 sm:w-[22rem]"
       role="status"
+      aria-live="polite"
     >
-      <div className="rounded-2xl border border-forest-100 bg-white p-3.5 shadow-xl">
+      <div className="rounded-2xl border border-forest-200 bg-white p-3.5 shadow-2xl ring-1 ring-forest-900/5">
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink">One student can help ten more</p>
@@ -154,11 +120,11 @@ export default function ShareSoftPrompt() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source: 'soft-prompt' })}
-            className="inline-flex min-h-[36px] flex-1 items-center justify-center rounded-full bg-[#25D366] px-3 text-xs font-semibold text-white"
+            className="inline-flex min-h-[40px] flex-1 items-center justify-center rounded-full bg-[#25D366] px-3 text-xs font-semibold text-white"
           >
             Send to class group
           </a>
-          <ShareGuide variant="button" className="!min-h-[36px] !px-3 !py-1.5 !text-xs" />
+          <ShareGuide variant="button" className="!min-h-[40px] !px-3 !py-1.5 !text-xs" />
         </div>
       </div>
     </div>
