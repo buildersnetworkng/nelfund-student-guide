@@ -37,7 +37,6 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('official-sources', 0.4, ['empty'], 'Empty message', 'unknown', entities)
   }
 
-  // Live open/closed must beat purpose (e.g. is nelfund loan application open)
   if (liveOpenRe().test(raw) || liveOpenRe().test(expanded)) {
     return hitIntent('current-information', 0.92, ['open-status', 'current'], 'Live open / deadline', 'exploring', entities)
   }
@@ -105,7 +104,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   }
 
   if (
-    /how\s*far(\s*(my|na|now|abeg|my\s*own))?|money\s*(never|no|go)\s*(enter|drop|show)|still\s*pending|status\s*(no|not|never)\s*(change|move)|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not|never)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect|total\s*loans?\s*(is\s*)?(0|zero)|dashboard\s*(empty|blank)|i\s*don\s*submit/i.test(
+    /how\s*far(\s*(my|na|now|abeg|my\s*own))?|alert\s*(never|no|not)\s*(come|enter|drop)|my\s*own\s*never\s*(enter|drop|show)|money\s*(never|no|go)\s*(enter|drop|show)|still\s*pending|status\s*(no|not|never)\s*(change|move)|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not|never)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect|total\s*loans?\s*(is\s*)?(0|zero)|dashboard\s*(empty|blank)|i\s*don\s*submit/i.test(
       raw,
     )
   ) {
@@ -132,7 +131,11 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('portal-login', 0.9, ['login'], 'Login / email already used / OTP', 'applying', entities, true)
   }
 
-  if (/customer\s*care|phone\s*(number|no|line)|nelfund\s*(hotline|number)|who\s*(do\s*i|to)\s*call|office\s*address/i.test(raw)) {
+  if (/change\s*(my\s*)?(phone|number|email)|update\s*(my\s*)?(phone|email|profile)/i.test(raw)) {
+    return hitIntent('portal-login', 0.9, ['login'], 'Change phone / email / profile', 'applying', entities, true)
+  }
+
+  if (/customer\s*care|nelfund\s*(hotline|number)|who\s*(do\s*i|to)\s*call|office\s*address|phone\s*(number|no|line)\s*(for\s*)?(nelfund|support|customer)/i.test(raw)) {
     return hitIntent('contact-support', 0.88, ['other'], 'Phone / office / hotline', 'exploring', entities)
   }
 
@@ -147,7 +150,6 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   const soft = residualSoftRoute(expanded || raw, entities)
   if (soft && soft.intent !== 'unknown') return soft
 
-  // Conversational follow-ups keep the prior intent (from history or previous assistant)
   const followish =
     raw.length < 120 &&
     /^(alright|okay|ok|so|and|then|now|please|abeg)?\s*(so\s+)?(what|wetin|how|where|which)?/i.test(raw) &&
