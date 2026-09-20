@@ -9,6 +9,7 @@ import {
   persistGroupName,
   buildShareText,
   copySharePayload,
+  getGroupSearchPaste,
 } from '../lib/shareCopy'
 
 export function GroupNameField({ source }: { source: string }) {
@@ -126,6 +127,7 @@ export function WhatsAppClassLink({
 
   const shareText = buildShareText(siteUrl, groupName)
   const href = `https://wa.me/?text=${encodeURIComponent(shareText)}`
+  const searchPaste = getGroupSearchPaste(groupName)
 
   return (
     <div className={showHints ? 'space-y-2' : undefined}>
@@ -140,8 +142,7 @@ export function WhatsAppClassLink({
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => {
-          trackFeature('share_channel', { channel: 'whatsapp', source })
-          const searchPaste = groupName.trim() || shareText
+          trackFeature('share_channel', { channel: 'whatsapp', source, search: searchPaste })
           void copySharePayload(searchPaste).then((ok) => {
             if (!ok) return
             setCopied(true)
@@ -150,9 +151,9 @@ export function WhatsAppClassLink({
         }}
         className={`inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.98] ${className}`}
       >
-        {copied ? (groupName ? 'Group name copied. Paste in Search' : 'Copied. Search the group') : groupName ? `Post to ${groupName}` : 'Post to class group'}
+        {copied ? `Copied "${searchPaste}". Paste in Search` : groupName ? `Post to ${groupName}` : 'Post to class group'}
       </a>
-      {copied && <MoreGroupsRow source={`${source}-more`} currentName={groupName} />}
+      {copied && <MoreGroupsRow source={`${source}-more`} currentName={groupName || searchPaste} />}
     </div>
   )
 }
