@@ -61,6 +61,7 @@ import { residualOtherHourly55 } from './residualOtherHourly55'
 import { residualOtherHourly56 } from './residualOtherHourly56'
 import { residualOtherHourly57 } from './residualOtherHourly57'
 import { residualOtherHourly58 } from './residualOtherHourly58'
+import { residualOtherHourly59 } from './residualOtherHourly59'
 
 export function isPortalDump(text: string): boolean {
   const t = (text || '').toLowerCase()
@@ -120,7 +121,7 @@ export function detectEntities(text: string): string[] {
   if (/\bbvn\b/.test(t)) out.push('bvn')
   if (/upkeep|stipend|allowance/.test(t)) out.push('upkeep')
   if (/school\s*fees?|tuition|institutional\s*charges?/.test(t)) out.push('fees')
-  if (/pending|under\s*review|how\s*far|never\s*enter|mates?\s*don|processing|nothing\s*don\s*drop/.test(t))
+  if (/pending|under\s*review|how\s*far|never\s*enter|mates?\s*don|processing|nothing\s*don\s*drop|no\s*(credit\s*)?alert|money\s*(never|no)/.test(t))
     out.push('pending')
   if (/login|sign\s*in|password|otp/.test(t)) out.push('login')
   if (/missing\s*information|not\s*on\s*(the\s*)?list/.test(t)) out.push('missing')
@@ -202,6 +203,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     residualOtherHourly56,
     residualOtherHourly57,
     residualOtherHourly58,
+    residualOtherHourly59,
   ]) {
     try {
       const hit = fn(q, entities)
