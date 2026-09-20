@@ -4,7 +4,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import StatusCard from '../components/StatusCard'
 import StaySafe from '../components/StaySafe'
 import InstitutionSelect from '../components/InstitutionSelect'
-import ShareGuide, { WhatsAppClassLink } from '../components/ShareGuide'
+import { WhatsAppClassLink } from '../components/ShareGuide'
 import ShareSoftPrompt from '../components/ShareSoftPrompt'
 import { getCurrentAcademicCycle } from '../lib/academicCycle'
 
@@ -364,9 +364,8 @@ export default function Home() {
               ? 'Post the NELFUND Guide in YOUR class or department WhatsApp group so more classmates can check readiness, apply correctly, and fix portal issues.'
               : 'Drop the NELFUND Guide in your class or department WhatsApp group so many classmates can check readiness, apply correctly, and fix portal issues before they get stuck.'}
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <ShareGuide variant="button" />
-            <WhatsAppClassLink source={inbound ? 'home-help-inbound' : 'home-help'} />
+          <div className="mt-4">
+            <WhatsAppClassLink source={inbound ? 'home-help-inbound' : 'home-help'} showHints />
           </div>
           <p className="mt-2 text-xs text-ink/45">
             Copy a level or department name first. If WhatsApp shows people, tap Search and paste that name. Do not tap one classmate.
