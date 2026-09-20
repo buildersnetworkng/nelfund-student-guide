@@ -8,6 +8,7 @@ import { playbookHourly53 } from './playbookHourly53'
 import { playbookHourly54 } from './playbookHourly54'
 import { playbookHourly55 } from './playbookHourly55'
 import { playbookHourly56 } from './playbookHourly56'
+import { playbookHourly57 } from './playbookHourly57'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -61,16 +62,18 @@ export function isConversationalFollowUp(text: string): boolean {
 export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string {
   const inst = ctx.institutionName ? ` at **${ctx.institutionName}**` : ''
   if (intent === 'missing-information' || intent === 'school-not-found' || intent === 'institution-verification') {
-    return `**First step right now**${inst}\n\n1. Ask ICT / Registry / NELFUND desk to confirm your record is uploaded\n2. Retry ${PORTAL}\n3. Still failing after school confirms → ${ESUPPORT}`
+    return `**First step right now**${inst}\n\n1. Ask ICT / Registry / NELFUND desk to confirm your record is uploaded\n2. Retry ${PORTAL}\n3. Still failing after school confirms -> ${ESUPPORT}`
   }
   if (intent === 'pending-application') {
     return `**First step for how far / pending**\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. School charges go to the school. No SMS does not mean declined.\n3. Still the same word for weeks: campus NELFUND desk, then ${ESUPPORT}.`
   }
-  return `**Next step**\n\n1. Open ${PORTAL} and act on the exact status or error you see\n2. If the portal asks for school confirmation, use your campus NELFUND desk\n3. Still stuck after that → ${ESUPPORT}\n\n${PORTAL}`
+  return `**Next step**\n\n1. Open ${PORTAL} and act on the exact status or error you see\n2. If the portal asks for school confirmation, use your campus NELFUND desk\n3. Still stuck after that -> ${ESUPPORT}\n\n${PORTAL}`
 }
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   if (ctx.userText) {
+    const extra57 = playbookHourly57(intent, ctx.userText)
+    if (extra57) return extra57
     const extra56 = playbookHourly56(intent, ctx.userText)
     if (extra56) return extra56
     const extra55 = playbookHourly55(intent, ctx.userText)
@@ -105,7 +108,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
   if (intent === 'official-sources') {
     if (ctx.userText && /portal|link|website|sign\s*(in|up)|login|official|url/i.test(ctx.userText)) {
-      return `Official only (bookmark these):\n• **Sign in:** ${SITE}\n• **Sign up / apply:** ${PORTAL}\n• **Support ticket:** ${ESUPPORT}\n• **FAQ:** ${FAQ}\n\nSign in is not the same as sign up, and that is not the same as the loan window.`
+      return `Official only (bookmark these):\n- **Sign in:** ${SITE}\n- **Sign up / apply:** ${PORTAL}\n- **Support ticket:** ${ESUPPORT}\n- **FAQ:** ${FAQ}\n\nSign in is not the same as sign up, and that is not the same as the loan window.`
     }
     if (
       ctx.priorIntent &&
@@ -137,7 +140,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**How to apply**\n\n1. Confirm school listed and record uploaded.\n2. Create or sign in at ${PORTAL}.\n3. Complete profile (JAMB, NIN, BVN).\n4. Use Request for Student Loan only when the official loan window is open. Confirm on ${SITE} / ${PORTAL}. I will not invent dates.`
   }
   if (intent === 'what-is-nelfund' || intent === 'nelfund-purpose' || intent === 'nelfund-history') {
-    return `**Why NELFUND exists:** the Students Loans (Access to Higher Education) Act set up the Nigeria Education Loan Fund so eligible students in **public** tertiary institutions can get **interest-free** loans for school charges and living costs.\n\nInstitutional charges go to the **school**. Optional monthly upkeep goes to the **student**. It is a loan, not a scholarship.\n\n${SITE} · ${PORTAL}`
+    return `**Why NELFUND exists:** the Students Loans (Access to Higher Education) Act set up the Nigeria Education Loan Fund so eligible students in **public** tertiary institutions can get **interest-free** loans for school charges and living costs.\n\nInstitutional charges go to the **school**. Optional monthly upkeep goes to the **student**. It is a loan, not a scholarship.\n\n${SITE} / ${PORTAL}`
   }
   if (intent === 'upkeep' || intent === 'upkeep-payment' || intent === 'upkeep-vs-fees') {
     return `**Upkeep** is living support, separate from school charges.\n\n1. Tick it in the **same** session as institutional charges when the loan window is open.\n2. It goes to the bank account on your profile, not a wallet-only account.\n3. I will not invent a monthly figure or pay date. Confirm on ${PORTAL}.`
@@ -147,19 +150,19 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     if (rumour) {
       return `**Life jail for unpaid student loans is not official NELFUND policy.** Treat circulating newspaper graphics as fake unless you see the same text on ${SITE}.\n\nRepayment, when it starts, follows the Students Loans Act: after the applicable NYSC / study period, and only under the official rules. Confirm on ${SITE} and ${PORTAL}. I will not invent a jail term, start date, or percentage.`
     }
-    return `**Repayment** starts after the applicable NYSC or study period under official NELFUND rules, not on a date I invent here.\n\n1. Confirm the exact rule on ${SITE} and ${PORTAL}. I will not invent a start date, percentage, or jail term.\n2. Circulating "life jail" graphics are not official unless the same text is on ${SITE}.\n3. GSI / salary deduction, if it applies later, follows the Act, not WhatsApp rumours.\n4. Still studying or serving: you are not in a repayment window I can invent.`
+    return `**Repayment** starts after the applicable NYSC or study period under official NELFUND rules, not on a date I invent here.\n\n1. Confirm the exact rule on ${SITE} and ${PORTAL}. I will not invent a start date, percentage, or jail term.\n2. Circulating life-jail graphics are not official unless the same text is on ${SITE}.\n3. GSI / salary deduction, if it applies later, follows the Act, not WhatsApp rumours.\n4. Still studying or serving: you are not in a repayment window I can invent.`
   }
   if (intent === 'current-information' || intent === 'deadline') {
-    return `**As of today:** account creation can be OPEN while the **loan and upkeep window is not confirmed** for this cycle.\n\n• Create account, finish profile, sort BVN: ${PORTAL}\n• Already registered last year: sign **in** at ${SITE}, do not open a new account\n\nDo not use social media for opening or closing dates. Confirm on the portal. I will not invent a deadline.`
+    return `**As of today:** account creation can be OPEN while the **loan and upkeep window is not confirmed** for this cycle.\n\n- Create account, finish profile, sort BVN: ${PORTAL}\n- Already registered last year: sign **in** at ${SITE}, do not open a new account\n\nDo not use social media for opening or closing dates. Confirm on the portal. I will not invent a deadline.`
   }
   if (intent === 'jamb-verification') {
     return `**Invalid JAMB / JAMB wahala**\n\n1. Type the JAMB number exactly as on the admission letter. No extra space.\n2. Name and date of birth must match JAMB and NIN.\n3. Direct Entry still uses a JAMB registration, not a made-up number. Old-year JAMB can fail if CAPS / school record is not aligned.\n4. Still failing: campus NELFUND desk, then ${ESUPPORT}. Do not create a second account.`
   }
   if (intent === 'scam-safety') {
-    return `**Safety**\n\n• Never pay an agent.\n• Never share OTP or password.\n• Apply only on ${PORTAL}\n• Tickets: ${ESUPPORT}`
+    return `**Safety**\n\n- Never pay an agent.\n- Never share OTP or password.\n- Apply only on ${PORTAL}\n- Tickets: ${ESUPPORT}`
   }
   if (intent === 'contact-support' || intent === 'contact-lookup') {
-    return `**Official support only**\n\n• Tickets: ${ESUPPORT}\n• Website: ${SITE}\n• Portal: ${PORTAL}\n\nI will not invent a WhatsApp group, personal phone line, or agent number. If a flyer gives a number, ignore it.`
+    return `**Official support only**\n\n- Tickets: ${ESUPPORT}\n- Website: ${SITE}\n- Portal: ${PORTAL}\n\nI will not invent a WhatsApp group, personal phone line, or agent number. If a flyer gives a number, ignore it.`
   }
   if (intent === 'bank-information') {
     return `**Bank on the profile**\n\n1. Use a regular Nigerian bank account in your name. Some wallets (OPay, PalmPay, and similar) get rejected if the portal wants a deposit bank.\n2. Name must match NIN / BVN.\n3. Fix it on ${PORTAL} while signed in. Do not open a second account.\n4. Still failing: ${ESUPPORT}`
