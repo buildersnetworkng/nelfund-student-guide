@@ -153,7 +153,7 @@ export function WhatsAppClassLink({
       >
         {copied ? `Copied "${searchPaste}". Paste in Search` : groupName ? `Post to ${groupName}` : 'Post to class group'}
       </a>
-      {copied && <MoreGroupsRow source={`${source}-more`} currentName={groupName || searchPaste} />}
+      <MoreGroupsRow source={`${source}-more`} currentName={groupName || searchPaste} />
     </div>
   )
 }

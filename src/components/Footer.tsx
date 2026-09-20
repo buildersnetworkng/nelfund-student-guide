@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { sources } from '../lib/data'
 import { useInstitution } from '../context/InstitutionContext'
-import ShareGuide, { WhatsAppClassLink } from './ShareGuide'
+import { WhatsAppClassLink } from './ShareGuide'
 
 export default function Footer() {
   const { institutionId, institution } = useInstitution()
@@ -28,10 +28,6 @@ export default function Footer() {
               <Link to="/ask" className="inline-flex text-sm font-semibold text-gold-300 hover:text-gold-100">
                 Ask support →
               </Link>
-              <ShareGuide
-                variant="button"
-                className="!border-paper/20 !bg-paper/10 !text-paper hover:!bg-paper/15"
-              />
               <WhatsAppClassLink source="footer" className="!min-h-[36px] !px-3 !text-xs" />
             </div>
           </div>
