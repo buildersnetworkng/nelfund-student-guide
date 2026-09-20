@@ -4,6 +4,7 @@ import { trackFeature } from './analytics'
 export const SHARE_TITLE = 'NELFUND Student Guide'
 export const GROUP_NAME_KEY = 'nelfund-share-group-name'
 export const GROUP_NAME_EVENT = 'nelfund-share-group-name'
+export const DEFAULT_GROUP_SEARCH = 'class group'
 export const GROUP_SEARCH_HINTS = [
   '100L',
   '200L',
@@ -50,6 +51,12 @@ export function persistGroupName(value: string) {
     window.dispatchEvent(new Event(GROUP_NAME_EVENT))
   }
   return cleaned
+}
+
+/** Short text to paste into WhatsApp Search. Never the full share message. */
+export function getGroupSearchPaste(groupName = '') {
+  const named = stripLongDashes(groupName).trim()
+  return named || DEFAULT_GROUP_SEARCH
 }
 
 export function buildShareText(url: string, groupName = '') {
