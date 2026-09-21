@@ -30,6 +30,8 @@ import { playbookHourly75 } from './playbookHourly75'
 import { playbookHourly82 } from './playbookHourly82'
 import { playbookHourly87 } from './playbookHourly87'
 import { playbookHourly88 } from './playbookHourly88'
+import { playbookHourly89 } from './playbookHourly89'
+import { playbookHourly90 } from './playbookHourly90'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -71,7 +73,7 @@ export function isConversationalFollowUp(text: string): boolean {
   )
     return true
   if (
-    /what\s*(should|will|can)\s*i\s*(do|take)|what'?s\s*(the\s*)?(next|solution|first)|what\s*next|so\s*what|wetin\s*(i\s*)?(go|to)\s*do|wattin\s*i\s*go\s*do|first\s*(step|thing)/i.test(
+    /what\s*(should|will|can)\s*i\s*(do|take)|what'?s\s*(the\s*)?(next|solution|first)|what\s*next|so\s*what|wetin\s*(i\s*)?(go|to)\s*do|wattin\s*i\s*go\s*do|first\s*(step|thing)|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin|first\s*thing\s*i\s*go\s*do/i.test(
       t,
     )
   )
@@ -93,6 +95,10 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   if (ctx.userText) {
+    const extra90 = playbookHourly90(intent, ctx.userText)
+    if (extra90) return extra90
+    const extra89 = playbookHourly89(intent, ctx.userText)
+    if (extra89) return extra89
     const extra88 = playbookHourly88(intent, ctx.userText)
     if (extra88) return extra88
     const extra87 = playbookHourly87(intent, ctx.userText)
@@ -256,6 +262,6 @@ export function isNewUserAsk(text: string): boolean {
   const t = text.trim().toLowerCase()
   if (isConversationalFollowUp(t)) return false
   if (/^(so\s+)?(what('?s|\s+is)?\s+)?(the\s+)?(solution|next|first\s*step)/i.test(t)) return false
-  if (/wetin\s*(i\s*)?(go|to)\s*do|what\s*next|what'?s\s*next/i.test(t)) return false
+  if (/wetin\s*(i\s*)?(go|to)\s*do|what\s*next|what'?s\s*next|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin/i.test(t)) return false
   return /what\s*is\s*nelfund|how\s*to\s*apply|eligib|missing\s*information|upkeep|repay|login|jamb|scam|is\s*(nelfund|application)\s*open/i.test(t)
 }
