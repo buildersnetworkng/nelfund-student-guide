@@ -77,5 +77,11 @@ export function residualPendingMore(text: string, entities: string[]): IntentRes
   if (/i\s*no\s*see\s*(my\s*)?(upkeep|stipend|allowance)|upkeep\s*(never|no)\s*(land|enter|drop)/i.test(q) && !liveish(q)) {
     return hit('pending-application', 0.86, ['pending-status', 'upkeep-wait'], 'No upkeep leftover', 'waiting', entities, true)
   }
+  if (/status\s*still\s*(processing|pending|submitted)|still\s*processing|e\s*still\s*dey\s*process/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.9, ['pending-status', 'still-processing'], 'Status still processing leftover', 'waiting', entities, true)
+  }
+  if (/why\s*(my\s*)?(own|application|tin)\s*(no|not|never)\s*move|my\s*own\s*(no|never)\s*move/i.test(q) && !liveish(q)) {
+    return hit('pending-application', 0.9, ['pending-status', 'not-moving'], 'Why my own no move leftover', 'waiting', entities, true)
+  }
   return null
 }
