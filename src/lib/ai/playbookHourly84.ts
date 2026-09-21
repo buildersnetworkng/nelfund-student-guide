@@ -1,4 +1,5 @@
 import type { IntentId } from './types'
+import { playbookHourly85 } from './playbookHourly85'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -7,6 +8,8 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hour-84 wording. Vague help stays a short menu. No invented dates. No long dashes. */
 export function playbookHourly84(intent: IntentId, userText?: string): string | null {
+  const newer = playbookHourly85(intent, userText)
+  if (newer) return newer
   const t = (userText || '').trim()
   if (!t) return null
 
