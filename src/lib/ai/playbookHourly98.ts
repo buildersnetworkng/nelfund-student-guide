@@ -1,5 +1,5 @@
 import type { IntentId } from './types'
-import { playbookHourly101 } from './playbookHourly101'
+import { playbookHourly102 } from './playbookHourly102'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -8,17 +8,17 @@ const FAQ = 'https://nelf.gov.ng/faq'
 
 /** Hour 98: short menu for vague help; pending / login leftovers. */
 export function playbookHourly98(intent: IntentId, userText?: string): string | null {
-  const angled = playbookHourly101(intent, userText)
+  const angled = playbookHourly102(intent, userText)
   if (angled) return angled
 
   const t = (userText || '').trim()
   if (!t) return null
 
-  if (intent === 'official-sources' && /help|assist|guide|sabi|confused|lost|menu|start|orientate|assistance|una\s*fit/i.test(t)) {
+  if (intent === 'official-sources' && /help|assist|guide|sabi|confused|lost|menu|start|orientate|assistance|una\s*fit|navigate|direction|blank|begin/i.test(t)) {
     return `I can help with NELFUND. Pick one line:\n\n1. How to apply or create an account: ${PORTAL}\n2. Already registered: sign in at ${SITE}\n3. Pending / money never enter: check the exact status word on ${PORTAL}\n4. JAMB, school not on list, or login error: same portal, then ${ESUPPORT}\n\nOfficial FAQ: ${FAQ}. I will not invent a deadline or a pay date.`
   }
 
-  if (intent === 'pending-application' && /how\s*far\s*(now|abeg)|e\s*never\s*(move|change)|file\s*(still\s*)?(dey|is)\s*(there|same)|zero\s*naira|dashboard\s*still\s*(0|zero)/i.test(t)) {
+  if (intent === 'pending-application' && /how\s*far\s*(now|abeg)|e\s*never\s*(move|change)|file\s*(still\s*)?(dey|is)\s*(there|same)|zero\s*naira|dashboard\s*still\s*(0|zero)|disbursement/i.test(t)) {
     return `I cannot see your file from this chat.\n\n1. Sign in at ${PORTAL} and copy the exact status word.\n2. School charges and upkeep can move on different days.\n3. Same word after campus desk confirms: ${ESUPPORT}.`
   }
 
