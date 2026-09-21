@@ -1,4 +1,5 @@
 import type { IntentId } from './types'
+import { playbookHourly78 } from './playbookHourly78'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -6,12 +7,14 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hour-77 wording. Pending angles differ by phrase. No invented dates. No long dashes. */
 export function playbookHourly77(intent: IntentId, userText?: string): string | null {
+  const chained = playbookHourly78(intent, userText)
+  if (chained) return chained
   const t = (userText || '').trim()
   if (!t) return null
 
   if (intent === 'pending-application') {
     if (/approved\s*but\s*(no|never)\s*(money|pay|alert)|school\s*don\s*(collect|receive)/i.test(t)) {
-      return `Approved or school-paid is not the same as cash in your bank.\n\nInstitutional charges go to the school first. Your own alert only comes if you ticked upkeep in that same session.\n\n1. Copy the exact sentence on ${PORTAL}. I cannot see the file from this chat.\n2. I will not invent a pay day.\n3. Same word for weeks: campus NELFUND desk, then ${ESUPPORT}.`
+      return `Approved or school-paid is not the same as cash in your bank.\n\nInstitutional charges go to the school first. Your own alert only comes if you ticked upkeep in that same session.\n\n1. Copy the exact sentence on ${PORTAL}. I cannot see the file from this chat.\n\n2. I will not invent a pay day.\n3. Same word for weeks: campus NELFUND desk, then ${ESUPPORT}.`
     }
     if (/no\s*(credit\s*)?alert|bank\s*never|nothing\s*don\s*(drop|enter)|dashboard\s*(still\s*)?(na\s*)?(0|zero)/i.test(t)) {
       return `No alert and a quiet dashboard do not mean the file died.\n\n1. Sign in at ${PORTAL} and copy submitted / processing / approved exactly.\n2. School money can move with no SMS to you.\n3. Do not open a second account to force a credit. Long wait: campus desk, then ${ESUPPORT}.`
