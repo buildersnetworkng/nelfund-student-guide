@@ -20,8 +20,8 @@ function liveish(q: string): boolean {
 
 /**
  * Hour-102 leftover catcher.
- * Live 2026-09-21 20:09Z: unknownAi 438, other 324, pending-status 70, jamb 40.
- * Focus: residual other Pidgin + vague help fragments.
+ * Live 2026-09-21 20:10Z: unknownAi 438, other 324, pending-status 70.
+ * Focus: pending / how-far / money-never-enter sentence shapes that still land on unknown/other.
  */
 export function residualOtherHourly102(text: string, entities: string[]): IntentResult | null {
   const q = (text || '').trim()
@@ -30,51 +30,52 @@ export function residualOtherHourly102(text: string, entities: string[]): Intent
   if (/what\s*is\s*nelfund|wetin\s*be\s*nelfund|purpose\s*of|why\s*dem\s*create/i.test(q)) return null
 
   if (
-    /^(una\s*)?(fit\s*)?(help|assist|guide)\s*(me|us)?\s*(small|abeg|now|jare|jo|pls|please)?\.?$|^i\s*just\s*wan(t)?\s*(una\s*)?help\.?$|^wetin\s*una\s*(fit|dey)\s*do\s*(here|for\s*me)?\??$|^i\s*no\s*know\s*wetin\s*to\s*type\.?$|^make\s*i\s*start\s*(from\s*)?where\??$|^where\s*i\s*go\s*begin\??$|^brief\s*me\s*(abeg|pls|please|small)?\.?$|^orientate\s*me\s*(abeg|pls)?\.?$|^i\s*dey\s*blank\.?$|^nothing\s*dey\s*my\s*head\.?$|^una\s*dey\s*(there|here)\??$|^help\s*me\s*navigate\.?$|^i\s*need\s*direction\.?$|^how\s*this\s*(chat|bot|page)\s*work\??$|^wetin\s*this\s*(page|chat|bot)\s*(dey\s*)?do\??$|^i\s*come\s*here\s*for\s*help\.?$|^pls\s*orientate/i.test(
+    /how\s*far(\s*(na|with|on))?\s*(my|dis|this|the)?\s*(own|one|app(lication)?|file|matter|loan)?/i.test(q) ||
+    /my\s*(own|one|app(lication)?|file)\s*(still\s*)?(dey\s*)?(pending|processing|under\s*review|review)/i.test(q) ||
+    /(application|file|loan)\s*(is|dey|still)\s*(pending|processing|under\s*review|reviewing)/i.test(q) ||
+    /status\s*(still|dey|is|remain[s]?)\s*(pending|processing|same|under\s*review|no\s*change)/i.test(q) ||
+    /money\s*(never|no|not)\s*(enter|show|land|drop|reach|come)/i.test(q) ||
+    /(upkeep|alert|credit|transfer)\s*(never|no|not)\s*(enter|show|land|drop|reach|come)/i.test(q) ||
+    /dem\s*(never|no)\s*(pay|credit|send)\s*(me|my\s*own)/i.test(q) ||
+    /they\s*(haven'?t|have\s*not|never)\s*(paid|credited|sent)\s*(me|mine)/i.test(q) ||
+    /(no|zero)\s*(alert|credit|kobo|naira)\s*(since|after|for)/i.test(q) ||
+    /submit(ted)?\s*(since|last|for)\s*(week|month|january|february|march|april|may|june|july|august|september)/i.test(
       q,
-    )
-  ) {
-    return hit('official-sources', 0.9, ['other', 'greeting-vague'], 'Vague Pidgin help menu 102', 'exploring', entities)
-  }
-
-  if (
-    /my\s*(loan|file|own)\s*(still|stil)\s*dey\s*(there|pending)|e\s*no\s*comot\s*(from\s*)?(pending|review)|i\s*don\s*wait\s*(pass|since)\s*(two|2|three|3|four|4)\s*(week|month)|dem\s*don\s*settle\s*(my\s*)?(mates|class)|class\s*don\s*see\s*(alert|money)|my\s*dashboard\s*still\s*(0|zero|empty)|status\s*word\s*(no|not|never)\s*(change|move)|processing\s*pass\s*(one|1)\s*month|una\s*don\s*forget\s*this\s*file|how\s*far\s*my\s*disbursement/i.test(
+    ) ||
+    /nothing\s*(don|has)\s*(change|happen)|e\s*no\s*move|still\s*the\s*same\s*(word|status|place)/i.test(q) ||
+    /classmates?\s*(don|have)\s*(collect|receive|get)|everybody\s*(don|have)\s*(collect|receive)\s*(except|apart)/i.test(
       q,
-    )
+    ) ||
+    /approved\s*(but|yet)\s*(no|never)\s*(alert|money|credit)/i.test(q) ||
+    /under\s*review\s*(since|for)\s*\w+/i.test(q) ||
+    /when\s*(go|will)\s*(my\s*)?(money|upkeep|alert)\s*(enter|come|drop)/i.test(q) ||
+    /i\s*don\s*submit\s*(but|yet)\s*(nothing|no\s*money|e\s*no\s*move)/i.test(q)
   ) {
     return hit('pending-application', 0.94, ['pending-status'], 'Pending leftover 102', 'waiting', entities, true)
   }
 
   if (
-    /jamb\s*(no|not)\s*(correct|correctly)|utme\s*(no|not)\s*(gree|accept)|caps\s*(no|not)\s*(gree|match)|old\s*jamb\s*(no|not)\s*work|direct\s*entry\s*jamb|they\s*say\s*invalid\s*reg|reg\s*no\s*(no|not)\s*(valid|gree)|jamb\s*wahala\s*(again|still)|portal\s*no\s*gree\s*(my\s*)?utme/i.test(
-      q,
-    )
+    /invalid\s*(jamb|utme)|jamb\s*(number\s*)?(not\s*valid|invalid|fail|failed|reject)/i.test(q) ||
+    /verification\s*(failed|fail)\s*(on\s*)?(jamb|utme)/i.test(q) ||
+    /jamb\s*(no|number)\s*(no|not)\s*(dey|gree|work)/i.test(q)
   ) {
-    return hit('jamb-verification', 0.95, ['jamb'], 'JAMB leftover 102', 'applying', entities, true)
+    return hit('jamb-verification', 0.94, ['jamb'], 'JAMB leftover 102', 'applying', entities, true)
   }
 
   if (
-    /that\s*mail\s*(don|has)\s*(already\s*)?(dey|been)\s*(use[d]?|register)|i\s*register\s*(am\s*)?last\s*(year|session)|email\s*from\s*202[0-9]|same\s*gmail\s*(from|as)\s*last\s*year|account\s*already\s*dey\s*for\s*(the\s*)?(mail|email)|cannot\s*create\s*(again|another)\s*with\s*(this|same)\s*mail/i.test(
-      q,
-    )
+    /email\s*(already|don)\s*(use[d]?|exist|register)/i.test(q) ||
+    /i\s*register(ed)?\s*last\s*(year|session)/i.test(q) ||
+    /cannot\s*create\s*(account|profile)\s*(with\s*)?(this|dis)\s*(email|mail)/i.test(q)
   ) {
     return hit('portal-login', 0.93, ['login', 'email-used'], 'Email used leftover 102', 'applying', entities, true)
   }
 
   if (
-    /my\s*school\s*no\s*dey\s*(the\s*)?list|institution\s*(no|not)\s*(showing|show)|search\s*box\s*(no|not)\s*bring\s*(my\s*)?(school|uni)|i\s*type\s*(oou|unilag|lasu|yabatech).{0,20}(no|not)\s*(show|come)|school\s*name\s*(missing|no\s*dey)/i.test(
+    /school\s*(not|no)\s*(showing|show|dey)|my\s*school\s*no\s*dey\s*(list|there)|institution\s*(missing|no\s*dey)/i.test(
       q,
     )
   ) {
     return hit('school-not-found', 0.92, ['school-list'], 'School list leftover 102', 'applying', entities, true)
-  }
-
-  if (
-    /how\s*(dem|they)\s*(go|will)\s*take\s*(the\s*)?loan\s*back|when\s*repayment\s*(go|will)\s*start|salary\s*deduction|after\s*i\s*graduate|i\s*go\s*pay\s*how|interest\s*free\s*true|na\s*true\s*say\s*(i|we)\s*go\s*pay\s*back/i.test(
-      q,
-    )
-  ) {
-    return hit('repayment', 0.9, ['repayment'], 'Repayment leftover 102', 'repaying', entities)
   }
 
   return null
