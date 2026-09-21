@@ -164,7 +164,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   }
 
   if (
-    /^(abeg\s*)?(help|assist|guide)\s*(me)?\s*(abeg|pls|please)?\.?$|una\s*fit\s*(help|assist)|i\s*(just\s*)?(need|wan|want)\s*help|pls\s*assist|wetin\s*i\s*(suppose|go)\s*do(\s*now)?\??$|i\s*dey\s*lost|help\s*abeg|i\s*no\s*know\s*where\s*to\s*start|make\s*una\s*guide\s*me|can\s*you\s*help\s*me\??$|i\s*need\s*assistance|i\s*no\s*sabi\s*(wetin|where)|i\s*dey\s*confused|kindly\s*assist\s*me|give\s*me\s*(brief|short)\s*(guide|menu)|how\s*i\s*(go|fit)\s*(take\s*)?start|una\s*fit\s*show\s*me\s*(the\s*)?way|abeg\s*orientate\s*me|how\s*e\s*take\s*be/i.test(
+    /^(abeg\s*)?(help|assist|guide)\s*(me)?\s*(abeg|pls|please|jare|jo|small)?\.?$|una\s*fit\s*(help|assist)|i\s*(just\s*)?(need|wan|want)\s*help|pls\s*assist|wetin\s*i\s*(suppose|go|fit)\s*(do|ask)(\s*(now|here|una))?\??$|i\s*dey\s*(lost|confused|stranded)|help\s*abeg|i\s*no\s*know\s*where\s*to\s*start|make\s*una\s*(guide|help|show)\s*me|can\s*(you|una)\s*help\s*me(\s*with\s*(this\s*)?nelfund)?\??$|i\s*need\s*assistance|i\s*no\s*sabi\s*(wetin|where|anything)|i\s*dey\s*confused|kindly\s*assist\s*me|give\s*me\s*(brief|short)\s*(guide|menu)|how\s*i\s*(go|fit)\s*(take\s*)?start|una\s*fit\s*show\s*me\s*(the\s*)?way|abeg\s*orientate\s*me|how\s*e\s*take\s*be|point\s*me\s*(to\s*)?(where|wetin)|direct\s*me|wetin\s*you\s*(fit|can)\s*do|show\s*me\s*(short\s*)?(menu|options?)|how\s*i\s*take\s*enter\s*(this\s*)?(thing|matter)|abeg\s*i\s*need\s*(una|your)\s*help/i.test(
       raw,
     )
   ) {
