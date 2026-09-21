@@ -1,4 +1,5 @@
 import type { IntentId, IntentResult } from './types'
+import { residualOtherHourly102 } from './residualOtherHourly102'
 
 function hit(
   intent: IntentId,
@@ -20,10 +21,13 @@ function liveish(q: string): boolean {
 
 /**
  * Hour-101 leftover catcher.
- * Live 2026-09-21 19:11Z: unknownAi 438, other 324, pending-status 70, jamb 40.
- * Focus: residual "other" Pidgin + vague help, plus leftover pending / jamb / login.
+ * Live 2026-09-21 20:09Z: unknownAi 438, other 324, pending-status 70, jamb 40.
+ * Delegates new Pidgin / vague-help shapes to hour-102 first.
  */
 export function residualOtherHourly101(text: string, entities: string[]): IntentResult | null {
+  const newer = residualOtherHourly102(text, entities)
+  if (newer && newer.intent !== 'unknown') return newer
+
   const q = (text || '').trim()
   if (!q) return null
   if (liveish(q)) return null
