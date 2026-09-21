@@ -1,4 +1,5 @@
 import type { IntentId, IntentResult } from './types'
+import { residualOtherHourly94 } from './residualOtherHourly94'
 
 function hit(
   intent: IntentId,
@@ -24,6 +25,9 @@ function liveish(q: string): boolean {
  * Focus: pending-status sentence shapes that still land in other/unknown.
  */
 export function residualOtherHourly93(text: string, entities: string[]): IntentResult | null {
+  const from94 = residualOtherHourly94(text, entities)
+  if (from94) return from94
+
   const q = (text || '').trim()
   if (!q) return null
   if (liveish(q)) return null
