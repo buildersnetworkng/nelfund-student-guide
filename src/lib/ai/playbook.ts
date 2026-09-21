@@ -32,6 +32,9 @@ import { playbookHourly87 } from './playbookHourly87'
 import { playbookHourly88 } from './playbookHourly88'
 import { playbookHourly89 } from './playbookHourly89'
 import { playbookHourly90 } from './playbookHourly90'
+import { playbookHourly91 } from './playbookHourly91'
+import { playbookHourly92 } from './playbookHourly92'
+import { playbookHourly93 } from './playbookHourly93'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -73,7 +76,7 @@ export function isConversationalFollowUp(text: string): boolean {
   )
     return true
   if (
-    /what\s*(should|will|can)\s*i\s*(do|take)|what'?s\s*(the\s*)?(next|solution|first)|what\s*next|so\s*what|wetin\s*(i\s*)?(go|to)\s*do|wattin\s*i\s*go\s*do|first\s*(step|thing)|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin|first\s*thing\s*i\s*go\s*do/i.test(
+    /what\s*(should|will|can)\s*i\s*(do|take)|what'?s\s*(the\s*)?(next|solution|first)|what\s*next|so\s*what|wetin\s*(i\s*)?(go|to)\s*do|wattin\s*i\s*go\s*do|first\s*(step|thing)|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin|first\s*thing\s*i\s*go\s*do|so\s*what\s*will\s*i\s*do|what\s*should\s*i\s*do\s*now|wetin\s*i\s*go\s*do\s*now/i.test(
       t,
     )
   )
@@ -95,6 +98,12 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   if (ctx.userText) {
+    const extra93 = playbookHourly93(intent, ctx.userText)
+    if (extra93) return extra93
+    const extra92 = playbookHourly92(intent, ctx.userText)
+    if (extra92) return extra92
+    const extra91 = playbookHourly91(intent, ctx.userText)
+    if (extra91) return extra91
     const extra90 = playbookHourly90(intent, ctx.userText)
     if (extra90) return extra90
     const extra89 = playbookHourly89(intent, ctx.userText)
