@@ -1,5 +1,5 @@
 import type { IntentId } from './types'
-import { playbookHourly100 } from './playbookHourly100'
+import { playbookHourly101 } from './playbookHourly101'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -8,7 +8,7 @@ const FAQ = 'https://nelf.gov.ng/faq'
 
 /** Hour 98: short menu for vague help; pending / login leftovers. */
 export function playbookHourly98(intent: IntentId, userText?: string): string | null {
-  const angled = playbookHourly100(intent, userText)
+  const angled = playbookHourly101(intent, userText)
   if (angled) return angled
 
   const t = (userText || '').trim()
