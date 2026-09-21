@@ -1,10 +1,13 @@
 import type { IntentId } from './types'
+import { playbookHourly84 } from './playbookHourly84'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
-/** Hour-83 wording. Pending angles differ by phrase. No invented dates. No long dashes. */
+/** Hour-83 wording. Chains hour-84 first. Pending angles differ by phrase. No invented dates. No long dashes. */
 export function playbookHourly83(intent: IntentId, userText?: string): string | null {
+  const newer = playbookHourly84(intent, userText)
+  if (newer) return newer
   const t = (userText || '').trim()
   if (!t) return null
 

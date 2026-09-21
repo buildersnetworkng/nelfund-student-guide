@@ -1,4 +1,5 @@
 import type { IntentId, IntentResult } from './types'
+import { residualOtherHourly84 } from './residualOtherHourly84'
 
 function hit(
   intent: IntentId,
@@ -19,11 +20,14 @@ function liveish(q: string): boolean {
 }
 
 /**
- * Hour-83 leftover catcher.
+ * Hour-83 leftover catcher. Chains hour-84 first.
  * Live 2026-09-21: unknownAi 438, other 324, pending-status 70, jamb 40.
  * Focus: pending-status sentence shapes + leftover other. Never invent pay dates.
  */
 export function residualOtherHourly83(text: string, entities: string[]): IntentResult | null {
+  const newer = residualOtherHourly84(text, entities)
+  if (newer) return newer
+
   const q = (text || '').trim()
   if (!q) return null
   const low = q.toLowerCase()
