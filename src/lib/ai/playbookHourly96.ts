@@ -1,4 +1,5 @@
 import type { IntentId } from './types'
+import { playbookHourly97 } from './playbookHourly97'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -7,6 +8,9 @@ const FAQ = 'https://nelf.gov.ng/faq'
 
 /** Hour-96 wording. Vague help returns a short menu, never a live status dump. */
 export function playbookHourly96(intent: IntentId, userText?: string): string | null {
+  const newer = playbookHourly97(intent, userText)
+  if (newer) return newer
+
   const t = (userText || '').trim()
   if (!t) return null
 
