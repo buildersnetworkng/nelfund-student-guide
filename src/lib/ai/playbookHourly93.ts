@@ -1,4 +1,5 @@
 import type { IntentId } from './types'
+import { playbookHourly94 } from './playbookHourly94'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -6,6 +7,9 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hour-93 wording. Angle-specific pending answers. No invented dates. */
 export function playbookHourly93(intent: IntentId, userText?: string): string | null {
+  const from94 = playbookHourly94(intent, userText)
+  if (from94) return from94
+
   const t = (userText || '').trim()
   if (!t) return null
 
