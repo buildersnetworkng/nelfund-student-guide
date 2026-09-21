@@ -1,4 +1,5 @@
 import type { IntentId, IntentResult } from './types'
+import { residualOtherHourly83 } from './residualOtherHourly83'
 
 function hit(
   intent: IntentId,
@@ -19,11 +20,13 @@ function liveish(q: string): boolean {
 }
 
 /**
- * Hour-82 leftover catcher.
+ * Hour-82 leftover catcher. Chains hour-83 first.
  * Live 2026-09-21: unknownAi 438, other 324, pending-status 70, jamb 40.
- * Focus: other bucket, Pidgin + vague help. Never invent deadlines.
  */
 export function residualOtherHourly82(text: string, entities: string[]): IntentResult | null {
+  const newer = residualOtherHourly83(text, entities)
+  if (newer) return newer
+
   const q = (text || '').trim()
   if (!q) return null
   const low = q.toLowerCase()
