@@ -28,6 +28,8 @@ import { playbookHourly73 } from './playbookHourly73'
 import { playbookHourly74 } from './playbookHourly74'
 import { playbookHourly75 } from './playbookHourly75'
 import { playbookHourly82 } from './playbookHourly82'
+import { playbookHourly87 } from './playbookHourly87'
+import { playbookHourly88 } from './playbookHourly88'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -91,6 +93,10 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   if (ctx.userText) {
+    const extra88 = playbookHourly88(intent, ctx.userText)
+    if (extra88) return extra88
+    const extra87 = playbookHourly87(intent, ctx.userText)
+    if (extra87) return extra87
     const extra82 = playbookHourly82(intent, ctx.userText)
     if (extra82) return extra82
     const extra75 = playbookHourly75(intent, ctx.userText)
