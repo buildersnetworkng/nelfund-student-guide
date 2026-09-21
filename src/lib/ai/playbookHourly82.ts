@@ -1,14 +1,17 @@
 import type { IntentId } from './types'
 import { playbookHourly83 } from './playbookHourly83'
 import { playbookHourly86 } from './playbookHourly86'
+import { playbookHourly87 } from './playbookHourly87'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 const FAQ = 'https://nelf.gov.ng/faq'
 
-/** Hour-82 wording. Chains hour-86 then hour-83. No invented dates. No long dashes. */
+/** Hour-82 wording. Chains hour-87 then 86 then 83. No invented dates. No long dashes. */
 export function playbookHourly82(intent: IntentId, userText?: string): string | null {
+  const extra87 = playbookHourly87(intent, userText)
+  if (extra87) return extra87
   const extra86 = playbookHourly86(intent, userText)
   if (extra86) return extra86
   const chained = playbookHourly83(intent, userText)
