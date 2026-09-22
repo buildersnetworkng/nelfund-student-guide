@@ -13,7 +13,7 @@ export function playbookHourly106(intent: IntentId, userText?: string): string |
 
   if (intent === 'official-sources') {
     if (
-      /help|halp|asist|assist|guide|menu|confused|confuzed|lost|stranded|where\s*to\s*start|orientate|direct\s*me|wetin\s*i\s*(suppose|go)\s*do|una\s*fit\s*help|i\s*wan\s*ask|how\s*e\s*take\s*work/i.test(
+      /help|halp|helep|asist|assist|guide|gide|menu|confused|confuzed|lost|stranded|where\s*to\s*start|orientate|direct\s*me|wetin\s*i\s*(suppose|go)\s*do|una\s*fit\s*help|i\s*wan\s*ask|how\s*e\s*take\s*work|show\s*me\s*road|gimme\s*(menu|options)|i\s*no\s*get\s*direction|una\s*dey\s*there/i.test(
         t,
       )
     ) {
@@ -32,7 +32,7 @@ export function playbookHourly106(intent: IntentId, userText?: string): string |
   }
 
   if (intent === 'portal-login') {
-    if (/email|last\s*year|register|password|old\s*account/i.test(t)) {
+    if (/email|last\s*year|register|password|old\s*account|mail\s*(don|already)/i.test(t)) {
       return `Last year register usually means reuse the same portal account.\n\n1. Try forgot password at ${PORTAL}.\n2. Do not open a second email unless official support says so.\n3. Stuck: ${ESUPPORT}.`
     }
   }
