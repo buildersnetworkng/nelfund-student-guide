@@ -50,9 +50,6 @@ export function isConversationalFollowUp(text: string): boolean {
   if (/^(so\s*)?(what|wetin)\s*(will|go)\s*i\s*do(\s*now)?$/i.test(t)) return true
   if (/^(what'?s|wetin)\s*next$/i.test(t)) return true
   if (/^first\s*step$/i.test(t)) return true
-  if (/^so\s+what\s+will\s+i\s+do$/i.test(t)) return true
-  if (/^wetin\s+i\s+go\s+do$/i.test(t)) return true
-  if (/^what'?s\s+next$/i.test(t)) return true
   return false
 }
 
