@@ -1,17 +1,17 @@
 import type { IntentId } from './types'
 import { playbookHourly104 } from './playbookHourly104'
-import { playbookHourly110 } from './playbookHourly110'
+import { playbookHourly111 } from './playbookHourly111'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /**
- * Hour-106 replies plus hour-110 on the live playbook path.
+ * Hour-106 replies plus hour-111/110 on the live playbook path.
  */
 export function playbookHourly106(intent: IntentId, userText?: string): string | null {
-  const from110 = playbookHourly110(intent, userText)
-  if (from110) return from110
+  const from111 = playbookHourly111(intent, userText)
+  if (from111) return from111
 
   const t = userText || ''
 
