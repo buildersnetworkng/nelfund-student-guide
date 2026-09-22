@@ -1,5 +1,4 @@
 import type { IntentId } from './types'
-import { playbookHourly113 } from './playbookHourly113'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -38,5 +37,5 @@ export function playbookHourly114(intent: IntentId, userText?: string): string |
     }
   }
 
-  return playbookHourly113(intent, userText)
+  return null
 }
