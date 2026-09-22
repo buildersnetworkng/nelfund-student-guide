@@ -14,6 +14,7 @@ import { playbookHourly119 } from './playbookHourly119'
 import { playbookHourly120 } from './playbookHourly120'
 import { playbookHourly121 } from './playbookHourly121'
 import { playbookHourly122 } from './playbookHourly122'
+import { playbookHourly123 } from './playbookHourly123'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -49,6 +50,9 @@ export function isConversationalFollowUp(text: string): boolean {
   if (/^(so\s*)?(what|wetin)\s*(will|go)\s*i\s*do(\s*now)?$/i.test(t)) return true
   if (/^(what'?s|wetin)\s*next$/i.test(t)) return true
   if (/^first\s*step$/i.test(t)) return true
+  if (/^so\s+what\s+will\s+i\s+do$/i.test(t)) return true
+  if (/^wetin\s+i\s+go\s+do$/i.test(t)) return true
+  if (/^what'?s\s+next$/i.test(t)) return true
   return false
 }
 
@@ -65,6 +69,8 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   if (ctx.userText) {
+    const extra123 = playbookHourly123(intent, ctx.userText)
+    if (extra123) return extra123
     const extra122 = playbookHourly122(intent, ctx.userText)
     if (extra122) return extra122
     const extra121 = playbookHourly121(intent, ctx.userText)
