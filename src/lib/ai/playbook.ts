@@ -5,6 +5,7 @@ import type { IntentId } from './types'
 import { eligibilityAnswer } from './eligibilityAnswer'
 import { playbookPendingExtras } from './playbookPendingExtras'
 import { playbookHourly112 } from './playbookHourly112'
+import { playbookHourly113 } from './playbookHourly113'
 import { playbookHourly106 } from './playbookHourly106'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
@@ -57,6 +58,8 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   if (ctx.userText) {
+    const extra113 = playbookHourly113(intent, ctx.userText)
+    if (extra113) return extra113
     const extra112 = playbookHourly112(intent, ctx.userText)
     if (extra112) return extra112
     const extra106 = playbookHourly106(intent, ctx.userText)
