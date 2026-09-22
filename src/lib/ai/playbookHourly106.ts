@@ -13,7 +13,7 @@ export function playbookHourly106(intent: IntentId, userText?: string): string |
 
   if (intent === 'official-sources') {
     if (
-      /help|assist|guide|menu|confused|lost|stranded|where\s*to\s*start|orientate|direct\s*me|wetin\s*i\s*(suppose|go)\s*do|una\s*fit\s*help/i.test(
+      /help|halp|asist|assist|guide|menu|confused|confuzed|lost|stranded|where\s*to\s*start|orientate|direct\s*me|wetin\s*i\s*(suppose|go)\s*do|una\s*fit\s*help|i\s*wan\s*ask|how\s*e\s*take\s*work/i.test(
         t,
       )
     ) {
