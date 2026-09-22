@@ -314,11 +314,11 @@ export async function processUserTurn(opts: {
       )
     ) {
       const intentGuess: IntentId =
-        earlyIntent !== 'unknown' && earlyIntent !== 'official-sources'
+        earlyIntent !== 'unknown'
           ? earlyIntent
           : priorIntent && priorIntent !== 'unknown'
             ? priorIntent
-            : 'how-to-apply'
+            : 'official-sources'
       return finalize(userMsg, { ...opts.slots, intent: intentGuess }, intentGuess, early, 'conversation', {
         next: ['https://portal.nelf.gov.ng/'],
       })
