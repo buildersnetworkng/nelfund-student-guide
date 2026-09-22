@@ -1,5 +1,6 @@
 import type { IntentId } from './types'
 import { playbookHourly112 } from './playbookHourly112'
+import { playbookHourly114 } from './playbookHourly114'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -9,6 +10,9 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
  * Hour-113 replies. No invented pay dates or policy. No long dashes.
  */
 export function playbookHourly113(intent: IntentId, userText?: string): string | null {
+  const from114 = playbookHourly114(intent, userText)
+  if (from114) return from114
+
   const t = userText || ''
 
   if (intent === 'portal-login') {
@@ -40,7 +44,7 @@ export function playbookHourly113(intent: IntentId, userText?: string): string |
   }
 
   if (intent === 'repayment') {
-    if (/how\s*(i|we)\s*(go|fit)\s*pay|when\s*(i|we)\s*(go|will)\s*(start\s*)?repay|after\s*nysc|wetin\s*be\s*(the\s*)?repay/i.test(t)) {
+    if (/how\s*(i\s*)?(we\s*)?(go|fit)\s*pay|when\s*(i|we)\s*(go|will)\s*(start\s*)?repay|after\s*nysc|wetin\s*be\s*(the\s*)?repay/i.test(t)) {
       return `Repayment is not while you are still in school on this chat.\n\n1. Official rules live on ${SITE} and the FAQ. I will not invent a start date.\n2. After NYSC is the usual public line. Confirm on the official pages.\n3. GSI / salary questions: same official pages, then ${ESUPPORT}.`
     }
   }
