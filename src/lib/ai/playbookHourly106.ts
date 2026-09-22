@@ -1,14 +1,18 @@
 import type { IntentId } from './types'
 import { playbookHourly104 } from './playbookHourly104'
+import { playbookHourly110 } from './playbookHourly110'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /**
- * Hour-106 replies plus hour-109 pending angles (this file is on the live playbook path).
+ * Hour-106 replies plus hour-110 on the live playbook path.
  */
 export function playbookHourly106(intent: IntentId, userText?: string): string | null {
+  const from110 = playbookHourly110(intent, userText)
+  if (from110) return from110
+
   const t = userText || ''
 
   if (intent === 'pending-application') {
@@ -31,7 +35,7 @@ export function playbookHourly106(intent: IntentId, userText?: string): string |
 
   if (intent === 'official-sources') {
     if (
-      /help|halp|helep|asist|assist|guide|gide|menu|confused|confuzed|lost|stranded|where\s*to\s*start|orientate|direct\s*me|wetin\s*i\s*(suppose|go)\s*do|una\s*fit\s*help|i\s*wan\s*ask|how\s*e\s*take\s*work|show\s*me\s*road|gimme\s*(menu|options)|i\s*no\s*get\s*direction|una\s*dey\s*there|i\s*dey\s*new|first\s*timer|brief\s*me|talk\s*to\s*me\s*small/i.test(
+      /help|halp|helep|asist|assist|guide|gide|menu|confused|confuzed|lost|stranded|where\s*to\s*start|orientate|direct\s*me|wetin\s*i\s*(suppose|go)\s*do|una\s*fit\s*help|i\s*wan\s*ask|how\s*e\s*take\s*work|show\s*me\s*road|gimme\s*(menu|options)|i\s*no\s*get\s*direction|una\s*dey\s*there|i\s*dey\s*new|first\s*timer|brief\s*me|talk\s*to\s*me\s*small|how\s*(this|dis)\s*(thing|matter)\s*(dey\s*)?work|na\s*how\s*(e|this|dis)\s*take\s*be/i.test(
         t,
       )
     ) {
