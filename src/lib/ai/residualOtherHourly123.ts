@@ -19,9 +19,8 @@ function liveish(q: string): boolean {
 }
 
 /**
- * Hour-123 leftover catcher.
- * Live 2026-09-22 19:10Z: unknownAi 438, other 324, pending-status 70, jamb 40, empty 30.
- * Focus: pending-status sentence shapes that still leak into unknown/other.
+ * Hour-123 leftover catcher. Live 2026-09-22: unknownAi 438, other 324, pending-status 70, jamb 40.
+ * Focus: residual other = Pidgin + vague help shapes, never live-status dump.
  */
 export function residualOtherHourly123(text: string, entities: string[]): IntentResult | null {
   const q = (text || '').trim()
@@ -35,7 +34,15 @@ export function residualOtherHourly123(text: string, entities: string[]): Intent
     return null
 
   if (
-    /approved\s*(but|yet)\s*(no|never|not)\s*(money|alert|pay|upkeep)|dem\s*say\s*(dem|they)\s*(go|will)\s*pay|they\s*said\s*(they\s*)?(will|would)\s*pay|disburse(ment)?\s*(no|not|never|still)|no\s*disbursement|i\s*don\s*see\s*(any\s*)?(credit|alert|kobo)|kobo\s*no\s*dey|zero\s*(naira|balance)\s*(for|in)\s*(my\s*)?(bank|account)|bank\s*(still\s*)?(empty|blank)|upkeep\s*never\s*(land|drop|enter|show)|institutional\s*(don|has)\s*(pay|paid)\s*but\s*(i|me)\s*(no|never)|school\s*(don|has)\s*(receive|collect).{0,24}(i|me)\s*(no|never)|when\s*(will|go)\s*(my\s*)?(own|money|upkeep)\s*(enter|drop|come)|wetin\s*happen\s*to\s*my\s*(own|money|upkeep)|una\s*don\s*pay\s*(others|everybody)\s*(except|but)\s*me|i\s*remain\s*for\s*(the\s*)?(list|batch)|batch\s*(no|not|never)\s*(pay|drop)|my\s*name\s*no\s*dey\s*(pay|disburse)\s*list|check\s*(my\s*)?(status|application)\s*abeg|status\s*check|application\s*tracker|track\s*am\s*for\s*me|how\s*far\s*una\s*(reach|go)\s*with\s*my|progress\s*on\s*my\s*(file|loan|application)|e\s*never\s*move\s*(one\s*)?inch|stuck\s*on\s*pending|hang\s*for\s*pending|pending\s*since\s*(january|february|march|april|may|june|july|august|september|october|november|december|\d+)|since\s*\d{4}\s*(still|e\s*still)|submitted\s*(last|last\s*year).{0,20}(pending|nothing)|i\s*apply\s*(finish|don\s*finish).{0,16}(no|never)\s*(pay|alert)|loan\s*approved\s*no\s*cash|cash\s*never\s*show|wallet\s*never\s*credit/i.test(
+    /^(abeg|pls|please|jo)\s*(help|guide|yarn|show|assist)\s*(me)?\s*(\?|abeg|jo)?$|una\s*fit\s*yarn\s*me\s*(small)?|i\s*just\s*land(\s*here)?|i\s*dey\s*lost\s*(small|here)?|make\s*una\s*yarn\s*me\s*(the\s*)?(gist|thing)|gimme\s*(the\s*)?(gist|menu|options)|brief\s*me\s*(abeg|pls)?|show\s*(me\s*)?(wetin|what)\s*(dey|is)\s*(here|available)|how\s*una\s*take\s*help\s*people|wetin\s*i\s*fit\s*ask\s*(una|here)|i\s*no\s*know\s*where\s*to\s*start|where\s*i\s*go\s*begin|start\s*me\s*(small|up)|orient\s*me|i\s*need\s*(una\s*)?(direction|compass)|point\s*me\s*(the\s*)?way|help\s*a\s*confused\s*student|confused\s*student\s*here|i\s*wan\s*ask\s*but\s*i\s*no\s*sabi\s*how|just\s*dey\s*here\s*(abeg)?|wetin\s*una\s*dey\s*help\s*(with|on)|give\s*me\s*(short\s*)?options|list\s*wetin\s*i\s*fit\s*ask|how\s*i\s*go\s*use\s*(una|this\s*chat)|chat\s*help\s*abeg/i.test(
+      q,
+    )
+  ) {
+    return hit('official-sources', 0.91, ['other', 'greeting-vague'], 'Vague help leftover 123', 'exploring', entities)
+  }
+
+  if (
+    /approved\s*(but|yet)\s*(no|never)\s*(cash|money|alert)|loan\s*approved\s*no\s*(cash|pay)|dem\s*approve\s*but\s*(money|kobo)\s*never|disburse(ment)?\s*(no|never|pending)|no\s*disbursement|i\s*remain\s*(for\s*)?(class|hostel)|everybody\s*don\s*collect\s*except\s*me|una\s*pay\s*others|progress\s*on\s*my\s*(file|loan)|track\s*(my\s*)?(loan|application)|status\s*check\s*(abeg|pls)|how\s*far\s*una\s*reach\s*(with\s*)?(my|am)|bank\s*(still\s*)?(empty|blank)|wallet\s*never\s*(show|enter)|cash\s*never\s*drop|kobo\s*never\s*enter|zero\s*naira\s*still|i\s*don\s*see\s*(any\s*)?(credit|alert)\s*(at\s*all)?/i.test(
       q,
     )
   ) {
@@ -43,15 +50,7 @@ export function residualOtherHourly123(text: string, entities: string[]): Intent
   }
 
   if (
-    /e\s*say\s*email\s*(don|already)\s*(exist|use|used)|mail\s*address\s*(already|don)\s*(taken|use|used)|this\s*address\s*(is\s*)?(already|taken)|i\s*create[d]?\s*(account|profile)\s*(last|last\s*year)|cannot\s*open\s*(another|new)\s*account|sign\s*up\s*page\s*(no|not)\s*gree|duplicate\s*(email|account)|email\s*taken/i.test(
-      q,
-    )
-  ) {
-    return hit('portal-login', 0.94, ['login'], 'Email used leftover 123', 'applying', entities, true)
-  }
-
-  if (
-    /jamb\s*(id|reg|registration)\s*(no|not|never)\s*(valid|correct|gree)|portal\s*(say|says)\s*invalid\s*(jamb|utme)|utme\s*number\s*(wrong|invalid)|caps\s*status\s*(no|not)\s*(gree|match)|admission\s*letter\s*jamb\s*(no|not)\s*gree|verify\s*jamb\s*(no|not)\s*work/i.test(
+    /jamb\s*(profile|caps)\s*(no|not|never)\s*(match|gree)|utme\s*(reg\s*)?(no|not)\s*(correct|valid)|admission\s*letter\s*(jamb|utme)|jamb\s*number\s*(wrong|reject)|e\s*talk\s*say\s*(jamb|utme)\s*(invalid|incorrect)|verify\s*jamb\s*(no\s*gree|fail)|jamb\s*otp|jamb\s*portal\s*(no|not)\s*gree/i.test(
       q,
     )
   ) {
@@ -59,19 +58,27 @@ export function residualOtherHourly123(text: string, entities: string[]): Intent
   }
 
   if (
-    /my\s*(uni|university|polytechnic|college)\s*(no|not)\s*(dey|show|appear)|search\s*box\s*(no|not)\s*(bring|show)\s*(my\s*)?school|list\s*(no|not)\s*get\s*(unilag|lasu|oou|yabatech|unilorin)|institution\s*field\s*(empty|blank)|school\s*dropdown\s*(empty|blank)/i.test(
+    /email\s*(already|don)\s*(taken|use[d]?|exist)|this\s*mail\s*dey\s*use|i\s*register\s*(am|with\s*am)\s*last\s*(year|session)|duplicate\s*(email|account)|sign\s*up\s*page\s*(say|talk)\s*(exist|used)|cannot\s*create\s*(another|new)\s*account|old\s*login\s*(no|not)\s*gree/i.test(
       q,
     )
   ) {
-    return hit('school-not-found', 0.93, ['school-list'], 'School missing leftover 123', 'applying', entities, true)
+    return hit('portal-login', 0.94, ['login'], 'Email used leftover 123', 'applying', entities, true)
   }
 
   if (
-    /just\s*dey\s*here|i\s*land(ed)?\s*(here|for\s*here)|wetin\s*una\s*dey\s*help\s*with|talk\s*to\s*me\s*small|yarn\s*me\s*small|i\s*need\s*direction|show\s*options\s*abeg|brief\s*me|give\s*me\s*options/i.test(
+    /my\s*(uni|university|polytechnic|college)\s*(no|not)\s*(dey|show)|school\s*name\s*(no|not)\s*(appear|show)|dropdown\s*(empty|blank)|search\s*bar\s*(no|not)\s*(find|show)\s*(school|institution)|i\s*type\s*(my\s*)?school\s*(no|nothing)\s*(show|come)/i.test(
       q,
     )
   ) {
-    return hit('official-sources', 0.88, ['other', 'greeting-vague'], 'Vague help leftover 123', 'exploring', entities)
+    return hit('school-not-found', 0.94, ['school-list'], 'School missing leftover 123', 'applying', entities, true)
+  }
+
+  if (
+    /how\s*(dem|they)\s*(go|will)\s*(take\s*)?(my\s*)?(salary|pay)|when\s*repayment\s*(start|begin)|after\s*nysc\s*(i\s*)?(go|will)\s*pay|payback\s*plan|loan\s*deduction|gsi\s*(mandate|wahala)|wetin\s*be\s*(the\s*)?payback/i.test(
+      q,
+    )
+  ) {
+    return hit('repayment', 0.92, ['repayment'], 'Repayment leftover 123', 'repaying', entities)
   }
 
   return null

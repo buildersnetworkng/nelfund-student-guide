@@ -185,7 +185,7 @@ export function detectEntities(text: string): string[] {
   if (/\bbvn\b/.test(t)) out.push('bvn')
   if (/upkeep|stipend|allowance/.test(t)) out.push('upkeep')
   if (/school\s*fees?|tuition|institutional\s*charges?/.test(t)) out.push('fees')
-  if (/pending|under\s*review|how\s*far|never\s*enter|mates?\s*don|processing|nothing\s*don\s*drop|no\s*(credit\s*)?alert|money\s*(never|no)|wetin\s*(dey\s*)?happen\s*to\s*my|una\s*never\s*pay|batch\s*\d+|dashboard\s*(0|zero)/.test(t))
+  if (/pending|under\s*review|how\s*far|never\s*enter|mates?\s*don|processing|nothing\s*don\s*drop|no\s*(credit\s*)?alert|money\s*(never|no)|wetin\s*(dey\s*)?happen\s*to\s*my|una\s*never\s*pay|batch\s*\d+|dashboard\s*(0|zero)|disburse|kobo\s*never/.test(t))
     out.push('pending')
   if (/login|sign\s*in|password|otp/.test(t)) out.push('login')
   if (/missing\s*information|not\s*on\s*(the\s*)?list/.test(t)) out.push('missing')
