@@ -44,7 +44,8 @@ const WELCOME = `How far, welcome.\n\nI am here to help with **NELFUND**: applic
 export function isConversationalFollowUp(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!?.]+$/g, '').trim()
   if (!t || t.length > 120) return false
-  if (/^(yes|yeah|yep|ok|okay|sure|please|continue|more|thanks|thank\s*you|abeg|alright|all\s*right|correct|true|go\s*on)\.?$/i.test(t)) return true
+  if (/^(yes|yeah|yep|ok|okay|sure|please|continue|more|thanks|thank\s*you|abeg|alright|all\s*right|alright\s*boss|okay\s*boss|correct|true|go\s*on|noted|got\s*it|sharp|nice|cool|fine|clear)\.?$/i.test(t)) return true
+  if (/^(tell\s*me\s*more|elaborate|expanciate|expand|explain\s*more|break\s*(it\s*)?down|more\s*details?|go\s*deeper)$/i.test(t)) return true
   if (/^(alright|okay|ok|so|and|then|now|please|abeg)?\s*(so\s+)?(what|wetin|how|where)\b/i.test(t) && /(next|do|solution|first\s*step|first\s*thing|should\s*i|will\s*i|i\s*go\s*do|wattin|wetin)/i.test(t)) return true
   if (/what\s*(should|will|can)\s*i\s*(do|take)|what'?s\s*(the\s*)?(next|solution|first)|what\s*next|so\s*what|wetin\s*(i\s*)?(go|to)\s*do|wattin\s*i\s*go\s*do|first\s*(step|thing)|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin|first\s*thing\s*i\s*go\s*do|so\s*what\s*will\s*i\s*do|what\s*should\s*i\s*do\s*now|wetin\s*i\s*go\s*do\s*now/i.test(t)) return true
   if (t.length < 40 && /^(and|then|also|but|so)\b/i.test(t)) return true
@@ -173,6 +174,7 @@ export function isNearDuplicate(prev: string, next: string): boolean {
 export function isNewUserAsk(text: string): boolean {
   const t = text.trim().toLowerCase()
   if (isConversationalFollowUp(t)) return false
+  if (/^(alright|ok(ay)?|tell\s*me\s*more|elaborate|expanciate)\b/i.test(t)) return false
   if (/^(so\s+)?(what('?s|\s+is)?\s+)?(the\s+)?(solution|next|first\s*step)/i.test(t)) return false
   if (/wetin\s*(i\s*)?(go|to)\s*do|what\s*next|what'?s\s*next|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin/i.test(t)) return false
   return /what\s*is\s*nelfund|how\s*to\s*apply|eligib|missing\s*information|upkeep|repay|login|jamb|scam|is\s*(nelfund|application)\s*open/i.test(t)
