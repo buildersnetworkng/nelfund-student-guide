@@ -166,14 +166,15 @@ function isAckClose(text: string): boolean {
 
 function isExpandRequest(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
-  if (!t || t.length > 100) return false
+  if (!t || t.length > 120) return false
   if (
-    /^(tell\s*me\s*more|tell\s*me\s*(everything|all)|more\s*(details?|info|information)?|elaborate|expanciate|expand|expand\s*(it|more|please)?|explain\s*(more|further|again|better)?|break\s*(it\s*)?down(\s*more)?|go\s*(deeper|further|on)|continue|more\s*please|give\s*me\s*more|add\s*more|full\s*(detail|explanation)|in\s*detail|more\s*explanation|say\s*more|unpack\s*(it|this)|wetin\s*else|any\s*other\s*(thing|info)|and\s*then|what\s*else)$/i.test(
+    /^(please\s*)?(tell\s*me\s*more|tell\s*me\s*(everything|all|about\s*(it|this|that|them)?)|more\s*(details?|info|information|about\s*(it|this)?)?|elaborate(\s*(more|on\s*(it|this)?)?)?|expanciate(\s*(more|on\s*(it|this)?)?)?|expand(\s*(it|more|please|on\s*(it|this)?)?)?|explain\s*(more|further|again|better|it|this)?|break\s*(it\s*)?down(\s*more)?|go\s*(deeper|further|on)|continue|more\s*please|give\s*me\s*more|add\s*more|full\s*(detail|explanation)|in\s*detail|more\s*explanation|say\s*more|unpack\s*(it|this)|wetin\s*else|any\s*other\s*(thing|info)|and\s*then|what\s*else|more\s*on\s*(that|this|it))(\s+(abeg|please|pls))?$/i.test(
       t,
     )
   )
     return true
-  if (/^(please\s+)?(tell|explain|break)\s*(me\s*)?(more|further|again)/i.test(t) && t.length < 50)
+  if (/tell\s*me\s*more\s*about/i.test(t) && t.length < 60) return true
+  if (/^(please\s+)?(tell|explain|break)\s*(me\s*)?(more|further|again)/i.test(t) && t.length < 60)
     return true
   return false
 }
@@ -183,6 +184,17 @@ function softCloseReply(): string {
 }
 
 function expandReply(priorIntent: IntentId, slots: ConversationSlots, prevAsst: string, userText: string): string {
+  const pb = playbookAnswer(priorIntent, {
+    institutionName: slots.institutionName,
+    problemSummary: slots.problemSummary,
+    exactError: slots.exactError,
+    lastAssistant: prevAsst,
+    userText: userText || 'tell me more about it',
+    priorIntent,
+  })
+  if (pb && pb.length > 40 && !/^How far, welcome/i.test(pb)) {
+    return `**More on this**\n\n${pb}`
+  }
   const advanced = nextStepAdvance(
     {
       institutionName: slots.institutionName,
@@ -197,15 +209,6 @@ function expandReply(priorIntent: IntentId, slots: ConversationSlots, prevAsst: 
   if (advanced && advanced.length > 30) {
     return `**More detail on that**\n\n${advanced}\n\nIf you want the exact next click on the portal, say what status or error you see.`
   }
-  const pb = playbookAnswer(priorIntent, {
-    institutionName: slots.institutionName,
-    problemSummary: slots.problemSummary,
-    exactError: slots.exactError,
-    lastAssistant: prevAsst,
-    userText: userText || 'tell me more',
-    priorIntent,
-  })
-  if (pb && pb.length > 40) return `**More on this**\n\n${pb}`
   return `Here is the practical next layer:\n\n1. Open https://portal.nelf.gov.ng/ and note the exact status or error\n2. If it points to your school, visit the campus NELFUND desk\n3. Still stuck after that: https://nelfund.esupport.ng/create\n\nTell me the exact portal message if you want a tighter step.`
 }
 
@@ -326,7 +329,6 @@ async function processUserTurnInner(opts: {
     return finalize(userMsg, { ...opts.slots }, 'official-sources', greetingReply(), 'conversation')
   }
 
-  // Soft close: "Alright", "Alright boss", "ok", "thanks", etc. after a real answer
   if (
     !ocr &&
     rawUser &&
@@ -338,7 +340,6 @@ async function processUserTurnInner(opts: {
     return finalize(userMsg, { ...opts.slots }, priorIntent, softCloseReply(), 'conversation')
   }
 
-  // Expansion: "Tell me more", "Expanciate", "Elaborate", etc.
   if (
     !ocr &&
     rawUser &&
