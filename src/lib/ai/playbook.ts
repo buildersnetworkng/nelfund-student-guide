@@ -16,8 +16,6 @@ import { playbookHourly121 } from './playbookHourly121'
 import { playbookHourly122 } from './playbookHourly122'
 import { playbookHourly123 } from './playbookHourly123'
 import { playbookHourly124 } from './playbookHourly124'
-import { playbookHourly125 } from './playbookHourly125'
-import { playbookHourly126 } from './playbookHourly126'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -47,7 +45,7 @@ export function isConversationalFollowUp(text: string): boolean {
   const t = text.trim().toLowerCase().replace(/[!?.]+$/g, '').trim()
   if (!t || t.length > 120) return false
   if (/^(yes|yeah|yep|ok|okay|sure|please|continue|more|thanks|thank\s*you|abeg|alright|all\s*right|alright\s*boss|okay\s*boss|correct|true|go\s*on|noted|got\s*it|sharp|nice|cool|fine|clear)\.?$/i.test(t)) return true
-  if (/^(tell\s*me\s*more|elaborate|expanciate|expand|explain\s*more|break\s*(it\s*)?down|more\s*details?|go\s*deeper)$/i.test(t)) return true
+  if (/^(tell\s*me\s*more|elaborate|expanciate|expand|explain\s*more|break\s*(it\s*)?down|more\s*details?|go\s*deeper|tell\s*me\s*more\s*about)/i.test(t)) return true
   if (/^(alright|okay|ok|so|and|then|now|please|abeg)?\s*(so\s+)?(what|wetin|how|where)\b/i.test(t) && /(next|do|solution|first\s*step|first\s*thing|should\s*i|will\s*i|i\s*go\s*do|wattin|wetin)/i.test(t)) return true
   if (/what\s*(should|will|can)\s*i\s*(do|take)|what'?s\s*(the\s*)?(next|solution|first)|what\s*next|so\s*what|wetin\s*(i\s*)?(go|to)\s*do|wattin\s*i\s*go\s*do|first\s*(step|thing)|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin|first\s*thing\s*i\s*go\s*do|so\s*what\s*will\s*i\s*do|what\s*should\s*i\s*do\s*now|wetin\s*i\s*go\s*do\s*now/i.test(t)) return true
   if (t.length < 40 && /^(and|then|also|but|so)\b/i.test(t)) return true
@@ -68,15 +66,14 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
   if (intent === 'pending-application') {
     return `**First step for how far / pending**\n\n1. Open ${PORTAL} and copy the exact status word. I cannot see your file from this chat.\n2. School charges go to the school. No SMS does not mean declined.\n3. Still the same word for weeks: campus NELFUND desk, then ${ESUPPORT}.`
   }
+  if (intent === 'upkeep-vs-fees' || intent === 'upkeep' || intent === 'school-fees' || intent === 'institutional-charges') {
+    return `**School fees vs upkeep (short)**\n\n1. Institutional charges (school fees) go **to the school**.\n2. Upkeep goes **to you** if you ticked it in the same session.\n3. Confirm any amount only on ${PORTAL}. I will not invent figures.`
+  }
   return `**Next step**\n\n1. Open ${PORTAL} and act on the exact status or error you see\n2. If the portal asks for school confirmation, use your campus NELFUND desk\n3. Still stuck after that -> ${ESUPPORT}\n\n${PORTAL}`
 }
 
 export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string | null {
   if (ctx.userText) {
-    const extra126 = playbookHourly126(intent, ctx.userText)
-    if (extra126) return extra126
-    const extra125 = playbookHourly125(intent, ctx.userText)
-    if (extra125) return extra125
     const extra124 = playbookHourly124(intent, ctx.userText)
     if (extra124) return extra124
     const extra123 = playbookHourly123(intent, ctx.userText)
@@ -134,7 +131,10 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'what-is-nelfund' || intent === 'nelfund-purpose' || intent === 'nelfund-history') {
     return `**Why NELFUND exists:** the Students Loans (Access to Higher Education) Act set up the Nigeria Education Loan Fund so eligible students in public tertiary institutions can get interest-free loans for school charges and living costs.\n\nInstitutional charges go to the school. Optional upkeep goes to the student. It is a loan, not a scholarship.\n\n${SITE} / ${PORTAL}`
   }
-  if (intent === 'upkeep' || intent === 'upkeep-payment' || intent === 'upkeep-vs-fees') {
+  if (intent === 'upkeep-vs-fees' || intent === 'school-fees' || intent === 'institutional-charges') {
+    return `**School fees vs upkeep — they are not the same money.**\n\n1. **Institutional charges (school fees)** go from NELFUND **to your school**, not into your personal bank account.\n2. **Upkeep** is optional living support. If you tick it in the **same** loan session, it is paid **to you** (the bank account on your profile).\n3. You can get school-fee support without upkeep, but you cannot add upkeep later if you skipped it at registration.\n4. I will not invent monthly amounts or pay dates. Confirm figures only on ${PORTAL} / ${SITE}.`
+  }
+  if (intent === 'upkeep' || intent === 'upkeep-payment') {
     return `**Upkeep** is living support, separate from school charges.\n\n1. Tick it in the same session as institutional charges when the loan window is open.\n2. It goes to the bank account on your profile.\n3. I will not invent a monthly figure or pay date. Confirm on ${PORTAL}.`
   }
   if (intent === 'repayment' || intent === 'gsi') {
@@ -183,5 +183,5 @@ export function isNewUserAsk(text: string): boolean {
   if (/^(alright|ok(ay)?|tell\s*me\s*more|elaborate|expanciate)\b/i.test(t)) return false
   if (/^(so\s+)?(what('?s|\s+is)?\s+)?(the\s+)?(solution|next|first\s*step)/i.test(t)) return false
   if (/wetin\s*(i\s*)?(go|to)\s*do|what\s*next|what'?s\s*next|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin/i.test(t)) return false
-  return /what\s*is\s*nelfund|how\s*to\s*apply|eligib|missing\s*information|upkeep|repay|login|jamb|scam|is\s*(nelfund|application)\s*open/i.test(t)
+  return /what\s*is\s*nelfund|how\s*to\s*apply|eligib|missing\s*information|upkeep|repay|login|jamb|scam|is\s*(nelfund|application)\s*open|school\s*fees?\s*and\s*upkeep/i.test(t)
 }

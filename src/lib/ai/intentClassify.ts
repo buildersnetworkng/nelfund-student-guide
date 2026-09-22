@@ -45,6 +45,29 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('what-is-nelfund', 0.94, ['what-is'], 'What / why NELFUND', 'exploring', entities)
   }
 
+  // School fees vs upkeep / institutional charges (must beat residual + eligibility)
+  if (
+    /difference\s*(between\s*)?(school\s*fees?|tuition|institutional\s*charges?)\s*(and|&|vs|versus)\s*(upkeep|stipend|allowance)/i.test(raw) ||
+    /difference\s*(between\s*)?(upkeep|stipend|allowance)\s*(and|&|vs|versus)\s*(school\s*fees?|tuition|institutional)/i.test(raw) ||
+    /(school\s*fees?|tuition|institutional\s*charges?)\s*(vs|versus|or)\s*(upkeep|stipend|allowance)/i.test(raw) ||
+    /(upkeep|stipend|allowance)\s*(vs|versus|or)\s*(school\s*fees?|tuition)/i.test(raw) ||
+    /what\s*(is\s*)?(the\s*)?difference\s*(between\s*)?(fees?|upkeep)/i.test(raw) ||
+    /school\s*fees?\s*and\s*upkeep/i.test(raw) ||
+    /upkeep\s*and\s*(school\s*)?fees?/i.test(raw) ||
+    /institutional\s*charges?\s*(vs|versus|and|or)\s*upkeep/i.test(raw) ||
+    /wetin\s*(be\s*)?(difference|diff)\s*(between\s*)?(fees?|upkeep)/i.test(raw)
+  ) {
+    return hitIntent('upkeep-vs-fees', 0.95, ['upkeep', 'fees'], 'School fees vs upkeep', 'exploring', entities)
+  }
+
+  if (
+    /\bupkeep\b/i.test(raw) &&
+    !/how\s*much|amount|figure|pending|never\s*enter|how\s*far/i.test(raw) &&
+    /(what\s*(is|be)|explain|mean|about)\s*upkeep|upkeep\s*(mean|na|is)|tell\s*me\s*(about\s*)?upkeep/i.test(raw)
+  ) {
+    return hitIntent('upkeep', 0.9, ['upkeep'], 'What is upkeep', 'exploring', entities)
+  }
+
   if (isPortalDump(raw) || isPortalDump(expanded)) {
     if (/pending|under\s*review|how\s*far|approved|declin/i.test(raw)) {
       return hitIntent('pending-application', 0.86, ['pending-status'], 'Portal dump with status', 'waiting', entities, true)
@@ -108,7 +131,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   }
 
   if (
-    /how\s*far(\s*(my|na|now|abeg|my\s*own))?|alert\s*(never|no|not)\s*(come|enter|drop)|my\s*own\s*never\s*(enter|drop|show)|money\s*(never|no|go)\s*(enter|drop|show)|still\s*pending|status\s*(no|not|never)\s*(change|move)|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not|never)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect|total\s*loans?\s*(is\s*)?(0|zero)|dashboard\s*(empty|blank)|i\s*don\s*submit|wetin\s*(dey\s*)?(happen|sup)\s*(to\s*)?(my\s*)?(loan|application|file|own)|e\s*still\s*dey\s*(pending|review|same)|una\s*never\s*pay|dem\s*never\s*pay|never\s*see\s*(alert|money|credit)|application\s*never\s*(move|change)|status\s*still\s*(the\s*)?same|i\s*don\s*(finish|complete)\s*(apply|application)|no\s*money\s*enter\s*since|when\s*una\s*go\s*release|my\s*application\s*is\s*pending|status\s*still\s*processing|how\s*far\s*my\s*own|money\s*never\s*enter|waiting\s*for\s*(my\s*)?(loan|upkeep|disbursement)|any\s*update\s*on\s*my|track\s*(my\s*)?(application|loan)|follow\s*up\s*(on\s*)?(my\s*)?(application|loan)|e\s*still\s*dey\s*(the\s*)?same|nothing\s*(don|has)\s*(happen|change)\s*(for|on)\s*(my\s*)?(own|file|loan)/i.test(
+    /how\s*far(\s*(my|na|now|abeg|my\s*own))?|alert\s*(never|no|not)\s*(come|enter|drop)|my\s*own\s*(never|no)\s*(enter|drop|show)|money\s*(never|no|go)\s*(enter|drop|show)|still\s*pending|status\s*(no|not|never)\s*(change|move)|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not|never)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect|total\s*loans?\s*(is\s*)?(0|zero)|dashboard\s*(empty|blank)|i\s*don\s*submit|wetin\s*(dey\s*)?(happen|sup)\s*(to\s*)?(my\s*)?(loan|application|file|own)|e\s*still\s*dey\s*(pending|review|same)|una\s*never\s*pay|dem\s*never\s*pay|never\s*see\s*(alert|money|credit)|application\s*never\s*(move|change)|status\s*still\s*(the\s*)?same|i\s*don\s*(finish|complete)\s*(apply|application)|no\s*money\s*enter\s*since|when\s*una\s*go\s*release|my\s*application\s*is\s*pending|status\s*still\s*processing|how\s*far\s*my\s*own|money\s*never\s*enter|waiting\s*for\s*(my\s*)?(loan|upkeep|disbursement)|any\s*update\s*on\s*my|track\s*(my\s*)?(application|loan)|follow\s*up\s*(on\s*)?(my\s*)?(application|loan)|e\s*still\s*dey\s*(the\s*)?same|nothing\s*(don|has)\s*(happen|change)\s*(for|on)\s*(my\s*)?(own|file|loan)/i.test(
       raw,
     )
   ) {
