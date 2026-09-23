@@ -1,17 +1,15 @@
 import type { IntentId } from './types'
 import { playbookHourly104 } from './playbookHourly104'
-import { playbookHourly111 } from './playbookHourly111'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /**
- * Hour-106 replies plus hour-111/110 on the live playbook path.
+ * Hour-106 replies. Cycle with 111 broken — do not call playbookHourly111 from here.
  */
 export function playbookHourly106(intent: IntentId, userText?: string): string | null {
-  const from111 = playbookHourly111(intent, userText)
-  if (from111) return from111
+  // Cycle broken: do not call playbookHourly111 from 106
 
   const t = userText || ''
 
@@ -28,34 +26,11 @@ export function playbookHourly106(intent: IntentId, userText?: string): string |
     if (/money\s*(never|no)|no\s*(kobo|naira|alert)|account\s*(empty|zero)|e\s*never\s*(enter|drop|land)/i.test(t)) {
       return `Money never enter is still your portal status, not a new apply.\n\n1. Institutional charges go to the **school**. You can wait with no personal credit alert.\n2. Upkeep only if you ticked it in the same session, and it can land later into the bank on your profile.\n3. Copy the exact word on ${PORTAL}. I will not invent a pay date. Long wait: ${ESUPPORT}.`
     }
-    if (/has\s*(my\s*)?(loan|application)\s*(been\s*)?(approved|paid)|any\s*(hope|movement|update)/i.test(t)) {
-      return `Hope / approved-or-not lives on the portal, not in this chat.\n\n1. Open ${PORTAL} and copy the exact status sentence.\n2. Approved is not the same as money in your bank.\n3. I will not invent a batch list. Long same-word wait: campus desk, then ${ESUPPORT}.`
-    }
   }
 
   if (intent === 'official-sources') {
-    if (
-      /help|halp|helep|asist|assist|guide|gide|menu|confused|confuzed|lost|stranded|where\s*to\s*start|orientate|direct\s*me|wetin\s*i\s*(suppose|go)\s*do|una\s*fit\s*help|i\s*wan\s*ask|how\s*e\s*take\s*work|show\s*me\s*road|gimme\s*(menu|options)|i\s*no\s*get\s*direction|una\s*dey\s*there|i\s*dey\s*new|first\s*timer|brief\s*me|talk\s*to\s*me\s*small|how\s*(this|dis)\s*(thing|matter)\s*(dey\s*)?work|na\s*how\s*(e|this|dis)\s*take\s*be/i.test(
-        t,
-      )
-    ) {
-      return `Short menu (not live status):\n\n1. Apply steps: ${SITE}\n2. Portal login / old email: ${PORTAL}\n3. Ticket if the portal blocks you: ${ESUPPORT}\n\nReply with one line: apply, pending, JAMB, school list, login, or repayment.`
-    }
-  }
-
-  if (intent === 'jamb-verification') {
-    if (/jamb|utme|caps/i.test(t)) {
-      return `Invalid JAMB is a data match, not a new loan.\n\n1. Type the number exactly as on your JAMB slip.\n2. Confirm CAPS / admission name matches the portal.\n3. Still blocked: campus records desk, then ${ESUPPORT}.`
-    }
-  }
-
-  if (intent === 'school-not-found') {
-    return `If the school is missing from the list, do not invent a name.\n\n1. Search short official name at ${PORTAL}.\n2. Ask your campus NELFUND desk to confirm the institution record.\n3. Ticket: ${ESUPPORT}.`
-  }
-
-  if (intent === 'portal-login') {
-    if (/email|last\s*year|register|password|old\s*account|mail\s*(don|already)/i.test(t)) {
-      return `Last year register usually means reuse the same portal account.\n\n1. Try forgot password at ${PORTAL}.\n2. Do not open a second email unless official support says so.\n3. Stuck: ${ESUPPORT}.`
+    if (/i\s*just\s*(dey\s*)?(find|look\s*for)\s*(sense|direction)|point\s*me\s*(small|abeg)|which\s*(one|matter)\s*(i\s*)?(fit|should)\s*(ask|start)/i.test(t)) {
+      return `Short menu (not live status):\n\n1. What NELFUND is: ${SITE}\n2. Sign in or apply: ${PORTAL}\n3. Ticket if the portal blocks you: ${ESUPPORT}\n\nReply with one line: apply, pending, JAMB, school list, login, or repayment.`
     }
   }
 

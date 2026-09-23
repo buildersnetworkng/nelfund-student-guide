@@ -1,27 +1,16 @@
 import type { IntentId } from './types'
-import { playbookHourly110 } from './playbookHourly110'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /**
- * Hour-111 replies. Same pending intent, different angles.
- * No invented pay dates. No long dashes.
+ * Hour-111 replies. Ends with null — must not call 110 (cycle 111→110→…→106→111).
  */
 export function playbookHourly111(intent: IntentId, userText?: string): string | null {
   const t = userText || ''
 
   if (intent === 'pending-application') {
-    if (/how\s*far\s*(na\s*)?(my\s*)?(own|loan|file|application)/i.test(t)) {
-      return `How far your own: I cannot open your file from this chat.\n\n1. Sign in at ${PORTAL} and copy the exact status word.\n2. Same word for weeks is usually school verification, not a broken form.\n3. Campus NELFUND desk first, then ${ESUPPORT}.`
-    }
-    if (/money\s*(never|no)\s*(enter|drop|show|land)|no\s*(credit\s*)?alert|una\s*never\s*pay/i.test(t)) {
-      return `Money never enter does not mean declined.\n\n1. School charges go to the institution. You may get no SMS even after the school is paid.\n2. Upkeep, if you ticked it, can land later in the bank on your profile.\n3. Check the exact word on ${PORTAL}. I will not invent a pay date.`
-    }
-    if (/verified\s*(but|and)\s*(no|not|never)\s*(disburse|paid|enter)/i.test(t)) {
-      return `Verified means early checks passed. It is not the same as disbursed.\n\n1. Final pay waits on your school uploading / confirming your data.\n2. After that the portal word should move. Watch ${PORTAL}, not rumours.\n3. Long stall after verified: campus desk, then ${ESUPPORT}.`
-    }
     if (/(mates?|paddy|course\s*mates?)\s*(don|have)\s*(collect|receive|see\s*money)/i.test(t)) {
       return `Mates collecting first is common. Files move in school batches, not one WhatsApp line.\n\n1. Compare the exact status word on ${PORTAL}, not rumours.\n2. Do not open a second account to catch up.\n3. Same word for a long time: campus NELFUND desk, then ${ESUPPORT}.`
     }
@@ -39,5 +28,5 @@ export function playbookHourly111(intent: IntentId, userText?: string): string |
     }
   }
 
-  return playbookHourly110(intent, userText)
+  return null
 }

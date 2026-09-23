@@ -38,7 +38,10 @@ export function playbookHourly117(intent: IntentId, userText?: string): string |
   }
 
   if (intent === 'portal-login') {
-    return `If that email was used last year, log in. Do not create another account.\n\n1. Sign in at ${SITE}.\n2. Forgot password or OTP: use reset on ${SITE}.\n3. Still blocked: ${ESUPPORT}.`
+    if (/last\s*year|email\s*(already|used|exist)|already\s*(registered|exist)|cannot\s*(create|sign\s*up)|forgot\s*password|otp\s*(no|not|never)/i.test(t)) {
+      return `If that email was used last year, log in. Do not create another account.\n\n1. Sign in at ${SITE}.\n2. Forgot password or OTP: use reset on ${SITE}.\n3. Still blocked: ${ESUPPORT}.`
+    }
+    return null
   }
 
   if (intent === 'school-not-found') {
