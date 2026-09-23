@@ -131,6 +131,10 @@ import { residualOtherHourly125 } from './residualOtherHourly125'
 import { residualOtherHourly126 } from './residualOtherHourly126'
 import { residualOtherHourly127 } from './residualOtherHourly127'
 import { residualOtherHourly128 } from './residualOtherHourly128'
+import { residualOtherHourly129 } from './residualOtherHourly129'
+import { residualOtherHourly130 } from './residualOtherHourly130'
+import { residualOtherHourly131 } from './residualOtherHourly131'
+import { residualOtherHourly132 } from './residualOtherHourly132'
 
 export function isPortalDump(text: string): boolean {
   const t = (text || '').toLowerCase()
@@ -200,6 +204,22 @@ export function detectEntities(text: string): string[] {
 export function residualSoftRoute(q: string, entities: string[]): IntentResult | null {
   const text = (q || '').trim()
   if (!text) return null
+
+  if (
+    /^(bros|sis|oga|aunty|sir|ma)?\s*(abeg|pls|biko|please)?\s*(help|assist|guide|yarn|talk|orientate)\s*(me|am|us)?\s*(small|jo|jare|now|abeg|pls)?\.?$|^i\s*(just\s*)?(come|dey)\s*(here|online)\s*(abeg)?$|^wetin\s*una\s*(dey|fit)\s*(do|help)\s*(here|for\s*here)?\??$|^talk\s*to\s*me\s*(abeg|now)?$|^i\s*no\s*know\s*wetin\s*to\s*(type|ask|write)$|^anything\s*una\s*fit\s*do\s*(for\s*)?me\??$|^help\s*me\s*abeg\s*i\s*no\s*sabi$|^una\s*fit\s*yarn\s*me\s*(small|the\s*gist)\??$|^i\s*wan\s*ask\s*question$|^question\s*abeg$|^support\s*abeg$|^customer\s*care$|^i\s*need\s*(info|information|orientation)$|^how\s*una\s*take\s*help\s*students?\??$|^e\s*be\s*like\s*say\s*i\s*lost$|^i\s*dey\s*manage\s*abeg$|^wetin\s*suppose\s*i\s*ask\??$/i.test(
+      text,
+    )
+  ) {
+    return {
+      intent: 'official-sources',
+      confidence: 0.9,
+      topics: ['other', 'greeting-vague'],
+      problem: 'Vague Pidgin help soft-route',
+      stage: 'exploring',
+      entities,
+      isTroubleshooting: false,
+    }
+  }
 
   const faqIntent = officialFaqIntent(q)
   if (faqIntent) return faqIntent
@@ -342,6 +362,10 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     residualOtherHourly126,
     residualOtherHourly127,
     residualOtherHourly128,
+    residualOtherHourly129,
+    residualOtherHourly130,
+    residualOtherHourly131,
+    residualOtherHourly132,
   ]) {
     try {
       const hit = fn(q, entities)
