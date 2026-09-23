@@ -1,4 +1,5 @@
 import type { IntentId, IntentResult } from './types'
+import { residualOtherHourly133 } from './residualOtherHourly133'
 
 function hit(
   intent: IntentId,
@@ -23,6 +24,8 @@ function liveish(q: string): boolean {
  * Extra sentence shapes that still land in the admin other bucket.
  */
 export function residualOtherHourly132(text: string, entities: string[]): IntentResult | null {
+  const newer = residualOtherHourly133(text, entities)
+  if (newer) return newer
   const q = (text || '').trim()
   if (!q) return null
   if (liveish(q)) return null

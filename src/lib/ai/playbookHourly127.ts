@@ -2,13 +2,14 @@ import type { IntentId } from './types'
 import { playbookHourly128 } from './playbookHourly128'
 import { playbookHourly129 } from './playbookHourly129'
 import { playbookHourly130 } from './playbookHourly130'
+import { playbookHourly133 } from './playbookHourly133'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 export function playbookHourly127(intent: IntentId, userText: string): string | null {
-  const newer = playbookHourly130(intent, userText) || playbookHourly129(intent, userText) || playbookHourly128(intent, userText)
+  const newer = playbookHourly133(intent, userText) || playbookHourly130(intent, userText) || playbookHourly129(intent, userText) || playbookHourly128(intent, userText)
   if (newer) return newer
   const t = userText || ''
 
