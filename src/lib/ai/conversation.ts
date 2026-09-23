@@ -179,22 +179,17 @@ function isExpandRequest(text: string): boolean {
   return false
 }
 
+function isNextStepAsk(text: string): boolean {
+  const t = text.trim().toLowerCase().replace(/[!.,?]+$/g, '').trim()
+  if (!t || t.length > 60) return false
+  return /^(what\s*next|what'?s\s*next|wetin\s*next|so\s*what(\s*now)?|first\s*step|what\s*should\s*i\s*do(\s*now)?|wetin\s*i\s*go\s*do(\s*now)?|so\s*wetin\s*now)$/i.test(t)
+}
+
 function softCloseReply(): string {
   return `Alright, you are covered for now.\n\nIf anything else comes up on the portal (pending, missing information, JAMB, login, upkeep), just type it here. I am still here.`
 }
 
 function expandReply(priorIntent: IntentId, slots: ConversationSlots, prevAsst: string, userText: string): string {
-  const pb = playbookAnswer(priorIntent, {
-    institutionName: slots.institutionName,
-    problemSummary: slots.problemSummary,
-    exactError: slots.exactError,
-    lastAssistant: prevAsst,
-    userText: userText || 'tell me more about it',
-    priorIntent,
-  })
-  if (pb && pb.length > 40 && !/^How far, welcome/i.test(pb)) {
-    return `**More on this**\n\n${pb}`
-  }
   const advanced = nextStepAdvance(
     {
       institutionName: slots.institutionName,
@@ -207,15 +202,21 @@ function expandReply(priorIntent: IntentId, slots: ConversationSlots, prevAsst: 
     priorIntent,
   )
   if (advanced && advanced.length > 30) {
-    return `**More detail on that**\n\n${advanced}\n\nIf you want the exact next click on the portal, say what status or error you see.`
+    return `**More on this**\n\n${advanced}\n\nIf the portal still shows the same error after the school confirms upload, open a ticket at https://nelfund.esupport.ng/create with a screenshot.`
   }
-  return `Here is the practical next layer:\n\n1. Open https://portal.nelf.gov.ng/ and note the exact status or error\n2. If it points to your school, visit the campus NELFUND desk\n3. Still stuck after that: https://nelfund.esupport.ng/create\n\nTell me the exact portal message if you want a tighter step.`
+  if (priorIntent === 'missing-information' || priorIntent === 'school-not-found') {
+    return `**More on missing information**\n\n1. The portal only shows your name after **your school** uploads the student record for this session.\n2. Take admission letter + JAMB number to ICT / Registry / campus NELFUND desk and ask them to confirm the upload.\n3. After they confirm, wait a bit, then retry https://portal.nelf.gov.ng/\n4. Still empty after school confirms: https://nelfund.esupport.ng/create (attach screenshot).\n\nI cannot see your school file from this chat.`
+  }
+  if (priorIntent === 'what-is-nelfund' || priorIntent === 'nelfund-history' || priorIntent === 'nelfund-purpose') {
+    return `**More on NELFUND**\n\nNELFUND was set up under the Students Loans (Access to Higher Education) Act so eligible students in **public** tertiary institutions can access interest-free loans for institutional charges and optional upkeep.\n\n- Institutional charges go to the school.\n- Upkeep (if ticked) goes to your bank account.\n- It is a **loan**, not a scholarship.\n\nOfficial: https://nelf.gov.ng/ and https://portal.nelf.gov.ng/`
+  }
+  return `**More detail**\n\n1. Open https://portal.nelf.gov.ng/ and note the exact status or error\n2. If it points to your school, use the campus NELFUND desk\n3. Still stuck: https://nelfund.esupport.ng/create`
 }
 
 function isShortFollowUp(text: string): boolean {
   const t = text.trim().toLowerCase()
   if (t.length > 120) return false
-  if (isAckClose(t) || isExpandRequest(t)) return true
+  if (isAckClose(t) || isExpandRequest(t) || isNextStepAsk(t)) return true
   if (
     /^(yes|yeah|yep|ok|okay|sure|please|continue|more|thanks|thank\s*you|abeg|alright|all\s*right|step\s*2|step\s*1|alright\s*boss|okay\s*boss)\.?$/i.test(
       t,
@@ -351,6 +352,28 @@ async function processUserTurnInner(opts: {
     return finalize(userMsg, { ...opts.slots, intent: priorIntent }, priorIntent, deeper, 'conversation')
   }
 
+  if (
+    !ocr &&
+    rawUser &&
+    isNextStepAsk(rawUser) &&
+    priorIntent &&
+    priorIntent !== 'unknown' &&
+    priorIntent !== 'official-sources'
+  ) {
+    const step = nextStepAdvance(
+      {
+        institutionName: opts.slots.institutionName,
+        problemSummary: opts.slots.problemSummary,
+        exactError: opts.slots.exactError,
+        lastAssistant: prevAsst,
+        userText: rawUser,
+        priorIntent,
+      } as any,
+      priorIntent,
+    )
+    return finalize(userMsg, { ...opts.slots, intent: priorIntent }, priorIntent, step, 'conversation')
+  }
+
   if (!ocr && rawUser && isOffTopic(rawUser, priorIntent)) {
     return finalize(userMsg, { ...opts.slots }, 'official-sources', offTopicReply(), 'conversation')
   }
@@ -358,15 +381,13 @@ async function processUserTurnInner(opts: {
   {
     const classified = classifyIntent(rawUser || combined, history)
     let earlyIntent = classified.intent
-    if (
+    const keepPrior =
       priorIntent &&
       priorIntent !== 'unknown' &&
       priorIntent !== 'official-sources' &&
-      (earlyIntent === 'unknown' ||
-        earlyIntent === 'official-sources' ||
-        isShortFollowUp(rawUser) ||
-        classified.confidence < 0.75)
-    ) {
+      (isShortFollowUp(rawUser) || isExpandRequest(rawUser) || isNextStepAsk(rawUser) || isAckClose(rawUser)) &&
+      (earlyIntent === 'unknown' || earlyIntent === 'official-sources' || classified.confidence < 0.55)
+    if (keepPrior) {
       earlyIntent = priorIntent
     }
     const early = playbookAnswer(earlyIntent !== 'unknown' ? earlyIntent : 'how-to-apply', {
@@ -411,11 +432,10 @@ async function processUserTurnInner(opts: {
   if (
     priorIntent &&
     priorIntent !== 'unknown' &&
-    (intent === 'unknown' ||
-      (rawUser.length < 80 && isShortFollowUp(rawUser)) ||
-      (rawUser.length < 100 && intentMeta.confidence < 0.75))
+    (isShortFollowUp(rawUser) || isExpandRequest(rawUser) || isNextStepAsk(rawUser)) &&
+    (intent === 'unknown' || intent === 'official-sources' || intentMeta.confidence < 0.55)
   ) {
-    if (!isNewUserAsk(rawUser)) intent = priorIntent
+    intent = priorIntent
   }
   if (
     priorIntent === 'how-to-apply' &&
