@@ -1,8 +1,13 @@
+import { playbookHourly147 } from './playbookHourly147'
+
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hourly 146: pending angles that still sounded like one dump. */
 export function playbookHourly146(intent: string, t: string): string | null {
+  const from147 = playbookHourly147(intent, t)
+  if (from147) return from147
+
   if (intent !== 'pending-application') return null
   const q = t || ''
 
