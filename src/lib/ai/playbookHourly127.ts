@@ -4,6 +4,7 @@ import { playbookHourly129 } from './playbookHourly129'
 import { playbookHourly130 } from './playbookHourly130'
 import { playbookHourly133 } from './playbookHourly133'
 import { playbookHourly134 } from './playbookHourly134'
+import { playbookHourly136 } from './playbookHourly136'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -11,6 +12,7 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 export function playbookHourly127(intent: IntentId, userText: string): string | null {
   const newer =
+    playbookHourly136(intent, userText) ||
     playbookHourly134(intent, userText) ||
     playbookHourly133(intent, userText) ||
     playbookHourly130(intent, userText) ||
