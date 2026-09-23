@@ -5,6 +5,7 @@
 import type { ConversationTurn, IntentId, IntentResult } from './types'
 import { officialFaqIntent } from './officialFaq'
 import { residualOtherHourly144 } from './residualOtherHourly144'
+import { residualOtherHourly146 } from './residualOtherHourly146'
 
 const SCHOOL_HINTS = [
   'unilag',
@@ -248,6 +249,13 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
     )
   ) {
     return hit('current-information', 0.9, ['open-status'], 'Open / deadline residual', 'exploring', entities)
+  }
+
+  try {
+    const h146 = residualOtherHourly146(q, entities)
+    if (h146 && h146.intent !== 'unknown') return h146
+  } catch {
+    /* hourly optional */
   }
 
   try {

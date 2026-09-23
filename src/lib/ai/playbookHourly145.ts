@@ -1,8 +1,13 @@
+import { playbookHourly146 } from './playbookHourly146'
+
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Angle-specific pending replies. Same intent, different wording. No invented dates. */
 export function playbookHourly145(intent: string, t: string): string | null {
+  const from146 = playbookHourly146(intent, t)
+  if (from146) return from146
+
   if (intent !== 'pending-application') return null
   const q = t || ''
 
