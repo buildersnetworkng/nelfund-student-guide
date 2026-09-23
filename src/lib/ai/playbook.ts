@@ -138,6 +138,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return `**How to apply**\n\n1. Confirm school listed and record uploaded.\n2. Create or sign in at ${PORTAL}.\n3. Complete profile (JAMB, NIN, BVN).\n4. Use Request for Student Loan only when the official loan window is open. I will not invent dates.`
   }
   if (intent === 'what-is-nelfund' || intent === 'nelfund-purpose' || intent === 'nelfund-history') {
+    if (ctx.userText && /who\s+(built|created|founded|established|started|signed|form)/i.test(ctx.userText)) {
+      return `**Who set up NELFUND**\n\nNELFUND (Nigeria Education Loan Fund) was established under the **Students Loans (Access to Higher Education) Act** — an Act of the National Assembly — to give eligible students in **public** tertiary institutions access to interest-free loans.\n\n- Institutional charges go to the school.\n- Optional upkeep goes to the student.\n- It is a **loan**, not a scholarship or gift.\n\nConfirm details on ${SITE} and ${PORTAL}. I will not invent names of private “builders” or agents.`
+    }
     return `**Why NELFUND exists:** the Students Loans (Access to Higher Education) Act set up the Nigeria Education Loan Fund so eligible students in public tertiary institutions can get interest-free loans for school charges and living costs.\n\nInstitutional charges go to the school. Optional upkeep goes to the student. It is a loan, not a scholarship.\n\n${SITE} / ${PORTAL}`
   }
   if (intent === 'upkeep-vs-fees' || intent === 'school-fees' || intent === 'institutional-charges') {
@@ -192,5 +195,5 @@ export function isNewUserAsk(text: string): boolean {
   if (/^(alright|ok(ay)?|tell\s*me\s*more|elaborate|expanciate)\b/i.test(t)) return false
   if (/^(so\s+)?(what('?s|\s+is)?\s+)?(the\s+)?(solution|next|first\s*step)/i.test(t)) return false
   if (/wetin\s*(i\s*)?(go|to)\s*do|what\s*next|what'?s\s*next|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin/i.test(t)) return false
-  return /what\s*is\s*nelfund|how\s*to\s*apply|eligib|missing\s*information|upkeep|repay|login|jamb|scam|is\s*(nelfund|application)\s*open|school\s*fees?\s*and\s*upkeep/i.test(t)
+  return /what\s*is\s*nelfund|who\s+(built|created|founded)|how\s*to\s*apply|eligib|missing\s*information|upkeep|repay|login|jamb|scam|is\s*(nelfund|application)\s*open|school\s*fees?\s*and\s*upkeep/i.test(t)
 }
