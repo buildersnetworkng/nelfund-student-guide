@@ -4,6 +4,7 @@
  */
 import type { ConversationTurn, IntentId, IntentResult } from './types'
 import { officialFaqIntent } from './officialFaq'
+import { residualOtherHourly144 } from './residualOtherHourly144'
 
 const SCHOOL_HINTS = [
   'unilag',
@@ -62,7 +63,8 @@ export function detectEntities(text: string): string[] {
   if (/\bbvn\b/.test(t)) out.push('bvn')
   if (/upkeep|stipend|allowance/.test(t)) out.push('upkeep')
   if (/school\s*fees?|tuition|institutional\s*charges?/.test(t)) out.push('fees')
-  if (/pending|under\s*review|how\s*far|never\s*enter|processing|alert\s*never|money\s*never/.test(t)) out.push('pending')
+  if (/pending|under\s*review|how\s*far|never\s*enter|processing|alert\s*never|money\s*never|mates?\s*don|dashboard\s*(0|zero)|\bbatch\b/.test(t))
+    out.push('pending')
   if (SCHOOL_HINTS.some((s) => t.includes(s))) out.push('school')
   return out
 }
@@ -122,7 +124,7 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   }
 
   if (
-    /how\s*far|still\s*pending|application\s*(is\s*)?pending|wetin\s*dey\s*hold|money\s*never|e\s*never\s*(drop|enter|credit)|status\s*(na|is|still)\s*pending|una\s*never\s*pay|dem\s*never\s*pay|waiting\s*for\s*(loan|upkeep|alert)|any\s*update|track\s*(my\s*)?(loan|file)|my\s*own\s*never\s*(show|move)|processing\s*since|under\s*review\s*(still|since)|alert\s*never\s*come/i.test(
+    /how\s*far|still\s*pending|application\s*(is\s*)?pending|wetin\s*dey\s*hold|money\s*never|e\s*never\s*(drop|enter|credit)|status\s*(na|is|still)\s*pending|una\s*never\s*pay|dem\s*never\s*pay|waiting\s*for\s*(loan|upkeep|alert)|any\s*update|track\s*(my\s*)?(loan|file)|my\s*own\s*never\s*(show|move)|processing\s*since|under\s*review\s*(still|since)|alert\s*never\s*come|mates?\s*(don|have)\s*(collect|receive)|dashboard\s*(still\s*)?(0|zero)|approved\s*(but|and)\s*(no|never)\s*(money|alert)|\bbatch\s*[1-9]\b/i.test(
       q,
     )
   ) {
@@ -225,7 +227,7 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   }
 
   if (
-    /pendin[g]?|pendng|still\s*pend|e\s*never\s*move|e\s*no\s*move|status\s*no\s*change|no\s*update\s*since|i\s*check\s*am\s*still|dashboard\s*still\s*(0|zero|pending)|batch\s*(no|not|never)|dem\s*pay\s*my\s*mate|mates?\s*don\s*(collect|receive|see)|una\s*pay\s*others|when\s*my\s*own\s*go\s*(enter|drop|show)/i.test(
+    /pendin[g]?|pendng|still\s*pend|e\s*never\s*move|e\s*no\s*move|status\s*no\s*change|no\s*update\s*since|i\s*check\s*am\s*still|dashboard\s*still\s*(0|zero|pending)|batch\s*(no|not|never)|dem\s*pay\s*my\s*mate|mates?\s*don\s*(collect|receive|see)|una\s*pay\s*others|when\s*my\s*own\s*go\s*(enter|drop|show)|approved\s*(but|and)\s*(no|never|not)\s*(money|alert)|total\s*loans?\s*(is\s*|still\s*)?(0|zero)/i.test(
       q,
     )
   ) {
@@ -246,6 +248,13 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
     )
   ) {
     return hit('current-information', 0.9, ['open-status'], 'Open / deadline residual', 'exploring', entities)
+  }
+
+  try {
+    const h144 = residualOtherHourly144(q, entities)
+    if (h144 && h144.intent !== 'unknown') return h144
+  } catch {
+    /* hourly optional */
   }
 
   const extra = residualOtherRoute(q, entities)
