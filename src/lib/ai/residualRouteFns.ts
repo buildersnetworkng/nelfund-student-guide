@@ -17,7 +17,7 @@ export function isPortalDump(text: string): boolean {
     /approved\s*loans/,
     /session\s*registration/,
     /welcome\s*to\s*student\s*loan/,
-    /successfully\s*signed\n/,
+    /successfully\s*signed\s*in/,
   ].filter((re) => re.test(t)).length
   return hits >= 2
 }
