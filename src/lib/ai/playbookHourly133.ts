@@ -1,4 +1,5 @@
 import type { IntentId } from './types'
+import { playbookHourly134 } from './playbookHourly134'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -6,6 +7,8 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Angle-specific pending answers so paraphrases do not share one dump. */
 export function playbookHourly133(intent: IntentId, userText: string): string | null {
+  const newer = playbookHourly134(intent, userText)
+  if (newer) return newer
   const t = userText || ''
   if (intent !== 'pending-application') return null
 
