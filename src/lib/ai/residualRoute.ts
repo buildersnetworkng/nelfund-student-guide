@@ -129,5 +129,21 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
     return hit('what-is-nelfund', 0.92, ['what-is', 'how-it-works'], 'How NELFUND works', 'exploring', entities)
   }
 
+  if (
+    /school\s*(not|no|never)\s*(showing|show|appear|dey|listed)|institution\s*(missing|not\s*(on|in)\s*(the\s*)?(list|portal))|cannot\s*find\s*(my\s*)?school|school\s*no\s*dey\s*list/i.test(
+      q,
+    )
+  ) {
+    return hit('school-not-found', 0.9, ['school-list'], 'School missing on list', 'applying', entities, true)
+  }
+
+  if (
+    /status\s*(na|is|still)\s*(pending|processing)|application\s*(still\s*)?(pending|processing)|money\s*never|how\s*far\s*(my|na)|wetin\s*dey\s*hold/i.test(
+      q,
+    )
+  ) {
+    return hit('pending-application', 0.88, ['pending-status'], 'Residual pending / how far', 'waiting', entities, true)
+  }
+
   return null
 }
