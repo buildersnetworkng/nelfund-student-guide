@@ -45,7 +45,6 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('what-is-nelfund', 0.94, ['what-is'], 'What / why NELFUND', 'exploring', entities)
   }
 
-  // Who built / created NELFUND (must not stick to prior troubleshooting intent)
   if (
     /who\s+(built|created|founded|established|started|signed|form(ed)?|make|made|bring|brought)\s+(nelfund|this\s+loan|the\s+loan|am)/i.test(raw) ||
     /who\s+(is\s+)?(behind|responsible\s+for)\s+nelfund/i.test(raw) ||
@@ -54,7 +53,6 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('what-is-nelfund', 0.95, ['what-is', 'history'], 'Who built NELFUND', 'exploring', entities)
   }
 
-  // How to log in / sign in (must beat residual)
   if (
     /how\s*(do\s*i|to|i\s*go|i\s*fit)\s*(log\s*in|login|sign\s*in)/i.test(raw) ||
     /^(log\s*in|login|sign\s*in)\??$/i.test(raw.trim()) ||
@@ -64,14 +62,20 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('portal-login', 0.95, ['login'], 'How to log in', 'applying', entities, true)
   }
 
-  // Explicit missing-information phrasing
   if (
-    /missing\s*information|information\s*(is\s*)?(missing|not\s*showing)|no\s*information\s*on\s*(the\s*)?portal|school\s*(not|no)\s*(on\s*)?(the\s*)?list|my\s*school\s*(no|not)\s*(dey|show|appear)/i.test(raw)
+    /school\s*(not|no|never)\s*(showing|show|appear|dey|on\s*(the\s*)?(list|portal|dropdown))|my\s*school\s*(no|not|never)\s*(dey|show|appear|list)|institution\s*(missing|not\s*(showing|listed|on))|cannot\s*find\s*(my\s*)?(school|institution)|school\s*no\s*dey\s*(the\s*)?(list|dropdown|portal)|school\s*missing\s*on\s*(the\s*)?portal|institution\s*no\s*dey|cannot\s*see\s*(my\s*)?school|school\s*not\s*in\s*(the\s*)?(list|dropdown)/i.test(
+      raw,
+    )
+  ) {
+    return hitIntent('school-not-found', 0.93, ['school-list'], 'School not showing on portal', 'applying', entities, true)
+  }
+
+  if (
+    /missing\s*information|information\s*(is\s*)?(missing|not\s*showing)|no\s*information\s*on\s*(the\s*)?portal/i.test(raw)
   ) {
     return hitIntent('missing-information', 0.92, ['missing'], 'Missing information on portal', 'applying', entities, true)
   }
 
-  // School fees vs upkeep / institutional charges (must beat residual + eligibility)
   if (
     /difference\s*(between\s*)?(school\s*fees?|tuition|institutional\s*charges?)\s*(and|&|vs|versus)\s*(upkeep|stipend|allowance)/i.test(raw) ||
     /difference\s*(between\s*)?(upkeep|stipend|allowance)\s*(and|&|vs|versus)\s*(school\s*fees?|tuition|institutional)/i.test(raw) ||
@@ -157,7 +161,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   }
 
   if (
-    /how\s*far(\s*(my|na|now|abeg|my\s*own))?|alert\s*(never|no|not)\s*(come|enter|drop)|my\s*own\s*(never|no)\s*(enter|drop|show)|money\s*(never|no|go)\s*(enter|drop|show)|still\s*pending|status\s*(no|not|never)\s*(change|move)|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not|never)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect|total\s*loans?\s*(is\s*)?(0|zero)|dashboard\s*(empty|blank)|i\s*don\s*submit|wetin\s*(dey\s*)?(happen|sup)\s*(to\s*)?(my\s*)?(loan|application|file|own)|e\s*still\s*dey\s*(pending|review|same)|una\s*never\s*pay|dem\s*never\s*pay|never\s*see\s*(alert|money|credit)|application\s*never\s*(move|change)|status\s*still\s*(the\s*)?same|i\s*don\s*(finish|complete)\s*(apply|application)|no\s*money\s*enter\s*since|when\s*una\s*go\s*release|my\s*application\s*is\s*pending|status\s*still\s*processing|how\s*far\s*my\s*own|money\s*never\s*enter|waiting\s*for\s*(my\s*)?(loan|upkeep|disbursement)|any\s*update\s*on\s*my|track\s*(my\s*)?(application|loan)|follow\s*up\s*(on\s*)?(my\s*)?(application|loan)|e\s*still\s*dey\s*(the\s*)?same|nothing\s*(don|has)\s*(happen|change)\s*(for|on)\s*(my\s*)?(own|file|loan)/i.test(
+    /how\s*far(\s*(my|na|now|abeg|my\s*own))?|wetin\s*dey\s*hold\s*(my\s*)?(loan|application|file|own)|e\s*never\s*(credit|drop|enter)|loan\s*never\s*(drop|enter|credit)|my\s*status\s*(na|is)\s*pending|still\s*dey\s*processing|application\s*pending\s*since|no\s*disbursement\s*yet|dem\s*never\s*credit\s*me|processing\s*since|alert\s*(never|no|not)\s*(come|enter|drop)|my\s*own\s*(never|no)\s*(enter|drop|show)|money\s*(never|no|go)\s*(enter|drop|show)|still\s*pending|status\s*(no|not|never)\s*(change|move)|under\s*review|i\s*don\s*apply|when\s*(dem|they|una)\s*(go|will)\s*pay|no\s*alert|approved.{0,24}(no|never|not).{0,16}(money|alert|upkeep)|una\s*no\s*pay\s*me|dem\s*no\s*pay\s*me|application\s*(dey|is)\s*processing|disburs(e|ement)|i\s*wan\s*check\s*(my\s*)?(loan|application)|name\s*(no|not|never)\s*dey\s*(the\s*)?(pay\s*)?list|nothing\s*don\s*drop|dem\s*don\s*pay\s*(others|my\s*mates)|my\s*mates\s*(don|have)\s*(collect|receive)|class\s*(don|have)\s*collect|total\s*loans?\s*(is\s*)?(0|zero)|dashboard\s*(empty|blank)|i\s*don\s*submit|wetin\s*(dey\s*)?(happen|sup)\s*(to\s*)?(my\s*)?(loan|application|file|own)|e\s*still\s*dey\s*(pending|review|same)|una\s*never\s*pay|dem\s*never\s*pay|never\s*see\s*(alert|money|credit)|application\s*never\s*(move|change)|status\s*still\s*(the\s*)?same|i\s*don\s*(finish|complete)\s*(apply|application)|no\s*money\s*enter\s*since|when\s*una\s*go\s*release|my\s*application\s*is\s*pending|status\s*still\s*processing|how\s*far\s*my\s*own|money\s*never\s*enter|waiting\s*for\s*(my\s*)?(loan|upkeep|disbursement)|any\s*update\s*on\s*my|track\s*(my\s*)?(application|loan)|follow\s*up\s*(on\s*)?(my\s*)?(application|loan)|e\s*still\s*dey\s*(the\s*)?same|nothing\s*(don|has)\s*(happen|change)\s*(for|on)\s*(my\s*)?(own|file|loan)/i.test(
       raw,
     )
   ) {
@@ -224,10 +228,8 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
 
   if (soft && soft.intent !== 'unknown') return soft
 
-  // Only keep prior intent for true short follow-ups (what next, so what, wetin i go do)
-  // Never stick prior when the user clearly starts a new topic
   const isNewTopic =
-    /who\s+(built|created|founded)|what\s+is\s+nelfund|how\s+to\s+apply|how\s*(do\s*i|to)\s*(log\s*in|login)|eligib|upkeep|repay|login|jamb|scam|missing\s*information|school\s*fees?|pending|how\s*far|refund|guarantor|document/i.test(
+    /who\s+(built|created|founded)|what\s+is\s+nelfund|how\s+to\s+apply|how\s*(do\s*i|to)\s*(log\s*in|login)|eligib|upkeep|repay|login|jamb|scam|missing\s*information|school\s*fees?|school\s*(not|no)\s*(show|dey)|pending|how\s*far|refund|guarantor|document/i.test(
       raw,
     )
   const followish =
