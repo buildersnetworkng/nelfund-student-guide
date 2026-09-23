@@ -84,6 +84,69 @@ function hit(
   return { intent, confidence, topics, problem, stage, entities, isTroubleshooting }
 }
 
+/** Extra residual shapes for the live "other" unknown bucket. */
+export function residualOtherRoute(text: string, entities: string[]): IntentResult | null {
+  const q = (text || '').trim()
+  if (!q) return null
+
+  if (
+    /email\s*(already|don|has)\s*(used|exist|registered)|registered\s*(last\s*)?year|last\s*year\s*(i\s*)?(register|apply)|account\s*already|forgot\s*password|cannot\s*(log\s*in|login)|otp\s*(no|not|never)/i.test(
+      q,
+    )
+  ) {
+    return hit('portal-login', 0.9, ['login'], 'Email used / last year register', 'applying', entities, true)
+  }
+
+  if (
+    /invalid\s*jamb|jamb\s*(number\s*)?(no|not|never|invalid|wrong|fail)|utme\s*(no|not|invalid)|jamb\s*(verification|verify|caps)/i.test(
+      q,
+    )
+  ) {
+    return hit('jamb-verification', 0.9, ['jamb'], 'JAMB verification residual', 'applying', entities, true)
+  }
+
+  if (
+    /school\s*(no|not|never)\s*(dey|show|appear|list)|institution\s*(no|not)\s*(dey|on|in)|cannot\s*(see|find)\s*(my\s*)?school|school\s*wahala\s*(list|dropdown)/i.test(
+      q,
+    )
+  ) {
+    return hit('school-not-found', 0.9, ['school-list'], 'School list residual', 'applying', entities, true)
+  }
+
+  if (
+    /when\s*(do\s*i|to|i\s*(go|fit))\s*(start\s*)?repay|pay\s*back|after\s*nysc|gsi|how\s*(will|go)\s*i\s*pay|repayment\s*(start|begin|plan)/i.test(
+      q,
+    )
+  ) {
+    return hit('repayment', 0.88, ['repayment'], 'Repayment residual', 'repaying', entities)
+  }
+
+  if (
+    /how\s*far|still\s*pending|application\s*(is\s*)?pending|wetin\s*dey\s*hold|money\s*never|e\s*never\s*(drop|enter|credit)|status\s*(na|is|still)\s*pending|una\s*never\s*pay|dem\s*never\s*pay|waiting\s*for\s*(loan|upkeep|alert)/i.test(
+      q,
+    )
+  ) {
+    return hit('pending-application', 0.88, ['pending-status'], 'Pending residual', 'waiting', entities, true)
+  }
+
+  if (
+    /^(hi|hello|hey|how\s*far|good\s*(morning|afternoon|evening)|yo)\s*(una|there|boss|sir|ma)?[.! ]*$/i.test(q) ||
+    /^(please|pls|abeg)?\s*(help|assist|guide)\s*(me)?\s*(out)?[.! ]*$/i.test(q)
+  ) {
+    return hit('official-sources', 0.7, ['greeting-vague'], 'Greeting / vague help', 'exploring', entities)
+  }
+
+  if (
+    /i\s*(just\s*)?(need|wan|want)\s*(help|info|information|guidance)|abeg\s*(help|assist)|una\s*fit\s*help|i\s*dey\s*(lost|confused|stranded)|i\s*no\s*(sabi|know)\s*(wetin|where|anything)|portal\s*wahala|i\s*get\s*(issue|problem)|something\s*dey\s*wrong|help\s*me\s*(with\s*)?(this\s*)?(nelfund|loan|thing|matter)|assist\s*me\s*(on|with)\s*(this\s*)?(loan|nelfund)|i\s*just\s*land|e\s*no\s*clear|make\s*una\s*(guide|help|show)\s*me|gimme\s*(menu|options|list)|short\s*menu|wetin\s*una\s*fit\s*do|how\s*(this|dis)\s*(thing|matter)\s*dey\s*work|i\s*need\s*assistance|kindly\s*assist|orientate\s*me|point\s*me|direct\s*me|nelfund\s*help|loan\s*help\s*abeg|i\s*no\s*understand\s*(anything|am)|how\s*i\s*(go|fit)\s*start/i.test(
+      q,
+    )
+  ) {
+    return hit('official-sources', 0.86, ['other', 'greeting-vague'], 'Vague Pidgin / help menu', 'exploring', entities)
+  }
+
+  return null
+}
+
 /**
  * Soft residual route: official FAQ first, then a few high-value patterns.
  * Returns null when nothing matches so classifyIntent can fall through.
@@ -144,6 +207,9 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   ) {
     return hit('pending-application', 0.88, ['pending-status'], 'Residual pending / how far', 'waiting', entities, true)
   }
+
+  const extra = residualOtherRoute(q, entities)
+  if (extra) return extra
 
   return null
 }
