@@ -1,10 +1,14 @@
 import type { IntentId } from './types'
+import { playbookHourly128 } from './playbookHourly128'
+import { playbookHourly129 } from './playbookHourly129'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 export function playbookHourly127(intent: IntentId, userText: string): string | null {
+  const newer = playbookHourly129(intent, userText) || playbookHourly128(intent, userText)
+  if (newer) return newer
   const t = userText || ''
 
   if (intent === 'official-sources') {
