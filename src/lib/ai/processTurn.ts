@@ -1,5 +1,5 @@
 /**
- * NELFUND AI turn entry: clarification first, then portal screenshot, then conversation.
+ * NELFUND AI turn entry: term meaning first, then clarification, portal, conversation.
  */
 import {
   processUserTurn as processUserTurnCore,
@@ -14,6 +14,7 @@ import { buildCurrentInformationAnswerLive, questionNeedsCurrentLive } from './c
 import { liveOpenRe } from './intent'
 import { playbookAnswer } from './playbook'
 import { refineClarificationAnswer } from './conversationClarify'
+import { explainTerm } from './termDefine'
 
 function uid(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -29,6 +30,52 @@ export async function processUserTurn(opts: {
 }): Promise<AgentTurnResult> {
   const rawUser = (opts.userText || '').trim()
   const ocr = opts.ocrText || null
+  const history = opts.history || []
+  const prevAsst =
+    [...history].reverse().find((h) => h.role === 'assistant')?.text || null
+
+  // "What do you mean by institutional charges/chargers?" — explain the term
+  if (!ocr && rawUser) {
+    const term = explainTerm(rawUser, prevAsst)
+    if (term && term.text.length > 40) {
+      return {
+        messages: [
+          {
+            id: uid('user'),
+            role: 'user',
+            text: rawUser,
+            imagePreview: opts.imagePreview || null,
+            timestamp: Date.now(),
+          },
+          {
+            id: uid('asst'),
+            role: 'assistant',
+            text: term.text,
+            answer: {
+              hasEvidence: true,
+              intent: term.intent,
+              confidence: 0.95,
+              responseMode: 'conversation',
+              problem: term.intent,
+              answer: term.text,
+              nextActions: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'],
+              clarifyingQuestions: [],
+              evidence: [],
+              sources: [],
+              video: null,
+              insufficientReason: null,
+              officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+              escalation: null,
+            },
+            timestamp: Date.now(),
+          },
+        ],
+        slots: { ...opts.slots, intent: term.intent, phase: 'resolve' },
+        diagnosed: true,
+        capability: 'conversation',
+      }
+    }
+  }
 
   // Clarification: "I meant for the loan and upkeep" — never welcome-reset
   if (
