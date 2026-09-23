@@ -8,6 +8,7 @@ import { residualOtherHourly140 } from './residualOtherHourly140'
 import { residualOtherHourly141 } from './residualOtherHourly141'
 import { residualOtherHourly142 } from './residualOtherHourly142'
 import { residualOtherHourly143 } from './residualOtherHourly143'
+import { residualOtherHourly144 } from './residualOtherHourly144'
 
 export function isPortalDump(text: string): boolean {
   const t = (text || '').toLowerCase()
@@ -85,7 +86,14 @@ export function residualSoftRouteRest(q: string, entities: string[]): IntentResu
   if (more) return more
   const pendingMore = residualPendingMore(q, entities)
   if (pendingMore) return pendingMore
-  for (const fn of [residualOtherHourly143, residualOtherHourly142, residualOtherHourly141, residualOtherHourly140, residualOtherHourly139]) {
+  for (const fn of [
+    residualOtherHourly144,
+    residualOtherHourly143,
+    residualOtherHourly142,
+    residualOtherHourly141,
+    residualOtherHourly140,
+    residualOtherHourly139,
+  ]) {
     try {
       const hit = fn(q, entities)
       if (hit && hit.intent !== 'unknown') return hit
