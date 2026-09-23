@@ -135,6 +135,9 @@ import { residualOtherHourly129 } from './residualOtherHourly129'
 import { residualOtherHourly130 } from './residualOtherHourly130'
 import { residualOtherHourly131 } from './residualOtherHourly131'
 import { residualOtherHourly132 } from './residualOtherHourly132'
+import { residualOtherHourly133 } from './residualOtherHourly133'
+import { residualOtherHourly134 } from './residualOtherHourly134'
+import { residualOtherHourly135 } from './residualOtherHourly135'
 
 export function isPortalDump(text: string): boolean {
   const t = (text || '').toLowerCase()
@@ -206,7 +209,7 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
   if (!text) return null
 
   if (
-    /^(bros|sis|oga|aunty|sir|ma)?\s*(abeg|pls|biko|please)?\s*(help|assist|guide|yarn|talk|orientate)\s*(me|am|us)?\s*(small|jo|jare|now|abeg|pls)?\.?$|^i\s*(just\s*)?(come|dey)\s*(here|online)\s*(abeg)?$|^wetin\s*una\s*(dey|fit)\s*(do|help)\s*(here|for\s*here)?\??$|^talk\s*to\s*me\s*(abeg|now)?$|^i\s*no\s*know\s*wetin\s*to\s*(type|ask|write)$|^anything\s*una\s*fit\s*do\s*(for\s*)?me\??$|^help\s*me\s*abeg\s*i\s*no\s*sabi$|^una\s*fit\s*yarn\s*me\s*(small|the\s*gist)\??$|^i\s*wan\s*ask\s*question$|^question\s*abeg$|^support\s*abeg$|^customer\s*care$|^i\s*need\s*(info|information|orientation)$|^how\s*una\s*take\s*help\s*students?\??$|^e\s*be\s*like\s*say\s*i\s*lost$|^i\s*dey\s*manage\s*abeg$|^wetin\s*suppose\s*i\s*ask\??$/i.test(
+    /^(bros|sis|oga|aunty|sir|ma)?\s*(abeg|pls|biko|please)?\s*(help|assist|guide|yarn|talk|orientate)\s*(me|am|us)?\s*(small|jo|jare|now|abeg|pls)?\.?$|^i\s*(just\s*)?(come|dey)\s*(here|online)\s*(abeg)?$|^wetin\s*una\s*(dey|fit)\s*(do|help)\s*(here|for\s*here)?\??$|^talk\s*to\s*me\s*(abeg|now)?$|^i\s*no\s*know\s*wetin\s*to\s*(type|ask|write)$|^anything\s*una\s*fit\s*do\s*(for\s*)?me\??$|^help\s*me\s*abeg\s*i\s*no\s*sabi$|^una\s*fit\s*yarn\s*me\s*(small|the\s*gist)\??$|^i\s*wan\s*ask\s*question$|^question\s*abeg$|^support\s*abeg$|^customer\s*care$|^i\s*need\s*(info|information|orientation)$|^how\s*una\s*take\s*help\s*students?\??$|^e\s*be\s*like\s*say\s*i\s*lost$|^i\s*dey\s*manage\s*abeg$|^wetin\s*suppose\s*i\s*ask\??$|^i\s*just\s*dey\s*find\s*(my\s*)?way$|^una\s*fit\s*brief\s*me\??$|^how\s*(this|dis)\s*chat\s*take\s*work\??$|^wetin\s*(you|una)\s*cover\s*(here|for\s*here)\??$|^i\s*no\s*get\s*(any\s*)?(specific|clear)\s*question$|^make\s*we\s*start\s*small$|^any\s*gist\s*(for|about)\s*students\??$|^i\s*need\s*direction\s*(abeg|pls|please)?$|^pls\s*orientate\s*me(\s*small)?$|^gimme\s*(small\s*)?(gist|brief)$|^hlp\s*me$|^abeg\s*hlp$|^gude\s*me$|^assistt\s*me$|^help\?+$|^guide\s*(jo|jare|abeg)?\.?$|^info\s*(pls|abeg|please)\.?$|^i\s*dey\s*here\s*abeg$|^wetin\s*una\s*sabi\??$|^make\s*una\s*yarn\s*small$|^who\s*fit\s*help\s*me\s*here\??$|^any\s*help\s*here\??$|^nelfund\s*help\s*(abeg|pls)?$/i.test(
       text,
     )
   ) {
@@ -366,6 +369,9 @@ export function residualSoftRoute(q: string, entities: string[]): IntentResult |
     residualOtherHourly130,
     residualOtherHourly131,
     residualOtherHourly132,
+    residualOtherHourly133,
+    residualOtherHourly134,
+    residualOtherHourly135,
   ]) {
     try {
       const hit = fn(q, entities)
