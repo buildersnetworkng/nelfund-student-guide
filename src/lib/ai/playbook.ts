@@ -72,6 +72,9 @@ export function nextStepAdvance(ctx: PlaybookContext, intent: IntentId): string 
   if (intent === 'upkeep-vs-fees' || intent === 'upkeep' || intent === 'school-fees' || intent === 'institutional-charges') {
     return `**School fees vs upkeep (short)**\n\n1. Institutional charges (school fees) go **to the school**.\n2. Upkeep goes **to you** if you ticked it in the same session.\n3. Confirm any amount only on ${PORTAL}. I will not invent figures.`
   }
+  if (intent === 'portal-login') {
+    return `**Login next step**\n\n1. Sign in at ${SITE} with the same email you registered\n2. First time only: ${PORTAL}\n3. Still blocked after reset: ${ESUPPORT}`
+  }
   return `**Next step**\n\n1. Open ${PORTAL} and act on the exact status or error you see\n2. If the portal asks for school confirmation, use your campus NELFUND desk\n3. Still stuck after that -> ${ESUPPORT}\n\n${PORTAL}`
 }
 
@@ -114,7 +117,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   if (intent === 'eligibility') return eligibilityAnswer({ userText: ctx.userText || '' })
   if (intent === 'portal-login') {
-    return `**Log in, do not create a new account** if that email was used before.\n\n1. Sign in at ${SITE} with the same email.\n2. Sign up only if you never created an account: ${PORTAL}\n3. Forgot password or OTP no dey come: use the reset on ${SITE}. Do not open a second account.\n4. Portal hang: refresh once, try another network, then ${ESUPPORT}.`
+    return `**How to log in to NELFUND**\n\n1. Open ${SITE} and use **Sign in** with the email you registered.\n2. If that email was used before (including last year), do **not** create a new account — sign in or reset password on the same email.\n3. First time only: create account at ${PORTAL}.\n4. Forgot password or OTP no dey come: use reset on ${SITE}.\n5. Portal hang: refresh once, try another network, then ${ESUPPORT}.`
   }
   if (intent === 'nin-verification' || intent === 'nin-bvn') {
     return `**NIN / BVN must be yours and must match the name on JAMB.**\n\n1. Finish NIN and BVN in your name first.\n2. Do not type a parent or friend number.\n3. Retry ${PORTAL}. Still failing: campus desk, then ${ESUPPORT}.`
@@ -195,5 +198,5 @@ export function isNewUserAsk(text: string): boolean {
   if (/^(alright|ok(ay)?|tell\s*me\s*more|elaborate|expanciate)\b/i.test(t)) return false
   if (/^(so\s+)?(what('?s|\s+is)?\s+)?(the\s+)?(solution|next|first\s*step)/i.test(t)) return false
   if (/wetin\s*(i\s*)?(go|to)\s*do|what\s*next|what'?s\s*next|wetin\s*next|so\s*wetin\s*now|make\s*i\s*do\s*wetin/i.test(t)) return false
-  return /what\s*is\s*nelfund|who\s+(built|created|founded)|how\s*to\s*apply|eligib|missing\s*information|upkeep|repay|login|jamb|scam|is\s*(nelfund|application)\s*open|school\s*fees?\s*and\s*upkeep/i.test(t)
+  return /what\s*is\s*nelfund|who\s+(built|created|founded)|how\s*to\s*apply|how\s*(do\s*i|to)\s*(log\s*in|login)|eligib|missing\s*information|upkeep|repay|login|jamb|scam|is\s*(nelfund|application)\s*open|school\s*fees?\s*and\s*upkeep/i.test(t)
 }
