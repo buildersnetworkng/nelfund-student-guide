@@ -12,7 +12,7 @@ export function isOffTopic(text: string, priorIntent?: string | null): boolean {
   const t = text.trim().toLowerCase()
   if (!t || t.length < 2) return false
   if (isGreetingLocal(text)) return false
-  if (/how\s*far|money\s*never|never\s*enter|pending|under\s*review|wetin\s*next|so\s*wetin|approved\s*but|dem\s*never\s*pay|nothing\s*don\s*drop|mates\s*don\s*collect|dashboard\s*(zero|0)|disburse|kobo\s*no\s*dey|stuck\s*on\s*pending|status\s*check|track\s*am/i.test(t)) return false
+  if (/how\s*far|money\s*never|never\s*enter|pending|under\s*review|wetin\s*next|so\s*wetin|approved\s*but|dem\s*never\s*pay|nothing\s*don\s*drop|mates\s*don\s*collect|dashboard\s*(zero|0)|disburse|kobo\s*no\s*dey|stuck\s*on\s*pending|status\s*check|track\s*am|invalid\s*jamb|jamb\s*(no|not)\s*valid|verification\s*failed|email\s*already|school\s*no\s*dey/i.test(t)) return false
   if (
     /\b(weather|football|soccer|nba|movie|netflix|crypto|bitcoin|forex|girlfriend|boyfriend|dating|poem|joke|lottery|betting|politics|election|music|song|lyrics|write\s*code|python\s*script|javascript)\b/i.test(
       t,
