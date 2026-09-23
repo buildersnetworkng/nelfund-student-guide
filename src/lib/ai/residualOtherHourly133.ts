@@ -1,4 +1,5 @@
 import type { IntentId, IntentResult } from './types'
+import { residualOtherHourly134 } from './residualOtherHourly134'
 
 function hit(
   intent: IntentId,
@@ -23,6 +24,8 @@ function liveish(q: string): boolean {
  * Extra sentence shapes: processed yet, kobo never drop, remit, stuck submitted.
  */
 export function residualOtherHourly133(text: string, entities: string[]): IntentResult | null {
+  const newer = residualOtherHourly134(text, entities)
+  if (newer) return newer
   const q = (text || '').trim()
   if (!q) return null
   if (liveish(q)) return null
