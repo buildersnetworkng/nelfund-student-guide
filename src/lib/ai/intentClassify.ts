@@ -54,6 +54,16 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('what-is-nelfund', 0.95, ['what-is', 'history'], 'Who built NELFUND', 'exploring', entities)
   }
 
+  // How to log in / sign in (must beat residual)
+  if (
+    /how\s*(do\s*i|to|i\s*go|i\s*fit)\s*(log\s*in|login|sign\s*in)/i.test(raw) ||
+    /^(log\s*in|login|sign\s*in)\??$/i.test(raw.trim()) ||
+    /where\s*(do\s*i|to)\s*(log\s*in|login|sign\s*in)/i.test(raw) ||
+    /i\s*(want|wan|wanna|need)\s*to\s*(log\s*in|login|sign\s*in)/i.test(raw)
+  ) {
+    return hitIntent('portal-login', 0.95, ['login'], 'How to log in', 'applying', entities, true)
+  }
+
   // Explicit missing-information phrasing
   if (
     /missing\s*information|information\s*(is\s*)?(missing|not\s*showing)|no\s*information\s*on\s*(the\s*)?portal|school\s*(not|no)\s*(on\s*)?(the\s*)?list|my\s*school\s*(no|not)\s*(dey|show|appear)/i.test(raw)
@@ -217,7 +227,7 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
   // Only keep prior intent for true short follow-ups (what next, so what, wetin i go do)
   // Never stick prior when the user clearly starts a new topic
   const isNewTopic =
-    /who\s+(built|created|founded)|what\s+is\s+nelfund|how\s+to\s+apply|eligib|upkeep|repay|login|jamb|scam|missing\s*information|school\s*fees?|pending|how\s*far|refund|guarantor|document/i.test(
+    /who\s+(built|created|founded)|what\s+is\s+nelfund|how\s+to\s+apply|how\s*(do\s*i|to)\s*(log\s*in|login)|eligib|upkeep|repay|login|jamb|scam|missing\s*information|school\s*fees?|pending|how\s*far|refund|guarantor|document/i.test(
       raw,
     )
   const followish =
