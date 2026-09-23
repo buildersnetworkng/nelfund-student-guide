@@ -6,6 +6,7 @@ import type { ConversationTurn, IntentId, IntentResult } from './types'
 import { officialFaqIntent } from './officialFaq'
 import { residualOtherHourly144 } from './residualOtherHourly144'
 import { residualOtherHourly146 } from './residualOtherHourly146'
+import { residualOtherHourly147 } from './residualOtherHourly147'
 
 const SCHOOL_HINTS = [
   'unilag',
@@ -141,7 +142,7 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   }
 
   if (
-    /i\s*(just\s*)?(need|wan|want)\s*(help|info|information|guidance)|abeg\s*(help|assist)|una\s*fit\s*help|i\s*dey\s*(lost|confused|stranded)|i\s*no\s*(sabi|know)\s*(wetin|where|anything)|portal\s*wahala|i\s*get\s*(issue|problem|wahala)|something\s*dey\s*wrong|help\s*me\s*(with\s*)?(this\s*)?(nelfund|loan|thing|matter)|assist\s*me\s*(on|with)\s*(this\s*)?(loan|nelfund)|i\s*just\s*land|e\s*no\s*clear|make\s*una\s*(guide|help|show)\s*me|gimme\s*(menu|options|list)|short\s*menu|wetin\s*una\s*fit\s*do|how\s*(this|dis)\s*(thing|matter)\s*dey\s*work|i\s*need\s*assistance|kindly\s*assist|orientate\s*me|point\s*me|direct\s*me|nelfund\s*help|loan\s*help\s*abeg|i\s*no\s*understand\s*(anything|am)|how\s*i\s*(go|fit)\s*start|any\s*(info|information|guide)\s*(abeg|pls)?|tell\s*me\s*something|wetin\s*una\s*dey\s*do|i\s*just\s*wan\s*yarn|e\s*dey\s*hard|i\s*no\s*get\s*direction|show\s*me\s*where\s*to\s*start|i\s*need\s*una|help\s*small|abeg\s*yarn|make\s*una\s*clear\s*am|i\s*dey\s*blank|wetin\s*i\s*suppose\s*ask|can\s*you\s*help\s*with\s*nelfund|please\s*i\s*need\s*(direction|clarity)|kindly\s*guide\s*me|i\s*wan\s*ask\s*something|una\s*dey\s*there/i.test(
+    /i\s*(just\s*)?(need|wan|want)\s*(help|info|information|guidance)|abeg\s*(help|assist)|una\s*fit\s*help|i\s*dey\s*(lost|confused|stranded)|i\s*no\s*(sabi|know)\s*(wetin|where|anything)|portal\s*wahala|i\s*get\s*(issue|problem|wahala)|something\s*dey\s*wrong|help\s*me\s*(with\s*)?(this\s*)?(nelfund|loan|thing|matter)|assist\s*me\s*(on|with)\s*(this\s*)?(loan|nelfund)|i\s*just\s*land|e\s*no\s*clear|make\s*una\s*(guide|help|show)\s*me|gimme\s*(menu|options|list)|short\s*menu|wetin\s*una\s*fit\s*do|how\s*(this|dis)\s*(thing|matter)\s*dey\s*work|i\s*need\s*assistance|kindly\s*assist|orientate\s*me|point\s*me|direct\s*me|nelfund\s*help|loan\s*help\s*abeg|i\s*no\s*understand\s*(anything|am)|how\s*i\s*(go|fit)\s*start|any\s*(info|information|guide)\s*(abeg|pls)?|tell\s*me\s*something|wetin\s*una\s*dey\s*do|i\s*just\s*wan\s*yarn|e\s*dey\s*hard|i\s*no\s*get\s*direction|show\s*me\s*where\s*to\s*start|i\s*need\s*una|help\s*small|abeg\s*yarn|make\s*una\s*clear\s*am|i\s*dey\s*blank|wetin\s*i\s*suppose\s*ask|can\s*you\s*help\s*with\s*nelfund|please\s*i\s*need\s*(direction|clarity)|kindly\s*guide\s*me|i\s*wan\s*ask\s*something|una\s*dey\s*there|i\s*dey\s*find\s*road|give\s*me\s*compass|help\s*me\s*pick\s*topic|what\s*topics\s*can\s*you|list\s*what\s*you\s*can\s*help|menu\s*please|confused\s*student\s*here|just\s*onboard\s*me|i\s*am\s*new\s*to\s*this\s*scheme|kindly\s*point\s*me|good\s*day.{0,12}guidance|biko\s*help|oga\s*abeg/i.test(
       q,
     )
   ) {
@@ -273,6 +274,13 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
     )
   ) {
     return hit('current-information', 0.9, ['open-status'], 'Open / deadline residual', 'exploring', entities)
+  }
+
+  try {
+    const h147 = residualOtherHourly147(q, entities)
+    if (h147 && h147.intent !== 'unknown') return h147
+  } catch {
+    /* hourly optional */
   }
 
   try {
