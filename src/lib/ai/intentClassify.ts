@@ -45,6 +45,22 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
     return hitIntent('what-is-nelfund', 0.94, ['what-is'], 'What / why NELFUND', 'exploring', entities)
   }
 
+  // Who built / created NELFUND (must not stick to prior troubleshooting intent)
+  if (
+    /who\s+(built|created|founded|established|started|signed|form(ed)?|make|made|bring|brought)\s+(nelfund|this\s+loan|the\s+loan|am)/i.test(raw) ||
+    /who\s+(is\s+)?(behind|responsible\s+for)\s+nelfund/i.test(raw) ||
+    /nelfund\s+(was\s+)?(built|created|founded|started)\s+by/i.test(raw)
+  ) {
+    return hitIntent('what-is-nelfund', 0.95, ['what-is', 'history'], 'Who built NELFUND', 'exploring', entities)
+  }
+
+  // Explicit missing-information phrasing
+  if (
+    /missing\s*information|information\s*(is\s*)?(missing|not\s*showing)|no\s*information\s*on\s*(the\s*)?portal|school\s*(not|no)\s*(on\s*)?(the\s*)?list|my\s*school\s*(no|not)\s*(dey|show|appear)/i.test(raw)
+  ) {
+    return hitIntent('missing-information', 0.92, ['missing'], 'Missing information on portal', 'applying', entities, true)
+  }
+
   // School fees vs upkeep / institutional charges (must beat residual + eligibility)
   if (
     /difference\s*(between\s*)?(school\s*fees?|tuition|institutional\s*charges?)\s*(and|&|vs|versus)\s*(upkeep|stipend|allowance)/i.test(raw) ||
@@ -198,18 +214,20 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
 
   if (soft && soft.intent !== 'unknown') return soft
 
+  // Only keep prior intent for true short follow-ups (what next, so what, wetin i go do)
+  // Never stick prior when the user clearly starts a new topic
+  const isNewTopic =
+    /who\s+(built|created|founded)|what\s+is\s+nelfund|how\s+to\s+apply|eligib|upkeep|repay|login|jamb|scam|missing\s*information|school\s*fees?|pending|how\s*far|refund|guarantor|document/i.test(
+      raw,
+    )
   const followish =
-    raw.length < 120 &&
-    /^(alright|okay|ok|so|and|then|now|please|abeg)?\s*(so\s+)?(what|wetin|how|where|which)?/i.test(raw) &&
-    /(next|do|solution|first|should|will\s*i|i\s*go|wattin|wetin)/i.test(raw)
-  if (prior && prior !== 'unknown' && (raw.length < 80 || followish)) {
-    return hitIntent(prior, 0.72, ['follow-up'], 'Follow-up keeps prior intent', 'unknown', entities)
-  }
-  if (followish && history && history.length > 0) {
-    const asstIntent = [...history].reverse().find((h) => h.role === 'assistant' && h.intent)?.intent
-    if (asstIntent && asstIntent !== 'unknown') {
-      return hitIntent(asstIntent, 0.7, ['follow-up'], 'Follow-up from assistant intent', 'unknown', entities)
-    }
+    !isNewTopic &&
+    raw.length < 80 &&
+    (/^(what\s*next|what'?s\s*next|wetin\s*next|so\s*what|first\s*step)$/i.test(raw.trim()) ||
+      (/^(alright|okay|ok|so|and|then|now|please|abeg)?\s*(so\s+)?(what|wetin|how|where|which)?/i.test(raw) &&
+        /(next|do|solution|first|should|will\s*i|i\s*go|wattin|wetin)/i.test(raw)))
+  if (prior && prior !== 'unknown' && followish) {
+    return hitIntent(prior, 0.85, ['follow-up'], 'Follow-up keeps prior intent', 'unknown', entities)
   }
 
   return hitIntent('official-sources', 0.4, ['other'], 'Unclassified residual', 'exploring', entities)
