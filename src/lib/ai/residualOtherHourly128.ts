@@ -1,4 +1,5 @@
 import type { IntentId, IntentResult } from './types'
+import { residualOtherHourly129 } from './residualOtherHourly129'
 
 function hit(
   intent: IntentId,
@@ -19,10 +20,12 @@ function liveish(q: string): boolean {
 }
 
 /**
- * Hourly 128 2026-09-22: pending-status 70 is the largest named unknown after other.
- * Angle leftovers: how far / money never enter / status still processing.
+ * Hourly 128 2026-09-22: pending-status leftovers.
+ * Hourly 129 runs first so new JAMB / pending shapes are not dropped.
  */
 export function residualOtherHourly128(text: string, entities: string[]): IntentResult | null {
+  const newer = residualOtherHourly129(text, entities)
+  if (newer) return newer
   const q = (text || '').trim()
   if (!q) return null
   if (liveish(q)) return null
