@@ -3,6 +3,8 @@ import { residualOtherRoute } from './residualOther'
 import { officialFaqIntent } from './officialFaq'
 import { residualOtherMore } from './residualOtherMore'
 import { residualPendingMore } from './residualPendingMore'
+import { residualOtherHourly139 } from './residualOtherHourly139'
+import { residualOtherHourly140 } from './residualOtherHourly140'
 
 export function isPortalDump(text: string): boolean {
   const t = (text || '').toLowerCase()
@@ -15,7 +17,7 @@ export function isPortalDump(text: string): boolean {
     /approved\s*loans/,
     /session\s*registration/,
     /welcome\s*to\s*student\s*loan/,
-    /successfully\s*signed\s*in/,
+    /successfully\s*signed\n/,
   ].filter((re) => re.test(t)).length
   return hits >= 2
 }
@@ -69,7 +71,7 @@ export function detectEntities(text: string): string[] {
   return out
 }
 
-export function residualSoftRouteRest(q: string, entities: string[], hourly: Array<(q: string, entities: string[]) => IntentResult | null>): IntentResult | null {
+export function residualSoftRouteRest(q: string, entities: string[]): IntentResult | null {
   const text = (q || '').trim()
   if (!text) return null
   const faqIntent = officialFaqIntent(q)
@@ -80,7 +82,7 @@ export function residualSoftRouteRest(q: string, entities: string[], hourly: Arr
   if (more) return more
   const pendingMore = residualPendingMore(q, entities)
   if (pendingMore) return pendingMore
-  for (const fn of hourly) {
+  for (const fn of [residualOtherHourly139, residualOtherHourly140]) {
     try {
       const hit = fn(q, entities)
       if (hit && hit.intent !== 'unknown') return hit
