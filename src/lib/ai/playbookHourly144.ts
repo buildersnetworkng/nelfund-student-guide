@@ -1,8 +1,13 @@
+import { playbookHourly145 } from './playbookHourly145'
+
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Angle-specific school-not-found and pending replies. */
 export function playbookHourly144(intent: string, t: string): string | null {
+  const from145 = playbookHourly145(intent, t)
+  if (from145) return from145
+
   if (intent === 'school-not-found') {
     if (/no\s*dey\s*list|not\s*(on|in)\s*(the\s*)?list|dropdown/i.test(t)) {
       return `**Your school no dey the list / dropdown**\n\nThe portal only lists schools that have uploaded student records for this cycle.\n\n1. Confirm you attend a public tertiary institution.\n2. Ask ICT / Registry / the campus NELFUND desk to upload your record.\n3. Search again on ${PORTAL} after they confirm. Still missing: ${ESUPPORT}`
