@@ -4,6 +4,8 @@
 import type { IntentId } from './types'
 import { isOverviewAsk, fullNelfundOverview } from './overviewAsk'
 import { explainTerm } from './termDefine'
+import { playbookHourly156 } from './playbookHourly156'
+import { playbookHourly157 } from './playbookHourly157'
 
 export type PlaybookContext = {
   institutionName?: string | null
@@ -29,6 +31,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   const term = userText ? explainTerm(userText, ctx.lastAssistant) : null
   if (term) return term.text
+
+  const h157 = playbookHourly157(intent, userText)
+  if (h157) return h157
+  const h156 = playbookHourly156(intent, userText)
+  if (h156) return h156
 
   if (intent === 'what-is-nelfund' || intent === 'nelfund-purpose' || intent === 'nelfund-history') {
     return (
