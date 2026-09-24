@@ -15,6 +15,7 @@ import { playbookHourly163 } from './playbookHourly163'
 import { playbookHourly164 } from './playbookHourly164'
 import { playbookHourly165 } from './playbookHourly165'
 import { playbookHourly166 } from './playbookHourly166'
+import { playbookHourly167 } from './playbookHourly167'
 
 export type PlaybookContext = {
   institutionName?: string | null
@@ -41,6 +42,8 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   const term = userText ? explainTerm(userText, ctx.lastAssistant) : null
   if (term) return term.text
 
+  const h167 = playbookHourly167(intent, userText)
+  if (h167) return h167
   const h166 = playbookHourly166(intent, userText)
   if (h166) return h166
   const h165 = playbookHourly165(intent, userText)
@@ -155,6 +158,16 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
       '1. **Institutional charges** \u2192 paid to your **school**.\n' +
       '2. **Upkeep** (optional) \u2192 paid to **you**.\n' +
       `3. Confirm figures only on ${PORTAL}.`
+    )
+  }
+
+  if (intent === 'institution-verification') {
+    return (
+      '**Has my school uploaded my data?**\n\n' +
+      'You cannot see a hidden upload log in this chat. The portal shows it as Missing information / school not listed if the record is not there yet.\n\n' +
+      '1. Ask the campus NELFUND / ICT / Registry desk to confirm the upload.\n' +
+      `2. Retry ${PORTAL} after they confirm.\n` +
+      `3. Still missing: ${ESUPPORT} with a screenshot.`
     )
   }
 
