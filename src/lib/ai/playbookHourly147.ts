@@ -1,9 +1,13 @@
+import { playbookHourly148 } from './playbookHourly148'
+
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 const SITE = 'https://nelf.gov.ng/'
 
 /** Hourly 147: pending + vague-menu angles that still sounded like one dump. */
 export function playbookHourly147(intent: string, t: string): string | null {
+  const from148 = playbookHourly148(intent, t)
+  if (from148) return from148
   const q = t || ''
 
   if (intent === 'pending-application') {
