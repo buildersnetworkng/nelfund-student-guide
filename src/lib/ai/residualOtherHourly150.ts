@@ -1,4 +1,5 @@
 import type { IntentId, IntentResult } from './types'
+import { residualOtherHourly151 } from './residualOtherHourly151'
 
 function hit(
   intent: IntentId,
@@ -25,6 +26,12 @@ function liveish(q: string): boolean {
 export function residualOtherHourly150(text: string, entities: string[]): IntentResult | null {
   const q = (text || '').trim()
   if (!q) return null
+  try {
+    const newer = residualOtherHourly151(q, entities)
+    if (newer && newer.intent !== 'unknown') return newer
+  } catch {
+    /* optional */
+  }
   if (liveish(q)) return null
   if (/what\s*is\s*nelfund|wetin\s*be\s*nelfund|purpose\s*of\s*(the\s*)?(scheme|loan)|why\s*dem\s*create/i.test(q))
     return null
