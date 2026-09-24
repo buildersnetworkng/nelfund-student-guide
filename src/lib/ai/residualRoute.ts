@@ -96,19 +96,80 @@ function hit(
 export function residualOtherRoute(text: string, entities: string[]): IntentResult | null {
   const q = (text || '').trim()
   if (!q) return null
+
   try {
     const h153 = residualOtherHourly153(q, entities)
     if (h153 && h153.intent !== 'unknown') return h153
   } catch {
     /* hourly optional */
   }
+
+  if (
+    /email\s*(already|don|has|is)\s*(used|exist|registered)|registered\s*(last\s*)?year|account\s*already|forgot\s*(my\s*)?password|cannot\s*(log\s*in|login)|otp\s*(no|not|never)|mail\s*(don|already)\s*(use|exist)|this\s*email\s*has\s*already|mail\s*already\s*in\s*use/i.test(
+      q,
+    )
+  ) {
+    return hit('portal-login', 0.9, ['login'], 'Email used / last year register', 'applying', entities, true)
+  }
+
+  if (
+    /invalid\s*jamb|jamb\s*(number\s*)?(no|not|never|invalid|wrong|fail|reject)|utme\s*(no|not|invalid)|cannot\s*verify\s*jamb|jamb\s*no\s*dey\s*work/i.test(
+      q,
+    )
+  ) {
+    return hit('jamb-verification', 0.9, ['jamb'], 'JAMB verification residual', 'applying', entities, true)
+  }
+
+  if (
+    /school\s*(no|not|never)\s*(dey|show|appear|list)|institution\s*(no|not)\s*(dey|on|in)|cannot\s*(see|find)\s*(my\s*)?school|school\s*missing/i.test(
+      q,
+    )
+  ) {
+    return hit('school-not-found', 0.9, ['school-list'], 'School list residual', 'applying', entities, true)
+  }
+
+  if (
+    /when\s*(do\s*i|to|i\s*(go|fit))\s*(start\s*)?repay|pay\s*back|after\s*nysc|how\s*(will|go)\s*i\s*pay|repayment\s*(start|begin|plan)/i.test(
+      q,
+    )
+  ) {
+    return hit('repayment', 0.88, ['repayment'], 'Repayment residual', 'repaying', entities)
+  }
+
+  if (
+    /how\s*far|still\s*pending|application\s*(is\s*)?pending|wetin\s*dey\s*hold|money\s*never|status\s*(na|is|still)\s*pending|una\s*never\s*pay|waiting\s*for\s*(loan|upkeep|alert)/i.test(
+      q,
+    )
+  ) {
+    return hit('pending-application', 0.88, ['pending-status'], 'Pending residual', 'waiting', entities, true)
+  }
+
+  if (
+    /^(hi|hello|hey|how\s*far|good\s*(morning|afternoon|evening)|yo|sup|gm)\s*(una|there|boss|sir|ma)?[.!? ]*$/i.test(q) ||
+    /^(please|pls|abeg)?\s*(help|assist|guide)\s*(me)?\s*(out)?[.!? ]*$/i.test(q)
+  ) {
+    return hit('official-sources', 0.72, ['greeting-vague'], 'Greeting / vague help', 'exploring', entities)
+  }
+
+  if (
+    /i\s*(just\s*)?(need|wan|want)\s*(help|info|information|guidance)|abeg\s*(help|assist)|una\s*fit\s*help|i\s*dey\s*(lost|confused|stranded)|gimme\s*(menu|options|list)|short\s*menu|kindly\s*assist|orientate\s*me/i.test(
+      q,
+    )
+  ) {
+    return hit('official-sources', 0.86, ['other', 'greeting-vague'], 'Vague Pidgin / help menu', 'exploring', entities)
+  }
+
+  if (
+    /i\s*(wan|want|wanna|go)\s*(to\s*)?(apply|register)|how\s*(i\s*)?(go|fit|can|do)\s*(apply|register)|steps?\s*(to\s*)?apply|how\s*to\s*apply/i.test(
+      q,
+    )
+  ) {
+    return hit('how-to-apply', 0.88, ['other', 'apply'], 'Vague apply start residual', 'applying', entities)
+  }
+
   return null
 }
 
-/**
- * Soft residual route: official FAQ first, then a few high-value patterns.
- * Returns null when nothing matches so classifyIntent can fall through.
- */
 export function residualSoftRoute(text: string, entities: string[]): IntentResult | null {
   const q = (text || '').trim()
   if (!q) return hit('official-sources', 0.45, ['empty'], 'Empty or unclear message', 'unknown', entities)
@@ -123,39 +184,19 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   }
 
   if (
-    /how\s*(do\s*i|to|i\s*(go|fit|can)|can\s*i)\s*(log\s*in|login|sign\s*in|sign\s*up)|log\s*in\s*(to|into|for)?\s*(the\s*)?(portal|nelfund)|sign\s*in\s*(to|into)?\s*(the\s*)?(portal|nelfund)|portal\s*(log\s*in|login|sign\s*in)/i.test(
+    /how\s*(do\s*i|to|i\s*(go|fit|can)|can\s*i)\s*(log\s*in|login|sign\s*in|sign\s*up)|portal\s*(log\s*in|login|sign\s*in)/i.test(
       q,
     )
   ) {
     return hit('portal-login', 0.9, ['login'], 'How to log in / sign in', 'applying', entities, true)
   }
 
-  if (
-    /(difference|diff|vs|versus|between).{0,40}(upkeep|stipend).{0,40}(fee|fees|tuition|charges)|((fee|fees|tuition|charges).{0,40}(upkeep|stipend)|(upkeep|stipend).{0,40}(fee|fees|tuition|charges))/i.test(
-      q,
-    )
-  ) {
-    return hit('upkeep', 0.9, ['upkeep', 'fees'], 'Upkeep vs school fees', 'exploring', entities)
-  }
-
-  if (/who\s*(built|founded|created|started|own|owns|establish)\s*(nelfund|the\s*loan)|nelfund\s*(founder|builder|creator)/i.test(q)) {
+  if (/who\s*(built|founded|created|started|own|owns|establish)\s*(nelfund|the\s*loan)/i.test(q)) {
     return hit('what-is-nelfund', 0.9, ['what-is'], 'Who built / founded NELFUND', 'exploring', entities)
   }
 
-  if (
-    /how\s+(does\s+)?(nelfund|it|this)\s+work|how\s+nelfund\s+works|everything\s+(on|about)\s+(how\s+)?nelfund|know\s+everything/i.test(
-      q,
-    )
-  ) {
+  if (/how\s+(does\s+)?(nelfund|it|this)\s+work|how\s+nelfund\s+works/i.test(q)) {
     return hit('what-is-nelfund', 0.92, ['what-is', 'how-it-works'], 'How NELFUND works', 'exploring', entities)
-  }
-
-  if (
-    /school\s*(not|no|never)\s*(showing|show|appear|dey|listed)|institution\s*(missing|not\s*(on|in)\s*(the\s*)?(list|portal))|cannot\s*find\s*(my\s*)?school|school\s*no\s*dey\s*list/i.test(
-      q,
-    )
-  ) {
-    return hit('school-not-found', 0.9, ['school-list'], 'School missing on list', 'applying', entities, true)
   }
 
   if (
@@ -167,23 +208,7 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   }
 
   if (
-    /pendin[g]?|pendng|still\s*pend|e\s*never\s*move|e\s*no\s*move|status\s*no\s*change|no\s*update\s*since|i\s*check\s*am\s*still|dashboard\s*still\s*(0|zero|pending)|batch\s*(no|not|never)|dem\s*pay\s*my\s*mate|mates?\s*don\s*(collect|receive|see)|una\s*pay\s*others|when\s*my\s*own\s*go\s*(enter|drop|show)|approved\s*(but|and)\s*(no|never|not)\s*(money|alert)|total\s*loans?\s*(is\s*|still\s*)?(0|zero)/i.test(
-      q,
-    )
-  ) {
-    return hit('pending-application', 0.86, ['pending-status'], 'Pending typo / mates paid', 'waiting', entities, true)
-  }
-
-  if (
-    /jam[b]?\s*(no|not|invalid|wrong)|utme\s*(no|not)|caps\s*(no|not|fail)|jamb\s*reg\s*(no|not|invalid)|verify\s*my\s*jamb|jamb\s*details?\s*(wrong|invalid)|admission\s*letter\s*(jamb|utme)/i.test(
-      q,
-    )
-  ) {
-    return hit('jamb-verification', 0.86, ['jamb'], 'JAMB typo residual', 'applying', entities, true)
-  }
-
-  if (
-    /is\s*(it|nelfund|portal|loan|application)\s*(still\s*)?(open|on|close[d]?)|deadline|closing\s*date|can\s*i\s*still\s*apply|dem\s*still\s*dey\s*(open|collect|accept)|una\s*still\s*dey\s*(open|collect)|window\s*(still\s*)?(open|close)/i.test(
+    /is\s*(it|nelfund|portal|loan|application)\s*(still\s*)?(open|on|close[d]?)|deadline|closing\s*date|can\s*i\s*still\s*apply/i.test(
       q,
     )
   ) {
@@ -200,41 +225,6 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   try {
     const h150 = residualOtherHourly150(q, entities)
     if (h150 && h150.intent !== 'unknown') return h150
-  } catch {
-    /* hourly optional */
-  }
-
-  try {
-    const h149 = residualOtherHourly149(q, entities)
-    if (h149 && h149.intent !== 'unknown') return h149
-  } catch {
-    /* hourly optional */
-  }
-
-  try {
-    const h148 = residualOtherHourly148(q, entities)
-    if (h148 && h148.intent !== 'unknown') return h148
-  } catch {
-    /* hourly optional */
-  }
-
-  try {
-    const h147 = residualOtherHourly147(q, entities)
-    if (h147 && h147.intent !== 'unknown') return h147
-  } catch {
-    /* hourly optional */
-  }
-
-  try {
-    const h146 = residualOtherHourly146(q, entities)
-    if (h146 && h146.intent !== 'unknown') return h146
-  } catch {
-    /* hourly optional */
-  }
-
-  try {
-    const h144 = residualOtherHourly144(q, entities)
-    if (h144 && h144.intent !== 'unknown') return h144
   } catch {
     /* hourly optional */
   }
