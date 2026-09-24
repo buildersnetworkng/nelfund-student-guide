@@ -82,17 +82,32 @@ function buildAnswer(
 ): GroundedAnswer {
   const trimmed = question.trim()
   const screen = understandPortalText(trimmed)
-  if (screen && (screen.kind === 'dashboard' || screen.kind === 'error' || screen.kind === 'login')) {
+  if (screen) {
+    const intent =
+      screen.kind === 'error'
+        ? 'missing-information'
+        : screen.kind === 'login' || screen.kind === 'signup'
+          ? 'login-help'
+          : screen.hasApplied === true
+            ? 'pending-application'
+            : screen.hasApplied === false
+              ? 'how-to-apply'
+              : 'current-information'
     return {
       hasEvidence: true,
-      intent: screen.kind === 'error' ? 'missing-information' : 'current-information',
-      confidence: 0.88,
+      intent: intent as any,
+      confidence: 0.9,
       responseMode: 'conversation',
       problem: screen.exactError || screen.kind,
       answer: screen.explanation,
-      whatThisMeans: null,
-      nextActions: screen.nextActions.slice(0, 4),
-      clarifyingQuestions: [],
+      whatThisMeans:
+        screen.hasApplied === true
+          ? 'You have applied (based on this screenshot).'
+          : screen.hasApplied === false
+            ? 'You have not applied yet (based on this screenshot).'
+            : null,
+      nextActions: [],
+      clarifyingQuestions: screen.nextActions.slice(0, 2),
       evidence: [],
       sources: [
         { id: 'portal', label: 'NELFUND portal', url: OFFICIAL_PORTAL, official: true },
