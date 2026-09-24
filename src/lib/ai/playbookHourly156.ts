@@ -3,42 +3,46 @@ const SITE = 'https://nelf.gov.ng/'
 const LOGIN = 'https://portal.nelf.gov.ng/auth/login'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
-/** Hourly 156: Pidgin/typo paraphrases + thin remaining paths. No invented amounts. */
+/** Hourly 156: OTP/scam Pidgin, documents, school not listed. No invented amounts. */
 export function playbookHourly156(intent: string, userText: string): string | null {
   const t = userText || ''
 
-  if (/guarantor|surety|somebody\s+go\s+sign/i.test(t)) {
+  if (/otp|one[- ]time|share\s*(my\s*)?(pin|password|nin|bvn)|agent|whatsapp\s*(man|guy)|make\s*i\s*pay/i.test(t)) {
     return (
-      '**Guarantor**\n\n' +
-      'Official FAQ: students do **not** need a guarantor to access the loan.\n' +
-      `Confirm current wording on ${SITE}.`
+      '**Stay safe — OTP and agents**\n\n' +
+      '- Never share OTP, password, PIN, NIN or BVN with anyone who messages you.\n' +
+      '- Never pay anyone to “process” NELFUND.\n' +
+      `- Apply only on ${PORTAL} · login ${LOGIN}\n` +
+      `- Official tickets: ${ESUPPORT}`
     )
   }
 
-  if (/private\s+(uni|university|school)|na\s+private/i.test(t)) {
+  if (/wetin\s*(i|una)\s*(go|suppose|need)\s*(carry|upload|bring)|which\s*(paper|doc)/i.test(t)) {
     return (
-      '**Private schools**\n\n' +
-      'Coverage described on official pages is for eligible students in **public** tertiary institutions.\n' +
-      `Confirm your school on ${PORTAL} — if it is not on the list, the campus cannot invent a slot.`
+      '**What to have ready**\n\n' +
+      '• JAMB number / admission letter\n' +
+      '• NIN and BVN\n' +
+      '• Bank account in **your** name\n' +
+      '• Matriculation number when the school has issued it\n\n' +
+      `Upload only on ${PORTAL}. Never send papers to an agent.`
     )
   }
 
-  if (/wetin\s+be\s+institutional|wetin\s+una\s+mean\s+by\s+charg/i.test(t)) {
+  if (/school\s*(no|not|never)\s*(dey|show)|not\s*listed/i.test(t)) {
     return (
-      '**Institutional charges** = school fees billed by your school. Paid **to the school**.\n' +
-      `Upkeep (if ticked) is separate and paid to you. Confirm figures only on ${PORTAL}.`
+      '**School not on the list**\n\n' +
+      'Usually the school has not finished uploading your record.\n' +
+      '1. Confirm it is a public institution.\n' +
+      '2. Ask the campus NELFUND desk about the upload.\n' +
+      `3. Retry ${PORTAL}. Still failing: ${ESUPPORT}.`
     )
   }
 
-  if (intent === 'portal-login' || /how\s+(i|to)\s+(log|sign)/i.test(t)) {
-    return null
-  }
-
-  if (/appeal|denied|reject/i.test(t)) {
+  if (intent === 'loan-or-scholarship' && /wetin|abeg|na\s*(scholarship|grant)/i.test(t)) {
     return (
-      '**If an application is denied**\n\n' +
-      `Official FAQ: raise a complaint from the portal or email via the official support path. Ticket: ${ESUPPORT}.\n` +
-      `Login: ${LOGIN}`
+      '**Loan, not scholarship**\n\n' +
+      'NELFUND na **interest-free loan**, not a grant or free money.\n' +
+      `Repayment starts after the official study / NYSC period — confirm on ${SITE}.`
     )
   }
 
