@@ -31,11 +31,19 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
 
   if (intent === 'eligibility') {
+    const levelBit = /200\s*level/i.test(userText)
+      ? '200-level students can apply if they meet official rules — year of study is not a substitute for uploaded school data.\n\n'
+      : /100\s*level|fresher|newly\s*admit/i.test(userText)
+        ? '100-level / newly admitted students can apply once the school has uploaded the record.\n\n'
+        : /300\s*level/i.test(userText)
+          ? '300-level students can apply if they meet official rules — any level / year of study still needs a valid uploaded record.\n\n'
+          : 'Any level / year of study can apply if official eligibility is met.\n\n'
     return (
       '**Eligibility**\n\n' +
+      levelBit +
       '• Nigerian citizen\n' +
       '• Full-time student in a **public** tertiary institution\n' +
-      '• Valid admission; have JAMB, NIN, BVN, bank in your name ready\n\n' +
+      '• Valid admission; have Matriculation number (when issued), JAMB, NIN, BVN, bank in your name ready\n\n' +
       `Confirm on ${PORTAL}.`
     )
   }
@@ -133,4 +141,29 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
 export function isNelfundRelated(t: string): boolean {
   return /nelfund|apply|login|eligib|upkeep|repay|portal|jamb|scam|password|email/i.test(t)
+}
+
+export function isNearDuplicate(a?: string | null, b?: string | null): boolean {
+  const x = (a || '').trim().toLowerCase()
+  const y = (b || '').trim().toLowerCase()
+  if (!x || !y) return false
+  return x === y || (x.length > 20 && y.includes(x.slice(0, 24)))
+}
+
+export function isNewUserAsk(text?: string | null): boolean {
+  const t = (text || '').trim()
+  if (!t) return false
+  return /^(how|what|who|when|where|can|is|do|abeg|wetin)\b/i.test(t) && t.length > 8
+}
+
+export function nextStepAdvance(ctx: PlaybookContext, intent?: IntentId | null): string {
+  const id = intent || ctx.priorIntent
+  const named = playbookAnswer((id || 'how-to-apply') as IntentId, ctx)
+  if (named && named.length > 30) return named
+  return (
+    `**Next useful step**\n\n` +
+    `1. Sign in at ${LOGIN_URL} and copy the exact portal wording.\n` +
+    `2. Confirm school upload with the campus NELFUND desk if the list or name is wrong.\n` +
+    `3. Official ticket if it stays the same: ${ESUPPORT}.`
+  )
 }
