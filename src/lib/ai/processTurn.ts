@@ -1,5 +1,5 @@
 /**
- * NELFUND AI turn entry: term meaning first, then clarification, portal, conversation.
+ * NELFUND AI turn entry: term meaning + overview first, then clarification, portal, conversation.
  */
 import {
   processUserTurn as processUserTurnCore,
@@ -15,6 +15,7 @@ import { liveOpenRe } from './intent'
 import { playbookAnswer } from './playbook'
 import { refineClarificationAnswer } from './conversationClarify'
 import { explainTerm } from './termDefine'
+import { isOverviewAsk, fullNelfundOverview } from './overviewAsk'
 
 function uid(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -77,6 +78,47 @@ export async function processUserTurn(opts: {
     }
   }
 
+  // Full go-through / "how does this nelfund thing work" — never repayment-only or off-topic menu
+  if (!ocr && rawUser && isOverviewAsk(rawUser)) {
+    const answerText = fullNelfundOverview()
+    return {
+      messages: [
+        {
+          id: uid('user'),
+          role: 'user',
+          text: rawUser,
+          imagePreview: opts.imagePreview || null,
+          timestamp: Date.now(),
+        },
+        {
+          id: uid('asst'),
+          role: 'assistant',
+          text: answerText,
+          answer: {
+            hasEvidence: true,
+            intent: 'what-is-nelfund',
+            confidence: 0.96,
+            responseMode: 'conversation',
+            problem: null,
+            answer: answerText,
+            nextActions: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'],
+            clarifyingQuestions: [],
+            evidence: [],
+            sources: [],
+            video: null,
+            insufficientReason: null,
+            officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+            escalation: null,
+          },
+          timestamp: Date.now(),
+        },
+      ],
+      slots: { ...opts.slots, intent: 'what-is-nelfund', phase: 'resolve' },
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
   // Clarification: "I meant for the loan and upkeep" — never welcome-reset
   if (
     !ocr &&
@@ -135,7 +177,7 @@ export async function processUserTurn(opts: {
       questionNeedsCurrentLive(rawUser) ||
       /is\s+nelfund\s+loan\s+application\s+open/i.test(rawUser) ||
       /loan\s+application\s+(still\s+|currently\s+)?(open|closed)/i.test(rawUser))
-  if (isOpenAsk && !isPurposeAsk(rawUser)) {
+  if (isOpenAsk && !isPurposeAsk(rawUser) && !isOverviewAsk(rawUser)) {
     try {
       const live = await buildCurrentInformationAnswerLive(rawUser)
       if (live?.answer) {
@@ -166,10 +208,11 @@ export async function processUserTurn(opts: {
     }
   }
 
-  if (isPurposeAsk(rawUser) && !ocr) {
+  if ((isPurposeAsk(rawUser) || isOverviewAsk(rawUser)) && !ocr) {
     const answerText =
+      (isOverviewAsk(rawUser) ? fullNelfundOverview() : null) ||
       playbookAnswer('what-is-nelfund', { userText: rawUser }) ||
-      'NELFUND is the Nigeria Education Loan Fund. Official: https://nelf.gov.ng/ and https://portal.nelf.gov.ng/'
+      fullNelfundOverview()
     return {
       messages: [
         {
