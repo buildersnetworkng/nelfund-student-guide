@@ -203,6 +203,26 @@ export async function processUserTurn(opts: {
     if (hit) return hit
   }
 
+  if (raw && /abeg\s*who\s*(i\s*)?go\s*call|how\s*i\s*go\s*(yarn|reach)\s*(una|dem|support)/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'contact-support')
+    if (hit) return hit
+  }
+
+  if (raw && /wetin\s*i\s*(go|suppose)\s*carry|wetin\s*una\s*need/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'documents-needed')
+    if (hit) return hit
+  }
+
+  if (raw && /na\s*(loan|scholarship)|dem\s*go\s*give\s*am\s*free/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'loan-or-scholarship')
+    if (hit) return hit
+  }
+
+  if (raw && /i\s*wan\s*login|abeg\s*how\s*(i\s*)?go\s*enter\s*(the\s*)?portal/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'portal-login')
+    if (hit) return hit
+  }
+
   try {
     return await innerProcess(opts as any)
   } catch {
