@@ -10,6 +10,7 @@ import { playbookHourly158 } from './playbookHourly158'
 import { playbookHourly159 } from './playbookHourly159'
 import { playbookHourly160 } from './playbookHourly160'
 import { playbookHourly161 } from './playbookHourly161'
+import { playbookHourly162 } from './playbookHourly162'
 
 export type PlaybookContext = {
   institutionName?: string | null
@@ -36,6 +37,8 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   const term = userText ? explainTerm(userText, ctx.lastAssistant) : null
   if (term) return term.text
 
+  const h162 = playbookHourly162(intent, userText)
+  if (h162) return h162
   const h161 = playbookHourly161(intent, userText)
   if (h161) return h161
   const h160 = playbookHourly160(intent, userText)
