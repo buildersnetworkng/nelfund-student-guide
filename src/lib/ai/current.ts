@@ -9,6 +9,7 @@ import type { GroundedAnswer } from './types'
 
 const SITE = 'https://nelf.gov.ng/'
 const PORTAL = 'https://portal.nelf.gov.ng/'
+const LOGIN_URL = 'https://portal.nelf.gov.ng/auth/login'
 const FAQ = 'https://nelf.gov.ng/faq'
 
 type LiveStatus = {
@@ -17,299 +18,101 @@ type LiveStatus = {
   status_label?: string
   note?: string
   last_checked?: string
-  last_checked_iso?: string
-  freshness?: string
-  verified?: boolean
-  confidence?: string
-  signals?: string[]
-  sources?: Array<{ id: string; label: string; url: string }>
 }
 
-function formatWat(isoOrDay?: string | null, useNow = false): string {
-  try {
-    const d = useNow || !isoOrDay
-      ? new Date()
-      : new Date(isoOrDay.includes('T') ? isoOrDay : `${isoOrDay}T12:00:00Z`)
-    if (Number.isNaN(d.getTime())) return isoOrDay || 'unknown'
-    return new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Africa/Lagos',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    })
-      .format(d)
-      .replace(',', '')
-      .replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1') + ' WAT'
-  } catch {
-    return isoOrDay || 'unknown'
-  }
-}
-
-function todayWatLabel(): string {
-  return formatWat(null, true)
-}
-
-function cycleLabel(data?: LiveStatus | null): string {
-  if (data?.cycle && /\d{4}\s*\/\s*\d{4}/.test(data.cycle)) return data.cycle.replace(/\s/g, '')
-  return getCurrentAcademicCycle()
-}
-
-function isStale(iso?: string | null): boolean {
-  if (!iso) return true
-  try {
-    const t = new Date(iso.includes('T') ? iso : `${iso}T12:00:00Z`).getTime()
-    return Number.isNaN(t) || Date.now() - t > 60 * 60 * 1000
-  } catch {
-    return true
-  }
-}
-
-function interpretOpenState(data: LiveStatus): {
-  loanWindow: 'open' | 'closed' | 'unconfirmed'
-  accountCreation: 'open' | 'unconfirmed'
-  loanLine: string
-  accountLine: string
-} {
-  const status = (data.status || '').toLowerCase()
-  const label = (data.status_label || '').toLowerCase()
-  const note = (data.note || '').toLowerCase()
-  const combined = `${status} ${label} ${note}`
-
-  const loanClearlyOpen =
-    status === 'open' &&
-    /loan\s*application|application\s*window|upkeep\s*application/.test(combined) &&
-    !/unconfirmed|not\s*yet\s*announced|not confirmed|treat\s*any/.test(combined)
-
-  const loanClearlyClosed =
-    status === 'closed' || /previous\s*application\s*cycle\s*appears\s*closed|window\s*appears\s*closed|loan\/upkeep closed/.test(combined)
-
-  const accountOpen =
-    /account\s*creation\s*(is\s*)?(currently\s*)?open|account\s*creation\s*may\s*be\s*available|register\s*and\s*sort|account creation open/.test(
-      combined,
-    ) || status === 'not_announced' || status === 'open'
-
-  let loanWindow: 'open' | 'closed' | 'unconfirmed' = 'unconfirmed'
-  if (loanClearlyOpen) loanWindow = 'open'
-  else if (loanClearlyClosed) loanWindow = 'closed'
-  else if (status === 'open' && /portal\s*activity|account\s*creation|unconfirmed|not confirmed/.test(combined)) {
-    loanWindow = 'unconfirmed'
-  } else if (status === 'extended') loanWindow = 'open'
-
-  const accountCreation: 'open' | 'unconfirmed' = accountOpen ? 'open' : 'unconfirmed'
-
-  const loanLine =
-    loanWindow === 'open'
-      ? '**Loan / upkeep application:** currently appears **open** on official signals. Still confirm dates on the portal.'
-      : loanWindow === 'closed'
-        ? '**Loan / upkeep application:** currently **closed** (or previous cycle closed). Wait for official opening dates on nelf.gov.ng.'
-        : '**Loan / upkeep application:** **not confirmed open** yet. Portal activity does **not** automatically mean a new loan window is open.'
-
-  const accountLine =
-    accountCreation === 'open'
-      ? '**Account creation (sign up):** currently **open**. You can register and sort BVN / profile.'
-      : '**Account creation (sign up):** treat as unconfirmed until you can complete sign-up on the portal.'
-
-  return { loanWindow, accountCreation, loanLine, accountLine }
-}
-
-function isIsOpenQuestion(q?: string): boolean {
-  const t = q || ''
-  return (
-    /is\s+(nelfund\s+)?(loan\s*)?(upkeep\s*)?(application\s*)?(still\s+|currently\s+)?(open|closed|dey\s+open)/i.test(t) ||
-    /is\s+(the\s+)?(loan|application|portal|nelfund)\s+(still\s+|currently\s+)?(open|closed)/i.test(t) ||
-    /loan\s+application\s+(still\s+|currently\s+)?(open|closed)/i.test(t) ||
-    /\b(still\s+open|still\s+accept|can\s+i\s+(still\s+)?apply|loan\s+window|application\s+window|dem\s+still\s+dey\s+(collect|open)|nelfund\s+dey\s+open|dem\s+don\s+close|una\s+don\s+close)\b/i.test(t)
-  )
-}
-
-function answerIsOpen(data: LiveStatus): GroundedAnswer {
-  const { loanWindow, accountCreation, loanLine, accountLine } = interpretOpenState(data)
-  const cycle = cycleLabel(data)
-  const when = todayWatLabel()
-
-  const loanPlain =
-    loanWindow === 'open'
-      ? 'NELFUND loan / upkeep application is currently **open**.'
-      : loanWindow === 'closed'
-        ? 'NELFUND loan / upkeep application is currently **closed**.'
-        : 'NELFUND loan / upkeep application is **not confirmed open** yet for this cycle.'
-
-  const accountPlain =
-    accountCreation === 'open'
-      ? 'Account creation (sign up) is currently **open**.'
-      : 'Account creation (sign up) is unconfirmed, try the portal.'
-
-  const answer = `**Is NELFUND open?** (as of **${when}**)
-
-**${cycle}**
-
-${loanPlain}
-${accountPlain}
-
-${loanLine}
-${accountLine}
-
-**Where to go**
-• **Sign up** (new account): ${PORTAL}
-• **Login / sign in** (existing account): ${SITE}
-• Support ticket: https://nelfund.esupport.ng/create
-
-I will not invent a closing date. Always re-check the official portal.`
-
+function emptyAnswer(partial: Partial<GroundedAnswer> & { answer: string }): GroundedAnswer {
   return {
     hasEvidence: true,
     intent: 'current-information',
-    confidence: data.confidence === 'high' ? 0.9 : 0.82,
+    confidence: 0.9,
     responseMode: 'conversation',
     problem: null,
-    answer,
     whatThisMeans: null,
-    nextActions: [PORTAL, SITE],
-    clarifyingQuestions: [],
+    nextActions: [],
+    clarifyingQuestions: ['How do I apply step by step?', 'What documents do I need?'],
     evidence: [],
     sources: [
-      { id: 'portal', label: 'NELFUND portal', url: PORTAL, official: true },
       { id: 'site', label: 'NELFUND website', url: SITE, official: true },
+      { id: 'portal', label: 'NELFUND signup / portal', url: PORTAL, official: true },
+      { id: 'login', label: 'NELFUND login', url: LOGIN_URL, official: true },
     ],
     video: null,
     insufficientReason: null,
     officialFallbackUrl: PORTAL,
     escalation: null,
-  }
+    ...partial,
+  } as GroundedAnswer
 }
 
-function answerGeneralStatus(data: LiveStatus): GroundedAnswer {
-  const cycle = cycleLabel(data)
-  const when = data.last_checked_iso ? formatWat(data.last_checked_iso) : todayWatLabel()
-  const label = data.status_label || data.status || 'See official portal'
-  const note = (data.note || '').trim()
-  const answer = `**NELFUND status** (as of **${when}**)
+export function answerCurrentInformation(
+  userText: string,
+  live?: LiveStatus | null,
+): GroundedAnswer | null {
+  const t = (userText || '').trim()
+  if (!t) return null
 
-**${cycle}** · ${label}
-
-${note ? note + '\n\n' : ''}Sign **up** and loan/upkeep application are different steps.
-• Sign up: ${PORTAL}
-• Login: ${SITE}
-
-Always verify on the official portal before you act on a deadline.`
-
-  return {
-    hasEvidence: true,
-    intent: 'current-information',
-    confidence: 0.8,
-    responseMode: 'conversation',
-    problem: null,
-    answer,
-    whatThisMeans: null,
-    nextActions: [PORTAL, SITE],
-    clarifyingQuestions: [],
-    evidence: [],
-    sources: [
-      { id: 'portal', label: 'NELFUND portal', url: PORTAL, official: true },
-      { id: 'site', label: 'NELFUND website', url: SITE, official: true },
-    ],
-    video: null,
-    insufficientReason: null,
-    officialFallbackUrl: PORTAL,
-    escalation: null,
-  }
-}
-
-export function buildCurrentInformationAnswer(): GroundedAnswer {
   const cycle = getCurrentAcademicCycle()
-  const answer = `**As of ${todayWatLabel()}** (${cycle})
+  const statusLabel = live?.status_label || live?.status || 'check the official portal'
+  const note = live?.note || ''
 
-I do not invent opening or closing dates.
-
-**Loan / upkeep application** and **account creation** are different:
-• Sign **up** (new account): ${PORTAL}
-• Sign **in** / login: ${SITE}
-• Confirm live status only on those official pages
-
-What do you need: sign up, login, or submit a loan?`
-
-  return {
-    hasEvidence: true,
-    intent: 'current-information',
-    confidence: 0.7,
-    responseMode: 'conversation',
-    problem: null,
-    answer,
-    whatThisMeans: null,
-    nextActions: [PORTAL, SITE],
-    clarifyingQuestions: [],
-    evidence: [],
-    sources: [
-      { id: 'portal', label: 'NELFUND portal', url: PORTAL, official: true },
-      { id: 'site', label: 'NELFUND website', url: SITE, official: true },
-    ],
-    video: null,
-    insufficientReason: null,
-    officialFallbackUrl: PORTAL,
-    escalation: null,
+  if (liveOpenRe.test(t) || /is (the )?(loan|application|nelfund).{0,30}open|window open|application open/i.test(t)) {
+    const closed =
+      /closed|not open|ended/i.test(String(live?.status || live?.status_label || '')) ||
+      /closed/i.test(note)
+    const body =
+      (closed
+        ? '**Loan / upkeep application:** currently **closed** (or previous cycle closed). Wait for official opening dates on nelf.gov.ng.'
+        : `**Application status:** ${statusLabel}.`) +
+      `\n\nAlways confirm live on ${PORTAL} and ${SITE}. I will not invent a deadline.` +
+      (note ? `\n\n${note}` : '')
+    return emptyAnswer({ answer: body, intent: 'current-information' })
   }
-}
 
-async function loadStatus(): Promise<LiveStatus | null> {
-  try {
-    let data: LiveStatus | null = null
-    if (typeof fetch !== 'undefined') {
-      const res = await fetch('/api/knowledge/status', {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      })
-      data = res.ok ? ((await res.json().catch(() => null)) as LiveStatus | null) : null
-    }
-    return data
-  } catch {
+  if (isPurposeAsk(t) || PURPOSE_RE.test(t)) {
     return null
   }
-}
 
-export async function buildCurrentInformationAnswerLive(
-  userQuestion?: string,
-): Promise<GroundedAnswer> {
-  try {
-    const statusData = await loadStatus()
-
-    if (statusData && (statusData.status_label || statusData.note || statusData.status)) {
-      if (isIsOpenQuestion(userQuestion)) {
-        return answerIsOpen(statusData)
-      }
-      return answerGeneralStatus(statusData)
-    }
-  } catch {
-    /* fall through */
+  if (/sign\s*up|create\s*(an\s*)?account|register/i.test(t) && /login|sign\s*in/i.test(t) === false) {
+    return emptyAnswer({
+      answer:
+        `**Sign up** (new account): ${PORTAL}\n\n` +
+        `**Login / sign in** (existing account): ${LOGIN_URL}\n\n` +
+        `Official website: ${SITE}`,
+      intent: 'how-to-apply',
+    })
   }
-  return buildCurrentInformationAnswer()
-}
 
-export function isPurposeQuestion(text: string): boolean {
-  const q = (text || '').trim()
-  return isPurposeAsk(q) || PURPOSE_RE.test(q)
-}
+  if (/how\s+(do\s+i|to)\s+(log\s*in|login|sign\s*in)|^(log\s*in|login|sign\s*in)\??$/i.test(t)) {
+    return emptyAnswer({
+      answer:
+        `**Login / sign in:** ${LOGIN_URL}\n\n` +
+        `**Signup / apply:** ${PORTAL}\n\n` +
+        `Website: ${SITE}`,
+      intent: 'portal-login',
+    })
+  }
 
-/** Live window only. Never purpose / personal pending status / how-to. */
-export function questionNeedsCurrentLive(text: string): boolean {
-  const q = text || ''
-  if (isPurposeQuestion(q)) return false
-  if (/why\s+(was|is|dem|they|una|fg|e)|purpose|wetin\s*(be|mean)|what\s*(is|does)\s*(this\s+)?nelfund|explain\s+(this\s+)?nelfund|origin\s+of\s+nelfund|point\s+of\s+nelfund|na\s+wetin|nelfund\s+for\s+wetin|student\s+loans?\s+act|aim\s+of\s+nelfund|nelfund\s+na\s+wetin/i.test(q)) return false
-  if (/\b(my\s+)?(application|loan)\s+status\b|check\s+(my\s+)?status|\bpending\b|under\s*review/i.test(q) && !/is\s+.{0,48}\bopen\b|loan\s+application\s+open|still\s+open/i.test(q)) {
-    return false
+  // Generic current info fallback for cycle questions
+  if (/this\s+session|academic\s+cycle|202[5-7]/i.test(t) && /nelfund|loan|apply/i.test(t)) {
+    return emptyAnswer({
+      answer:
+        `${note ? note + '\n\n' : ''}Sign **up** and loan/upkeep application are different steps.\n` +
+        `• Sign up: ${PORTAL}\n` +
+        `• Login: ${LOGIN_URL}\n` +
+        `• Website: ${SITE}\n\n` +
+        `Cycle focus: ${live?.cycle || cycle.label}. Confirm open/closed only on the official portal.`,
+    })
   }
-  if (
-    /is\s+(nelfund\s+)?(loan\s*)?(upkeep\s*)?(application\s*)?(still\s+|currently\s+)?(open|closed|dey\s+open)/i.test(q) ||
-    /is\s+(the\s+)?(loan|application|portal|nelfund)\s+(still\s+|currently\s+)?(open|closed)/i.test(q) ||
-    /loan\s+application\s+(still\s+|currently\s+)?(open|closed)/i.test(q) ||
-    /nelfund\s+(loan\s+)?(application\s+)?(still\s+)?(open|closed)/i.test(q) ||
-    /application\s+(still\s+)?open|still\s+accept|can\s+i\s+still\s+apply/i.test(q)
-  ) {
-    return true
+
+  if (/difference.{0,15}sign\s*up|sign\s*up.{0,15}(vs|versus|and).{0,15}(login|apply)/i.test(t)) {
+    return emptyAnswer({
+      answer:
+        `• Sign **up** (new account): ${PORTAL}\n` +
+        `• Sign **in** / login: ${LOGIN_URL}\n` +
+        `• Website: ${SITE}\n\n` +
+        'Signup creates the account; login opens an existing one; loan request is a separate step when the window is open.',
+    })
   }
-  return /\b(still\s+open|still\s+accept|still\s+dey\s+(open|accept|collect)|dem\s+still\s+dey\s+(collect|accept|open)|dem\s+don\s+close|una\s+don\s+close|deadline|closing\s+date|opening\s+date|when\s+(can|do|will)\s+.{0,20}(apply|open|close)|application\s*(window|period)|loan\s*window|latest\s+(update|news)|current\s+(status|information|update)|as\s+of\s+today|any\s+official\s+update|news\s+about\s+nelfund)\b/i.test(
-    q,
-  )
+
+  return null
 }
