@@ -183,7 +183,7 @@ export default function Ask() {
           type="button"
           disabled={busy}
           onClick={() => void sendQuestion(s)}
-          className="rounded-full border border-forest-100 bg-white px-3 py-2 text-left text-xs text-ink/70 shadow-sm transition hover:border-forest-300 hover:bg-forest-50 hover:text-ink disabled:opacity-50"
+          className="rounded-full border border-forest-100 bg-white px-3 py-2 text-left text-xs text-ink/70 shadow-sm transition hover:border-forest-300 hover:text-ink disabled:opacity-50"
         >
           {s}
         </button>
@@ -306,7 +306,14 @@ export default function Ask() {
                 <>
                   <div className="mr-auto max-w-[92%] rounded-2xl rounded-bl-md border border-forest-100 bg-white px-3.5 py-2.5 text-sm text-ink shadow-sm lg:max-w-[80%]">
                     <LinkifiedText text={m.text} className="leading-relaxed" />
-                    {m.answer && <AnswerCards answer={m.answer} />}
+                    {m.answer && (
+                      <AnswerCards
+                        answer={m.answer}
+                        onAsk={(q) => {
+                          if (!busy) void sendQuestion(q)
+                        }}
+                      />
+                    )}
                   </div>
                   <div className="mr-auto max-w-[92%] space-y-2 px-1 lg:max-w-[80%]">
                     <div className="flex flex-wrap items-center gap-2 text-xs text-ink/55">
