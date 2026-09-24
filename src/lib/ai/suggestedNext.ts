@@ -16,6 +16,21 @@ function byText(userText?: string | null): string[] | null {
   if (/otp|one[- ]time|pin|password|scam|agent|pay\s*\d|whatsapp\s*(man|agent)/i.test(t)) {
     return two('How do I apply only on the official portal?', 'How do I contact official support?')
   }
+  if (/name\s*(no|not|never)\s*(match|the\s*same)|name\s*mismatch|different\s*name/i.test(t)) {
+    return two('How do I fix bank / BVN details?', 'How do I contact official support?')
+  }
+  if (/gsi|global\s*standing|debit\s*my\s*account/i.test(t)) {
+    return two('When does repayment start?', 'Is NELFUND a loan or a scholarship?')
+  }
+  if (/change\s*(of\s*)?(school|institution|course)|I\s*(don|have)\s*transfer|new\s*school\s*after/i.test(t)) {
+    return two('My school is not on the list', 'How do I contact official support?')
+  }
+  if (/vocational|skills?\s*school|monotechnic|part[\s-]*time|sandwich/i.test(t)) {
+    return two('Who can apply (eligibility)?', 'What documents do I need?')
+  }
+  if (/passport\s*(photo|photograph)|profile\s*picture|upload\s*photo/i.test(t)) {
+    return two('What documents do I need?', 'How do I apply step by step?')
+  }
   if (/document|wetin\s*(i|una)\s*need|nin|bvn|admission\s*letter|wetin\s*i\s*(go|suppose)\s*carry/i.test(t)) {
     return two('How do I apply step by step?', 'How do I log in?')
   }
