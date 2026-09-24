@@ -26,6 +26,7 @@ import { explainTerm } from './termDefine'
 import { playbookAnswer } from './playbook'
 import { classifyIntent } from './intentClassify'
 import { matchPortalKnowledge } from './portalKnowledge'
+import { suggest } from './suggest'
 import type { IntentId } from './types'
 
 function uid(prefix: string): string {
@@ -44,10 +45,34 @@ function wrap(
     text: userText,
     timestamp: Date.now(),
   }
+  const chips = suggest(intent)
   return {
     messages: [
       userMsg,
-      { id: uid('asst'), role: 'assistant', text, timestamp: Date.now() },
+      {
+        id: uid('asst'),
+        role: 'assistant',
+        text,
+        timestamp: Date.now(),
+        answer: {
+          hasEvidence: true,
+          intent,
+          confidence: 0.9,
+          problem: null,
+          answer: text,
+          nextActions: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'],
+          clarifyingQuestions: [...chips],
+          evidence: [],
+          sources: [
+            { id: 'portal', label: 'NELFUND portal', url: 'https://portal.nelf.gov.ng/', official: true },
+          ],
+          video: null,
+          insufficientReason: null,
+          officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+          escalation: null,
+          responseMode: 'conversation',
+        },
+      },
     ],
     slots: { ...slots, intent, phase: 'resolve' },
     diagnosed: true,
@@ -220,6 +245,16 @@ export async function processUserTurn(opts: {
 
   if (raw && /i\s*wan\s*login|abeg\s*how\s*(i\s*)?go\s*enter\s*(the\s*)?portal/i.test(raw)) {
     const hit = gate(raw, opts.slots, lastAsst, 'portal-login')
+    if (hit) return hit
+  }
+
+  if (raw && /parent\s*(fit|can|go)\s*apply|mama\s*(wan|go)\s*apply|apply\s*for\s*(my\s*)?(child|pikin|son|daughter)/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'eligibility')
+    if (hit) return hit
+  }
+
+  if (raw && /part[-\s]*time|sandwich/.test(low) && /eligib|apply|fit|can/.test(low)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'eligibility')
     if (hit) return hit
   }
 
