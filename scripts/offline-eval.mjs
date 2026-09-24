@@ -36,6 +36,10 @@ const cases = [
   ['matric', 'I do not have matric number yet', /matric|upload|school|ICT|Registry/i],
   ['pidgin-apply', 'Abeg how I go apply for NELFUND', /portal|apply|nelf/i],
   ['scam2', 'someone say pay 10k to process nelfund', /Never pay|agent|Safety|OTP|portal/i],
+  ['crit-overview', 'How does this nelfund thing work', /institutional charges|upkeep|portal\.nelf\.gov\.ng/i],
+  ['crit-gothrough', 'Ok give me a go through of the whole nelfund stuff', /institutional charges|upkeep|portal\.nelf\.gov\.ng/i],
+  ['crit-chargers', 'What do u mean by institutional chargers', /school fees|paid \*\*to the school\*\*/i],
+  ['crit-login', 'How do I log in?', /portal\.nelf\.gov\.ng/i],
 ]
 
 let fail = 0
@@ -80,6 +84,23 @@ if (!/200-level|Matriculation|Eligibility|full-time/i.test(a200)) {
   fails.push('followup-200')
   console.log('FAIL followup-200')
 } else console.log('PASS followup-200')
+
+r = await processUserTurn({ userText: 'How to apply', slots: createInitialSlots(null) })
+const applyFirst = r.messages.find((m) => m.role === 'assistant')?.text || ''
+r = await processUserTurn({
+  userText: 'I meant for the loan and upkeep',
+  slots: r.slots,
+  history: [
+    { role: 'user', text: 'How to apply', intent: 'how-to-apply' },
+    { role: 'assistant', text: applyFirst },
+  ],
+})
+const applyFollow = r.messages.find((m) => m.role === 'assistant')?.text || ''
+if (!/upkeep|institutional charges|Request for Student Loan|portal\.nelf/i.test(applyFollow) || /welcome to NELFUND AI|I only help with NELFUND/i.test(applyFollow)) {
+  fail++
+  fails.push('crit-apply-upkeep-follow')
+  console.log('FAIL crit-apply-upkeep-follow')
+} else console.log('PASS crit-apply-upkeep-follow')
 
 const intentCases = [
   ['As an 100 level, can I apply for nelfund', 'eligibility'],
