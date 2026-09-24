@@ -3,6 +3,7 @@ import { playbookHourly142 } from './playbookHourly142'
 import { playbookHourly144 } from './playbookHourly144'
 import { playbookHourly151 } from './playbookHourly151'
 import { playbookHourly153 } from './playbookHourly153'
+import { playbookHourly154 } from './playbookHourly154'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -10,6 +11,8 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Short menu for residual other / greeting-vague. No invented dates. */
 export function playbookHourly141(intent: IntentId, userText: string): string | null {
+  const from154 = playbookHourly154(intent, userText || '')
+  if (from154) return from154
   const from153 = playbookHourly153(intent, userText || '')
   if (from153) return from153
   const from151 = playbookHourly151(intent, userText || '')
