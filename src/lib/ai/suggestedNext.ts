@@ -143,6 +143,8 @@ export function suggestedNextQuestions(
       return two('How do I contact official support?', 'Who can apply (eligibility)?')
     case 'reapplication':
       return two('How do I log in with last year email?', 'How do I apply step by step?')
+    case 'official-sources':
+      return two('How do I apply only on the official portal?', 'How do I contact official support?')
     case 'guarantor':
       return two('Who can apply (eligibility)?', 'What documents do I need?')
     case 'nin-verification':
