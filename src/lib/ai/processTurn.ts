@@ -16,10 +16,21 @@ import { playbookAnswer } from './playbook'
 import { refineClarificationAnswer } from './conversationClarify'
 import { explainTerm } from './termDefine'
 import { isOverviewAsk, fullNelfundOverview } from './overviewAsk'
+import { suggestedNextQuestions } from './suggestedNext'
+import { eligibilityAnswer } from './eligibilityAnswer'
 
 function uid(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
+
+const SCAM_ANSWER =
+  '**NELFUND is a real government student loan scheme** (Nigeria Education Loan Fund), not a private WhatsApp "agent" product.\n\n' +
+  '**Stay safe**\n' +
+  '- Never pay anyone to "process" or "approve" your loan.\n' +
+  '- Never share OTP, password, or NIN/BVN codes with strangers.\n' +
+  '- Apply and check status only on https://portal.nelf.gov.ng/ and https://nelf.gov.ng/.\n' +
+  '- Official tickets only: https://nelfund.esupport.ng/create\n\n' +
+  'Anyone on WhatsApp asking for money or codes is a **scam**. Report and block them.'
 
 export async function processUserTurn(opts: {
   userText: string
@@ -34,6 +45,81 @@ export async function processUserTurn(opts: {
   const history = opts.history || []
   const prevAsst =
     [...history].reverse().find((h) => h.role === 'assistant')?.text || null
+
+  // Topic chip: Eligibility alone → real eligibility criteria
+  if (!ocr && rawUser && /^eligibility\s*[!?.]?$/i.test(rawUser)) {
+    const answerText = eligibilityAnswer({ userText: rawUser })
+    return {
+      messages: [
+        { id: uid('user'), role: 'user', text: rawUser, imagePreview: opts.imagePreview || null, timestamp: Date.now() },
+        {
+          id: uid('asst'),
+          role: 'assistant',
+          text: answerText,
+          answer: {
+            hasEvidence: true,
+            intent: 'eligibility',
+            confidence: 0.97,
+            responseMode: 'conversation',
+            problem: null,
+            answer: answerText,
+            nextActions: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'],
+            clarifyingQuestions: suggestedNextQuestions('eligibility'),
+            evidence: [],
+            sources: [],
+            video: null,
+            insufficientReason: null,
+            officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+            escalation: null,
+          },
+          timestamp: Date.now(),
+        },
+      ],
+      slots: { ...opts.slots, intent: 'eligibility', phase: 'resolve' },
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
+
+  // "Someone told me NELFUND is a scam" — never off-topic menu
+  if (
+    !ocr &&
+    rawUser &&
+    /\bis\s+(nelfund|this|it)\s+(a\s+)?scam\b|nelfund\s+is\s+(a\s+)?scam|told\s+me.{0,40}scam|scam.{0,20}nelfund|is\s+this\s+(thing\s+)?(a\s+)?scam/i.test(
+      rawUser,
+    )
+  ) {
+    return {
+      messages: [
+        { id: uid('user'), role: 'user', text: rawUser, imagePreview: opts.imagePreview || null, timestamp: Date.now() },
+        {
+          id: uid('asst'),
+          role: 'assistant',
+          text: SCAM_ANSWER,
+          answer: {
+            hasEvidence: true,
+            intent: 'scam-safety',
+            confidence: 0.96,
+            responseMode: 'conversation',
+            problem: 'scam',
+            answer: SCAM_ANSWER,
+            nextActions: ['https://portal.nelf.gov.ng/', 'https://nelfund.esupport.ng/create'],
+            clarifyingQuestions: suggestedNextQuestions('scam-safety'),
+            evidence: [],
+            sources: [],
+            video: null,
+            insufficientReason: null,
+            officialFallbackUrl: 'https://portal.nelf.gov.ng/',
+            escalation: null,
+          },
+          timestamp: Date.now(),
+        },
+      ],
+      slots: { ...opts.slots, intent: 'scam-safety', phase: 'resolve' },
+      diagnosed: true,
+      capability: 'conversation',
+    }
+  }
 
   // "What do you mean by institutional charges/chargers?" — explain the term
   if (!ocr && rawUser) {
@@ -60,7 +146,7 @@ export async function processUserTurn(opts: {
               problem: term.intent,
               answer: term.text,
               nextActions: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'],
-              clarifyingQuestions: [],
+              clarifyingQuestions: suggestedNextQuestions(term.intent),
               evidence: [],
               sources: [],
               video: null,
@@ -78,7 +164,7 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Full go-through / "how does this nelfund thing work" — never repayment-only or off-topic menu
+  // Full go-through / "how does this nelfund thing work"
   if (!ocr && rawUser && isOverviewAsk(rawUser)) {
     const answerText = fullNelfundOverview()
     return {
@@ -102,7 +188,7 @@ export async function processUserTurn(opts: {
             problem: null,
             answer: answerText,
             nextActions: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'],
-            clarifyingQuestions: [],
+            clarifyingQuestions: suggestedNextQuestions('what-is-nelfund'),
             evidence: [],
             sources: [],
             video: null,
@@ -119,7 +205,7 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Clarification: "I meant for the loan and upkeep" — never welcome-reset
+  // Clarification: "I meant for the loan and upkeep"
   if (
     !ocr &&
     rawUser &&
@@ -151,7 +237,7 @@ export async function processUserTurn(opts: {
               problem: null,
               answer: refined,
               nextActions: ['https://portal.nelf.gov.ng/'],
-              clarifyingQuestions: [],
+              clarifyingQuestions: suggestedNextQuestions(intentOut),
               evidence: [],
               sources: [],
               video: null,
@@ -181,6 +267,9 @@ export async function processUserTurn(opts: {
     try {
       const live = await buildCurrentInformationAnswerLive(rawUser)
       if (live?.answer) {
+        if (!live.clarifyingQuestions?.length) {
+          live.clarifyingQuestions = suggestedNextQuestions('current-information')
+        }
         return {
           messages: [
             {
@@ -234,7 +323,7 @@ export async function processUserTurn(opts: {
             problem: null,
             answer: answerText,
             nextActions: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'],
-            clarifyingQuestions: [],
+            clarifyingQuestions: suggestedNextQuestions('what-is-nelfund'),
             evidence: [],
             sources: [],
             video: null,
@@ -282,7 +371,7 @@ export async function processUserTurn(opts: {
               problem: screen.exactError || screen.kind,
               answer: screen.explanation,
               nextActions: (screen.nextActions || []).slice(0, 4),
-              clarifyingQuestions: [],
+              clarifyingQuestions: suggestedNextQuestions(intent),
               evidence: [],
               sources: [
                 {
