@@ -72,6 +72,32 @@ export function isMeaningAsk(text: string): boolean {
   return false
 }
 
-function cleanTypos(text: string): boolean {
-  return false
+function cleanTypos(text: string): string {
+  return (text || '')
+    .replace(/\bchargers?\b/gi, 'charges')
+    .replace(/\bchargesr\b/gi, 'charges')
+    .replace(/\binstutional\b/gi, 'institutional')
+    .replace(/\binstituional\b/gi, 'institutional')
+    .replace(/\bchargres\b/gi, 'charges')
+    .replace(/\bexpanciate\b/gi, 'elaborate')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+export function explainTerm(
+  userText: string,
+  lastAssistant?: string | null,
+): { intent: IntentId; text: string } | null {
+  const cleaned = cleanTypos(userText)
+  if (!isMeaningAsk(cleaned) && !isMeaningAsk(userText || '')) return null
+
+  for (const row of TERM_DEFS) {
+    if (row.re.test(cleaned)) return { intent: row.intent, text: row.answer }
+  }
+  if (lastAssistant) {
+    for (const row of TERM_DEFS) {
+      if (row.re.test(lastAssistant)) return { intent: row.intent, text: row.answer }
+    }
+  }
+  return null
 }
