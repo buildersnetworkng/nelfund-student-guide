@@ -10,7 +10,52 @@ function two(a: string, b: string): string[] {
   return [a, b]
 }
 
-export function suggestedNextQuestions(intent: IntentId | string | null | undefined): string[] {
+function byText(userText?: string | null): string[] | null {
+  const t = (userText || '').trim()
+  if (!t) return null
+  if (/otp|one[- ]time|pin|password|scam|agent|pay\s*\d|whatsapp\s*(man|agent)/i.test(t)) {
+    return two('How do I apply only on the official portal?', 'How do I contact official support?')
+  }
+  if (/document|wetin\s*(i|una)\s*need|nin|bvn|admission\s*letter|wetin\s*i\s*(go|suppose)\s*carry/i.test(t)) {
+    return two('How do I apply step by step?', 'How do I log in?')
+  }
+  if (/school\s*(no|not|never)\s*(dey|show|list)|not\s*listed|cannot\s*find\s*(my\s*)?school/i.test(t)) {
+    return two('How do I know if my school uploaded my data?', 'How do I contact official support?')
+  }
+  if (/pending|how\s*far|money\s*never|never\s*enter|wetin\s*dey\s*hold/i.test(t)) {
+    return two('When does official disbursement happen after approval?', 'How do I contact official support?')
+  }
+  if (/jamb|utme|invalid\s*number/i.test(t)) {
+    return two('Portal shows missing information', 'How do I log in?')
+  }
+  if (/loan\s*(or|vs)\s*scholarship|na\s*(scholarship|grant)|free\s*money/i.test(t)) {
+    return two('When does repayment start?', 'Is the loan interest-free?')
+  }
+  if (/interest[- ]?free|zero\s*interest|does\s*(am|it)\s*get\s*interest/i.test(t)) {
+    return two('Is NELFUND a loan or a scholarship?', 'When does repayment start?')
+  }
+  if (/still\s*(open|dey\s*open)|deadline|can\s*i\s*still\s*apply|dem\s*don\s*close/i.test(t)) {
+    return two('How do I apply step by step?', 'Who can apply (eligibility)?')
+  }
+  if (/contact|esupport|help\s*desk|ticket/i.test(t)) {
+    return two('How do I apply step by step?', 'Portal shows missing information')
+  }
+  if (/upkeep|stipend|allowance/i.test(t)) {
+    return two('What is institutional charges?', 'How do I apply for loan and upkeep?')
+  }
+  if (/institutional\s*charg|school\s*fees|tuition/i.test(t)) {
+    return two('What is upkeep?', 'How do I apply for the loan and upkeep?')
+  }
+  return null
+}
+
+export function suggestedNextQuestions(
+  intent: IntentId | string | null | undefined,
+  userText?: string | null,
+): string[] {
+  const fromText = byText(userText)
+  if (fromText) return fromText
+
   switch (intent) {
     case 'what-is-nelfund':
     case 'nelfund-purpose':
@@ -74,7 +119,10 @@ export function suggestedNextQuestions(intent: IntentId | string | null | undefi
   }
 }
 
-/** Alias used by some UI paths. */
-export function suggest(intent: IntentId | string | null | undefined): string[] {
-  return suggestedNextQuestions(intent).slice(0, 2)
+/** Alias used by UI + processTurn. Always at most two chips. */
+export function suggest(
+  intent: IntentId | string | null | undefined,
+  userText?: string | null,
+): string[] {
+  return suggestedNextQuestions(intent, userText).slice(0, 2)
 }
