@@ -1,6 +1,7 @@
 /**
  * Crash-safe NELFUND turn entry.
  * Zero fragile imports beyond conversation + types.
+ * Separate intents: meaning, login, forgot-password, email-already-used (never mixed).
  */
 import {
   processUserTurn as processUserTurnCore,
@@ -18,6 +19,25 @@ const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
+const MEANING =
+  '**NELFUND** stands for **Nigeria Education Loan Fund**.\n\n' +
+  'It is a **government** student loan scheme (interest-free under official rules) for eligible students in **public** tertiary institutions.\n\n' +
+  '- **Institutional charges** (school fees) go to your **school**.\n' +
+  '- **Upkeep** (optional) goes to **you** if you request it in the same application.\n' +
+  `- Official sites: ${SITE} · ${PORTAL}\n\n` +
+  'Ask next if you want eligibility, how to apply, or portal help.'
+
+const OVERVIEW =
+  '**How NELFUND works**\n\n' +
+  '1. **Full meaning:** Nigeria Education Loan Fund — interest-free student loans for eligible students in **public** tertiary institutions.\n' +
+  '2. **Institutional charges** (school fees) go to your **school**.\n' +
+  '3. **Upkeep** (optional living support) goes to **you** if you tick it in the same application.\n' +
+  '4. **Who can apply:** Nigerian citizens with full-time admission into a public uni / poly / college of education.\n' +
+  `5. **How to apply:** Sign in or create account at ${PORTAL} — complete profile (JAMB, NIN, BVN).\n` +
+  '6. **Never pay** an agent; never share OTP or password.\n' +
+  `7. Official: ${SITE} · ${PORTAL}\n\n` +
+  'Ask next about eligibility, how to apply, upkeep, portal errors, or repayment.'
+
 const SCAM =
   '**NELFUND is a real government student loan scheme** (Nigeria Education Loan Fund), not a private WhatsApp agent product.\n\n' +
   '**Stay safe**\n' +
@@ -26,17 +46,6 @@ const SCAM =
   `- Apply only on ${PORTAL} and ${SITE}.\n` +
   `- Official tickets: ${ESUPPORT}\n\n` +
   'Anyone on WhatsApp asking for money or codes is a **scam**. Report and block them.'
-
-const OVERVIEW =
-  '**How NELFUND works**\n\n' +
-  '1. **What it is:** Interest-free student loans for eligible students in **public** tertiary institutions (Nigeria Education Loan Fund).\n' +
-  '2. **Institutional charges** (school fees) go to your **school**.\n' +
-  '3. **Upkeep** (optional living support) goes to **you** if you tick it in the same application.\n' +
-  '4. **Who can apply:** Nigerian citizens with full-time admission into a public uni / poly / college of education.\n' +
-  `5. **How to apply:** Sign in or create account at ${PORTAL} — complete profile (JAMB, NIN, BVN).\n` +
-  '6. **Never pay** an agent; never share OTP or password.\n' +
-  `7. Official: ${SITE} · ${PORTAL}\n\n` +
-  'Ask next about eligibility, how to apply, upkeep, portal errors, or repayment.'
 
 const ELIGIBILITY =
   '**Eligibility**\n\n' +
@@ -49,18 +58,36 @@ const ELIGIBILITY =
 const APPLY =
   '**How to apply**\n\n' +
   `1. Open ${PORTAL}\n` +
-  '2. Create account or sign in with the same email (if you registered before, do not create a new account).\n' +
+  '2. Create an account **or** sign in if you already have one.\n' +
   '3. Complete profile: JAMB, NIN, BVN, bank details in your name.\n' +
   '4. Use Request for Student Loan only when the official window is open — confirm dates on the portal, not social media.\n' +
   `5. Stuck: campus NELFUND desk, then ${ESUPPORT}.`
 
+/** Login only — no last-year email story mixed in */
 const LOGIN =
-  '**How to log in to NELFUND**\n\n' +
-  `1. Open ${PORTAL} and use **Sign in** with the email you registered.\n` +
-  `2. You can also sign in from ${SITE}.\n` +
-  '3. If that email was used before (including last year), do **not** create a new account — sign in or reset password on the same email.\n' +
-  `4. First time only: create account at ${PORTAL}.\n` +
-  `5. Forgot password: use reset on ${PORTAL} or ${SITE}. Tickets: ${ESUPPORT}.`
+  '**How to log in**\n\n' +
+  `1. Open ${PORTAL} (or ${SITE} and choose Sign in).\n` +
+  '2. Enter the email and password for your NELFUND account.\n' +
+  '3. If login fails, read the **exact** message on the screen (wrong password, email not found, etc.).\n' +
+  `4. Still blocked: ${ESUPPORT} with a screenshot.`
+
+/** Forgot password only — separate from email-already-used */
+const FORGOT_PASSWORD =
+  '**Forgot password**\n\n' +
+  `1. Open ${PORTAL} and use **Forgot password** / **Reset password** (wording may vary on the page).\n` +
+  '2. Enter the email linked to your NELFUND account.\n' +
+  '3. Check that email (and spam) for the reset link or code.\n' +
+  '4. Set a new password and sign in.\n' +
+  `5. No reset email arrives: ${ESUPPORT} — do not create a second account with a different email unless support directs you.`
+
+/** Email already used / already registered — separate from forgot password */
+const EMAIL_USED =
+  '**Email already used / already registered**\n\n' +
+  'The portal is saying that email is already tied to an account.\n\n' +
+  '1. **Sign in** with that email (do not open a brand-new account with a different email).\n' +
+  `2. If you do not remember the password: use **Forgot password** on ${PORTAL} for **that same email**.\n` +
+  '3. Do not treat “I used this email before” as a special rule — it only means an account may already exist for that address.\n' +
+  `4. Still stuck after reset: ${ESUPPORT} with a screenshot of the exact message.`
 
 const UPKEEP =
   '**Upkeep** is optional living support under NELFUND.\n\n' +
@@ -91,6 +118,12 @@ function suggest(intent: string): string[] {
   if (intent === 'portal-login') {
     return ['I forgot my password', 'Portal shows missing information', 'How do I contact support?']
   }
+  if (intent === 'password-reset') {
+    return ['How do I log in?', 'Email already used on the portal', 'How do I contact support?']
+  }
+  if (intent === 'email-already-used') {
+    return ['I forgot my password', 'How do I log in?', 'How do I contact support?']
+  }
   return ['Who can apply (eligibility)?', 'How do I apply step by step?', 'Is NELFUND a scam?']
 }
 
@@ -110,7 +143,7 @@ function reply(
     answer: text,
     whatThisMeans: null as string | null,
     nextActions: [PORTAL, SITE],
-    clarifyingQuestions: suggest(intent),
+    clarifyingQuestions: suggest(String(intent)),
     evidence: [] as [],
     sources: [
       { id: 'portal', label: 'NELFUND portal', url: PORTAL, official: true },
@@ -147,6 +180,15 @@ function route(raw: string): { intent: IntentId; text: string } | null {
   const t = (raw || '').trim()
   if (!t) return null
 
+  // Full meaning / acronym first (before general overview)
+  if (
+    /full\s+meaning|meaning\s+of\s+nelfund|nelfund\s+stand\s+for|what\s+does\s+nelfund\s+mean|nelfund\s+means|acronym|abbreviation|wetin\s+nelfund\s+mean/i.test(
+      t,
+    )
+  ) {
+    return { intent: 'what-is-nelfund', text: MEANING }
+  }
+
   if (/scam|fraud|fake\s*(loan|nelfund)|told\s+me.{0,50}scam|nelfund.{0,25}scam|is\s+(this|it|nelfund).{0,20}scam/i.test(t)) {
     return { intent: 'scam-safety', text: SCAM }
   }
@@ -160,9 +202,26 @@ function route(raw: string): { intent: IntentId; text: string } | null {
   ) {
     return { intent: 'what-is-nelfund', text: OVERVIEW }
   }
+
+  // Forgot password — never mix with email-already-used story
+  if (/forgot\s*(my\s*)?password|reset\s*(my\s*)?password|password\s*reset|can'?t\s*remember\s*(my\s*)?password/i.test(t)) {
+    return { intent: 'password-reset' as IntentId, text: FORGOT_PASSWORD }
+  }
+
+  // Email already used / already registered — separate path
+  if (
+    /email\s+(already\s+)?(used|registered|taken|exist)|already\s+(used|registered|exist).{0,20}email|showing\s+(used|already).{0,15}email|email.{0,20}already/i.test(
+      t,
+    )
+  ) {
+    return { intent: 'email-already-used' as IntentId, text: EMAIL_USED }
+  }
+
+  // Generic login — no last-year email paragraph
   if (/how\s+(do\s+i|to)\s+(log\s*in|login|sign\s*in)|^(log\s*in|login|sign\s*in)\??$/i.test(t)) {
     return { intent: 'portal-login', text: LOGIN }
   }
+
   if (/how\s+(do\s+i|to|i\s+go)\s*apply|step\s*by\s*step|i\s+wan(t)?\s*(to\s*)?apply/i.test(t)) {
     return { intent: 'how-to-apply', text: APPLY }
   }
@@ -175,7 +234,7 @@ function route(raw: string): { intent: IntentId; text: string } | null {
   }
   if (/difference.{0,20}(fees?|upkeep)|(fees?|upkeep).{0,15}(vs|versus|and).{0,15}(fees?|upkeep)/i.test(t)) {
     return {
-      intent: 'upkeep-vs-fees',
+      intent: 'upkeep-vs-fees' as IntentId,
       text:
         '**School fees vs upkeep**\n\n' +
         '1. **Institutional charges (school fees)** go from NELFUND **to your school**.\n' +
@@ -222,7 +281,6 @@ export async function processUserTurn(opts: {
   const rawUser = (opts.userText || '').trim()
   const imagePreview = opts.imagePreview
 
-  // Always try local route first — never depends on heavy playbook chain
   try {
     const hit = route(rawUser)
     if (hit) {
@@ -232,11 +290,9 @@ export async function processUserTurn(opts: {
     /* continue */
   }
 
-  // Fall through to conversation core
   try {
     return await processUserTurnCore(opts)
   } catch {
-    // Absolute last resort — still a real NELFUND answer
     const hit = route(rawUser)
     if (hit) return reply(rawUser, imagePreview, opts.slots, hit.intent, hit.text)
     return reply(rawUser || '[message]', imagePreview, opts.slots, 'what-is-nelfund', OVERVIEW)
