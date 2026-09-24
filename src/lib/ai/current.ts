@@ -55,7 +55,9 @@ export function answerCurrentInformation(
   const statusLabel = live?.status_label || live?.status || 'check the official portal'
   const note = live?.note || ''
 
-  if (liveOpenRe.test(t) || /is (the )?(loan|application|nelfund).{0,30}open|window open|application open/i.test(t)) {
+  const openRe = typeof liveOpenRe === 'function' ? liveOpenRe() : liveOpenRe
+
+  if (openRe.test(t) || /is (the )?(loan|application|nelfund).{0,30}open|window open|application open/i.test(t)) {
     const closed =
       /closed|not open|ended/i.test(String(live?.status || live?.status_label || '')) ||
       /closed/i.test(note)
@@ -92,7 +94,6 @@ export function answerCurrentInformation(
     })
   }
 
-  // Generic current info fallback for cycle questions
   if (/this\s+session|academic\s+cycle|202[5-7]/i.test(t) && /nelfund|loan|apply/i.test(t)) {
     return emptyAnswer({
       answer:
@@ -115,4 +116,21 @@ export function answerCurrentInformation(
   }
 
   return null
+}
+
+export function buildCurrentInformationAnswer(userText: string, live?: LiveStatus | null): GroundedAnswer | null {
+  return answerCurrentInformation(userText, live)
+}
+
+export function buildCurrentInformationAnswerLive(userText: string, live?: LiveStatus | null): GroundedAnswer | null {
+  return answerCurrentInformation(userText, live)
+}
+
+export function isPurposeQuestion(text: string): boolean {
+  return PURPOSE_RE.test(text || '') || isPurposeAsk(text || '')
+}
+
+export function questionNeedsCurrentLive(text: string): boolean {
+  const openRe = typeof liveOpenRe === 'function' ? liveOpenRe() : liveOpenRe
+  return openRe.test(text || '') || /is (the )?(loan|application|nelfund).{0,30}open|window open|when will nelfund/i.test(text || '')
 }
