@@ -106,9 +106,23 @@ export const HELP_CARDS =
   '• **Help and Support** — Get In Touch for portal navigation help\n\n' +
   `Official ticket: ${ESUPPORT}`
 
+export const ADMISSION_LETTER =
+  '**“An admission letter is required, please upload one.”**\n\n' +
+  'You are on the apply / submit step. The portal will **not** accept Submit until the admission letter is uploaded.\n\n' +
+  '1. On the same page, open the **document upload** field for Admission Letter.\n' +
+  '2. Upload a clear PDF or image of your official admission letter.\n' +
+  '3. Confirm Terms & Conditions and GSI Mandate if shown.\n' +
+  '4. Tap **Submit Application** again.\n\n' +
+  'Have you applied? **Not yet** until Submit succeeds.\n\n' +
+  `Stuck: ticket ${ESUPPORT} with a screenshot. Login: ${LOGIN_URL}`
+
 export function matchPortalKnowledge(raw: string): { intent: string; text: string } | null {
   const t = (raw || '').trim()
   if (!t) return null
+
+  if (/admission\s*letter\s*(is\s*)?required|please\s*upload\s*(an?\s*)?admission|upload\s*(an?\s*)?admission\s*letter/i.test(t)) {
+    return { intent: 'documents-needed', text: ADMISSION_LETTER }
+  }
 
   if (/institution has not opened|has not opened a session|session for loan applications yet|school.{0,40}not opened/i.test(t)) {
     return { intent: 'missing-information', text: INSTITUTION_SESSION }
