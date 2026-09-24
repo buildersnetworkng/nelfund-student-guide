@@ -122,23 +122,30 @@ export default function Ask() {
         history,
       })
 
-      const nextSlots = result.slots
-      const asstMsgs = result.messages.filter((m) => m.role === 'assistant')
+      if (!result || !Array.isArray(result.messages)) {
+        throw new Error('empty turn result')
+      }
+      const nextSlots = result.slots || slots
+      const asstMsgs = result.messages.filter((m) => m && m.role === 'assistant')
       const asst = asstMsgs.find((m) => m.answer) || asstMsgs[0]
+      if (!asst) {
+        throw new Error('no assistant message')
+      }
       const intent = asst?.answer?.intent || nextSlots.intent || 'unknown'
-      const resolutionClosed = !!asst?.answer?.hasEvidence && !asst?.answer?.insufficientReason
-      const escalationFired = !!asst?.answer?.escalation
-
-      trackAiQuestion({
-        intent,
-        institutionId: nextSlots.institutionId || institutionId,
-        hasImage: !!ocrSafe,
-        unresolved: !!asst?.answer?.insufficientReason || intent === 'unknown',
-        isNewConversation: messages.length === 0,
-        resolutionClosed,
-        escalationFired,
-        userText: text || (ocrSafe ? ocrSafe.slice(0, 200) : null),
-      })
+      try {
+        trackAiQuestion({
+          intent,
+          institutionId: nextSlots.institutionId || institutionId,
+          hasImage: !!ocrSafe,
+          unresolved: !!asst?.answer?.insufficientReason || intent === 'unknown',
+          isNewConversation: messages.length === 0,
+          resolutionClosed: !!asst?.answer?.hasEvidence && !asst?.answer?.insufficientReason,
+          escalationFired: !!asst?.answer?.escalation,
+          userText: text || (ocrSafe ? ocrSafe.slice(0, 200) : null),
+        })
+      } catch {
+        /* analytics must not break chat */
+      }
 
       setSlots(nextSlots)
       setMessages((prev) => [...prev, ...asstMsgs])
@@ -158,7 +165,7 @@ export default function Ask() {
           text: isShortGreeting
             ? 'How far, welcome.\n\nI am here to help with NELFUND: applications, portal issues, eligibility, upkeep, repayment, and school-record problems.\n\nWhat do you need help with today?'
             : ocrText
-              ? 'I could not finish reading that screenshot. Type the red banner text (e.g. An admission letter is required) or open https://portal.nelf.gov.ng/.'
+              ? 'I could not finish reading that screenshot. Type the red banner or status words (e.g. Pending Loans 2, No Result found, admission letter is required) or open https://portal.nelf.gov.ng/.'
               : 'Something went wrong on this device. Try again, or open portal.nelf.gov.ng directly.',
           timestamp: Date.now(),
         },
