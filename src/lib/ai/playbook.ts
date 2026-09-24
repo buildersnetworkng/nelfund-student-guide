@@ -7,6 +7,7 @@ import { explainTerm } from './termDefine'
 import { playbookHourly156 } from './playbookHourly156'
 import { playbookHourly157 } from './playbookHourly157'
 import { playbookHourly158 } from './playbookHourly158'
+import { playbookHourly159 } from './playbookHourly159'
 
 export type PlaybookContext = {
   institutionName?: string | null
@@ -33,6 +34,8 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   const term = userText ? explainTerm(userText, ctx.lastAssistant) : null
   if (term) return term.text
 
+  const h159 = playbookHourly159(intent, userText)
+  if (h159) return h159
   const h158 = playbookHourly158(intent, userText)
   if (h158) return h158
   const h157 = playbookHourly157(intent, userText)
@@ -212,6 +215,49 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   if (intent === 'contact-support' || intent === 'contact-lookup') {
     return `**Official support**\n\n- Website: ${SITE}\n- Signup / portal: ${PORTAL}\n- Login / sign in: ${LOGIN_URL}\n- Tickets: ${ESUPPORT}\n\nI will not invent WhatsApp agents or private numbers.`
+  }
+
+  if (intent === 'nin-verification') {
+    return (
+      '**NIN on the portal**\n\n' +
+      '1. Use the NIN that belongs to you and matches JAMB where the portal asks.\n' +
+      `2. Retry ${PORTAL}. Still failing: campus desk + ${ESUPPORT}.`
+    )
+  }
+
+  if (intent === 'bank-information') {
+    return (
+      '**Bank / BVN**\n\n' +
+      `Use an account in your name. Update only on ${PORTAL}. Tickets: ${ESUPPORT}.`
+    )
+  }
+
+  if (intent === 'rejected-application') {
+    return (
+      '**Rejected application**\n\n' +
+      `Read the exact reason on ${LOGIN_URL}, then ${ESUPPORT} with a screenshot.`
+    )
+  }
+
+  if (intent === 'reapplication') {
+    return (
+      '**Apply again**\n\n' +
+      `Use the same email at ${LOGIN_URL}. Reset password on ${PORTAL} if needed. New request only when the official window is open.`
+    )
+  }
+
+  if (intent === 'refund') {
+    return (
+      '**Refund**\n\n' +
+      `Institutional charges go to the school. Raise the issue via ${ESUPPORT} with portal status. I will not invent a refund amount.`
+    )
+  }
+
+  if (intent === 'guarantor') {
+    return (
+      '**Guarantor**\n\n' +
+      `Official FAQ: no guarantor requirement. Confirm on ${SITE}. Apply on ${PORTAL}.`
+    )
   }
 
   if (userText && /interest|zero\s*interest|interest[-\s]*free/i.test(userText)) {
