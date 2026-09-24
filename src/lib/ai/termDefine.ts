@@ -75,6 +75,8 @@ export function isMeaningAsk(text: string): boolean {
 function cleanTypos(text: string): string {
   return (text || '')
     .replace(/\bchargers?\b/gi, 'charges')
+    .replace(/\bchargesr\b/gi, 'charges')
+    .replace(/\binstutional\b/gi, 'institutional')
     .replace(/\bexpanciate\b/gi, 'elaborate')
     .replace(/\s+/g, ' ')
     .trim()
