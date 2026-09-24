@@ -26,6 +26,7 @@ import { explainTerm } from './termDefine'
 import { playbookAnswer } from './playbook'
 import { classifyIntent } from './intentClassify'
 import { matchPortalKnowledge } from './portalKnowledge'
+import { understandPortalText } from './screenshotUnderstand'
 import { suggest } from './suggest'
 import type { IntentId } from './types'
 
@@ -60,8 +61,8 @@ function wrap(
           confidence: 0.9,
           problem: null,
           answer: text,
-          nextActions: ['https://portal.nelf.gov.ng/', 'https://nelf.gov.ng/'],
-          clarifyingQuestions: [...chips],
+          nextActions: [],
+          clarifyingQuestions: [...chips].slice(0, 2),
           evidence: [],
           sources: [
             { id: 'portal', label: 'NELFUND portal', url: 'https://portal.nelf.gov.ng/', official: true },
@@ -100,9 +101,26 @@ export async function processUserTurn(opts: {
   history?: { role: string; text: string }[]
 }): Promise<AgentTurnResult> {
   const raw = (opts.userText || '').trim()
+  const ocr = (opts.ocrText || '').trim()
   const lastAsst =
     [...(opts.history || [])].reverse().find((h) => h.role === 'assistant')?.text || null
   const low = raw.toLowerCase()
+
+  // Screenshot upload: identify page + applied status from OCR first
+  if (ocr.length >= 12) {
+    const screen = understandPortalText(ocr)
+    if (screen) {
+      const intent: IntentId =
+        screen.kind === 'error'
+          ? 'missing-information'
+          : screen.hasApplied === true
+            ? 'pending-application'
+            : screen.hasApplied === false
+              ? 'how-to-apply'
+              : 'current-information'
+      return wrap(raw || '[Screenshot uploaded]', { ...opts.slots, intent }, intent, screen.explanation)
+    }
+  }
 
   if (raw && isOverviewAsk(raw)) {
     return wrap(raw, opts.slots, 'what-is-nelfund', fullNelfundOverview())
