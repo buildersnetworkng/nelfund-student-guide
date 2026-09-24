@@ -16,7 +16,7 @@ export function sanitizeGroundedAnswer(answer: GroundedAnswer): GroundedAnswer {
     ...answer,
     answer: stripLongDashes(answer.answer || ''),
     whatThisMeans: answer.whatThisMeans ? stripLongDashes(answer.whatThisMeans) : answer.whatThisMeans,
-    nextActions: (answer.nextActions || []).map(stripLongDashes),
+    nextActions: [], // never show 'What to do next' URL lists
     clarifyingQuestions: (answer.clarifyingQuestions || []).map(stripLongDashes),
   }
 }
