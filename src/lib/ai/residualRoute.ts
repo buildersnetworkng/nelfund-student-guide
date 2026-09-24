@@ -156,15 +156,23 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
       q,
     )
   ) {
-    return hit('official-sources', 0.86, ['other', 'greeting-vague'], 'Vague Pidgin / help menu', 'exploring', entities)
+    return hit('official-sources', 0.86, ['greeting-vague'], 'Vague Pidgin / help menu', 'exploring', entities)
   }
 
   if (
-    /i\s*(wan|want|wanna|go)\s*(to\s*)?(apply|register)|how\s*(i\s*)?(go|fit|can|do)\s*(apply|register)|steps?\s*(to\s*)?apply|how\s*to\s*apply/i.test(
+    /i\s*(wan|want|wanna|go)\s*(to\s*)?(apply|register)|how\s*(i\s*)?(go|fit|can|do)\s*(apply|register)|steps?\s*(to\s*)?apply|how\s*to\s*apply|apply.{0,24}(loan|upkeep)|loan\s*and\s*upkeep/i.test(
       q,
     )
   ) {
-    return hit('how-to-apply', 0.88, ['other', 'apply'], 'Vague apply start residual', 'applying', entities)
+    return hit('how-to-apply', 0.88, ['apply'], 'Vague apply start residual', 'applying', entities)
+  }
+
+  if (/missing\s*info|information\s*(is\s*)?(missing|not\s*showing)|profile\s*(no|not)\s*complete/i.test(q)) {
+    return hit('missing-information', 0.88, ['missing-info'], 'Missing information residual', 'applying', entities, true)
+  }
+
+  if (/what\s*(is|be)\s*nelfund|wetin\s*be\s*nelfund|nelfund\s*all\s*about|explain\s*nelfund/i.test(q)) {
+    return hit('what-is-nelfund', 0.86, ['what-is'], 'What is NELFUND residual', 'exploring', entities)
   }
 
   return null
@@ -195,8 +203,32 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
     return hit('what-is-nelfund', 0.9, ['what-is'], 'Who built / founded NELFUND', 'exploring', entities)
   }
 
-  if (/how\s+(does\s+)?(nelfund|it|this)\s+work|how\s+nelfund\s+works/i.test(q)) {
+  if (
+    /how\s+(does\s+)?(nelfund|it|this|dis)\s+(thing|stuff|matter|loan)?\s*(dey\s*)?work|how\s+nelfund\s+works|go\s*through.{0,24}nelfund|whole\s+nelfund/i.test(
+      q,
+    )
+  ) {
     return hit('what-is-nelfund', 0.92, ['what-is', 'how-it-works'], 'How NELFUND works', 'exploring', entities)
+  }
+
+  if (
+    /what\s+do\s+(you|u)\s+mean.{0,40}(charg|upkeep)|institutional\s*charg|wetin\s+(be|mean)\s+institutional|school\s*fees?\s*(mean|na)/i.test(
+      q,
+    )
+  ) {
+    return hit('institutional-charges', 0.92, ['fees'], 'Institutional charges term residual', 'exploring', entities)
+  }
+
+  if (/\bjamb\b|utme/.test(q) && /invalid|wrong|fail|verify|not\s*work|no\s*gree/i.test(q)) {
+    return hit('jamb-verification', 0.9, ['jamb'], 'JAMB residual soft', 'applying', entities, true)
+  }
+
+  if (/school\s*(not|no|never)\s*(show|dey|appear|list)|cannot\s*find\s*(my\s*)?school/i.test(q)) {
+    return hit('school-not-found', 0.9, ['school-list'], 'School list residual soft', 'applying', entities, true)
+  }
+
+  if (/repay|pay\s*back|after\s*nysc|when\s*(do\s*i|to)\s*pay/i.test(q)) {
+    return hit('repayment', 0.88, ['repayment'], 'Repayment residual soft', 'repaying', entities)
   }
 
   if (
