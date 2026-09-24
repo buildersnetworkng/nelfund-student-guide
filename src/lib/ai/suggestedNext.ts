@@ -1,123 +1,68 @@
 /**
- * Suggested next questions after each reply (ChatGPT-style one-tap chips).
- * Grounded on current intent — not invented loan numbers.
+ * Suggested next questions after each reply.
+ * Hard cap: two chips so a student can walk the whole path by tapping.
  */
 import type { IntentId } from './types'
 
-const DEFAULT = [
-  'Who can apply (eligibility)?',
-  'How do I apply step by step?',
-  'What is the difference between school fees and upkeep?',
-  'Is NELFUND a scam?',
-]
+const DEFAULT = ['Who can apply (eligibility)?', 'How do I apply step by step?']
 
-/** Up to 4 clickable follow-ups for the UI. */
+function two(a: string, b: string): string[] {
+  return [a, b]
+}
+
 export function suggestedNextQuestions(intent: IntentId | string | null | undefined): string[] {
   switch (intent) {
     case 'what-is-nelfund':
-      return [
-        'Who can apply (eligibility)?',
-        'How do I apply step by step?',
-        'What is institutional charges?',
-        'What is upkeep?',
-      ]
+    case 'nelfund-purpose':
+    case 'nelfund-history':
+      return two('Who can apply (eligibility)?', 'How do I apply step by step?')
     case 'eligibility':
-      return [
-        'How do I apply step by step?',
-        'What documents do I need?',
-        'Can 100 level students apply?',
-        'My school is a polytechnic — can I apply?',
-      ]
+      return two('How do I apply step by step?', 'What documents do I need?')
     case 'how-to-apply':
-      return [
-        'How do I log in?',
-        'What documents do I need?',
-        'School not on the list / missing information',
-        'What is upkeep vs school fees?',
-      ]
+      return two('How do I log in?', 'What is upkeep vs school fees?')
     case 'portal-login':
-      return [
-        'I forgot my password',
-        'Old email from last year — what do I do?',
-        'Portal shows missing information',
-        'How do I contact official support?',
-      ]
+      return two('I forgot my password', 'Old email from last year — what do I do?')
+    case 'password-reset':
+      return two('How do I log in?', 'Email already used — what do I do?')
+    case 'email-already-used':
+      return two('I forgot my password', 'How do I contact official support?')
     case 'upkeep':
-      return [
-        'What is institutional charges?',
-        'When does money enter my account?',
-        'How do I apply for upkeep?',
-        'Is upkeep optional?',
-      ]
+    case 'upkeep-allowance':
+      return two('What is institutional charges?', 'How do I apply for upkeep?')
     case 'institutional-charges':
-      return [
-        'What is upkeep?',
-        'Who receives institutional charges?',
-        'How do I apply?',
-        'Repayment — when does it start?',
-      ]
+    case 'upkeep-vs-fees':
+    case 'school-fees':
+      return two('What is upkeep?', 'How do I apply?')
     case 'missing-information':
     case 'school-not-found':
     case 'institution-verification':
-      return [
-        'How do I know if my school uploaded my data?',
-        'Draft email to my school about missing information',
-        'How do I contact official support?',
-        'How do I log in again?',
-      ]
+      return two('How do I know if my school uploaded my data?', 'How do I contact official support?')
     case 'pending-application':
-      return [
-        'How long does approval take?',
-        'When will money enter my account?',
-        'How do I contact official support?',
-        'Is my application still open?',
-      ]
+      return two('When will money enter my account?', 'How do I contact official support?')
     case 'repayment':
     case 'gsi':
-      return [
-        'When does repayment start?',
-        'Who can apply (eligibility)?',
-        'How do I check status on the portal?',
-        'Official NELFUND website',
-      ]
+      return two('Is NELFUND a loan or a scholarship?', 'How do I check status on the portal?')
+    case 'loan-or-scholarship':
+      return two('When does repayment start?', 'Is the loan interest-free?')
     case 'scam-safety':
-      return [
-        'How do I apply only on the official portal?',
-        'How do I contact official support?',
-        'Is NELFUND real / government?',
-        'What should I never share (OTP/password)?',
-      ]
+      return two('How do I apply only on the official portal?', 'How do I contact official support?')
     case 'jamb-verification':
-      return [
-        'NIN / BVN issues',
-        'Portal shows missing information',
-        'How do I contact official support?',
-        'How do I log in?',
-      ]
+      return two('Portal shows missing information', 'How do I log in?')
     case 'contact-support':
     case 'contact-lookup':
-      return [
-        'How do I apply step by step?',
-        'Portal shows missing information',
-        'Is NELFUND a scam?',
-        'How do I log in?',
-      ]
+      return two('How do I apply step by step?', 'Portal shows missing information')
     case 'current-information':
     case 'deadline':
-      return [
-        'How do I apply step by step?',
-        'Who can apply (eligibility)?',
-        'How do I log in?',
-        'What is upkeep?',
-      ]
+    case 'academic-session':
+      return two('How do I apply step by step?', 'Who can apply (eligibility)?')
     case 'documents-needed':
-      return [
-        'How do I apply step by step?',
-        'Who can apply (eligibility)?',
-        'NIN / BVN issues',
-        'How do I log in?',
-      ]
+      return two('How do I apply step by step?', 'How do I log in?')
     default:
       return DEFAULT
   }
+}
+
+/** Alias used by some UI paths. */
+export function suggest(intent: IntentId | string | null | undefined): string[] {
+  return suggestedNextQuestions(intent).slice(0, 2)
 }
