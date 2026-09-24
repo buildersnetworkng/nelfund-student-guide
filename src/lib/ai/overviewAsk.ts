@@ -9,7 +9,7 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 export function isOverviewAsk(text: string): boolean {
   const t = (text || '').trim()
   if (!t) return false
-  return /how\s+(does\s+)?(nelfund|it|this|the\s+loan|dis)\s+work|how\s+nelfund\s+works|how\s+does\s+this\s+nelfund|how\s+(does\s+|e\s+)?(this|dis)\s+nelfund\s+(thing|stuff|matter|loan)?.{0,12}work|nelfund\s+(thing|stuff).{0,12}work|how\s+(dis|this)\s+nelfund.{0,20}(dey\s+)?work|go\s*through\s+(of\s+)?(the\s+)?(whole\s+)?nelfund|whole\s+nelfund\s+(stuff|thing|process|system)|everything\s+(on|about|on\s+how)\s+(how\s+)?nelfund|know\s+everything\s+(on|about)\s+(how\s+)?nelfund|full\s+(guide|overview|explanation|walk\s*through|walkthrough)|explain\s+(how\s+)?nelfund|tell\s+me\s+(how\s+)?nelfund|overview\s+(of\s+)?nelfund|walk\s*me\s+through\s+(nelfund|the\s+loan)|brief\s+(on|about)\s+nelfund|how\s+the\s+(scheme|loan)\s+works/i.test(
+  return /how\s+(does\s+)?(nelfund|it|this|the\s+loan|dis)\s+work|how\s+nelfund\s+works|how\s+does\s+this\s+nelfund|how\s+(does\s+|e\s+)?(this|dis)\s+nelfund\s+(thing|stuff|matter|loan)?.{0,20}(dey\s+)?work|nelfund\s+(thing|stuff).{0,20}(dey\s+)?work|how\s+(dis|this)\s+nelfund.{0,30}(dey\s+)?work|how.{0,50}nelfund.{0,40}(dey\s+)?work|nelfund.{0,25}dey\s+work|go\s*through\s+(of\s+)?(the\s+)?(whole\s+)?nelfund|whole\s+nelfund\s+(stuff|thing|process|system)|everything\s+(on|about|on\s+how)\s+(how\s+)?nelfund|know\s+everything\s+(on|about)\s+(how\s+)?nelfund|full\s+(guide|overview|explanation|walk\s*through|walkthrough)|explain\s+(how\s+)?nelfund|tell\s+me\s+(how\s+)?nelfund|overview\s+(of\s+)?nelfund|walk\s*me\s+through\s+(nelfund|the\s+loan)|brief\s+(on|about)\s+nelfund|how\s+the\s+(scheme|loan)\s+works/i.test(
     t,
   )
 }

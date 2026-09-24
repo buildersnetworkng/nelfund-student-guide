@@ -196,7 +196,7 @@ function route(raw: string): { intent: IntentId; text: string } | null {
     return { intent: 'eligibility', text: ELIGIBILITY }
   }
   if (
-    /what\s+is\s+(this\s+)?nelfund|nelfund\s+all\s+about|how\s+(does\s+)?(nelfund|this|it).{0,25}work|go\s*through.{0,30}nelfund|whole\s+nelfund|tell\s+me\s+about\s+nelfund|wetin\s+be\s+nelfund|explain\s+nelfund|why\s+nelfund/i.test(
+    /what\s+is\s+(this\s+)?nelfund|nelfund\s+all\s+about|how\s+(does\s+|e\s+)?(nelfund|this|dis|it).{0,40}(dey\s+)?work|how\s+dis\s+nelfund|nelfund.{0,25}dey\s+work|go\s*through.{0,30}nelfund|whole\s+nelfund|tell\s+me\s+about\s+nelfund|wetin\s+be\s+nelfund|explain\s+nelfund|why\s+nelfund/i.test(
       t,
     )
   ) {
@@ -218,7 +218,7 @@ function route(raw: string): { intent: IntentId; text: string } | null {
   }
 
   // Generic login — no last-year email paragraph
-  if (/how\s+(do\s+i|to)\s+(log\s*in|login|sign\s*in)|^(log\s*in|login|sign\s*in)\??$/i.test(t)) {
+  if (/how\s+(do\s+i|to|i\s+go)\s+(log\s*in|login|sign\s*in)|^(log\s*in|login|sign\s*in)\??$/i.test(t)) {
     return { intent: 'portal-login', text: LOGIN }
   }
 
