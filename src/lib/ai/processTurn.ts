@@ -1,7 +1,6 @@
 /**
  * Public turn entry. Conversation engine lives in ./conversation.
- * Extra student-path gates (overview, term meaning) run first so thin
- * paraphrases never fall through to a generic portal dump.
+ * Extra student-path gates (overview, term meaning, portal UI knowledge) run first.
  */
 export {
   processUserTurn as processUserTurnInner,
@@ -26,6 +25,7 @@ import { isOverviewAsk, fullNelfundOverview } from './overviewAsk'
 import { explainTerm } from './termDefine'
 import { playbookAnswer } from './playbook'
 import { classifyIntent } from './intentClassify'
+import { matchPortalKnowledge } from './portalKnowledge'
 import type { IntentId } from './types'
 
 function uid(prefix: string): string {
@@ -88,6 +88,11 @@ export async function processUserTurn(opts: {
     return wrap(raw, opts.slots, term.intent, term.text)
   }
 
+  const portalHit = raw ? matchPortalKnowledge(raw) : null
+  if (portalHit) {
+    return wrap(raw, opts.slots, portalHit.intent as IntentId, portalHit.text)
+  }
+
   if (raw && /forgot|reset\s*password|i\s*no\s*remember\s*(my\s*)?password|password\s*no\s*dey\s*work/i.test(raw)) {
     const hit = gate(raw, opts.slots, lastAsst, 'password-reset')
     if (hit) return hit
@@ -103,11 +108,7 @@ export async function processUserTurn(opts: {
     if (hit) return hit
   }
 
-  if (
-    raw &&
-    /how\s*(to|do\s*i|i\s*go|i\s*fit)\s*apply/.test(low) &&
-    /upkeep|loan/.test(low)
-  ) {
+  if (raw && /how\s*(to|do\s*i|i\s*go|i\s*fit)\s*apply/.test(low) && /upkeep|loan/.test(low)) {
     const hit = gate(raw, opts.slots, lastAsst, 'how-to-apply')
     if (hit) return hit
   }
