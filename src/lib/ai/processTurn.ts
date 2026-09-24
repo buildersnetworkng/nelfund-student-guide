@@ -103,6 +103,16 @@ export async function processUserTurn(opts: {
     if (hit) return hit
   }
 
+  if (raw && /who\s*(fit|can|dey)\s*apply|am\s*i\s*eligible|i\s*(be|dey)\s*\d00\s*l|private\s*(uni|university|school)\s*(fit|can)\s*apply/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'eligibility')
+    if (hit) return hit
+  }
+
+  if (raw && /guarantor|surety|who\s*(go|will)\s*stand\s*for\s*me/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'guarantor')
+    if (hit) return hit
+  }
+
   if (raw && /how\s*(do\s*i|to|i\s*go|i\s*fit)\s*(log\s*in|login|sign\s*in)|^(log\s*in|login|sign\s*in)\??$/i.test(raw)) {
     const hit = gate(raw, opts.slots, lastAsst, 'portal-login')
     if (hit) return hit
