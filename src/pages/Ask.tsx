@@ -314,6 +314,40 @@ export default function Ask() {
                         }}
                       />
                     )}
+                    {(() => {
+                      const chips =
+                        (m.answer?.clarifyingQuestions && m.answer.clarifyingQuestions.length > 0
+                          ? m.answer.clarifyingQuestions
+                          : [
+                              'Who can apply (eligibility)?',
+                              'How do I apply step by step?',
+                              'How do I log in?',
+                              'Is NELFUND a scam?',
+                            ]
+                        ).slice(0, 4)
+                      return (
+                        <div className="mt-3 border-t border-forest-700/10 pt-3">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">
+                            Suggested next — tap to ask
+                          </p>
+                          <div className="mt-1.5 flex flex-col gap-1.5">
+                            {chips.map((q) => (
+                              <button
+                                key={q}
+                                type="button"
+                                disabled={busy}
+                                onClick={() => {
+                                  if (!busy) void sendQuestion(q)
+                                }}
+                                className="rounded-full border border-forest-300 bg-forest-50 px-3 py-2 text-left text-xs font-medium text-forest-900 shadow-sm transition hover:border-forest-500 hover:bg-forest-100 active:scale-[0.99] disabled:opacity-50"
+                              >
+                                {q}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })()}
                   </div>
                   <div className="mr-auto max-w-[92%] space-y-2 px-1 lg:max-w-[80%]">
                     <div className="flex flex-wrap items-center gap-2 text-xs text-ink/55">
