@@ -34,11 +34,17 @@ function byText(userText?: string | null): string[] | null {
   if (/interest[- ]?free|zero\s*interest|does\s*(am|it)\s*get\s*interest/i.test(t)) {
     return two('Is NELFUND a loan or a scholarship?', 'When does repayment start?')
   }
-  if (/still\s*(open|dey\s*open)|deadline|can\s*i\s*still\s*apply|dem\s*don\s*close/i.test(t)) {
+  if (/still\s*(open|dey\s*open)|deadline|can\s*i\s*still\s*apply|dem\s*don\s*close|application\s*(open|close)/i.test(t)) {
     return two('How do I apply step by step?', 'Who can apply (eligibility)?')
   }
-  if (/contact|esupport|help\s*desk|ticket/i.test(t)) {
+  if (/contact|esupport|help\s*desk|ticket|how\s*i\s*go\s*(yarn|call)/i.test(t)) {
     return two('How do I apply step by step?', 'Portal shows missing information')
+  }
+  if (/how\s*(do\s*i|to)\s*(log\s*in|login)|sign\s*in|forgot\s*(my\s*)?password/i.test(t)) {
+    return two('I forgot my password', 'Old email from last year — what do I do?')
+  }
+  if (/how\s*(to|do\s*i|i\s*go)\s*apply|loan\s*and\s*upkeep|i\s*meant/i.test(t)) {
+    return two('How do I log in?', 'What is upkeep vs school fees?')
   }
   if (/upkeep|stipend|allowance/i.test(t)) {
     return two('What is institutional charges?', 'How do I apply for loan and upkeep?')
