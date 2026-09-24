@@ -28,6 +28,15 @@ function byText(userText?: string | null): string[] | null {
   if (/vocational|skills?\s*school|monotechnic|part[\s-]*time|sandwich/i.test(t)) {
     return two('Who can apply (eligibility)?', 'What documents do I need?')
   }
+  if (/already\s*(finish|finished|done)\s*nysc|serving\s*nysc/i.test(t)) {
+    return two('When does repayment start?', 'Is NELFUND a loan or a scholarship?')
+  }
+  if (/verif(y|ication)\s*(mail|email)|email\s*(no|not|never)\s*(dey|come)|confirm\s*email/i.test(t)) {
+    return two('I forgot my password', 'Email already used — what do I do?')
+  }
+  if (/how\s*(i\s*take|i\s*go)\s*(log\s*in|login)|abeg\s*(help\s*)?(me\s*)?(log\s*in|login)|i\s*no\s*fit\s*(log\s*in|login)/i.test(t)) {
+    return two('I forgot my password', 'Old email from last year — what do I do?')
+  }
   if (/passport\s*(photo|photograph)|profile\s*picture|upload\s*photo/i.test(t)) {
     return two('What documents do I need?', 'How do I apply step by step?')
   }
