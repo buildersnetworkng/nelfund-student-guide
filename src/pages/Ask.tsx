@@ -321,10 +321,8 @@ export default function Ask() {
                           : [
                               'Who can apply (eligibility)?',
                               'How do I apply step by step?',
-                              'How do I log in?',
-                              'Is NELFUND a scam?',
                             ]
-                        ).slice(0, 4)
+                        ).slice(0, 2)
                       return (
                         <div className="mt-3 border-t border-forest-700/10 pt-3">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">
