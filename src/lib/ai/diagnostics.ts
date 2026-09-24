@@ -16,34 +16,53 @@ function dedupeActions(actions: string[]): string[] {
   return out
 }
 
-/** Build diagnostic answer text; nextActions always empty (no What-to-do-next UI). */
-export function buildDiagnosticAnswer(
-  intent: IntentId,
-  intentMeta: IntentResult,
-  evidence: EvidenceItem[],
-  tips: string[],
-  steps: string[],
-  stillStuck: string | null,
-  avoid: string[],
-  clarifyingQuestions: string[],
-  answer: string,
-  whatThisMeans: string | null,
-): { answer: string; whatThisMeans: string | null; nextActions: string[]; clarifyingQuestions: string[] } {
-  void intent
-  void intentMeta
+export function diagnosticAssemble(intent: IntentId, evidence: EvidenceItem[], intentMeta: IntentResult) {
+  const clarifyingQuestions: string[] = []
+  let answer = ''
+  let whatThisMeans: string | null = null
+  const tips: string[] = []
+  const steps: string[] = []
+  let stillStuck: string | null = null
+  const avoid: string[] = []
+
+  // Keep answers grounded; nextActions always [] so UI never shows What to do next
+  if (intent === 'portal-login') {
+    answer =
+      '**Log in / sign in**\n\n' +
+      `Open the official login page: ${OFFICIAL_LOGIN}\n\n` +
+      'Enter your NELFUND account email and password.\n' +
+      `New account? Sign up at ${OFFICIAL_PORTAL}`
+    clarifyingQuestions.push('I forgot my password', 'Email already used on the portal')
+  } else if (intent === 'password-reset') {
+    answer =
+      '**Forgot password**\n\n' +
+      `1. Open ${OFFICIAL_LOGIN}\n` +
+      '2. Tap **Forgot password** on that page.\n' +
+      '3. Enter the email for your account and check inbox/spam.\n' +
+      `4. No email: open a support ticket at https://nelfund.esupport.ng/create`
+  } else if (intent === 'email-already-used') {
+    answer =
+      '**Email already used**\n\n' +
+      `1. Log in at ${OFFICIAL_LOGIN} with that same email.\n` +
+      '2. If you forgot the password, use **Forgot password** on the login page.\n' +
+      `3. Still stuck: https://nelfund.esupport.ng/create with a screenshot`
+  } else {
+    answer =
+      intentMeta?.summary ||
+      `Confirm on ${OFFICIAL_SITE} and ${OFFICIAL_PORTAL}. For case-specific issues, open a support ticket at https://nelfund.esupport.ng/create`
+  }
+
   void evidence
   void tips
   void steps
   void stillStuck
   void avoid
-  void OFFICIAL_SITE
-  void OFFICIAL_PORTAL
-  void OFFICIAL_LOGIN
   void dedupeActions
+
   return {
     answer: answer.trim(),
     whatThisMeans,
-    nextActions: [],
+    nextActions: [] as string[],
     clarifyingQuestions: clarifyingQuestions.slice(0, 2),
   }
 }
