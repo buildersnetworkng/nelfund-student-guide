@@ -8,6 +8,7 @@ import { residualOtherHourly144 } from './residualOtherHourly144'
 import { residualOtherHourly146 } from './residualOtherHourly146'
 import { residualOtherHourly147 } from './residualOtherHourly147'
 import { residualOtherHourly148 } from './residualOtherHourly148'
+import { residualOtherHourly149 } from './residualOtherHourly149'
 
 const SCHOOL_HINTS = [
   'unilag',
@@ -275,6 +276,13 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
     )
   ) {
     return hit('current-information', 0.9, ['open-status'], 'Open / deadline residual', 'exploring', entities)
+  }
+
+  try {
+    const h149 = residualOtherHourly149(q, entities)
+    if (h149 && h149.intent !== 'unknown') return h149
+  } catch {
+    /* hourly optional */
   }
 
   try {
