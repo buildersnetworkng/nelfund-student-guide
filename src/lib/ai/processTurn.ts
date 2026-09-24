@@ -45,7 +45,7 @@ function wrap(
     text: userText,
     timestamp: Date.now(),
   }
-  const chips = suggest(intent)
+  const chips = suggest(intent, userText)
   return {
     messages: [
       userMsg,
@@ -255,6 +255,41 @@ export async function processUserTurn(opts: {
 
   if (raw && /part[-\s]*time|sandwich/.test(low) && /eligib|apply|fit|can/.test(low)) {
     const hit = gate(raw, opts.slots, lastAsst, 'eligibility')
+    if (hit) return hit
+  }
+
+  if (raw && /name\s*(no|not|never)\s*(match|the\s*same)|name\s*mismatch|bvn\s*name\s*(no|not)\s*match|different\s*name\s*on\s*(bvn|nin|jamb)/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'bank-information')
+    if (hit) return hit
+  }
+
+  if (raw && /wetin\s*time\s*.{0,12}pay\s*back|i\s*don\s*finish\s*nysc|2\s*years?\s*after\s*nysc/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'repayment')
+    if (hit) return hit
+  }
+
+  if (raw && /\bgsi\b|global\s*standing|wetin\s*be\s*gsi|dem\s*wan\s*debit\s*my\s*account/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'gsi')
+    if (hit) return hit
+  }
+
+  if (raw && /change\s*(of\s*)?(school|institution|course)|I\s*(don|have)\s*transfer|new\s*school\s*(after|since)\s*I\s*apply/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'school-not-found')
+    if (hit) return hit
+  }
+
+  if (raw && /vocational|skills?\s*school|innovation\s*enterprise|monotechnic/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'eligibility')
+    if (hit) return hit
+  }
+
+  if (raw && /passport\s*(photo|photograph)|profile\s*picture|upload\s*photo/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'documents-needed')
+    if (hit) return hit
+  }
+
+  if (raw && /i\s*meant/.test(low) && /apply|loan|upkeep/.test(low)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'how-to-apply')
     if (hit) return hit
   }
 
