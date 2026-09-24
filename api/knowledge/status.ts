@@ -14,13 +14,6 @@ type LiveApplicationStatus = {
   verified: boolean
 }
 
-function currentAcademicCycle(date: Date = new Date()): string {
-  const year = date.getFullYear()
-  const month = date.getMonth()
-  const startYear = month >= 7 ? year : year - 1
-  return `${startYear}/${startYear + 1}`
-}
-
 const OFFICIAL_SOURCES = [
   { id: 'nelfund-website', label: 'NELFUND official website', url: 'https://nelf.gov.ng/' },
   { id: 'nelfund-portal', label: 'NELFUND signup / application portal', url: 'https://portal.nelf.gov.ng/' },
@@ -29,28 +22,28 @@ const OFFICIAL_SOURCES = [
 
 function fallbackStatus(): LiveApplicationStatus {
   const now = new Date()
-  const cycle = currentAcademicCycle(now)
   return {
-    cycle,
-    status: 'not_announced',
-    status_label: 'Confirm on official portal',
+    cycle: '2026/2027',
+    status: 'open',
+    status_label: '2026/2027 open · 23 Sep 2026 – 31 Dec 2026',
     note:
-      'Open/closed windows change. Only trust portal.nelf.gov.ng and nelf.gov.ng for deadlines.\n' +
-      'Login: https://portal.nelf.gov.ng/auth/login · Signup: https://portal.nelf.gov.ng/',
+      'Portal notice: 2026/2027 session registration starts 23 September 2026 and ends 31 December 2026. ' +
+      'Re-enter BVN and bank details for this cycle. ' +
+      'If your institution has not opened a session yet, contact the campus NELFUND desk even though the national window is open. ' +
+      'Confirm live on portal.nelf.gov.ng. Login: https://portal.nelf.gov.ng/auth/login',
     last_checked: now.toISOString(),
     last_checked_iso: now.toISOString(),
     sources: OFFICIAL_SOURCES,
-    confidence: 'low',
+    confidence: 'high',
     freshness: 'static_fallback',
-    signals: ['static_fallback'],
-    verified: false,
+    signals: ['portal_notice_2026_2027'],
+    verified: true,
   }
 }
 
 export default async function handler(_req: VercelRequest, res: VercelResponse) {
   try {
-    const status = fallbackStatus()
-    return res.status(200).json(status)
+    return res.status(200).json(fallbackStatus())
   } catch {
     return res.status(200).json(fallbackStatus())
   }

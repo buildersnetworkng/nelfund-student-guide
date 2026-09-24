@@ -1,7 +1,7 @@
 {
-  "cycle": "auto",
-  "status": "not_announced",
-  "status_label": "Account creation open · Loan/upkeep not confirmed yet",
-  "note": "• Account creation (sign up): OPEN. You can start registration on the portal.\n• To finish account creation you still need NIN, BVN, JAMB, and the other details the portal asks for — you cannot complete it without them.\n• Loan and upkeep application: NOT confirmed open yet for the current cycle. Wait for official opening and closing dates on the portal.\nDo not use social media for deadlines. Use the buttons below for sign in or sign up.",
-  "last_checked": "2026-09-18"
+  "cycle": "2026/2027",
+  "status": "open",
+  "status_label": "2026/2027 open · 23 Sep 2026 – 31 Dec 2026",
+  "note": "• National window (portal notice): 2026/2027 session registration starts 23 September 2026 and ends 31 December 2026.\n• You will not be able to apply for a loan this session after the end date.\n• Returning applicants: re-enter BVN and bank details for this cycle before/while requesting the loan.\n• Institutional charges go to the school; tick upkeep in the same application if you need living support.\n• Admission letter (JPEG/PDF) is mandatory when uploading supporting documents.\n• If the portal says your institution has not opened a session yet, the national window can be open while your school still needs to open/share student data — contact the campus NELFUND desk.\nConfirm live status only on portal.nelf.gov.ng.",
+  "last_checked": "2026-09-24"
 }
