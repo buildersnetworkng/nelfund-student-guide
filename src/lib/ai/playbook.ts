@@ -6,6 +6,7 @@ import { isOverviewAsk, fullNelfundOverview } from './overviewAsk'
 import { explainTerm } from './termDefine'
 import { playbookHourly156 } from './playbookHourly156'
 import { playbookHourly157 } from './playbookHourly157'
+import { playbookHourly158 } from './playbookHourly158'
 
 export type PlaybookContext = {
   institutionName?: string | null
@@ -32,6 +33,8 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   const term = userText ? explainTerm(userText, ctx.lastAssistant) : null
   if (term) return term.text
 
+  const h158 = playbookHourly158(intent, userText)
+  if (h158) return h158
   const h157 = playbookHourly157(intent, userText)
   if (h157) return h157
   const h156 = playbookHourly156(intent, userText)
