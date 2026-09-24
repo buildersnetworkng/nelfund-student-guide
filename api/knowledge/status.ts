@@ -27,10 +27,11 @@ function fallbackStatus(): LiveApplicationStatus {
     status: 'open',
     status_label: '2026/2027 open · 23 Sep 2026 – 31 Dec 2026',
     note:
-      'Portal notice: 2026/2027 session registration starts 23 September 2026 and ends 31 December 2026. ' +
-      'Re-enter BVN and bank details for this cycle. ' +
-      'If your institution has not opened a session yet, contact the campus NELFUND desk even though the national window is open. ' +
-      'Confirm live on portal.nelf.gov.ng. Login: https://portal.nelf.gov.ng/auth/login',
+      'Active session 2026/2027. Window 23 Sep 2026 – 31 Dec 2026. ' +
+      'Re-enter BVN and bank for this cycle. Institutional fee is school-specific (Raise a dispute if wrong before submit). ' +
+      'Upkeep if selected: portal shows monthly stipend of N20,000 to your account (confirm live). ' +
+      'Accept Terms & GSI Mandate before submit. Pending shows under Institutional / Upkeep tabs. ' +
+      'Confirm on portal.nelf.gov.ng. Login: https://portal.nelf.gov.ng/auth/login',
     last_checked: now.toISOString(),
     last_checked_iso: now.toISOString(),
     sources: OFFICIAL_SOURCES,
