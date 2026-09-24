@@ -113,12 +113,12 @@ export async function processUserTurn(opts: {
     if (hit) return hit
   }
 
-  if (raw && /how\s*(do\s*i|to|i\s*go|i\s*fit)\s*(log\s*in|login|sign\s*in)|^(log\s*in|login|sign\s*in)\??$/i.test(raw)) {
+  if (raw && /how\s*(do\s*i|to|i\s*go|i\s*fit|i\s*take)\s*(log\s*in|login|sign\s*in)|^(log\s*in|login|sign\s*in)\??$/i.test(raw)) {
     const hit = gate(raw, opts.slots, lastAsst, 'portal-login')
     if (hit) return hit
   }
 
-  if (raw && /how\s*(to|do\s*i|i\s*go|i\s*fit)\s*apply/.test(low) && /upkeep|loan/.test(low)) {
+  if (raw && (/how\s*(to|do\s*i|i\s*go|i\s*fit|i\s*take)\s*apply/.test(low) && /upkeep|loan/.test(low) || /apply\s*(for\s*)?(the\s*)?(loan|upkeep).{0,24}(and|&)\s*(loan|upkeep)/.test(low))) {
     const hit = gate(raw, opts.slots, lastAsst, 'how-to-apply')
     if (hit) return hit
   }
@@ -148,6 +148,31 @@ export async function processUserTurn(opts: {
     if (hit) return hit
   }
 
+  if (raw && /\bnin\b.*(no|not|never|fail|invalid|verify)|nin\s*(no|not)\s*(match|link)|verify.{0,12}nin/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'nin-verification')
+    if (hit) return hit
+  }
+
+  if (raw && /rejected|decline[d]?|dem\s*reject|application\s*(no|not)\s*(go|pass)/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'rejected-application')
+    if (hit) return hit
+  }
+
+  if (raw && /re-?apply|apply\s*again|last\s*year\s*(account|email)/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'reapplication')
+    if (hit) return hit
+  }
+
+  if (raw && /wrong\s*bank|change\s*(my\s*)?(bank|account)|bvn\s*(no|not)\s*match|account\s*name/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'bank-information')
+    if (hit) return hit
+  }
+
+  if (raw && /refund|school\s*don\s*collect|double\s*payment/i.test(raw)) {
+    const hit = gate(raw, opts.slots, lastAsst, 'refund')
+    if (hit) return hit
+  }
+
   if (raw && /repay|pay\s*back|after\s*nysc|when\s*(i|una)\s*(go|will)\s*pay\s*(am|back)/i.test(raw) && !/how\s*to\s*apply/.test(low)) {
     const hit = gate(raw, opts.slots, lastAsst, 'repayment')
     if (hit) return hit
@@ -168,7 +193,7 @@ export async function processUserTurn(opts: {
     if (hit) return hit
   }
 
-  if (raw && /application\s*(open|close|still\s*dey)|is\s*(the\s*)?(loan|portal|application)\s*(open|close)|deadline|window/i.test(raw)) {
+  if (raw && /application\s*(open|close|still\s*dey)|is\s*(the\s*)?(loan|portal|application)\s*(open|close)|deadline|window|dem\s*don\s*close|fit\s*still\s*apply/i.test(raw)) {
     const hit = gate(raw, opts.slots, lastAsst, 'current-information')
     if (hit) return hit
   }
