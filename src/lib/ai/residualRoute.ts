@@ -9,6 +9,7 @@ import { residualOtherHourly146 } from './residualOtherHourly146'
 import { residualOtherHourly147 } from './residualOtherHourly147'
 import { residualOtherHourly148 } from './residualOtherHourly148'
 import { residualOtherHourly149 } from './residualOtherHourly149'
+import { residualOtherHourly150 } from './residualOtherHourly150'
 
 const SCHOOL_HINTS = [
   'unilag',
@@ -96,7 +97,7 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   if (!q) return null
 
   if (
-    /email\s*(already|don|has|is)\s*(used|exist|registered)|registered\s*(last\s*)?year|last\s*year\s*(i\s*)?(register|apply)|account\s*already|forgot\s*(my\s*)?password|cannot\s*(log\s*in|login)|otp\s*(no|not|never)|mail\s*(don|already)\s*(use|exist)|i\s*use\s*(this\s*)?mail\s*before|old\s*email|email\s*wahala|password\s*(no|not)\s*(gree|work)|reset\s*password|login\s*no\s*gree|sign\s*in\s*no\s*work|i\s*don\s*register\s*before|account\s*dey\s*already|mail\s*don\s*register/i.test(
+    /email\s*(already|don|has|is)\s*(used|exist|registered)|registered\s*(last\s*)?year|last\s*year\s*(i\s*)?(register|apply)|account\s*already|forgot\s*(my\s*)?password|cannot\s*(log\s*in|login)|otp\s*(no|not|never)|mail\s*(don|already)\s*(use|exist)|i\s*use\s*(this\s*)?mail\s*before|old\s*email|email\s*wahala|password\s*(no|not)\s*(gree|work)|reset\s*password|login\s*no\s*gree|sign\s*in\s*no\s*work|i\s*don\s*register\s*before|account\s*dey\s*already|mail\s*don\s*register|this\s*email\s*has\s*already|mail\s*already\s*in\s*use/i.test(
       q,
     )
   ) {
@@ -104,7 +105,7 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   }
 
   if (
-    /invalid\s*jamb|jamb\s*(number\s*)?(no|not|never|invalid|wrong|fail|reject)|utme\s*(no|not|invalid)|jamb\s*(verification|verify|caps|reg)|jamb\s*(no|not)\s*(gree|match|work)|my\s*jamb\s*(dey|is)\s*(wrong|invalid)|jamb\s*wahala|cannot\s*verify\s*jamb|jamb\s*no\s*dey\s*work|utme\s*number\s*(wrong|invalid)|jamb\s*reg\s*(no|not)/i.test(
+    /invalid\s*jamb|jamb\s*(number\s*)?(no|not|never|invalid|wrong|fail|reject)|utme\s*(no|not|invalid)|jamb\s*(verification|verify|caps|reg)|jamb\s*(no|not)\s*(gree|match|work)|my\s*jamb\s*(dey|is)\s*(wrong|invalid)|jamb\s*wahala|cannot\s*verify\s*jamb|jamb\s*no\s*dey\s*work|utme\s*number\s*(wrong|invalid)|jamb\s*reg\s*(no|not)|edit\s*jamb|correct\s*my\s*jamb|portal\s*reject\s*(my\s*)?jamb/i.test(
       q,
     )
   ) {
@@ -112,7 +113,7 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   }
 
   if (
-    /school\s*(no|not|never)\s*(dey|show|appear|list)|institution\s*(no|not)\s*(dey|on|in)|cannot\s*(see|find)\s*(my\s*)?school|school\s*wahala\s*(list|dropdown)|school\s*no\s*show\s*for\s*portal|my\s*uni\s*no\s*dey|school\s*missing|dropdown\s*(empty|blank)|list\s*of\s*school\s*(no|not)|institution\s*list\s*(empty|no)/i.test(
+    /school\s*(no|not|never)\s*(dey|show|appear|list)|institution\s*(no|not)\s*(dey|on|in)|cannot\s*(see|find)\s*(my\s*)?school|school\s*wahala\s*(list|dropdown)|school\s*no\s*show\s*for\s*portal|my\s*uni\s*no\s*dey|school\s*missing|dropdown\s*(empty|blank)|list\s*of\s*school\s*(no|not)|institution\s*list\s*(empty|no)|cannot\s*select\s*(my\s*)?(school|institution)|search\s*school\s*(no|not)\s*find/i.test(
       q,
     )
   ) {
@@ -120,7 +121,7 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   }
 
   if (
-    /when\s*(do\s*i|to|i\s*(go|fit))\s*(start\s*)?repay|pay\s*back|after\s*nysc|gsi|how\s*(will|go)\s*i\s*pay|repayment\s*(start|begin|plan)|when\s*(dem|they)\s*(go|will)\s*(collect|deduct)|how\s*(e|i)\s*take\s*pay\s*back|loan\s*repay|i\s*go\s*pay\s*how|salary\s*deduct|how\s*long\s*(to\s*)?pay/i.test(
+    /when\s*(do\s*i|to|i\s*(go|fit))\s*(start\s*)?repay|pay\s*back|after\s*nysc|gsi|how\s*(will|go)\s*i\s*pay|repayment\s*(start|begin|plan)|when\s*(dem|they)\s*(go|will)\s*(collect|deduct)|how\s*(e|i)\s*take\s*pay\s*back|loan\s*repay|i\s*go\s*pay\s*how|salary\s*deduct|how\s*long\s*(to\s*)?pay|payback\s*period|loan\s*tenor|after\s*i\s*finish\s*school\s*how\s*pay/i.test(
       q,
     )
   ) {
@@ -128,7 +129,7 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   }
 
   if (
-    /how\s*far|still\s*pending|application\s*(is\s*)?pending|wetin\s*dey\s*hold|money\s*never|e\s*never\s*(drop|enter|credit)|status\s*(na|is|still)\s*pending|una\s*never\s*pay|dem\s*never\s*pay|waiting\s*for\s*(loan|upkeep|alert)|any\s*update|track\s*(my\s*)?(loan|file)|my\s*own\s*never\s*(show|move)|processing\s*since|under\s*review\s*(still|since)|alert\s*never\s*come|mates?\s*(don|have)\s*(collect|receive)|dashboard\s*(still\s*)?(0|zero)|approved\s*(but|and)\s*(no|never)\s*(money|alert)|\bbatch\s*[1-9]\b/i.test(
+    /how\s*far|still\s*pending|application\s*(is\s*)?pending|wetin\s*dey\s*hold|money\s*never|e\s*never\s*(drop|enter|credit)|status\s*(na|is|still)\s*pending|una\s*never\s*pay|dem\s*never\s*pay|waiting\s*for\s*(loan|upkeep|alert)|any\s*update|track\s*(my\s*)?(loan|file)|my\s*own\s*never\s*(show|move)|processing\s*since|under\s*review\s*(still|since)|alert\s*never\s*come|mates?\s*(don|have)\s*(collect|receive)|dashboard\s*(still\s*)?(0|zero)|approved\s*(but|and)\s*(no|never)\s*(money|alert)|\bbatch\s*[1-9]\b|kobo\s*never\s*enter|approved\s*no\s*pay/i.test(
       q,
     )
   ) {
@@ -144,7 +145,7 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   }
 
   if (
-    /i\s*(just\s*)?(need|wan|want)\s*(help|info|information|guidance)|abeg\s*(help|assist)|una\s*fit\s*help|i\s*dey\s*(lost|confused|stranded)|i\s*no\s*(sabi|know)\s*(wetin|where|anything)|portal\s*wahala|i\s*get\s*(issue|problem|wahala)|something\s*dey\s*wrong|help\s*me\s*(with\s*)?(this\s*)?(nelfund|loan|thing|matter)|assist\s*me\s*(on|with)\s*(this\s*)?(loan|nelfund)|i\s*just\s*land|e\s*no\s*clear|make\s*una\s*(guide|help|show)\s*me|gimme\s*(menu|options|list)|short\s*menu|wetin\s*una\s*fit\s*do|how\s*(this|dis)\s*(thing|matter)\s*dey\s*work|i\s*need\s*assistance|kindly\s*assist|orientate\s*me|point\s*me|direct\s*me|nelfund\s*help|loan\s*help\s*abeg|i\s*no\s*understand\s*(anything|am)|how\s*i\s*(go|fit)\s*start|any\s*(info|information|guide)\s*(abeg|pls)?|tell\s*me\s*something|wetin\s*una\s*dey\s*do|i\s*just\s*wan\s*yarn|e\s*dey\s*hard|i\s*no\s*get\s*direction|show\s*me\s*where\s*to\s*start|i\s*need\s*una|help\s*small|abeg\s*yarn|make\s*una\s*clear\s*am|i\s*dey\s*blank|wetin\s*i\s*suppose\s*ask|can\s*you\s*help\s*with\s*nelfund|please\s*i\s*need\s*(direction|clarity)|kindly\s*guide\s*me|i\s*wan\s*ask\s*something|una\s*dey\s*there|i\s*dey\s*find\s*road|give\s*me\s*compass|help\s*me\s*pick\s*topic|what\s*topics\s*can\s*you|list\s*what\s*you\s*can\s*help|menu\s*please|confused\s*student\s*here|just\s*onboard\s*me|i\s*am\s*new\s*to\s*this\s*scheme|kindly\s*point\s*me|good\s*day.{0,12}guidance|biko\s*help|oga\s*abeg/i.test(
+    /i\s*(just\s*)?(need|wan|want)\s*(help|info|information|guidance)|abeg\s*(help|assist)|una\s*fit\s*help|i\s*dey\s*(lost|confused|stranded)|i\s*no\s*(sabi|know)\s*(wetin|where|anything)|portal\s*wahala|i\s*get\s*(issue|problem|wahala)|something\s*dey\s*wrong|help\s*me\s*(with\s*)?(this\s*)?(nelfund|loan|thing|matter)|assist\s*me\s*(on|with)\s*(this\s*)?(loan|nelfund)|i\s*just\s*land|e\s*no\s*clear|make\s*una\s*(guide|help|show)\s*me|gimme\s*(menu|options|list)|short\s*menu|wetin\s*una\s*fit\s*do|how\s*(this|dis)\s*(thing|matter)\s*dey\s*work|i\s*need\s*assistance|kindly\s*assist|orientate\s*me|point\s*me|direct\s*me|nelfund\s*help|loan\s*help\s*abeg|i\s*no\s*understand\s*(anything|am)|how\s*i\s*(go|fit)\s*start|any\s*(info|information|guide)\s*(abeg|pls)?|tell\s*me\s*something|wetin\s*una\s*dey\s*do|i\s*just\s*wan\s*yarn|e\s*dey\s*hard|i\s*no\s*get\s*direction|show\s*me\s*where\s*to\s*start|i\s*need\s*una|help\s*small|abeg\s*yarn|make\s*una\s*clear\s*am|i\s*dey\s*blank|wetin\s*i\s*suppose\s*ask|can\s*you\s*help\s*with\s*nelfund|please\s*i\s*need\s*(direction|clarity)|kindly\s*guide\s*me|i\s*wan\s*ask\s*something|una\s*dey\s*there|i\s*dey\s*find\s*road|give\s*me\s*compass|help\s*me\s*pick\s*topic|what\s*topics\s*can\s*you|list\s*what\s*you\s*can\s*help|menu\s*please|confused\s*student\s*here|just\s*onboard\s*me|i\s*am\s*new\s*to\s*this\s*scheme|kindly\s*point\s*me|good\s*day.{0,12}guidance|biko\s*help|oga\s*abeg|please\s*(i\s*)?need\s*(a\s*)?(short\s*)?(menu|list|options)|i\s*just\s*open\s*(this\s*)?(page|site|chat)|start\s*me\s*from\s*zero/i.test(
       q,
     )
   ) {
@@ -167,7 +168,7 @@ export function residualOtherRoute(text: string, entities: string[]): IntentResu
   }
 
   if (
-    /i\s*(wan|want|wanna|go)\s*(to\s*)?(apply|register|enroll)|how\s*(i\s*)?(go|fit|can|do)\s*(apply|register)|abeg\s*how\s*(i\s*)?(go\s*)?apply|make\s*i\s*apply|steps?\s*(to\s*)?apply|i\s*wan\s*start\s*(the\s*)?(application|apply)|how\s*to\s*apply\s*(abeg|pls|na)?|apply\s*(na|abeg|pls)\s*(how|now)?|i\s*no\s*sabi\s*how\s*(to\s*)?apply|teach\s*me\s*how\s*to\s*apply|show\s*me\s*how\s*(to\s*)?apply|application\s*steps?|wetin\s*i\s*(go|suppose)\s*do\s*to\s*apply|i\s*just\s*wan\s*apply|una\s*fit\s*show\s*me\s*apply/i.test(
+    /i\s*(wan|want|wanna|go)\s*(to\s*)?(apply|register|enroll)|how\s*(i\s*)?(go|fit|can|do)\s*(apply|register)|abeg\s*how\s*(i\s*)?(go\s*)?apply|make\s*i\s*apply|steps?\s*(to\s*)?apply|i\s*wan\s*start\s*(the\s*)?(application|apply)|how\s*to\s*apply\s*(abeg|pls|na)?|apply\s*(na|abeg|pls)\s*(how|now)?|i\s*no\s*sabi\s*how\s*(to\s*)?apply|teach\s*me\s*how\s*to\s*apply|show\s*me\s*how\s*(to\s*)?apply|application\s*steps?|wetin\s*i\s*(go|suppose)\s*do\s*to\s*apply|i\s*just\s*wan\s*apply|una\s*fit\s*show\s*me\s*apply|application\s*procedure|i\s*wan\s*fill\s*form/i.test(
       q,
     )
   ) {
@@ -276,6 +277,13 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
     )
   ) {
     return hit('current-information', 0.9, ['open-status'], 'Open / deadline residual', 'exploring', entities)
+  }
+
+  try {
+    const h150 = residualOtherHourly150(q, entities)
+    if (h150 && h150.intent !== 'unknown') return h150
+  } catch {
+    /* hourly optional */
   }
 
   try {
