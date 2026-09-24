@@ -1,17 +1,24 @@
 [
   {
     "id": "nelfund-website",
-    "label": "NELFUND website (log in / sign in)",
+    "label": "NELFUND official website",
     "url": "https://nelf.gov.ng/",
     "type": "official",
-    "notes": "Official site for logging in / signing in."
+    "notes": "Official NELFUND website."
   },
   {
     "id": "nelfund-portal",
-    "label": "NELFUND application portal (sign up / apply)",
+    "label": "NELFUND signup / application portal",
     "url": "https://portal.nelf.gov.ng/",
     "type": "official",
-    "notes": "Official portal for signing up and applying."
+    "notes": "Official portal for account signup and applications."
+  },
+  {
+    "id": "nelfund-login",
+    "label": "NELFUND login / sign in",
+    "url": "https://portal.nelf.gov.ng/auth/login",
+    "type": "official",
+    "notes": "Official login / sign-in page."
   },
   {
     "id": "nelfund-esupport",
@@ -25,6 +32,6 @@
     "label": "OOU student portal",
     "url": "https://stdportal.oouagoiwoye.edu.ng/",
     "type": "institution",
-    "notes": "Institution student portal (example)."
+    "notes": "Institution student portal (not NELFUND)."
   }
 ]
