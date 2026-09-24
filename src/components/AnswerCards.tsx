@@ -119,42 +119,6 @@ export function AnswerCards({
         </div>
       )}
 
-      {answer.nextActions.length > 0 && (
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">What to do next</p>
-          <ol className="mt-1 list-decimal space-y-1.5 pl-5 text-sm text-ink/80">
-            {answer.nextActions.slice(0, 5).map((a) => (
-              <li key={a}>
-                <LinkifiedText text={a} className="text-sm leading-snug text-ink/80" />
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-
-      {(answer.clarifyingQuestions?.length ?? 0) > 0 && (
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">Suggested next</p>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {answer.clarifyingQuestions!.slice(0, 4).map((q) => (
-              <button
-                key={q}
-                type="button"
-                onClick={() => {
-                  if (onAsk) onAsk(q)
-                  else if (typeof window !== 'undefined') {
-                    window.dispatchEvent(new CustomEvent('nelfund-suggest', { detail: q }))
-                  }
-                }}
-                className="rounded-full border border-forest-200 bg-white px-3 py-1.5 text-left text-xs font-medium text-forest-900 shadow-sm transition hover:border-forest-400 hover:bg-forest-50 active:scale-[0.98]"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {answer.escalation && (
         <div className="rounded-xl border border-forest-700/15 bg-forest-50/40 p-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-forest-800">Support path</p>
