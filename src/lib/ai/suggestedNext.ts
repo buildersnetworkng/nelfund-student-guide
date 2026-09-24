@@ -28,17 +28,17 @@ export function suggestedNextQuestions(intent: IntentId | string | null | undefi
       return two('I forgot my password', 'How do I contact official support?')
     case 'upkeep':
     case 'upkeep-allowance':
-      return two('What is institutional charges?', 'How do I apply for upkeep?')
+      return two('What is institutional charges?', 'How do I apply for loan and upkeep?')
     case 'institutional-charges':
     case 'upkeep-vs-fees':
     case 'school-fees':
-      return two('What is upkeep?', 'How do I apply?')
+      return two('What is upkeep?', 'How do I apply for the loan and upkeep?')
     case 'missing-information':
     case 'school-not-found':
     case 'institution-verification':
       return two('How do I know if my school uploaded my data?', 'How do I contact official support?')
     case 'pending-application':
-      return two('When will money enter my account?', 'How do I contact official support?')
+      return two('When does official disbursement happen after approval?', 'How do I contact official support?')
     case 'repayment':
     case 'gsi':
       return two('Is NELFUND a loan or a scholarship?', 'How do I check status on the portal?')
@@ -57,6 +57,18 @@ export function suggestedNextQuestions(intent: IntentId | string | null | undefi
       return two('How do I apply step by step?', 'Who can apply (eligibility)?')
     case 'documents-needed':
       return two('How do I apply step by step?', 'How do I log in?')
+    case 'refund':
+      return two('What is institutional charges?', 'How do I contact official support?')
+    case 'bank-information':
+      return two('What is upkeep?', 'How do I log in?')
+    case 'rejected-application':
+      return two('How do I contact official support?', 'Who can apply (eligibility)?')
+    case 'reapplication':
+      return two('How do I log in with last year email?', 'How do I apply step by step?')
+    case 'guarantor':
+      return two('Who can apply (eligibility)?', 'What documents do I need?')
+    case 'nin-verification':
+      return two('JAMB verification failed', 'What documents do I need?')
     default:
       return DEFAULT
   }

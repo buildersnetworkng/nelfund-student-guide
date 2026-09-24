@@ -42,6 +42,20 @@ const TERM_DEFS: Array<{ re: RegExp; intent: IntentId; answer: string }> = [
       `In NELFUND talk, **school fees** usually means **institutional charges** — what your school bills for the programme.\n\n` +
       `NELFUND pays that part **to the school**. Optional **upkeep** is separate and goes to you.`,
   },
+  {
+    re: /disburse|payout|when\s*money/i,
+    intent: 'pending-application',
+    answer:
+      `**Disbursement** means NELFUND paying an approved loan.\n\n` +
+      `Official FAQ: within **30 days of approval**. Institutional charges go to the school; upkeep (if ticked) goes to you. Confirm status on ${PORTAL}. I will not invent your personal date.`,
+  },
+  {
+    re: /\bpending\b|under\s*review/i,
+    intent: 'pending-application',
+    answer:
+      `**Pending** on the portal means the application is not finished processing yet.\n\n` +
+      `Sign in at ${PORTAL} and read the exact status. I cannot move the queue from this chat.`,
+  },
 ]
 
 /** "What do you mean by…?", "What's X?", "Wetin be X?" */
@@ -66,10 +80,6 @@ function cleanTypos(text: string): string {
     .trim()
 }
 
-/**
- * If the student asks what a NELFUND term means (including typos like "chargers"),
- * return a short definition. Uses last assistant text when the term is only there.
- */
 export function explainTerm(
   userText: string,
   lastAssistant?: string | null,
