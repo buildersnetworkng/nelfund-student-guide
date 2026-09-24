@@ -12,6 +12,7 @@ import { residualOtherHourly149 } from './residualOtherHourly149'
 import { residualOtherHourly150 } from './residualOtherHourly150'
 import { residualOtherHourly153 } from './residualOtherHourly153'
 import { residualOtherHourly154 } from './residualOtherHourly154'
+import { residualOtherHourly155 } from './residualOtherHourly155'
 
 const SCHOOL_HINTS = [
   'unilag',
@@ -93,10 +94,23 @@ function hit(
   return { intent, confidence, topics, problem, stage, entities, isTroubleshooting }
 }
 
+function tryHourly155(q: string, entities: string[]): IntentResult | null {
+  try {
+    const h155 = residualOtherHourly155(q, entities)
+    if (h155 && h155.intent !== 'unknown') return h155
+  } catch {
+    /* hourly optional */
+  }
+  return null
+}
+
 /** Extra residual shapes for the live other unknown bucket. */
 export function residualOtherRoute(text: string, entities: string[]): IntentResult | null {
   const q = (text || '').trim()
   if (!q) return null
+
+  const h155 = tryHourly155(q, entities)
+  if (h155) return h155
 
   try {
     const h154 = residualOtherHourly154(q, entities)
@@ -254,6 +268,9 @@ export function residualSoftRoute(text: string, entities: string[]): IntentResul
   ) {
     return hit('current-information', 0.9, ['open-status'], 'Open / deadline residual', 'exploring', entities)
   }
+
+  const h155 = tryHourly155(q, entities)
+  if (h155) return h155
 
   try {
     const h154 = residualOtherHourly154(q, entities)
