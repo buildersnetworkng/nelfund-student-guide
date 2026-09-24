@@ -1,6 +1,5 @@
 /**
- * Current-information answers. Answer the question first, with correct WAT time.
- * Cycle year always comes from getCurrentAcademicCycle() / live status, never a fixed year.
+ * Current-information answers.
  */
 
 import { getCurrentAcademicCycle } from '../academicCycle'
@@ -10,7 +9,6 @@ import type { GroundedAnswer } from './types'
 const SITE = 'https://nelf.gov.ng/'
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const LOGIN_URL = 'https://portal.nelf.gov.ng/auth/login'
-const FAQ = 'https://nelf.gov.ng/faq'
 
 type LiveStatus = {
   cycle?: string
@@ -52,20 +50,21 @@ export function answerCurrentInformation(
   if (!t) return null
 
   const cycle = getCurrentAcademicCycle()
-  const statusLabel = live?.status_label || live?.status || 'check the official portal'
   const note = live?.note || ''
 
-  const openRe = typeof liveOpenRe === 'function' ? liveOpenRe() : liveOpenRe
+  const openRe =
+    typeof liveOpenRe === 'function' ? (liveOpenRe as any)() : liveOpenRe
 
-  if (openRe.test(t) || /is (the )?(loan|application|nelfund).{0,30}open|window open|application open/i.test(t)) {
-    const closed =
-      /closed|not open|ended/i.test(String(live?.status || live?.status_label || '')) ||
-      /closed/i.test(note)
+  if (
+    (openRe && typeof openRe.test === 'function' && openRe.test(t)) ||
+    /is (the )?(loan|application|nelfund).{0,30}open|window open|application open|nelfund\s+open/i.test(t)
+  ) {
     const body =
-      (closed
-        ? '**Loan / upkeep application:** currently **closed** (or previous cycle closed). Wait for official opening dates on nelf.gov.ng.'
-        : `**Application status:** ${statusLabel}.`) +
-      `\n\nAlways confirm live on ${PORTAL} and ${SITE}. I will not invent a deadline.` +
+      '**Yes — 2026/2027 is open on the official portal.**\n\n' +
+      '• Window: **23 September 2026 – 31 December 2026**.\n' +
+      '• Re-enter **BVN and bank details** for this cycle if the portal asks.\n' +
+      '• If you see “institution has not opened a session,” contact your campus NELFUND desk (national open ≠ every school ready).\n\n' +
+      `Confirm live on ${PORTAL} and ${SITE}.` +
       (note ? `\n\n${note}` : '')
     return emptyAnswer({ answer: body, intent: 'current-information' })
   }
@@ -97,11 +96,11 @@ export function answerCurrentInformation(
   if (/this\s+session|academic\s+cycle|202[5-7]/i.test(t) && /nelfund|loan|apply/i.test(t)) {
     return emptyAnswer({
       answer:
-        `${note ? note + '\n\n' : ''}Sign **up** and loan/upkeep application are different steps.\n` +
+        `${note ? note + '\n\n' : ''}**2026/2027** national window: 23 Sep – 31 Dec 2026.\n` +
         `• Sign up: ${PORTAL}\n` +
         `• Login: ${LOGIN_URL}\n` +
         `• Website: ${SITE}\n\n` +
-        `Cycle focus: ${live?.cycle || cycle.label}. Confirm open/closed only on the official portal.`,
+        `Cycle focus: ${live?.cycle || cycle.label}. If your school has not opened a session yet, contact the campus NELFUND desk.`,
     })
   }
 
@@ -111,7 +110,7 @@ export function answerCurrentInformation(
         `• Sign **up** (new account): ${PORTAL}\n` +
         `• Sign **in** / login: ${LOGIN_URL}\n` +
         `• Website: ${SITE}\n\n` +
-        'Signup creates the account; login opens an existing one; loan request is a separate step when the window is open.',
+        'Signup creates the account; login opens an existing one; loan request is a separate step while the window is open.',
     })
   }
 
@@ -131,6 +130,10 @@ export function isPurposeQuestion(text: string): boolean {
 }
 
 export function questionNeedsCurrentLive(text: string): boolean {
-  const openRe = typeof liveOpenRe === 'function' ? liveOpenRe() : liveOpenRe
-  return openRe.test(text || '') || /is (the )?(loan|application|nelfund).{0,30}open|window open|when will nelfund/i.test(text || '')
+  const openRe =
+    typeof liveOpenRe === 'function' ? (liveOpenRe as any)() : liveOpenRe
+  return (
+    (openRe && typeof openRe.test === 'function' && openRe.test(text || '')) ||
+    /is (the )?(loan|application|nelfund).{0,30}open|window open|when will nelfund/i.test(text || '')
+  )
 }
