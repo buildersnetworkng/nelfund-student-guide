@@ -93,8 +93,12 @@ function gate(
   lastAsst: string | null,
   intent: IntentId,
 ): AgentTurnResult | null {
-  const pb = playbookAnswer(intent, { userText: raw, lastAssistant: lastAsst })
-  if (pb) return wrap(raw, slots, intent, pb)
+  try {
+    const pb = playbookAnswer(intent, { userText: raw, lastAssistant: lastAsst })
+    if (pb) return wrap(raw, slots, intent, pb)
+  } catch {
+    /* fall through */
+  }
   return null
 }
 
@@ -156,7 +160,7 @@ export async function processUserTurn(opts: {
           applied
             ? [
                 '**Screen:** Student loan portal Home / dashboard.',
-                '**Have you applied?** **Yes.**',
+                '**Have you applied?** **Yes** — at least one request is on this account.',
                 total || pending
                   ? `Counters read from the screenshot: Total **${total || '?'}**, Pending **${pending || '?'}**.`
                   : 'Pending / Total look non-zero on this screenshot.',
@@ -173,17 +177,59 @@ export async function processUserTurn(opts: {
               ].join('\n'),
         )
       }
+      // Cancel loan confirmation dialog
+      if (/cancel\s*(loan|application)|are\s*you\s*sure\s*you\s*want\s*to\s*cancel|yes,\s*cancel\s*loan|don'?t\s*cancel/i.test(ocr)) {
+        return wrap(
+          raw || '[Screenshot uploaded]',
+          opts.slots,
+          'pending-application',
+          [
+            '**Screen:** Cancel Loan Application confirmation.',
+            '',
+            'The portal is asking if you are **sure** you want to cancel this loan application.',
+            '',
+            '**Important (from the portal text):**',
+            '• Cancelling the **institutional / school-fees loan** will also cancel your **upkeep** loan if you have one.',
+            '• **This action cannot be undone.**',
+            '',
+            '**What to do:**',
+            "• If you still want the loan/upkeep → tap **Don't Cancel** (leave the application as it is).",
+            '• If you truly want to withdraw → only then tap **Yes, Cancel Loan**.',
+            '',
+            'Pending applications are normal while NELFUND processes them — you usually do **not** need to cancel unless you applied by mistake or need to correct something with support first.',
+            '',
+            'Portal: https://portal.nelf.gov.ng/',
+            'Login: https://portal.nelf.gov.ng/auth/login',
+            'If stuck after a mistake: https://nelfund.esupport.ng/create',
+          ].join('\n'),
+        )
+      }
+      if (/admission\s*letter\s*(is\s*)?required|upload\s*(an?\s*)?admission/i.test(ocr)) {
+        return wrap(
+          raw || '[Screenshot uploaded]',
+          opts.slots,
+          'documents-needed',
+          [
+            '**Screen:** Application blocker — **An admission letter is required**.',
+            '',
+            'Upload a clear admission letter (or school admission evidence the portal accepts) on that step, then continue.',
+            'If you already uploaded and still see the red banner, try a sharper PDF/JPG and confirm the file is not password-protected.',
+            '',
+            'Portal: https://portal.nelf.gov.ng/',
+            'Ticket if still blocked: https://nelfund.esupport.ng/create',
+          ].join('\n'),
+        )
+      }
       return wrap(
         raw || '[Screenshot uploaded]',
         opts.slots,
         'current-information',
         [
-          'I read text from your screenshot, but I could not match a full portal page layout.',
+          'I could read some text from your screenshot, but not a full standard layout.',
           '',
-          'Visible text (short):',
-          ocr.slice(0, 280).replace(/\s+/g, ' ').trim(),
+          'From what is visible, reply with the **main title or red message** (for example: Cancel Loan Application, Pending Loans 2, No Result found, admission letter is required).',
           '',
-          'Reply with the **exact red banner or status words** (e.g. Pending Loans 2, No Result found, admission letter is required), or re-upload a sharper crop of the main message.',
+          'Or re-upload a sharper crop focused on the banner/status only.',
           'Portal: https://portal.nelf.gov.ng/',
         ].join('\n'),
       )
@@ -218,9 +264,9 @@ export async function processUserTurn(opts: {
         '**Yes — 2026/2027 is open on the official portal.**',
         '',
         '• Window: **23 September 2026 – 31 December 2026**.',
-        '• Re-enter **BVN and bank details** for this cycle if the portal asks.',
-        '• Apply for **institutional fee** and/or **upkeep** while the window is open.',
-        '• If your school has not opened a session yet, contact the campus NELFUND desk.',
+        '• Students re-enter **BVN and bank details** for this cycle when the portal asks.',
+        '• You can request **institutional fee** and/or **upkeep**.',
+        '• If Home says your institution has not opened a session, contact your campus NELFUND desk.',
         '',
         'Portal: https://portal.nelf.gov.ng/',
         'Login: https://portal.nelf.gov.ng/auth/login',
