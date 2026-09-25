@@ -112,18 +112,17 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
 
   if (intent === 'how-to-apply') {
-    const upkeepBit = /upkeep|stipend|allowance/i.test(userText)
-      ? '\nTick **upkeep** in the same application session if you want the optional living support (paid to you). Institutional charges still go to the school.\n'
-      : ''
     return (
       '**How to apply**\n\n' +
-      `1. Open ${PORTAL}\n` +
-      '2. Create account or sign in.\n' +
-      `3. Login page: ${LOGIN_URL}\n` +
-      '4. Complete profile (JAMB, NIN, BVN, bank).\n' +
-      '5. Request the loan when the official window is open.' +
-      upkeepBit +
-      `\n6. Stuck: campus NELFUND desk, then ${ESUPPORT}.`
+      `1. Open ${PORTAL} — create account or sign in (${LOGIN_URL}).\n` +
+      '2. Complete **Profile** (JAMB, NIN, BVN, bank). Re-enter BVN/bank for 2026/2027 when asked.\n' +
+      '3. On **Home**, confirm your school session is open.\n' +
+      '4. Start the loan request. Choose **institutional (school fees)** and/or optional **upkeep**.\n' +
+      '5. When the fee amount is shown: if it is **not** your real school charges, use **Raise a dispute** / Fee Disputes **before Submit**.\n' +
+      '6. Upload documents (e.g. admission letter) when asked → **Submit**.\n' +
+      '7. After submit: **☰ (three lines) → Loans** to see Institutional / Upkeep status (**Pending** is normal).\n' +
+      `8. Stuck: campus NELFUND desk, then ${ESUPPORT}.\n\n` +
+      'Institutional fees go to the **school**; upkeep (if selected) goes to **you**.'
     )
   }
 
@@ -153,10 +152,19 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
 
   if (intent === 'upkeep' || intent === 'upkeep-allowance') {
+    if (/only\s*(school\s*)?fees?|reopen|add\s*upkeep|after\s*fees/i.test(userText)) {
+      return (
+        '**School fees only — adding upkeep**\n\n' +
+        `1. Login → **☰ → Loans**. Refresh; check **Upkeep Loans** tab.\n` +
+        '2. If upkeep was never submitted, complete any missing Profile/docs and see if the portal still offers upkeep for this session.\n' +
+        '3. If the option is gone and institutional is still **pending** with no disbursement, some students **cancel** and re-apply selecting both, or ticket support.\n' +
+        `- Confirm amounts only on ${PORTAL}. Ticket: ${ESUPPORT}.`
+      )
+    }
     return (
       '**Upkeep** is optional living support.\n\n' +
-      '- Tick it in the same session as institutional charges.\n' +
-      '- Paid to **your** bank account.\n' +
+      '- Tick it in the same session as institutional charges when applying.\n' +
+      '- Paid to **your** bank account (institutional fees go to the school).\n' +
       `- Confirm amounts only on ${PORTAL}.`
     )
   }
@@ -191,12 +199,23 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
 
   if (intent === 'pending-application') {
+    if (/cancel|dispute|wrong\s*fee|re-?apply/i.test(userText)) {
+      return (
+        '**Cancel / wrong fee / re-apply**\n\n' +
+        `1. Login: ${LOGIN_URL} → **☰ → Loans** → scroll to status → **Cancel** if still pending and nothing disbursed.\n` +
+        '2. Cancelling institutional also cancels upkeep; **cannot be undone**.\n' +
+        '3. After successful cancel (no money released), you **can re-apply** on the same account.\n' +
+        '4. On a new application, use **Raise a dispute** before Submit if the fee shown ≠ bursary figure.\n' +
+        `5. Cancel stuck: ${ESUPPORT} with screenshots.`
+      )
+    }
     return (
       '**Pending / check status**\n\n' +
-      `1. Sign in at ${LOGIN_URL} and read the exact status text.\n` +
-      '2. Institutional charges go to the school after approval; upkeep (if ticked) goes to you.\n' +
+      `1. Sign in at ${LOGIN_URL} → **☰ → Loans** and read the exact status.\n` +
+      '2. **Pending** means submitted and still processing — not declined.\n' +
+      '3. Institutional charges go to the school after approval; upkeep (if ticked) goes to you.\n' +
       'Official FAQ: disbursement is within **30 days of approval** of a successful application.\n' +
-      `3. Still unchanged after that window: campus desk, then ${ESUPPORT} with a screenshot.\n` +
+      `4. Still unchanged after that window: campus desk, then ${ESUPPORT} with a screenshot.\n` +
       'I will not invent your personal pay date.'
     )
   }
@@ -233,10 +252,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   if (intent === 'current-information' || intent === 'deadline' || intent === 'academic-session') {
     return (
-      '**Application window**\n\n' +
-      'Confirm live open/closed status only on the official portal — windows change.\n' +
-      `Open ${PORTAL} or ${SITE}. Login: ${LOGIN_URL}.\n` +
-      'I will not invent a private closing date beyond what the official pages show.'
+      '**Yes — 2026/2027 is open on the official portal.**\n\n' +
+      '• Window: **23 September 2026 – 31 December 2026**.\n' +
+      '• Re-enter BVN and bank when the portal asks.\n' +
+      '• Your school must also open its session on Home.\n' +
+      `Confirm live: ${PORTAL} · Login: ${LOGIN_URL} · Site: ${SITE}`
     )
   }
 
@@ -275,24 +295,6 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     )
   }
 
-  if (intent === 'email-draft') {
-    const school = /lasu/i.test(userText)
-      ? 'LASU'
-      : /unilag/i.test(userText)
-        ? 'UNILAG'
-        : ctx.institutionName || 'the institution'
-    const topic = /missing/i.test(userText) ? 'missing information / school record upload' : 'my NELFUND portal issue'
-    return (
-      `**Draft email**\n\n` +
-      `Subject: NELFUND ${topic} — ${school} student\n\n` +
-      `Dear ${school} NELFUND / ICT / Registry desk,\n\n` +
-      `Please help confirm whether my student record has been uploaded for this NELFUND cycle. The portal still shows ${topic}.\n\n` +
-      `I will attach my admission letter and JAMB number.\n\n` +
-      `Thank you.\n\n` +
-      `Send via official school channels. Copy a ticket at ${ESUPPORT} if the school confirms upload and the portal stays the same.`
-    )
-  }
-
   if (intent === 'rejected-application') {
     return (
       '**Rejected application**\n\n' +
@@ -303,7 +305,10 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'reapplication') {
     return (
       '**Apply again**\n\n' +
-      `Use the same email at ${LOGIN_URL}. Reset password on ${PORTAL} if needed. New request only when the official window is open.`
+      `1. Same email at ${LOGIN_URL} (reset password on ${PORTAL} if needed).\n` +
+      '2. If you **cancelled** a pending application with **no disbursement**, you can start a **new** request when the session allows.\n' +
+      '3. Use **Raise a dispute** if the displayed school fee is wrong.\n' +
+      `4. Tickets: ${ESUPPORT}.`
     )
   }
 
