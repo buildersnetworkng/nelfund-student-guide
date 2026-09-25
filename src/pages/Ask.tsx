@@ -252,7 +252,7 @@ export default function Ask() {
           type="button"
           disabled={busy}
           onClick={() => void sendQuestion(s)}
-          className="rounded-full border border-ink/10 bg-white/80 px-2.5 py-1 text-left text-[12px] leading-snug text-ink/70 hover:border-brand/40"
+          className="rounded-full border border-ink/10 bg-white/80 px-2.5 py-1 text-left text-[12px] leading-snug text-ink/70 hover:border-[#1B5E3B]/40"
         >
           {s}
         </button>
@@ -261,7 +261,7 @@ export default function Ask() {
         <button
           type="button"
           onClick={() => setShowAllSuggestions(true)}
-          className="px-1 py-0.5 text-left text-[11px] font-medium text-brand"
+          className="px-1 py-0.5 text-left text-[11px] font-medium text-[#1B5E3B]"
         >
           More questions…
         </button>
@@ -330,7 +330,7 @@ export default function Ask() {
             <div
               className={
                 m.role === 'user'
-                  ? 'max-w-[90%] rounded-2xl bg-brand px-3 py-2 text-sm text-white'
+                  ? 'max-w-[90%] rounded-2xl bg-[#1B5E3B] px-3 py-2 text-sm text-white shadow-sm'
                   : 'max-w-[95%] rounded-2xl border border-ink/10 bg-white px-3 py-2 text-sm text-ink'
               }
             >
