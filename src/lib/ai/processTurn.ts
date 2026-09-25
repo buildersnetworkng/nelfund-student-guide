@@ -1,6 +1,7 @@
 /**
  * Public turn entry. Conversation engine lives in ./conversation.
  * Extra student-path gates (overview, term meaning, portal UI knowledge) run first.
+ * Understanding layer normalizes English/Pidgin and routes by meaning before playbook.
  */
 export {
   processUserTurn as processUserTurnInner,
@@ -28,6 +29,7 @@ import { classifyIntent } from './intentClassify'
 import { matchPortalKnowledge } from './portalKnowledge'
 import { answerCurrentInformation } from './current'
 import { understandPortalText } from './screenshotUnderstand'
+import { understandTurn, normalizeStudentText } from './understand'
 import { suggest } from './suggest'
 import type { IntentId } from './types'
 
@@ -110,11 +112,14 @@ export async function processUserTurn(opts: {
   slots: ConversationSlots
   history?: { role: string; text: string }[]
 }): Promise<AgentTurnResult> {
-  const raw = (opts.userText || '').trim()
-  const ocr = (typeof opts.ocrText === 'string' ? opts.ocrText : '').trim()
+  const rawIn = (opts.userText || '').trim()
+  const raw = normalizeStudentText(rawIn) || rawIn
+  const ocrRaw = (typeof opts.ocrText === 'string' ? opts.ocrText : '').trim()
+  const ocr = normalizeStudentText(ocrRaw) || ocrRaw
   const lastAsst =
     [...(opts.history || [])].reverse().find((h) => h.role === 'assistant')?.text || null
 
+  // Screenshots: read → understand portal layout → answer from NELFUND knowledge
   if (ocr.length >= 8) {
     try {
       const screen = understandPortalText(ocr)
@@ -218,6 +223,12 @@ export async function processUserTurn(opts: {
           ].join('\n'),
         )
       }
+      // OCR text may still carry meaning (Pidgin/English) even if layout unknown
+      const uOcr = understandTurn(ocr, lastAsst, (opts.slots?.intent as IntentId) || null)
+      if (uOcr.suggestedIntent && uOcr.confidence >= 0.85) {
+        const hit = gate(uOcr.normalized || ocr, opts.slots, lastAsst, uOcr.suggestedIntent)
+        if (hit) return hit
+      }
       return wrap(
         raw || '[Screenshot uploaded]',
         opts.slots,
@@ -238,6 +249,28 @@ export async function processUserTurn(opts: {
         'current-information',
         'I could not fully read that screenshot. Type the exact portal message you see (red banner or status), or open https://portal.nelf.gov.ng/ and try again.',
       )
+    }
+  }
+
+  // Understanding layer: English + Pidgin meaning → knowledge answer
+  if (raw) {
+    try {
+      const u = understandTurn(raw, lastAsst, (opts.slots?.intent as IntentId) || null)
+      if (u.speechAct === 'define_term' && u.suggestedIntent && u.confidence >= 0.75) {
+        const hit = gate(u.normalized || raw, opts.slots, lastAsst, u.suggestedIntent)
+        if (hit) return hit
+      }
+      if (
+        u.speechAct === 'new_question' &&
+        u.suggestedIntent &&
+        u.confidence >= 0.85 &&
+        u.suggestedIntent !== 'current-information'
+      ) {
+        const hit = gate(u.normalized || raw, opts.slots, lastAsst, u.suggestedIntent)
+        if (hit) return hit
+      }
+    } catch {
+      /* understanding must not break chat */
     }
   }
 
@@ -325,7 +358,7 @@ export async function processUserTurn(opts: {
   }
 
   try {
-    return await innerProcess(opts as any)
+    return await innerProcess({ ...opts, userText: raw || opts.userText } as any)
   } catch {
     try {
       const classified = classifyIntent(raw || ocr || 'help')
