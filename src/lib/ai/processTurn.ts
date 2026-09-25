@@ -110,7 +110,6 @@ export async function processUserTurn(opts: {
   const lastAsst =
     [...(opts.history || [])].reverse().find((h) => h.role === 'assistant')?.text || null
 
-  // Screenshot upload: always answer from OCR — never fall through (prevents device crash)
   if (ocr.length >= 8) {
     try {
       const screen = understandPortalText(ocr)
@@ -125,7 +124,6 @@ export async function processUserTurn(opts: {
                 : 'current-information'
         return wrap(raw || '[Screenshot uploaded]', { ...opts.slots, intent }, intent, screen.explanation)
       }
-      // OCR text present but unclassified — still answer from the visible words
       if (/no\s*result\s*found|select\s*institution/i.test(ocr)) {
         return wrap(
           raw || '[Screenshot uploaded]',
@@ -173,7 +171,6 @@ export async function processUserTurn(opts: {
               ].join('\n'),
         )
       }
-      // Generic OCR fallback — never crash
       return wrap(
         raw || '[Screenshot uploaded]',
         opts.slots,
@@ -217,6 +214,33 @@ export async function processUserTurn(opts: {
   const portalHit = raw ? matchPortalKnowledge(raw) : null
   if (portalHit) {
     return wrap(raw, opts.slots, portalHit.intent as IntentId, portalHit.text)
+  }
+
+  if (raw) {
+    const journey: Array<[RegExp, IntentId]> = [
+      [/otp|one[- ]time|whatsapp\s*(man|agent|guy)|pay\s*(am\s*)?\d|never\s*share|scam/i, 'scam-safety'],
+      [/jamb|utme|invalid\s*number/i, 'jamb-verification'],
+      [/school\s*(no|not|never)\s*(dey|show|list)|not\s*listed|cannot\s*find\s*(my\s*)?school/i, 'school-not-found'],
+      [/wetin\s*(i|una)\s*(go|suppose|need)\s*(carry|upload|bring)|which\s*document|what\s*documents/i, 'documents-needed'],
+      [/pending|money\s*never|never\s*enter|wetin\s*dey\s*hold|how\s*far\s*(my\s*)?(loan|money)/i, 'pending-application'],
+      [/dem\s*don\s*close|still\s*(dey\s*)?open|application\s*(open|close)|when\s*(will|dem|they).*(open|close)/i, 'current-information'],
+      [/loan\s*(or|vs)\s*scholarship|na\s*(scholarship|grant)|free\s*money/i, 'loan-or-scholarship'],
+      [/interest[- ]?free|zero\s*interest|does\s*(am|it|e)\s*get\s*interest/i, 'loan-or-scholarship'],
+      [/how\s*i\s*go\s*(yarn|reach|contact)|official\s*(email|phone|number)|esupport|help\s*desk/i, 'contact-support'],
+      [/for\s+(my\s+)?(child|son|daughter|ward)|parent\s+|guardian\s+/i, 'how-to-apply'],
+      [/last\s*year\s*(email|account)|old\s*email|returning\s*student/i, 'reapplication'],
+      [/already\s*(finish|finished|done)\s*nysc|serving\s*nysc/i, 'repayment'],
+      [/school\s+uploaded|uploaded\s+my\s+data/i, 'institution-verification'],
+      [/polytechnic|\bpoly\b|monotechnic/i, 'eligibility'],
+      [/fresher|newly\s+admitted/i, 'eligibility'],
+      [/matric(ulation)?\s+number|no\s+matric/i, 'documents-needed'],
+    ]
+    for (const [re, intent] of journey) {
+      if (re.test(raw)) {
+        const hit = gate(raw, opts.slots, lastAsst, intent)
+        if (hit) return hit
+      }
+    }
   }
 
   try {
