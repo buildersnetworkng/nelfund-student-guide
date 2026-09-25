@@ -82,7 +82,67 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return ok(res, overview(), 'what-is-nelfund', 'playbook-overview', ['Who can apply (eligibility)?', 'How do I apply step by step?'])
   }
 
-  if (/fogo?t\s*(my\s*)?pas+w|forgot\s*(my\s*)?password|reset\s*(my\s*)?password|i\s*no\s*remember\s*(my\s*)?password|pasword/i.test(q)) {
+  if (/wetin\s*be\s*upkeep|what\s*(is|be)\s*upkeep|how\s*much.{0,24}upkeep|upkeep.{0,20}(how\s*much|amount|stipend)/i.test(q)) {
+    return ok(
+      res,
+      `**Upkeep** is optional living support paid **to your bank account** if you tick it in the same loan session.\n\nIt is not school fees. Institutional charges go **to the school**.\n\nConfirm the live monthly figure only on ${PORTAL}. I will not invent an amount.\nOfficial site: ${SITE}`,
+      'upkeep',
+      'playbook-upkeep',
+      ['What is institutional charges?', 'How do I apply for loan and upkeep?'],
+    )
+  }
+
+  if (/private\s*(uni|university|school|poly)|fit\s*apply.{0,20}private/i.test(q)) {
+    return ok(
+      res,
+      `**Private school:** NELFUND on this cycle is for eligible students in **public** tertiary institutions.\n\nSearch the exact school on ${PORTAL}. If a private school does not appear, confirm on ${SITE} — do not pay an agent for a “private slot.”\nTickets: ${ESUPPORT}`,
+      'eligibility',
+      'playbook-private-school',
+      ['Who can apply (eligibility)?', 'How do I apply step by step?'],
+    )
+  }
+
+  if (/\b(100|200|300|400|500)\s*(l|level)\b|which\s*level\s*(fit|can)\s*apply/i.test(q)) {
+    return ok(
+      res,
+      `**Which level can apply:** eligibility is a **public** institution, admission, and a school session that is open on the portal — not a WhatsApp “only 100L / only 200L” rumour.\n\nConfirm your school and session on ${PORTAL}. Freshers still need JAMB / admission evidence the form asks for.\nConfirm live rules on ${SITE}. I will not invent a cut-off level.`,
+      'eligibility',
+      'playbook-level',
+      ['How do I apply step by step?', 'What documents do I need?'],
+    )
+  }
+
+  if (/open\s*(a\s*)?ticket|how\s*i\s*go\s*(open|yarn|reach).{0,20}(ticket|support|esupport)|how\s*i\s*go\s*open\s*ticket/i.test(q)) {
+    return ok(
+      res,
+      `**Official ticket**\n\nCreate a ticket only at ${ESUPPORT}.\nAttach a clear screenshot of the portal error or status.\nDo not pay anyone who offers to “open a ticket” for you.\nLogin first: ${LOGIN}`,
+      'contact-support',
+      'playbook-ticket',
+      ['How do I apply step by step?', 'Portal shows missing information'],
+    )
+  }
+
+  if (/someone\s*(ask|wan|want).{0,20}(otp|pin|password)|ask\s*me\s*for\s*(otp|pin)|send\s*(me\s*)?(the\s*)?(otp|code)/i.test(q)) {
+    return ok(
+      res,
+      `**OTP / agent safety**\n\n**Never share OTP, password or NIN.** Official staff will not collect a fee on WhatsApp.\n\nApply and log in only at ${PORTAL} / ${LOGIN}.\nOfficial site: ${SITE}. Tickets: ${ESUPPORT}.`,
+      'scam-safety',
+      'playbook-otp',
+      ['How do I apply only on the official portal?', 'How do I contact official support?'],
+    )
+  }
+
+  if (/dem\s*don\s*close|don\s*close\s*(application|portal|window)|still\s*(dey\s*)?open/i.test(q)) {
+    return ok(
+      res,
+      `Treat social-media “dem don close” as unofficial.\n\nConfirm live open/closed dates only on ${PORTAL} and ${SITE}.\nThis guide will not invent a closing date.\nLogin: ${LOGIN}`,
+      'current-information',
+      'playbook-open-pidgin',
+      ['How do I apply step by step?', 'Who can apply (eligibility)?'],
+    )
+  }
+
+  if (/fogo?t\s*(my\s*)?pas+w|forgot\s*(my\s*)?password|i\s*forget\s*(my\s*)?password|forget\s*(my\s*)?password|reset\s*(my\s*)?password|i\s*no\s*remember\s*(my\s*)?password|pasword/i.test(q)) {
     return ok(
       res,
       `**Forgot password**\n\n1. Open ${LOGIN} or ${PORTAL} → Forgot / Reset password.\n2. Use the **same email** already on the account.\n3. Check inbox and spam.\n4. Do not create a second account.\n5. No mail: ${ESUPPORT} with a screenshot.`,
@@ -182,7 +242,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     )
   }
 
-  if (/missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)|institution\s*not\s*found|school\s*no\s*(dey|gree)\s*show/i.test(q)) {
+  if (/missing\s*information|school\s*not\s*(on\s*)?(the\s*)?(list|showing)|institution\s*not\s*found|school\s*no\s*(dey|gree)\s*(show|the\s*list|list)|my\s*school\s*no\s*dey/i.test(q)) {
     return ok(
       res,
       `**Missing information / school not on the list** usually means the institution has not finished uploading your record.\n\n1. Confirm you attend a **public** institution.\n2. Ask your school's NELFUND desk whether your data is uploaded.\n3. Retry on ${PORTAL}. Ticket: ${ESUPPORT}`,
