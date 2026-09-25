@@ -16,6 +16,7 @@ import { playbookHourly164 } from './playbookHourly164'
 import { playbookHourly165 } from './playbookHourly165'
 import { playbookHourly166 } from './playbookHourly166'
 import { playbookHourly167 } from './playbookHourly167'
+import { playbookHourly168 } from './playbookHourly168'
 
 export type PlaybookContext = {
   institutionName?: string | null
@@ -42,6 +43,8 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   const term = userText ? explainTerm(userText, ctx.lastAssistant) : null
   if (term) return term.text
 
+  const h168 = playbookHourly168(intent, userText)
+  if (h168) return h168
   const h167 = playbookHourly167(intent, userText)
   if (h167) return h167
   const h166 = playbookHourly166(intent, userText)
@@ -69,35 +72,35 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   if (intent === 'what-is-nelfund' || intent === 'nelfund-purpose' || intent === 'nelfund-history') {
     return (
-      '**NELFUND** is the **Nigeria Education Loan Fund** \u2014 a government student loan scheme for eligible students in public tertiary institutions.\n\n' +
+      '**NELFUND** is the **Nigeria Education Loan Fund** — a government student loan scheme for eligible students in public tertiary institutions.\n\n' +
       '- **Institutional charges** go to the school.\n' +
       '- **Upkeep** (optional) goes to you if requested.\n' +
-      `- Official: ${SITE} \u00b7 signup ${PORTAL} \u00b7 login ${LOGIN_URL}`
+      `- Official: ${SITE} · signup ${PORTAL} · login ${LOGIN_URL}`
     )
   }
 
   if (intent === 'eligibility') {
     const levelBit = /200\s*level/i.test(userText)
-      ? '200-level students can apply if they meet official rules \u2014 year of study is not a substitute for uploaded school data.\n\n'
+      ? '200-level students can apply if they meet official rules — year of study is not a substitute for uploaded school data.\n\n'
       : /100\s*level|fresher|newly\s*admit/i.test(userText)
         ? '100-level / newly admitted students can apply once the school has uploaded the record.\n\n'
         : /300\s*level/i.test(userText)
-          ? '300-level students can apply if they meet official rules \u2014 any level / year of study still needs a valid uploaded record.\n\n'
+          ? '300-level students can apply if they meet official rules — any level / year of study still needs a valid uploaded record.\n\n'
           : /400\s*level|final\s*year|500\s*level/i.test(userText)
             ? 'Final-year / 400-level (and similar) students can apply if they still meet official rules and the school record is uploaded.\n\n'
             : /poly(technic)?|college\s*of\s*education|coe\b/i.test(userText)
               ? 'Students in public polytechnics and colleges of education can apply if the institution is on the official list and the record is uploaded.\n\n'
               : /private/i.test(userText)
-                ? 'Official coverage is for eligible students in **public** tertiary institutions \u2014 confirm private-school questions only on the portal.\n\n'
+                ? 'Official coverage is for eligible students in **public** tertiary institutions — confirm private-school questions only on the portal.\n\n'
                 : /part[\s-]*time|sandwich|post\s*graduate|postgraduate/i.test(userText)
-                  ? 'Mode of study (part-time, sandwich, postgraduate) must match what the official portal accepts for your school record. Confirm there \u2014 I will not invent extra categories.\n\n'
+                  ? 'Mode of study (part-time, sandwich, postgraduate) must match what the official portal accepts for your school record. Confirm there — I will not invent extra categories.\n\n'
                   : 'Any level / year of study can apply if official eligibility is met.\n\n'
     return (
       '**Eligibility**\n\n' +
       levelBit +
-      '\u2022 Nigerian citizen\n' +
-      '\u2022 Full-time student in a **public** tertiary institution\n' +
-      '\u2022 Valid admission; have Matriculation number (when issued), JAMB, NIN, BVN, bank in your name ready\n\n' +
+      '• Nigerian citizen\n' +
+      '• Full-time student in a **public** tertiary institution\n' +
+      '• Valid admission; have Matriculation number (when issued), JAMB, NIN, BVN, bank in your name ready\n\n' +
       `Confirm on ${PORTAL}.`
     )
   }
@@ -119,13 +122,13 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   }
 
   if (intent === 'portal-login') {
-    return `**How to log in / sign in**\n\n1. Open ${LOGIN_URL}\n2. Enter your NELFUND account email and password.\n3. Read the exact error if login fails.\n4. New account / signup: ${PORTAL}\n5. Portal hangs: refresh once, try another network, then ${ESUPPORT}.\n\nFor **forgot password** or **email already used**, ask those as separate questions \u2014 they are different fixes.`
+    return `**How to log in / sign in**\n\n1. Open ${LOGIN_URL}\n2. Enter your NELFUND account email and password.\n3. Read the exact error if login fails.\n4. New account / signup: ${PORTAL}\n5. Portal hangs: refresh once, try another network, then ${ESUPPORT}.\n\nFor **forgot password** or **email already used**, ask those as separate questions — they are different fixes.`
   }
 
   if (intent === 'password-reset') {
     return (
       '**Forgot password**\n\n' +
-      `1. Open ${LOGIN_URL} or ${PORTAL} \u2192 Forgot / Reset password.\n` +
+      `1. Open ${LOGIN_URL} or ${PORTAL} → Forgot / Reset password.\n` +
       '2. Enter the email linked to your account.\n' +
       '3. Check inbox and spam.\n' +
       '4. Set a new password and sign in.\n' +
@@ -139,7 +142,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
       `1. Sign in at ${LOGIN_URL} with that email.\n` +
       `2. If you forgot the password: reset for that same email on ${PORTAL}.\n` +
       `3. Still stuck: ${ESUPPORT} with a screenshot.\n\n` +
-      '\u201cI used this email before\u201d is not a special rule \u2014 it only means an account may already exist.'
+      '“I used this email before” is not a special rule — it only means an account may already exist.'
     )
   }
 
@@ -155,8 +158,8 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'institutional-charges' || intent === 'upkeep-vs-fees' || intent === 'school-fees') {
     return (
       '**School fees vs upkeep**\n\n' +
-      '1. **Institutional charges** \u2192 paid to your **school**.\n' +
-      '2. **Upkeep** (optional) \u2192 paid to **you**.\n' +
+      '1. **Institutional charges** → paid to your **school**.\n' +
+      '2. **Upkeep** (optional) → paid to **you**.\n' +
       `3. Confirm figures only on ${PORTAL}.`
     )
   }
@@ -197,7 +200,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
       '**JAMB verification**\n\n' +
       '1. Use the JAMB number that matches your admission.\n' +
       '2. If NIN is not linked to JAMB, the portal may ask you to supply NIN.\n' +
-      `3. Retry ${PORTAL}. Still \u201cinvalid JAMB\u201d: campus desk + ${ESUPPORT} with a screenshot.\n` +
+      `3. Retry ${PORTAL}. Still “invalid JAMB”: campus desk + ${ESUPPORT} with a screenshot.\n` +
       'I cannot change JAMB CAPS from this chat.'
     )
   }
@@ -205,11 +208,11 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'documents-needed') {
     return (
       '**Documents typically asked on the portal**\n\n' +
-      '\u2022 JAMB number / admission letter\n' +
-      '\u2022 NIN and BVN\n' +
-      '\u2022 Bank account in **your** name\n' +
-      '\u2022 Matriculation number when the school has issued it\n' +
-      '\u2022 School ID (if the form asks)\n\n' +
+      '• JAMB number / admission letter\n' +
+      '• NIN and BVN\n' +
+      '• Bank account in **your** name\n' +
+      '• Matriculation number when the school has issued it\n' +
+      '• School ID (if the form asks)\n\n' +
       `Upload only on ${PORTAL}. Never send documents to an agent.`
     )
   }
@@ -218,14 +221,14 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     return (
       '**Loan, not scholarship**\n\n' +
       'NELFUND is an **interest-free loan**. It is not a grant or scholarship and it is not free money.\n' +
-      `Repayment starts after the applicable study / NYSC period under official rules \u2014 confirm on ${SITE}. I will not invent rates.`
+      `Repayment starts after the applicable study / NYSC period under official rules — confirm on ${SITE}. I will not invent rates.`
     )
   }
 
   if (intent === 'current-information' || intent === 'deadline' || intent === 'academic-session') {
     return (
       '**Application window**\n\n' +
-      'Confirm live open/closed status only on the official portal \u2014 windows change.\n' +
+      'Confirm live open/closed status only on the official portal — windows change.\n' +
       `Open ${PORTAL} or ${SITE}. Login: ${LOGIN_URL}.\n` +
       'I will not invent a private closing date beyond what the official pages show.'
     )
@@ -243,7 +246,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
       '**Stay safe**\n\n' +
       '- Never pay agents.\n' +
       '- Never share OTP or password.\n' +
-      `- Official only: ${SITE} \u00b7 ${PORTAL} \u00b7 ${LOGIN_URL} \u00b7 ${ESUPPORT}`
+      `- Official only: ${SITE} · ${PORTAL} · ${LOGIN_URL} · ${ESUPPORT}`
     )
   }
 
@@ -275,7 +278,7 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
     const topic = /missing/i.test(userText) ? 'missing information / school record upload' : 'my NELFUND portal issue'
     return (
       `**Draft email**\n\n` +
-      `Subject: NELFUND ${topic} \u2014 ${school} student\n\n` +
+      `Subject: NELFUND ${topic} — ${school} student\n\n` +
       `Dear ${school} NELFUND / ICT / Registry desk,\n\n` +
       `Please help confirm whether my student record has been uploaded for this NELFUND cycle. The portal still shows ${topic}.\n\n` +
       `I will attach my admission letter and JAMB number.\n\n` +

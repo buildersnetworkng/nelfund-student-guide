@@ -3,124 +3,97 @@ const SITE = 'https://nelf.gov.ng/'
 const LOGIN = 'https://portal.nelf.gov.ng/auth/login'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
-/** Hourly 168: parent/guardian, returning email, NYSC done, JAMB Pidgin, window Pidgin, pending meaning. */
+/** Hourly 168: application window, grant vs loan, telegram/WhatsApp scam, email-used Pidgin, support phone. */
 export function playbookHourly168(intent: string, userText: string): string | null {
   const t = userText || ''
 
   if (
-    /for\s+(my\s+)?(child|son|daughter|ward)|parent\s+(want|wan|dey)|guardian\s+(apply|ask)|apply\s+for\s+(my\s+)?( pikin|pikin|child)/i.test(
+    /still\s*(open|dey\s*open)|dem\s*don\s*close|application\s*(still\s*)?(open|close|closed)|can\s*i\s*still\s*apply|window\s*(open|close)|deadline|last\s*day\s*to\s*apply|when\s*(e|it)\s*(go|will)\s*close/i.test(
       t,
     )
   ) {
     return (
-      '**Parent / guardian applying for a student**\n\n' +
-      'The portal profile belongs to the **student** (their NIN, BVN, JAMB number, and school record).\n\n' +
-      `1. The student signs up and logs in at ${LOGIN}.\n` +
-      '2. You can sit with them, but do not create a second account in your own email.\n' +
-      '3. Never send OTP, password, NIN or BVN to a WhatsApp helper.\n' +
-      `Official site: ${SITE}. Stuck: campus NELFUND desk, then ${ESUPPORT}.`
+      '**Application open or closed**\n\n' +
+      'Windows change. Confirm live open/closed status only on the official pages.\n\n' +
+      `1. Open ${PORTAL} (login: ${LOGIN}) and ${SITE}.\n` +
+      '2. If the Request loan button is available and your school record is uploaded, complete the form.\n' +
+      '3. If the window is closed, wait for an official announcement — do not pay anyone to “keep a slot”.\n' +
+      'I will not invent a private closing date.'
     )
   }
 
   if (
-    /last\s*year\s*(email|account|login)|old\s*email\s*(from\s*)?(last|previous)|returning\s*student|I\s*(don|have)\s*apply\s*(before|last)/i.test(
+    /na\s*(scholarship|grant|free\s*money)|loan\s*(or|vs)\s*(scholarship|grant)|wetin\s*be\s*(the\s*)?difference|is\s*(this|dis|it)\s*(a\s*)?(grant|scholarship)|free\s*money/i.test(
       t,
     ) ||
-    intent === 'reapplication'
+    intent === 'loan-or-scholarship'
   ) {
     return (
-      '**Returning applicant / last-year email**\n\n' +
-      `Use the **same email** at ${LOGIN}. Do not open a second profile.\n` +
-      '1. Forgot password if you lost access — reset only on the official portal.\n' +
-      '2. Confirm the school has uploaded this session’s record before you submit again.\n' +
-      `3. One student, one account. Ticket if the old email is locked: ${ESUPPORT}.`
-    )
-  }
-
-  if (/already\s*(finish|finished|done)\s*nysc|serving\s*nysc|I\s*(don|have)\s*(finish|complete)\s*nysc/i.test(t)) {
-    return (
-      '**NYSC already done or serving**\n\n' +
-      'NELFUND is a **student loan** for eligible students still in a listed public institution.\n' +
-      'If you have already completed NYSC, this chat will not invent a new graduate window.\n' +
-      `Confirm any live wording on ${SITE} and ${PORTAL}. Official FAQ: repayment is due **2 years after NYSC**.\n` +
-      `Questions about an existing loan: ${LOGIN} then ${ESUPPORT}.`
+      '**Loan, not scholarship**\n\n' +
+      'NELFUND is an **interest-free loan**. It is not a grant, scholarship, or free money.\n\n' +
+      `Official FAQ: repayment is due **2 years after NYSC**. Confirm on ${SITE}.\n` +
+      'I will not invent rates, percentages, or jail terms.\n' +
+      `Apply only at ${PORTAL}.`
     )
   }
 
   if (
-    /jamb\s*(no|number)?\s*(no|not|never)\s*(gree|dey|work|verify)|invalid\s*(jamb|utme)|utme\s*(no|number)\s*(wrong|invalid)/i.test(
+    /telegram|whatsapp\s*(link|group|man|agent|guy)|pay\s*(am|them|agent)|otp|never\s*share|fake\s*portal|scam/i.test(t) ||
+    intent === 'scam-safety'
+  ) {
+    return (
+      '**Stay safe**\n\n' +
+      '- Never pay an agent, Telegram admin, or WhatsApp “officer”.\n' +
+      '- Never share OTP, password, NIN, or BVN outside the official portal.\n' +
+      `- Official only: ${SITE} · ${PORTAL} · ${LOGIN} · ${ESUPPORT}\n` +
+      'If someone copied the portal look, close the tab and use the links above.'
+    )
+  }
+
+  if (
+    /email\s*(don|already|has)\s*(dey|used|exist)|this\s*mail\s*(don|already)\s*(dey|used)|old\s*email|i\s*use(d)?\s*this\s*email\s*before/i.test(
       t,
     ) ||
-    intent === 'jamb-verification'
+    intent === 'email-already-used'
   ) {
     return (
-      '**JAMB / UTME number will not verify**\n\n' +
-      'Type the number **exactly as on your JAMB slip** — no extra space or old session mix-up.\n' +
-      '1. The school must also have uploaded you against that same JAMB number.\n' +
-      `2. Retry on ${PORTAL} after the campus desk confirms the upload.\n` +
-      `3. Still failing: ${ESUPPORT} with the exact red banner (no invented JAMB rule).`
+      '**Email already used**\n\n' +
+      `1. Sign in at ${LOGIN} with that same email.\n` +
+      `2. If you forgot the password: Forgot / Reset on ${PORTAL} for that email.\n` +
+      '3. Do not invent a second Gmail just to force a new form.\n' +
+      `4. Still blocked: ${ESUPPORT} with a screenshot.`
     )
   }
 
-  if (
-    /dem\s*don\s*close|window\s*(don|has)\s*close|still\s*(dey\s*)?open\s*(now|so)|application\s*(still\s*)?(open|close)|when\s*(dem|they)\s*(go\s*)?open/i.test(
-      t,
-    )
-  ) {
+  if (/interest\s*dey|does\s*(e|it|am)\s*get\s*interest|zero\s*interest|interest[-\s]*free|how\s*much\s*interest/i.test(t)) {
     return (
-      '**Is the application open?**\n\n' +
-      'Windows **change by cycle**. I will not invent a close date.\n' +
-      `Check the live banner on ${SITE} and try ${PORTAL}.\n` +
-      `Login: ${LOGIN}. If the form is closed, wait for an official announcement — not a WhatsApp broadcast.`
+      '**Interest**\n\n' +
+      'Official portal wording: the student loan is **interest-free** (no hidden charges).\n' +
+      `Confirm current wording on ${SITE} and ${PORTAL}. I will not invent a rate.`
     )
   }
 
-  if (/wetin\s*(be|mean)\s*pending|pending\s*(no|not|never)\s*(move|change)|status\s*(still\s*)?pending/i.test(t)) {
+  if (/official\s*(phone|number|whatsapp|hotline)|nelfund\s*(phone|number)|how\s*i\s*go\s*(yarn|call|reach)\s*(them|una|support)/i.test(t)) {
     return (
-      '**Pending on the portal**\n\n' +
-      'Pending means submitted and still processing — **not** declined.\n' +
-      `Sign in at ${LOGIN} → Loans → View details.\n` +
-      'I cannot move the queue from this chat. Official FAQ talks about disbursement after **approval**, not while pending.\n' +
-      `No movement after a long wait: campus desk, then ${ESUPPORT} with a screenshot.`
+      '**Official support**\n\n' +
+      `I will not invent a private phone or WhatsApp line.\n` +
+      `- Website: ${SITE}\n` +
+      `- Portal: ${PORTAL}\n` +
+      `- Login: ${LOGIN}\n` +
+      `- Tickets: ${ESUPPORT}\n` +
+      'Use a campus NELFUND desk for school-upload issues.'
     )
   }
 
-  if (/school\s+uploaded|uploaded\s+my\s+data|has\s+my\s+school\s+upload/i.test(t)) {
+  if (/how\s*(to|do\s*i|i\s*go)\s*apply.{0,50}(loan|upkeep)|i\s*meant.{0,30}(loan|upkeep)|loan\s+and\s+upkeep/i.test(t)) {
     return (
-      '**Has my school uploaded my data?**\n\n' +
-      'Missing information usually means the campus has not uploaded you yet (or the name / JAMB number does not match).\n\n' +
-      '1. Ask the campus NELFUND / ICT / Registry desk to upload or refresh your record.\n' +
-      `2. Retry ${PORTAL} after they confirm.\n` +
-      '3. Do not open a second account.\n' +
-      `Still Missing information: ${ESUPPORT} with a screenshot.`
-    )
-  }
-
-  if (/polytechnic|poly\b|monotechnic/i.test(t)) {
-    return (
-      '**Polytechnic / monotechnic**\n\n' +
-      'Eligibility in this guide follows official language: **full-time** students in **public tertiary** institutions (universities, polytechnics, colleges of education) that appear on the portal list.\n\n' +
-      `Confirm your school is listed on ${PORTAL}. I will not invent a private-poly exception.\n` +
-      `If the school is missing: campus desk, then ${ESUPPORT}.`
-    )
-  }
-
-  if (/fresher|freshers|newly\s+admitted|just\s+(got|gain)\s+admission/i.test(t)) {
-    return (
-      '**Fresher / newly admitted / 100-level**\n\n' +
-      'Newly admitted students can be eligible once the school uploads the record. Matriculation number is used when the school has issued it.\n\n' +
-      `1. Confirm the school appears on ${PORTAL}.\n` +
-      '2. Use your JAMB number if matric is not out yet — only if the portal accepts it.\n' +
-      `3. Campus desk if Missing information, then ${ESUPPORT}.`
-    )
-  }
-
-  if (/do\s+not\s+have\s+matric|no\s+matric|matric(ulation)?\s+number\s+(yet|no|not)/i.test(t)) {
-    return (
-      '**No matriculation number yet**\n\n' +
-      'The school must still upload you. Use the identifier the portal asks for (often JAMB) until matric is issued.\n\n' +
-      'Ask ICT / Registry / the campus NELFUND desk to complete the upload.\n' +
-      `Retry ${PORTAL}. Ticket if it stays blocked: ${ESUPPORT}.`
+      '**Apply for the loan and upkeep**\n\n' +
+      `1. Open ${PORTAL} and sign in (${LOGIN}).\n` +
+      '2. Complete profile (JAMB, NIN, BVN, bank in your name).\n' +
+      '3. When the official window is open, request the student loan.\n' +
+      '4. Tick **upkeep** in the **same session** if you want optional living support (paid to you).\n' +
+      '5. Institutional charges still go **to the school**.\n' +
+      `Confirm figures only on ${PORTAL}. Stuck: ${ESUPPORT}.`
     )
   }
 
