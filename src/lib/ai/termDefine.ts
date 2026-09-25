@@ -16,8 +16,8 @@ const TERM_DEFS: TermRow[] = [
     re: /institutional\s*charges?|institution\s*charges?|school\s*charges?/i,
     intent: 'institutional-charges',
     answer:
-      '**Institutional charges** = the school-fee part of the loan.\n\n' +
-      'NELFUND pays this **to your school** (not to your personal account). Optional **upkeep** is separate and goes to you if you selected it.',
+      '**Institutional charges** = the **school fees** part of the loan.\n\n' +
+      'NELFUND pays this **to the school** (not to your personal account). Optional **upkeep** is separate and goes to you if you selected it.',
   },
   {
     re: /\bupkeep\b|stipend|living\s*support|allowance/i,
@@ -95,7 +95,7 @@ const TERM_DEFS: TermRow[] = [
   },
 ]
 
-/** "What do you mean by…?", "What's X?", "Wetin be X?", "what's disurment" */
+/** "What do you mean by…?", "What\'s X?", "Wetin be X?", "what\'s disurment" */
 export function isMeaningAsk(text: string): boolean {
   const t = (text || '').trim()
   if (!t || t.length > 180) return false
@@ -103,7 +103,7 @@ export function isMeaningAsk(text: string): boolean {
   if (/what\s+does?\s+.+\s+mean/i.test(t) && t.length < 140) return true
   if (/wetin\s+(you|u|una)\s+mean/i.test(t)) return true
   if (/wetin\s+(be|mean)\b/i.test(t) && t.length < 120) return true
-  if (/what'?s?\s+(an?\s+)?/i.test(t) && t.length < 120) return true
+  if (/what\'?s?\s+(an?\s+)?/i.test(t) && t.length < 120) return true
   if (/what\s+(is|are|be|does|mean|means)\b/i.test(t) && t.length < 120) return true
   if (/meaning\s+of\b|define\b/i.test(t) && t.length < 120) return true
   if (/^[a-zA-Z\s?]{3,40}\??$/.test(t) && /disburse|disurment|upkeep|pending|gsi|bvn|nin|portal|dispute/i.test(t))
@@ -136,6 +136,18 @@ export function explainTerm(
   lastAssistant?: string | null,
 ): { intent: IntentId; text: string } | null {
   const cleaned = cleanTypos(userText)
+  if (/missing\s*(info|information|details)|incomplete\s*(profile|information)/i.test(cleaned)) {
+    return {
+      intent: 'missing-information',
+      text:
+        '**Missing information**\n\n' +
+        'The portal is asking for a field your school or your profile has not finished.\n\n' +
+        '1. Open Profile and fill NIN, JAMB, BVN, bank in **your** name.\n' +
+        '2. If the school name or matric is the gap, ask the campus NELFUND / ICT desk to upload the record.\n' +
+        `3. Retry ${PORTAL}. Still the same: ${ESUPPORT} with a screenshot.\n` +
+        `Login: ${LOGIN}`,
+    }
+  }
   if (!isMeaningAsk(cleaned) && !isMeaningAsk(userText || '')) return null
 
   for (const row of TERM_DEFS) {
