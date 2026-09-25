@@ -54,6 +54,11 @@ const cases = [
   ['hourly179-school-pidgin', 'My school no dey the list', /shorter|public|portal\.nelf/i],
   ['hourly179-bvn', 'My BVN no match the bank', /BVN|bank|portal/i],
   ['hourly179-open-pidgin', 'Una still dey collect application?', /change by cycle|portal\.nelf|nelf\.gov/i],
+  ['hourly181-caps', 'My JAMB CAPS no show admission', /CAPS|JAMB|portal/i],
+  ['hourly181-pending', 'E still dey pending for weeks', /Pending|processing|portal/i],
+  ['hourly181-dispute', 'The fee is wrong how I raise a dispute', /dispute|before Submit|portal/i],
+  ['hourly181-site', 'Which site na official', /portal\.nelf\.gov\.ng|nelf\.gov\.ng/i],
+  ['hourly181-gift', 'Na gift? Scholarship abi loan', /loan|scholarship|interest-free/i],
 ]
 
 let fail = 0
