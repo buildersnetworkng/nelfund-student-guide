@@ -40,7 +40,7 @@ export const APPLY_WALKTHROUGH =
   '8. Upload required documents (e.g. admission letter, ID) when the portal asks.\n' +
   '9. Review → **Submit**. Do not submit twice.\n' +
   '10. After submit, **☰ → Loans**: Institutional and/or Upkeep rows should show **Pending** (normal while processing).\n\n' +
-  `Stuck: campus NELFUND desk, then ticket ${ESUPPORT}.`
+  `Stuck: campus NELFUND desk, then send a support message with your screenshot (if available) at ${ESUPPORT}.`
 
 export const CANCEL_LOAN =
   '**How to cancel a loan application**\n\n' +
@@ -53,13 +53,13 @@ export const CANCEL_LOAN =
   '7. Confirm **Yes, Cancel Loan** only if you are sure.\n\n' +
   '**Portal warning:** Cancelling institutional also cancels upkeep; **cannot be undone**. Only while pending and nothing disbursed.\n' +
   'After successful cancel (no money released) you can re-apply on the same account.\n\n' +
-  `If Cancel stuck: ticket ${ESUPPORT} with name, NIN, screenshots.`
+  `If Cancel stuck: send a support message with name, NIN, screenshots at ${ESUPPORT}.`
 
 export const FEE_WRONG_NO_DISPUTE =
   '**Fee on the portal is not my real school fees**\n\n' +
   '1. Confirm exact charges with bursary / NELFUND desk.\n' +
   '2. If still pending and nothing disbursed: cancel → re-apply → **Raise a dispute** if fee still wrong.\n' +
-  `3. Cancel stuck: ${ESUPPORT}.`
+  `3. Cancel stuck: send a support message at ${ESUPPORT}.`
 
 export const REAPPLY_AFTER_CANCEL =
   '**Can I apply again after cancelling?** **Yes** if pending and no funds released. Same account; use Raise a dispute if fee is wrong.\n' +
@@ -67,8 +67,8 @@ export const REAPPLY_AFTER_CANCEL =
 
 export const UPKEEP_AFTER_FEES_ONLY =
   '**School fees only — add upkeep**\n\n' +
-  'Login → **☰ → Loans** → Upkeep tab. Refresh. Complete missing docs/bank if needed. If option gone and still pending, cancel+re-apply with both or ticket support.\n' +
-  `Login: ${LOGIN_URL} · Ticket: ${ESUPPORT}`
+  'Login → **☰ → Loans** → Upkeep tab. Refresh. Complete missing docs/bank if needed. If option gone and still pending, cancel+re-apply with both or send a support message.\n' +
+  `Login: ${LOGIN_URL} · Send a support message with your screenshot (if you have one): ${ESUPPORT}`
 
 export const SCHOOL_NOT_FOUND =
   '**School not on the list / “No Result found” (Verify Educational Information)**\n\n' +
@@ -82,12 +82,21 @@ export const SCHOOL_NOT_FOUND =
   '5. Do **not** create a second account while you wait.\n\n' +
   `Login / continue profile: ${LOGIN_URL}\n` +
   `Portal: ${PORTAL}\n` +
-  `Still stuck after the school confirms: ticket ${ESUPPORT} with a screenshot of “No Result found”.`
+  `Still stuck after the school confirms: send a support message with your “No Result found” screenshot at ${ESUPPORT} (official NELFUND help form).`
 
 export const INSTITUTION_SESSION =
   '**“Your institution has not opened a session for loan applications yet”**\n\n' +
-  'National window can be open while **your school** has not opened its session. Contact campus NELFUND desk. Profile 100% does not remove this.\n' +
-  `Ticket: ${ESUPPORT}`
+  'This can appear on **Home** even when the national NELFUND window is open — **your school** must open its session first.\n\n' +
+  '**What to try first:**\n' +
+  `1. Log in again at ${LOGIN_URL}.\n` +
+  '2. Open **☰ (three lines) → Loans** and also check **Home**.\n' +
+  '3. **Refresh / reload** the page. Other students in your school may already be applying — a refresh sometimes updates the status.\n' +
+  '4. Contact your **campus NELFUND / registry / student affairs desk** to confirm the school has opened the session.\n' +
+  '5. Profile 100% does **not** remove this message by itself.\n\n' +
+  'If it is **still the same** after login + Loans + refresh: send a support message with your screenshot (if you have one) here:\n' +
+  `→ ${ESUPPORT}\n` +
+  '(That link is the official NELFUND help form — open it, describe the problem, attach the screenshot.)\n\n' +
+  'Do not pay anyone to “open” a session.'
 
 export const OPEN_SESSION_NOTICE =
   '**Active Session on Home**\n\n' +
@@ -121,7 +130,7 @@ export const LOANS_TABS =
   `Login: ${LOGIN_URL}`
 
 export const HELP_CARDS =
-  `Help cards on Home are guides only. Real issues: ${PORTAL} · ${LOGIN_URL} · ${ESUPPORT}`
+  `Help cards on Home are guides only. Real issues: ${PORTAL} · ${LOGIN_URL} · send a support message at ${ESUPPORT}`
 
 export const WALLET =
   'For application status prefer Home counters and ☰ → Loans, not wallet alone.\n' +
