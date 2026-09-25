@@ -89,10 +89,6 @@ export function dashboardFollowUpExplanation(applied: boolean | null): string {
   return 'Open Home and read Total / Pending numbers, or re-upload a clearer screenshot.'
 }
 
-/**
- * Classify portal/website OCR text into a screen kind, applied status, and next steps.
- * Returns null when the text does not look like a portal/website dump.
- */
 export function understandPortalText(text: string): ScreenUnderstanding | null {
   const raw = (text || '').trim()
   if (raw.length < 12) return null
@@ -107,7 +103,6 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
   const counts = extractCounts(raw)
   const applied = appliedFromCounts(counts)
 
-  // Screenshot of THIS student guide app (not the official portal)
   if (
     /ask about nelfund|ask anything about nelfund|nelfund student guide|independent student guide|suggested next|was this helpful|send to class group/i.test(
       raw,
@@ -152,12 +147,12 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         'Pending is normal while processing — cancel only if you applied by mistake.',
         `Portal: ${PORTAL}`,
         `Login: ${LOGIN}`,
-        `Support ticket: ${ESUPPORT}`,
+        `Send a support message with your screenshot (if you have one): ${ESUPPORT}`,
       ].join('\n'),
       nextActions: [
         "Tap Don't Cancel if you still want the loan",
         `Login: ${LOGIN}`,
-        `Ticket if needed: ${ESUPPORT}`,
+        `Send a support message with screenshot: ${ESUPPORT}`,
       ],
     }
   }
@@ -168,21 +163,25 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       hasApplied: false,
       exactError: null,
       explanation: [
-        '**Screen:** Home / dashboard.',
-        '**Have you applied?** **No** (or not yet for this session).',
+        '**Screen:** Home — **“Your institution has not opened a session for loan applications yet.”**',
         '',
-        'The portal says your **institution has not opened a session** for loan applications.',
-        'National window can already be open, but **your school** must open its session first.',
-        'Counts are usually Total/Approved/Pending/Declined = 0.',
+        'National open does **not** mean every school is ready. Your campus must open its session.',
         '',
-        '1. Contact your campus NELFUND / registry desk.',
-        '2. Profile 100% does **not** remove this block.',
-        `3. Still stuck: ticket ${ESUPPORT} with this screenshot.`,
+        '**What to try:**',
+        `1. Log in again: ${LOGIN}`,
+        '2. Open **☰ → Loans** and **Home**.',
+        '3. **Refresh / reload** the page — other students in your school may already be applying; a reload sometimes updates the status.',
+        '4. Contact your **campus NELFUND / registry / student affairs desk**.',
+        '5. Profile 100% does **not** remove this message by itself.',
+        '',
+        'If it is **still the same** after login + Loans + refresh: send a support message with your screenshot (if you have one) here:',
+        `→ ${ESUPPORT}`,
+        '(Official NELFUND help form — describe the problem and attach the screenshot.)',
       ].join('\n'),
       nextActions: [
-        'Ask your school NELFUND desk to open the session',
-        `Login: ${LOGIN}`,
-        `Ticket: ${ESUPPORT}`,
+        'Log in again and refresh Home / Loans',
+        'Ask campus NELFUND desk',
+        `Send support message with screenshot: ${ESUPPORT}`,
       ],
     }
   }
@@ -198,24 +197,30 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         'Upload a clear admission letter (or school admission evidence the portal accepts), then continue.',
         'If it still fails, try a sharper file and ensure it is not password-protected.',
         `Portal: ${PORTAL}`,
-        `Ticket: ${ESUPPORT}`,
+        `Send a support message with your screenshot (if you have one): ${ESUPPORT}`,
       ].join('\n'),
-      nextActions: ['Upload admission letter on the portal', `Ticket: ${ESUPPORT}`],
+      nextActions: ['Upload admission letter on the portal', `Send a support message with screenshot: ${ESUPPORT}`],
     }
   }
 
-  if (/no\s*result\s*found|select\s*institution/i.test(raw)) {
+  if (/no\s*result\s*found|select\s*institution|verify\s*educational/i.test(raw)) {
     return {
       kind: 'error',
       hasApplied: null,
       exactError: 'No Result found',
       explanation: [
-        '**Screen:** Institution search — **No Result found**.',
-        'Try the exact official school name, confirm public-institution eligibility, or ask campus NELFUND desk to upload records.',
+        '**Screen:** **Verify Educational Information** (signup / profile) — Select Institution.',
+        '**What it means:** **No Result found** — the name typed is not matching the portal list (or the school is not loaded for this cycle yet).',
+        '',
+        '1. Try shorter names (e.g. Olabisi Onabanjo, OOU, Onabanjo University).',
+        '2. Confirm public tertiary eligibility for this cycle.',
+        '3. If nothing matches: campus **NELFUND / ICT / registry** must confirm the school is listed and records uploaded.',
+        '4. Do not create a second account.',
         `Login: ${LOGIN}`,
-        `Ticket: ${ESUPPORT}`,
+        `Send a support message with your screenshot (if you have one): ${ESUPPORT}`,
+        '(That link is the official NELFUND help form — open it, describe the problem, attach the screenshot.)',
       ].join('\n'),
-      nextActions: ['Retry official school name', `Ticket: ${ESUPPORT}`],
+      nextActions: ['Retry shorter school name', 'Ask campus NELFUND desk', `Send a support message with screenshot: ${ESUPPORT}`],
     }
   }
 
@@ -252,7 +257,6 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
     }
   }
 
-  // Only true portal signup forms — not "I registered last year" in chat text
   if (
     (/create\s*account|sign\s*up\s*(here|now)?|new\s*student\s*registration|register\s*(here|now|an?\s*account)/i.test(t) ||
       (/email|phone|nin|bvn/.test(t) && /create\s*account|sign\s*up/.test(t))) &&
@@ -282,7 +286,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
       exactError: null,
       explanation:
         'This looks like part of the **loan / upkeep application flow**. Complete each required field carefully. School fees and upkeep are different lines. After Submit, Home should show Pending ≥ 1.',
-      nextActions: [`Continue on ${PORTAL}`, 'Do not submit twice', `Help desk: ${ESUPPORT}`],
+      nextActions: [`Continue on ${PORTAL}`, 'Do not submit twice', `Send a support message: ${ESUPPORT}`],
     }
   }
 
@@ -319,7 +323,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         ]
           .filter(Boolean)
           .join('\n'),
-        nextActions: ['Open Loans tabs for row details', `Live portal: ${PORTAL}`, `Long wait: ${ESUPPORT}`],
+        nextActions: ['Open Loans tabs for row details', `Live portal: ${PORTAL}`, `Long wait — send support message: ${ESUPPORT}`],
       }
     }
 
@@ -375,7 +379,7 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         applied === true
           ? 'This looks portal-related and may show an existing application. Open **Home** for Total / Pending, or type the exact status words you see.'
           : 'This looks portal-related. Tell me the exact status words on screen (e.g. Pending Loans 2, institution has not opened…), or re-upload a clearer screenshot of Home / Loans.',
-      nextActions: [`Portal: ${PORTAL}`, `Login: ${LOGIN}`, `Ticket: ${ESUPPORT}`],
+      nextActions: [`Portal: ${PORTAL}`, `Login: ${LOGIN}`, `Send a support message with your screenshot (if you have one): ${ESUPPORT}`],
     }
   }
 
