@@ -13,12 +13,15 @@ export function playbookHourly168(intent: string, userText: string): string | nu
     )
   ) {
     return (
-      '**Application open or closed**\n\n' +
-      'Windows change. Confirm live open/closed status only on the official pages.\n\n' +
+      '**Yes — 2026/2027 is open on the official portal.**\n\n' +
+      '• Window: **23 September 2026 – 31 December 2026**.\n' +
+      '• Re-enter **BVN and bank details** for this cycle if the portal asks.\n' +
+      '• Apply for **institutional fee** and/or **upkeep** while the window is open.\n' +
+      '• If Home says your institution has not opened a session, contact the campus NELFUND desk.\n\n' +
       `1. Open ${PORTAL} (login: ${LOGIN}) and ${SITE}.\n` +
-      '2. If the Request loan button is available and your school record is uploaded, complete the form.\n' +
-      '3. If the window is closed, wait for an official announcement — do not pay anyone to “keep a slot”.\n' +
-      'I will not invent a private closing date.'
+      '2. Complete the form while the Request loan path is available and your school record is uploaded.\n' +
+      '3. Do not pay anyone to “keep a slot”.\n' +
+      'Confirm live on the official pages — windows can change.'
     )
   }
 
@@ -90,7 +93,7 @@ export function playbookHourly168(intent: string, userText: string): string | nu
       '**Apply for the loan and upkeep**\n\n' +
       `1. Open ${PORTAL} and sign in (${LOGIN}).\n` +
       '2. Complete profile (JAMB, NIN, BVN, bank in your name).\n' +
-      '3. When the official window is open, request the student loan.\n' +
+      '3. **2026/2027 is open now** (23 Sep – 31 Dec 2026) — request the student loan.\n' +
       '4. Tick **upkeep** in the **same session** if you want optional living support (paid to you).\n' +
       '5. Institutional charges still go **to the school**.\n' +
       `Confirm figures only on ${PORTAL}. Stuck: ${ESUPPORT}.`
