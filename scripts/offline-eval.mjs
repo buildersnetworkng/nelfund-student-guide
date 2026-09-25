@@ -44,6 +44,12 @@ const cases = [
   ['hourly171-gsi', 'What is GSI will they debit my account now', /GSI|repay|portal/i],
   ['hourly171-parent', 'Can I apply for my child', /student|NIN|portal/i],
   ['hourly171-otp', 'Abeg send the OTP to the agent', /Never share OTP|OTP|WhatsApp|portal\.nelf/i],
+  ['hourly172-already', 'I don already apply two times', /already|Loans|second|portal\.nelf/i],
+  ['hourly172-private', 'Can private university students apply', /public|portal|official list/i],
+  ['hourly172-session', 'Home say my institution session not open', /session|campus|portal/i],
+  ['hourly172-status', 'How I go check my application status', /Login|Pending|Loans|portal/i],
+  ['hourly172-docs-pidgin', 'Wetin I go carry go upload', /JAMB|NIN|BVN|portal/i],
+  ['hourly172-interest-pidgin', 'Does e get interest', /interest-free|loan/i],
 ]
 
 let fail = 0
