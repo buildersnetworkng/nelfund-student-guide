@@ -16,8 +16,8 @@ export function playbookHourly176(intent: string, userText: string): string | nu
     return (
       '**JAMB number not accepted**\n\n' +
       'Type the **same JAMB registration number** as on your admission letter. No extra spaces.\n\n' +
-      '1. Profile → educational / JAMB field → save.\n' +
-      '2. If it still says invalid, your school record may not match — campus NELFUND / ICT desk.\n' +
+      '1. Profile \u2192 educational / JAMB field \u2192 save.\n' +
+      '2. If it still says invalid, your school record may not match \u2014 campus NELFUND / ICT desk.\n' +
       `3. Still blocked: screenshot + ${ESUPPORT}.\n` +
       `Login: ${LOGIN}`
     )
@@ -30,7 +30,7 @@ export function playbookHourly176(intent: string, userText: string): string | nu
   ) {
     return (
       '**School not on the list / No Result found**\n\n' +
-      'The portal only lists institutions that are on this cycle’s list and whose name matches what you type.\n\n' +
+      'The portal only lists institutions that are on this cycle\u2019s list and whose name matches what you type.\n\n' +
       '1. Try a shorter official name (e.g. Olabisi Onabanjo, not the full legal string).\n' +
       '2. Confirm it is a **public** institution participating this cycle.\n' +
       '3. Campus NELFUND / ICT desk if the school should be there.\n' +
@@ -47,8 +47,8 @@ export function playbookHourly176(intent: string, userText: string): string | nu
     return (
       '**Official support**\n\n' +
       `Send a support message (with a screenshot of the exact portal page) at ${ESUPPORT}.\n\n` +
-      `• Portal / login: ${PORTAL} · ${LOGIN}\n` +
-      `• Site / FAQ: ${SITE} · ${FAQ}\n` +
+      `\u2022 Portal / login: ${PORTAL} \u00b7 ${LOGIN}\n` +
+      `\u2022 Site / FAQ: ${SITE} \u00b7 ${FAQ}\n` +
       'Campus NELFUND / ICT desk first if the block is school data (session not opened, school not listed, matric).\n' +
       'Do not send OTP or NIN to anyone on WhatsApp.'
     )
@@ -60,7 +60,7 @@ export function playbookHourly176(intent: string, userText: string): string | nu
     )
   ) {
     return (
-      '**OTP / password — keep it private**\n\n' +
+      '**OTP / password \u2014 keep it private**\n\n' +
       'NELFUND staff will not ask you on WhatsApp for OTP, password, NIN, or BVN.\n\n' +
       `Apply and log in only on ${PORTAL}. Reset password only on that site.\n` +
       `If someone already asked: stop, change the password on ${LOGIN}, then ${ESUPPORT}.`
@@ -75,7 +75,7 @@ export function playbookHourly176(intent: string, userText: string): string | nu
     return (
       '**Interest**\n\n' +
       'Official FAQ: the NELFUND student loan is **interest-free**. It is still a **loan** (not a scholarship).\n\n' +
-      `Repayment timing is described on ${FAQ} (commonly **2 years after NYSC** — confirm live wording).\n` +
+      `Repayment timing is described on ${FAQ} (commonly **2 years after NYSC** \u2014 confirm live wording).\n` +
       `I will not invent a rate. Site: ${SITE}`
     )
   }
@@ -88,9 +88,9 @@ export function playbookHourly176(intent: string, userText: string): string | nu
     return (
       '**Still pending**\n\n' +
       'Pending means submitted and **still processing**, not declined.\n\n' +
-      `1. ${LOGIN} → **☰ → Loans** — read the exact line.\n` +
+      `1. ${LOGIN} \u2192 **\u2630 \u2192 Loans** \u2014 read the exact line.\n` +
       '2. Institutional charges go to the **school** after approval; upkeep (if selected) to **your** account.\n' +
-      '3. Official FAQ often mentions about **30 days after approval** for disbursement — that is not a personal promise.\n' +
+      '3. Official FAQ often mentions about **30 days after approval** for disbursement \u2014 that is not a personal promise.\n' +
       `4. Long wait with no change: campus desk, then ${ESUPPORT} + screenshot.\n` +
       `Portal: ${PORTAL}`
     )
