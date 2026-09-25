@@ -31,6 +31,7 @@ import { answerCurrentInformation } from './current'
 import { understandPortalText } from './screenshotUnderstand'
 import { understandTurn, normalizeStudentText, splitMultiQuestions, isMultiQuestion, isDomainRelated } from './understand'
 import { suggest } from './suggest'
+import { openWindowReply } from './processTurnOpen'
 import type { IntentId } from './types'
 
 function uid(prefix: string): string {
@@ -143,12 +144,12 @@ export async function processUserTurn(opts: {
           opts.slots,
           'school-not-found',
           [
-            '**Screen:** **Verify Educational Information** (signup / profile) — Select Institution.',
-            '**What it means:** **No Result found** — the name typed is not matching the portal list.',
+            '**Screen:** **Verify Educational Information** (signup / profile) \u2014 Select Institution.',
+            '**What it means:** **No Result found** \u2014 the name typed is not matching the portal list.',
             '',
             '1. Try shorter names (e.g. Olabisi Onabanjo, OOU).',
             '2. Confirm public institution for this cycle.',
-            '3. If still No Result found → campus NELFUND / ICT desk.',
+            '3. If still No Result found \u2192 campus NELFUND / ICT desk.',
             '4. Do not open a second account.',
             '',
             'Login: https://portal.nelf.gov.ng/auth/login',
@@ -162,8 +163,8 @@ export async function processUserTurn(opts: {
           opts.slots,
           'pending-application',
           [
-            '**Screen:** Home — institution has not opened a session.',
-            '1. Log in again. 2. Open ☰ → Loans and Home. 3. Refresh/reload.',
+            '**Screen:** Home \u2014 institution has not opened a session.',
+            '1. Log in again. 2. Open \u2630 \u2192 Loans and Home. 3. Refresh/reload.',
             '4. Contact campus NELFUND desk.',
             'If still the same: send a support message with screenshot at https://nelfund.esupport.ng/create',
           ].join('\n'),
@@ -178,8 +179,8 @@ export async function processUserTurn(opts: {
           opts.slots,
           applied ? 'pending-application' : 'how-to-apply',
           applied
-            ? '**Screen:** Portal Home. You have applied (Pending/Total non-zero). Pending = processing, not declined. Open ☰ → Loans. Login: https://portal.nelf.gov.ng/auth/login'
-            : '**Screen:** Portal Home. Counters look like 0 — not applied yet on this account. Login: https://portal.nelf.gov.ng/auth/login',
+            ? '**Screen:** Portal Home. You have applied (Pending/Total non-zero). Pending = processing, not declined. Open \u2630 \u2192 Loans. Login: https://portal.nelf.gov.ng/auth/login'
+            : '**Screen:** Portal Home. Counters look like 0 \u2014 not applied yet on this account. Login: https://portal.nelf.gov.ng/auth/login',
         )
       }
       if (/cancel\s*(loan|application)|yes,?\s*cancel\s*loan|don'?t\s*cancel/i.test(ocr)) {
@@ -187,7 +188,7 @@ export async function processUserTurn(opts: {
           raw || '[Screenshot uploaded]',
           opts.slots,
           'pending-application',
-          '**Cancel Loan** confirmation. Cancelling institutional also cancels upkeep; cannot be undone. Only while pending and nothing disbursed. Login → ☰ → Loans → Cancel. Re-apply possible if no money was released. Support: https://nelfund.esupport.ng/create',
+          '**Cancel Loan** confirmation. Cancelling institutional also cancels upkeep; cannot be undone. Only while pending and nothing disbursed. Login \u2192 \u2630 \u2192 Loans \u2192 Cancel. Re-apply possible if no money was released. Support: https://nelfund.esupport.ng/create',
         )
       }
       if (/admission\s*letter\s*(is\s*)?required/i.test(ocr)) {
@@ -249,13 +250,7 @@ export async function processUserTurn(opts: {
       raw,
       opts.slots,
       'current-information',
-      [
-        '**Yes — 2026/2027 is open on the official portal.**',
-        '• Window: **23 September 2026 – 31 December 2026**.',
-        '• Re-enter BVN and bank when asked.',
-        '• If Home says institution has not opened a session, contact campus NELFUND desk.',
-        'Portal: https://portal.nelf.gov.ng/ · Login: https://portal.nelf.gov.ng/auth/login',
-      ].join('\n'),
+      openWindowReply(),
     )
   }
 
@@ -310,7 +305,7 @@ export async function processUserTurn(opts: {
       }
     }
     if (parts.length > 3) {
-      chunks.push('_(You asked ' + parts.length + ' things — I answered the first 3. Ask the rest one by one for more detail.)_')
+      chunks.push('_(You asked ' + parts.length + ' things \u2014 I answered the first 3. Ask the rest one by one for more detail.)_')
     }
     if (chunks.length) {
       return wrap(raw, opts.slots, primaryIntent, chunks.join('\n\n'))
@@ -336,7 +331,7 @@ export async function processUserTurn(opts: {
         '2. Finish **Profile** (NIN, JAMB, BVN, bank) if incomplete.',
         '3. On **Home**, confirm your school session is open.',
         '4. Apply: institutional fees and/or upkeep. Use **Raise a dispute** if the fee shown is wrong **before** Submit.',
-        '5. After submit: **☰ → Loans** — Pending is normal while processing.',
+        '5. After submit: **\u2630 \u2192 Loans** \u2014 Pending is normal while processing.',
         '',
         'If blocked: campus NELFUND desk, then send a support message with a screenshot at https://nelfund.esupport.ng/create',
       ].join('\n'),
@@ -350,12 +345,15 @@ export async function processUserTurn(opts: {
       [/school\s*(no|not|never)\s*(dey|show|list)|no\s*result\s*found/i, 'school-not-found'],
       [/pending|money\s*never|disburse|disurment|how\s*far\s*(my\s*)?(loan|money)/i, 'pending-application'],
       [/dem\s*don\s*close|still\s*(dey\s*)?open|application\s*(open|close)/i, 'current-information'],
-      [/upkeep|school\s*fees?|institutional/i, 'upkeep-vs-fees'],
-      [/how\s*(do\s*i|to|i\s*go)\s*(log\s*in|login)|forgot\s*password|email\s*already/i, 'portal-login'],
+      [/upkeep|school\s*fees?|institutional|who\s*(go|will)\s*pay/i, 'upkeep-vs-fees'],
+      [/how\s*(do\s*i|to|i\s*go)\s*(log\s*in|login)|forgot\s*(password|email)|email\s*already/i, 'portal-login'],
       [/how\s*(do\s*i|to|i\s*go)\s*apply|where\s*(do\s*i\s*)?apply/i, 'how-to-apply'],
       [/repay|after\s*nysc/i, 'repayment'],
       [/eligib|who\s*can\s*apply/i, 'eligibility'],
-      [/cancel\s*(loan|application)/i, 'pending-application'],
+      [/cancel\s*(loan|application)|reapply/i, 'pending-application'],
+      [/document|admission\s*letter|wetin\s*(i|dem)\s*(go\s*)?(carry|upload)/i, 'documents-needed'],
+      [/contact|esupport|helpline|who\s*(i\s*)?go\s*call/i, 'contact-support'],
+      [/name\s*(no|not)\s*match|mismatch/i, 'missing-information'],
     ]
     for (const [re, intent] of journey) {
       if (re.test(raw)) {
