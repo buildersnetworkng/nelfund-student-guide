@@ -1,3 +1,5 @@
+import { playbookHourly174 } from './playbookHourly174'
+
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const LOGIN = 'https://portal.nelf.gov.ng/auth/login'
@@ -5,6 +7,8 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hourly 173: session closed, how-long pending, refund already paid, phone change, Pidgin charges, two applications. */
 export function playbookHourly173(intent: string, userText: string): string | null {
+  const chained174 = playbookHourly174(intent, userText)
+  if (chained174) return chained174
   const t = userText || ''
 
   if (
