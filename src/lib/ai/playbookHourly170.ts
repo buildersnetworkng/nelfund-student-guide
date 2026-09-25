@@ -3,6 +3,7 @@ import { playbookHourly172 } from './playbookHourly172'
 import { playbookHourly174 } from './playbookHourly174'
 import { playbookHourly175 } from './playbookHourly175'
 import { playbookHourly176 } from './playbookHourly176'
+import { playbookHourly177 } from './playbookHourly177'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -11,6 +12,8 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hourly 170: email already used, apply for loan+upkeep, login Pidgin, name mismatch. */
 export function playbookHourly170(intent: string, userText: string): string | null {
+  const h177 = playbookHourly177(intent, userText)
+  if (h177) return h177
   const h176 = playbookHourly176(intent, userText)
   if (h176) return h176
   const h175 = playbookHourly175(intent, userText)
