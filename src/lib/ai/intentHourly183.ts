@@ -4,32 +4,32 @@ function hit(intent: IntentResult['intent'], label: string): IntentResult {
   return { intent, confidence: 0.92, label, slots: {} } as unknown as IntentResult
 }
 
-/** Hourly 183 early routes: password, email-used, window, scholarship vs loan, interest, missing info, school list. */
+/** Hourly 183 early routes. */
 export function earlyIntent183(text: string): IntentResult | null {
   const raw = text || ''
-  if (/email\s*(already|don|has)\s*(been\s*)?(use[d]?|taken|exist)|dis\s*email\s*(don|already)\s*(dey|exist)|account\s*(already|don)\s*(dey|exist)/i.test(raw)) {
-    return hit('email-already-used', 'Email already used')
+  if (/direct\s*entry|ijmb|jupeb|no\s*utme|i\s*(no|never|don.?t)\s*write\s*jamb|jamb\s*(number|reg).{0,20}(lost|forget|no\s*dey)/i.test(raw)) {
+    return hit('jamb-verification', 'DE / JAMB number')
   }
-  if (/forget\s*(my\s*)?(pass|password)|forgot\s*(my\s*)?(pass|password)|reset\s*(my\s*)?(pass|password)|password\s*(no|not|never)\s*(dey|work|correct)|i\s*no\s*remember\s*(my\s*)?password/i.test(raw)) {
-    return hit('password-reset', 'Forgot password')
+  if (/forgot\s*(the\s*)?(email|gmail)|which\s*email\s*(i\s*)?(use|used)|email\s*(i\s*)?(use|used)\s*(don\s*)?(forget|lost)/i.test(raw)) {
+    return hit('portal-login', 'Forgot email')
   }
-  if (/\b(na|is)\s*(dis|this|am)\s*(scholarship|grant|free\s*money)|loan\s*(or|vs|abi)\s*scholarship|scholarship\s*(or|vs|abi)\s*loan|dem\s*(go|will)\s*collect\s*(am\s*)?back|na\s*free\s*money/i.test(raw)) {
-    return hit('loan-or-scholarship', 'Loan vs scholarship')
+  if (/passport\s*(photo|photograph)|upload\s*(my\s*)?(picture|photo|id\s*card)|student\s*id\s*(card)?\s*(upload|needed|compulsory)/i.test(raw)) {
+    return hit('documents-needed', 'Photo / ID upload')
   }
-  if (/interest\s*(rate|free|zero)|zero\s*interest|dem\s*(go|will)\s*add\s*interest|how\s*much\s*interest|e\s*get\s*interest/i.test(raw)) {
-    return hit('repayment', 'Interest-free')
+  if (/change\s*of\s*institution|i\s*change\s*(school|uni)|transfer\s*(student|to\s*another)|i\s*leave\s*(the\s*)?(old\s*)?school/i.test(raw)) {
+    return hit('missing-information', 'Change of institution')
   }
-  if (/school\s*(no|not|never)\s*(dey|show|appear)\s*(for|on)?\s*(the\s*)?list|my\s*school\s*(no|not)\s*(dey|on)\s*(the\s*)?list|una\s*no\s*put\s*my\s*school/i.test(raw)) {
-    return hit('school-not-found', 'School not listed')
+  if (/i\s*dey\s*(do|serve)\s*nysc|serving\s*(corps|nysc)|after\s*graduation\s*(fit|can)\s*i\s*still\s*apply/i.test(raw)) {
+    return hit('eligibility', 'NYSC / after school')
   }
-  if (/missing\s*(info|information|details)|profile\s*(no|not)\s*complete|e\s*say\s*missing|portal\s*say\s*missing/i.test(raw)) {
-    return hit('missing-information', 'Missing information')
+  if (/how\s*(i\s*go|to|do\s*i)\s*(open|raise|create)\s*(esupport|e-?support|ticket)|ticket\s*(no|not|never)\s*(reply|answer)/i.test(raw)) {
+    return hit('contact-support', 'Open ticket')
   }
-  if (/part[\s-]*time|sandwich|post\s*graduate|postgraduate|masters?\b|phd\b|i\s*dey\s*part\s*time/i.test(raw)) {
-    return hit('eligibility', 'Mode of study')
+  if (/na\s*(loan|scholarship|grant)\s*(or|abi)\s*(loan|scholarship|grant)|dem\s*go\s*collect\s*(am\s*)?back|free\s*money\s*abi\s*loan/i.test(raw)) {
+    return hit('loan-or-scholarship', 'Loan vs grant pidgin')
   }
-  if (/how\s*(to|i\s*go|do\s*i)\s*apply\s*(then\s*)?(i\s*meant\s*)?(for\s*)?(the\s*)?(loan|upkeep)|apply.{0,24}(loan|upkeep).{0,16}(and|&|plus).{0,16}(loan|upkeep)/i.test(raw)) {
-    return hit('upkeep-vs-fees', 'Apply loan + upkeep')
+  if (/interest\s*(rate|free)|does\s*(e|it)\s*get\s*interest|dem\s*go\s*add\s*interest|zero\s*interest/i.test(raw)) {
+    return hit('repayment', 'Interest ask')
   }
   return null
 }
