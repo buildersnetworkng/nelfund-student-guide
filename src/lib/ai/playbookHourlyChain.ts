@@ -1,4 +1,4 @@
-/** Routes hourly playbooks 171-182 before the older 170 chain. */
+/** Routes hourly playbooks 171-183 before the older 170 chain. */
 import { playbookHourly171 } from './playbookHourly171'
 import { playbookHourly172 } from './playbookHourly172'
 import { playbookHourly173 } from './playbookHourly173'
@@ -11,8 +11,11 @@ import { playbookHourly179 } from './playbookHourly179'
 import { playbookHourly180 } from './playbookHourly180'
 import { playbookHourly181 } from './playbookHourly181'
 import { playbookHourly182 } from './playbookHourly182'
+import { playbookHourly183 } from './playbookHourly183'
 
 export function playbookHourlyChain(intent: string, userText: string): string | null {
+  const h183 = playbookHourly183(intent, userText)
+  if (h183) return h183
   const h182 = playbookHourly182(intent, userText)
   if (h182) return h182
   const h181 = playbookHourly181(intent, userText)
