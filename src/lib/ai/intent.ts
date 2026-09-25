@@ -4,6 +4,7 @@ import { earlyIntent173 } from './intentHourly173'
 import { earlyIntent174 } from './intentHourly174'
 import { earlyIntent175 } from './intentHourly175'
 import { earlyIntent177 } from './intentHourly177'
+import { earlyIntent178 } from './intentHourly178'
 
 /** Purpose / what-is. Must beat live-status and catch-all "why" routes. */
 export const PURPOSE_RE =
@@ -24,6 +25,8 @@ export function lastUtterance(text: string): string {
 export { isPurposeAsk }
 
 export function classifyIntent(text: string, history?: ConversationTurn[]): IntentResult {
+  const early178 = earlyIntent178(text)
+  if (early178) return early178
   const early177 = earlyIntent177(text)
   if (early177) return early177
   const early175 = earlyIntent175(text)
