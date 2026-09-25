@@ -37,7 +37,7 @@ export const APPLY_WALKTHROUGH =
   '7. When the system shows an institutional fee amount:\n' +
   '   • If it **matches** what your bursary confirms → continue.\n' +
   '   • If it **does not match** → use **Raise a dispute** / Fee Disputes **before** you submit. Enter the correct figure; the school must confirm. **Whatever the school finally confirms is the fee loan amount.**\n' +
-  '8. Upload required documents (e.g. admission letter, ID) when the portal asks — do not skip and hope to find the step later without checking Loans/Profile again.\n' +
+  '8. Upload required documents (e.g. admission letter, ID) when the portal asks.\n' +
   '9. Review → **Submit**. Do not submit twice.\n' +
   '10. After submit, **☰ → Loans**: Institutional and/or Upkeep rows should show **Pending** (normal while processing).\n\n' +
   `Stuck: campus NELFUND desk, then ticket ${ESUPPORT}.`
@@ -51,161 +51,112 @@ export const CANCEL_LOAN =
   '5. Scroll to the loan row / status (**Pending** or similar).\n' +
   '6. Use **View** / **Cancel** where available.\n' +
   '7. Confirm **Yes, Cancel Loan** only if you are sure.\n\n' +
-  '**Portal warning (important):**\n' +
-  '• Cancelling the **institutional / school-fees** loan also cancels **upkeep** if you have one.\n' +
-  '• **Cannot be undone.**\n' +
-  '• You can cancel while the application is still **pending** (or verified) and **nothing has been disbursed** (no fees paid to school, no upkeep to your account).\n' +
-  '• Once approved and paid out, full cancellation is not available.\n\n' +
-  '**After a successful cancel (no money released):** you are **not** permanently barred — you can start a **new** application on the same account, still meeting eligibility.\n\n' +
-  `If Cancel does not complete or status stays stuck: ticket ${ESUPPORT} (Loan Application / cancellation), with name, NIN, screenshots.`
+  '**Portal warning:** Cancelling institutional also cancels upkeep; **cannot be undone**. Only while pending and nothing disbursed.\n' +
+  'After successful cancel (no money released) you can re-apply on the same account.\n\n' +
+  `If Cancel stuck: ticket ${ESUPPORT} with name, NIN, screenshots.`
 
 export const FEE_WRONG_NO_DISPUTE =
-  '**Fee on the portal is not my real school fees (and I already submitted)**\n\n' +
-  '1. First confirm the **exact** current-session charges with your school bursary / student affairs / NELFUND focal officer — not rumours.\n' +
-  '2. If still **Pending** and **nothing disbursed**:\n' +
-  '   • You **can cancel** (☰ → Loans → Cancel → Yes) then **re-apply**.\n' +
-  '   • On the new application, when the fee is shown, use **Raise a dispute** / Fee Disputes if it still does not match.\n' +
-  '3. If Cancel fails or status is stuck: ticket https://nelfund.esupport.ng/create asking to cancel the pending application so you can re-apply with the correct fee; attach screenshots.\n' +
-  '4. After re-apply, monitor Pending → Verified → Approved → Disbursed. Institutional fees go to the **school**; optional upkeep (e.g. ₦20,000/month if offered and selected) goes to **your** bank — confirm figures only on the portal.\n\n' +
-  'The loan is not an open “request any amount up to ₦300k” — it follows **school-confirmed** obligatory charges + optional upkeep.'
+  '**Fee on the portal is not my real school fees**\n\n' +
+  '1. Confirm exact charges with bursary / NELFUND desk.\n' +
+  '2. If still pending and nothing disbursed: cancel → re-apply → **Raise a dispute** if fee still wrong.\n' +
+  `3. Cancel stuck: ${ESUPPORT}.`
 
 export const REAPPLY_AFTER_CANCEL =
-  '**Can I apply again after cancelling?**\n\n' +
-  '**Yes**, if the application was still **pending** (or verified) and **no funds were released**. Cancellation does not permanently disqualify you.\n\n' +
-  `1. Log in on the same account: ${LOGIN_URL}\n` +
-  '2. Start a **new** loan request when the session allows.\n' +
-  '3. Use **Raise a dispute** if the displayed school fee ≠ bursary figure.\n' +
-  '4. Institution verification may run again.\n' +
-  '5. Keep cancellation confirmation screenshots and any ticket numbers.\n\n' +
-  'Once any part is **disbursed**, you are a beneficiary under repayment rules — full cancel is no longer the path.'
+  '**Can I apply again after cancelling?** **Yes** if pending and no funds released. Same account; use Raise a dispute if fee is wrong.\n' +
+  `Login: ${LOGIN_URL}`
 
 export const UPKEEP_AFTER_FEES_ONLY =
-  '**I only applied for school fees — how do I add / reopen upkeep?**\n\n' +
-  '1. Log in → **☰ → Loans**. Refresh if a step disappeared after you cancelled part of the flow.\n' +
-  '2. Check **Upkeep Loans** tab and Home counters. If upkeep was never submitted, you may need to start or continue a request that includes upkeep when the portal still offers it for this session.\n' +
-  '3. If you cancelled a flow because documents (admission letter, ID) were not ready: complete **Profile** / upload steps when they reappear, then open **Loans** again.\n' +
-  '4. Bank details sometimes need to be re-linked; after saving bank, the portal may show upkeep options again — stay on Loans and refresh.\n' +
-  '5. You generally **cannot** “bolt on” upkeep after institutional is already far along if the portal no longer shows the option; some students cancel (while pending, no disbursement) and re-apply selecting **both**, or ticket support.\n\n' +
-  `Login: ${LOGIN_URL}\nTicket: ${ESUPPORT}`
+  '**School fees only — add upkeep**\n\n' +
+  'Login → **☰ → Loans** → Upkeep tab. Refresh. Complete missing docs/bank if needed. If option gone and still pending, cancel+re-apply with both or ticket support.\n' +
+  `Login: ${LOGIN_URL} · Ticket: ${ESUPPORT}`
+
+export const SCHOOL_NOT_FOUND =
+  '**School not on the list / “No Result found” (Verify Educational Information)**\n\n' +
+  'This screen is part of **signup / profile** — you must select your institution before you can finish educational details and apply.\n\n' +
+  '**What it means:** The name you typed is **not matching** any institution currently on the portal list (or the school has not been loaded for this cycle yet).\n\n' +
+  '**What to try:**\n' +
+  '1. Clear the field and type a **shorter official name** or common short form (examples: “Olabisi Onabanjo”, “OOU”, “Onabanjo University” — try each carefully).\n' +
+  '2. Check spelling (spaces, order of words). Avoid extra titles unless the list uses them.\n' +
+  '3. Confirm your school is a **public** tertiary institution covered for this NELFUND cycle.\n' +
+  '4. If **nothing** appears for every reasonable name: contact your **campus NELFUND / registry / ICT desk** and ask them to confirm the institution is listed and student data is uploaded.\n' +
+  '5. Do **not** create a second account while you wait.\n\n' +
+  `Login / continue profile: ${LOGIN_URL}\n` +
+  `Portal: ${PORTAL}\n` +
+  `Still stuck after the school confirms: ticket ${ESUPPORT} with a screenshot of “No Result found”.`
 
 export const INSTITUTION_SESSION =
   '**“Your institution has not opened a session for loan applications yet”**\n\n' +
-  'This appears on **Home** when the national window can already be open, but **your school** has not opened its loan session.\n\n' +
-  'You will typically see Total / Approved / Pending / Declined Loans all at **0**, and empty Institutional / Upkeep history.\n\n' +
-  '1. Contact your **campus NELFUND / registry / student affairs desk**.\n' +
-  '2. **Profile Completed 100%** does **not** fix this — the block is school-side.\n' +
-  '3. Keep checking Home after the school confirms.\n' +
-  `4. Still stuck: ticket ${ESUPPORT} with a screenshot.\n\n` +
-  'Do not pay anyone to “open” a session.'
+  'National window can be open while **your school** has not opened its session. Contact campus NELFUND desk. Profile 100% does not remove this.\n' +
+  `Ticket: ${ESUPPORT}`
 
 export const OPEN_SESSION_NOTICE =
-  '**Active Session notice on Home**\n\n' +
-  'When your school session is active you may see:\n' +
-  '• Active Session: **2026/2027**\n' +
-  '• Notice: 2026/2027 Session Registration starts **23 September 2026** and ends **31 December 2026**\n' +
-  '• “You will not be able to apply for a loan this session after the end date.”\n\n' +
+  '**Active Session on Home**\n\n' +
+  '2026/2027 registration notice often shows **23 September 2026 – 31 December 2026**. Confirm live on the portal.\n' +
   `Login: ${LOGIN_URL}`
 
 export const FEE_DISPUTES =
-  '**Fee Disputes (☰ menu → Disputes)**\n\n' +
-  'Official idea:\n' +
-  'You question the school fee shown. Your school either agrees with your figure or supplies the correct one. **Whichever amount they confirm is the amount you get as the institutional loan.**\n\n' +
-  'Best practice: raise the dispute **while applying**, **before Submit**, if the fee shown does not match bursary.\n\n' +
-  'If you already submitted with a wrong fee and nothing is disbursed: cancel (if still pending) → re-apply → dispute on the new application.\n\n' +
+  '**Fee Disputes (☰ → Disputes)**\n\n' +
+  'Raise when fee shown ≠ bursary figure, ideally **before Submit**. School confirms the final institutional loan amount.\n' +
   `Login: ${LOGIN_URL}`
 
 export const PROFILE_BVN_BANK =
   '**Profile → Account Details (BVN & bank)**\n\n' +
-  '☰ → **Profile** → tabs: Personal · Contact · Educational · **Account Details**.\n\n' +
-  '• Profile can show **Completed 100%** even while loans are still pending.\n' +
-  '• Fields: **BVN**, **Bank Name**, **Bank Account Number** (often partially masked).\n' +
-  '• **Reset Account Details** may have limited attempts per session — use carefully.\n' +
-  '• For 2026/2027, re-enter BVN and bank when the portal asks.\n' +
+  '☰ → Profile → Account Details. Re-enter BVN/bank for 2026/2027 when asked. Limited reset attempts — use carefully.\n' +
   `Login: ${LOGIN_URL}`
 
 export const CHANGE_PASSWORD =
-  '**Change password**\n\n' +
-  '☰ → **Settings** → **Click to Change Password** (while logged in).\n\n' +
-  'If you cannot sign in, use **Forgot password** on the login page.\n' +
+  '**Change password:** ☰ → Settings while logged in. If locked out: Forgot password on login page.\n' +
   `Login: ${LOGIN_URL}`
 
 export const DASHBOARD_BEFORE =
-  '**Home before you apply**\n\n' +
-  '• Total / Approved / Pending / Declined often **0**\n' +
-  '• Possible message that the institution has not opened a session\n' +
-  '• Empty School Loan History and Personal History\n' +
+  '**Home before apply:** counts often 0; possible “institution has not opened a session”; empty loan history.\n' +
   `Login: ${LOGIN_URL}`
 
 export const DASHBOARD_AFTER =
-  '**Home / Loans after you apply**\n\n' +
-  'Typical after submitting institutional and/or upkeep:\n' +
-  '• **Total Loans** can show 2 (one institutional + one upkeep)\n' +
-  '• **Pending Loans** can show 2 while both are processing\n' +
-  '• **Approved** and **Declined** stay 0 until processed\n\n' +
-  '**Institutional Loans** tab → School Loan History:\n' +
-  '• Date, Status **Pending**, Loan Type **Institutional Fee**, session **2026-2027**\n' +
-  '• Actions: **View** and often **Cancel**\n\n' +
-  '**Upkeep Loans** tab → Personal History:\n' +
-  '• Date, Status **Pending**, Loan Type **Upkeep**, session **2026-2027**\n' +
-  '• Actions: **View** (Cancel may not always show)\n\n' +
-  'Pending means submitted and still processing — **not** declined.\n' +
+  '**Home / Loans after apply:** Total/Pending can show 1–2. Pending = processing, not declined. ☰ → Loans for View/Cancel.\n' +
   `Login: ${LOGIN_URL}`
 
 export const LOANS_TABS =
-  '**Loans page (☰ → Loans)**\n\n' +
-  '• **Institutional Loans** — school fees component (to the school)\n' +
-  '• **Upkeep Loans** — optional stipend (to your account)\n' +
-  'Use **View** for details; **Cancel** on institutional when still pending and no disbursement.\n' +
+  '**☰ → Loans:** Institutional (fees to school) and Upkeep (to you). View details; Cancel when still pending and no disbursement.\n' +
   `Login: ${LOGIN_URL}`
 
 export const HELP_CARDS =
-  '**Help on the portal**\n\n' +
-  'Home may show help cards (FAQs, how to apply, contact). For real account problems use official tickets only.\n' +
-  `Portal: ${PORTAL}\nLogin: ${LOGIN_URL}\nTicket: ${ESUPPORT}`
+  `Help cards on Home are guides only. Real issues: ${PORTAL} · ${LOGIN_URL} · ${ESUPPORT}`
 
 export const WALLET =
-  '**Wallet / balances on the portal**\n\n' +
-  'Any wallet or repaid amount display is account-specific. For application status, prefer **Home** counters and **☰ → Loans**.\n' +
+  'For application status prefer Home counters and ☰ → Loans, not wallet alone.\n' +
   `Login: ${LOGIN_URL}`
 
-/**
- * Match free text / OCR to a grounded portal knowledge block.
- */
 export function matchPortalKnowledge(text: string): { intent: string; text: string } | null {
   const t = (text || '').trim()
   if (!t) return null
 
-  if (/where\s*(do\s*i\s*|to\s*)?apply|which\s*(site|website|link|portal)|where\s*(is\s*)?(the\s*)?(loan\s*)?application/i.test(t)) {
-    return { intent: 'how-to-apply', text: WHERE_TO_APPLY }
-  }
   if (
-    /how\s*(do\s*i\s*|to\s*)?cancel|cancel\s*(my\s*)?(loan|application)|should\s*i\s*cancel|can\s*i\s*cancel|why\s*(can'?t|cannot)\s*i\s*cancel|after\s*cancel.*apply|re-?apply\s*after\s*cancel|cancel.*re-?apply/i.test(
+    /no\s*result\s*found|select\s*institution|verify\s*educational|school\s*(no|not|never)\s*(dey|show|list|found)|not\s*on\s*(the\s*)?list|cannot\s*find\s*(my\s*)?school|olabisi\s*onabanjo|\boou\b/i.test(
       t,
     )
   ) {
+    return { intent: 'school-not-found', text: SCHOOL_NOT_FOUND }
+  }
+  if (/where\s*(do\s*i\s*|to\s*)?apply|which\s*(site|website|link|portal)|where\s*(is\s*)?(the\s*)?(loan\s*)?application/i.test(t)) {
+    return { intent: 'how-to-apply', text: WHERE_TO_APPLY }
+  }
+  if (/how\s*(do\s*i\s*|to\s*)?cancel|cancel\s*(my\s*)?(loan|application)|should\s*i\s*cancel|can\s*i\s*cancel|re-?apply\s*after\s*cancel/i.test(t)) {
     if (/re-?apply|apply\s*again|after\s*cancel/i.test(t)) {
       return { intent: 'pending-application', text: CANCEL_LOAN + '\n\n' + REAPPLY_AFTER_CANCEL }
     }
-    if (/wrong\s*(fee|amount)|not\s*(my\s*)?(real|exact)\s*(fee|school)|didn'?t\s*raise\s*dispute|fee\s*(is\s*)?(wrong|incorrect)/i.test(t)) {
+    if (/wrong\s*(fee|amount)|didn'?t\s*raise\s*dispute/i.test(t)) {
       return { intent: 'pending-application', text: FEE_WRONG_NO_DISPUTE + '\n\n' + CANCEL_LOAN }
     }
     return { intent: 'pending-application', text: CANCEL_LOAN }
   }
-  if (
-    /wrong\s*(fee|amount)|fee\s*(shown|on\s*(the\s*)?portal)\s*(is\s*)?(not|≠)|not\s*(my\s*)?(exact|real)\s*school\s*fees?|didn'?t\s*(raise\s*)?(a\s*)?dispute|raise\s*(a\s*)?dispute|fee\s*dispute/i.test(
-      t,
-    )
-  ) {
+  if (/wrong\s*(fee|amount)|raise\s*(a\s*)?dispute|fee\s*dispute|not\s*(my\s*)?(exact|real)\s*school\s*fees?/i.test(t)) {
     return { intent: 'pending-application', text: FEE_WRONG_NO_DISPUTE + '\n\n' + FEE_DISPUTES }
   }
-  if (
-    /only\s*(applied\s*)?(for\s*)?(school\s*)?fees?|reopen\s*upkeep|add\s*upkeep|upkeep\s*(only|again|after)|applied\s*(for\s*)?school\s*fees?\s*only|how\s*(can\s*i\s*)?(get|open|apply)\s*upkeep/i.test(
-      t,
-    )
-  ) {
+  if (/only\s*(applied\s*)?(for\s*)?(school\s*)?fees?|reopen\s*upkeep|add\s*upkeep|upkeep\s*(only|again|after)/i.test(t)) {
     return { intent: 'upkeep', text: UPKEEP_AFTER_FEES_ONLY }
   }
-  if (/how\s*(do\s*i\s*|to\s*)?apply|steps?\s*to\s*apply|apply\s*walk|three\s*line|hamburger|☰/i.test(t)) {
+  if (/how\s*(do\s*i\s*|to\s*)?apply|steps?\s*to\s*apply|three\s*line|hamburger|☰/i.test(t)) {
     return { intent: 'how-to-apply', text: APPLY_WALKTHROUGH }
   }
   if (/institution has not opened|has not opened a session|session for loan applications yet/i.test(t)) {
@@ -214,7 +165,7 @@ export function matchPortalKnowledge(text: string): { intent: string; text: stri
   if (/active\s*session|2026\/2027\s*session\s*registration|23\s*september|31\s*december/i.test(t)) {
     return { intent: 'current-information', text: OPEN_SESSION_NOTICE }
   }
-  if (/fee\s*dispute|raise\s*a\s*dispute|dispute\s*(fee|amount)|fee\s*(looks?|is)\s*wrong|wrong\s*(fee|amount)/i.test(t)) {
+  if (/fee\s*dispute|raise\s*a\s*dispute/i.test(t)) {
     return { intent: 'pending-application', text: FEE_DISPUTES }
   }
   if (/bvn|bank\s*(detail|account)|reset\s*account\s*details|account\s*details/i.test(t)) {
@@ -223,22 +174,19 @@ export function matchPortalKnowledge(text: string): { intent: string; text: stri
   if (/change\s*password|settings/i.test(t) && /portal|menu|logged\s*in/i.test(t)) {
     return { intent: 'password-reset', text: CHANGE_PASSWORD }
   }
-  if (/portal\s*menu|three\s*line|hamburger|what\s*(is\s*on|are)\s*(the\s*)?menu|where\s*is\s*(disputes|settings|profile|loans)/i.test(t)) {
+  if (/portal\s*menu|three\s*line|hamburger|where\s*is\s*(disputes|settings|profile|loans)/i.test(t)) {
     return { intent: 'contact-support', text: PORTAL_MENU }
   }
-  if (/wallet|in\s*wallet|total\s*loan\s*amount|balance\s*date|amount\s*repaid/i.test(t)) {
+  if (/wallet|in\s*wallet/i.test(t)) {
     return { intent: 'pending-application', text: WALLET }
   }
-  if (/pending|after\s*(i\s*)?apply|loan\s*history|school\s*loan\s*history|personal\s*history|view\s*or\s*cancel/i.test(t)) {
+  if (/pending|after\s*(i\s*)?apply|loan\s*history|view\s*or\s*cancel/i.test(t)) {
     return { intent: 'pending-application', text: DASHBOARD_AFTER }
   }
-  if (/institutional\s*loans\s*tab|upkeep\s*loans\s*tab|☰\s*→\s*loans|menu\s*→\s*loans/i.test(t)) {
+  if (/institutional\s*loans\s*tab|upkeep\s*loans\s*tab/i.test(t)) {
     return { intent: 'pending-application', text: LOANS_TABS }
   }
-  if (/how\s*to\s*apply\s*\?|read\s*faqs|help\s*and\s*support|get\s*in\s*touch/i.test(t)) {
-    return { intent: 'contact-support', text: HELP_CARDS }
-  }
-  if (/total\s*loans|approved\s*loans|declined\s*loans|dashboard/i.test(t) && /empty|zero|0|before\s*apply|nothing|no\s*loan/i.test(t)) {
+  if (/total\s*loans|dashboard/i.test(t) && /empty|zero|0|before\s*apply|no\s*loan/i.test(t)) {
     return { intent: 'pending-application', text: DASHBOARD_BEFORE }
   }
   return null
