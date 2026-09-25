@@ -107,11 +107,7 @@ export default function Ask() {
     } finally {
       setOcrBusy(false)
     }
-    void sendQuestion('', {
-      ocrOverride: ocrRef.current,
-      previewOverride: previewRef.current,
-      forceImage: true,
-    })
+    // Do not auto-send — wait until the student types and/or taps Send
   }
 
   async function sendQuestion(
