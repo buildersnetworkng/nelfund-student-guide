@@ -29,7 +29,7 @@ import { classifyIntent } from './intentClassify'
 import { matchPortalKnowledge } from './portalKnowledge'
 import { answerCurrentInformation } from './current'
 import { understandPortalText } from './screenshotUnderstand'
-import { understandTurn, normalizeStudentText } from './understand'
+import { understandTurn, normalizeStudentText, splitMultiQuestions, isMultiQuestion, isDomainRelated } from './understand'
 import { suggest } from './suggest'
 import type { IntentId } from './types'
 
@@ -131,7 +131,6 @@ export async function processUserTurn(opts: {
               : screen.hasApplied === false
                 ? 'how-to-apply'
                 : 'current-information'
-        // Prefer school-not-found label when No Result found
         const intentFinal: IntentId =
           /no\s*result\s*found|select\s*institution|verify\s*educational/i.test(ocr)
             ? 'school-not-found'
@@ -145,19 +144,28 @@ export async function processUserTurn(opts: {
           'school-not-found',
           [
             '**Screen:** **Verify Educational Information** (signup / profile) — Select Institution.',
-            '**What it means:** **No Result found** — the name typed is not matching the portal list (or the school is not loaded for this cycle yet).',
+            '**What it means:** **No Result found** — the name typed is not matching the portal list.',
             '',
-            '**What to do:**',
-            '1. Clear the box and try shorter forms (e.g. for Olabisi Onabanjo University: “Olabisi Onabanjo”, “Onabanjo University”, “OOU”).',
-            '2. Check spelling carefully; do not add extra words the list may not use.',
-            '3. Confirm the school is a **public** institution on this NELFUND cycle.',
-            '4. If every reasonable name still shows No Result found → campus **NELFUND / registry / ICT desk** must confirm the institution is on the portal and student data is uploaded. Official guidance: school ICT should contact NELFUND.',
-            '5. Do **not** open a second account while waiting.',
-            '6. Refresh the page / try another network if the whole dropdown is empty.',
+            '1. Try shorter names (e.g. Olabisi Onabanjo, OOU).',
+            '2. Confirm public institution for this cycle.',
+            '3. If still No Result found → campus NELFUND / ICT desk.',
+            '4. Do not open a second account.',
             '',
-            'Login / continue: https://portal.nelf.gov.ng/auth/login',
-            'Portal: https://portal.nelf.gov.ng/',
-            'Ticket with screenshot: https://nelfund.esupport.ng/create',
+            'Login: https://portal.nelf.gov.ng/auth/login',
+            'Send a support message with your screenshot at https://nelfund.esupport.ng/create',
+          ].join('\n'),
+        )
+      }
+      if (/institution has not opened|has not opened a session/i.test(ocr)) {
+        return wrap(
+          raw || '[Screenshot uploaded]',
+          opts.slots,
+          'pending-application',
+          [
+            '**Screen:** Home — institution has not opened a session.',
+            '1. Log in again. 2. Open ☰ → Loans and Home. 3. Refresh/reload.',
+            '4. Contact campus NELFUND desk.',
+            'If still the same: send a support message with screenshot at https://nelfund.esupport.ng/create',
           ].join('\n'),
         )
       }
@@ -170,57 +178,24 @@ export async function processUserTurn(opts: {
           opts.slots,
           applied ? 'pending-application' : 'how-to-apply',
           applied
-            ? [
-                '**Screen:** Student loan portal Home / dashboard.',
-                '**Have you applied?** **Yes** — at least one request is on this account.',
-                total || pending
-                  ? `Counters: Total **${total || '?'}**, Pending **${pending || '?'}**.`
-                  : 'Pending / Total look non-zero.',
-                '',
-                'Pending means submitted and still processing — not declined.',
-                'Open **☰ → Loans** → Institutional / Upkeep for View details.',
-                'Login: https://portal.nelf.gov.ng/auth/login',
-              ].join('\n')
-            : [
-                '**Screen:** Student loan portal Home / dashboard.',
-                '**Have you applied?** **No** (or not yet) — counters look like 0.',
-                'Being logged in is not the same as submitting institutional fee or upkeep.',
-                'Login: https://portal.nelf.gov.ng/auth/login',
-              ].join('\n'),
+            ? '**Screen:** Portal Home. You have applied (Pending/Total non-zero). Pending = processing, not declined. Open ☰ → Loans. Login: https://portal.nelf.gov.ng/auth/login'
+            : '**Screen:** Portal Home. Counters look like 0 — not applied yet on this account. Login: https://portal.nelf.gov.ng/auth/login',
         )
       }
-      if (/cancel\s*(loan|application)|are\s*you\s*sure\s*you\s*want\s*to\s*cancel|yes,\s*cancel\s*loan|don'?t\s*cancel/i.test(ocr)) {
+      if (/cancel\s*(loan|application)|yes,?\s*cancel\s*loan|don'?t\s*cancel/i.test(ocr)) {
         return wrap(
           raw || '[Screenshot uploaded]',
           opts.slots,
           'pending-application',
-          [
-            '**Screen:** Cancel Loan Application confirmation.',
-            '',
-            'The portal is asking if you are **sure** you want to cancel this loan application.',
-            '• Cancelling **institutional / school-fees** also cancels **upkeep** if you have one.',
-            '• **This action cannot be undone.**',
-            '',
-            '**Steps to cancel yourself:** Login → **☰** → **Loans** → scroll to status → **Cancel** → **Yes, Cancel Loan**.',
-            'If still **pending** and **nothing disbursed**, you can usually **re-apply** after cancel and use **Raise a dispute** when the fee shown is wrong.',
-            '',
-            'Portal: https://portal.nelf.gov.ng/',
-            'Login: https://portal.nelf.gov.ng/auth/login',
-            'If Cancel stuck: https://nelfund.esupport.ng/create',
-          ].join('\n'),
+          '**Cancel Loan** confirmation. Cancelling institutional also cancels upkeep; cannot be undone. Only while pending and nothing disbursed. Login → ☰ → Loans → Cancel. Re-apply possible if no money was released. Support: https://nelfund.esupport.ng/create',
         )
       }
-      if (/admission\s*letter\s*(is\s*)?required|upload\s*(an?\s*)?admission/i.test(ocr)) {
+      if (/admission\s*letter\s*(is\s*)?required/i.test(ocr)) {
         return wrap(
           raw || '[Screenshot uploaded]',
           opts.slots,
           'documents-needed',
-          [
-            '**Screen:** Application blocker — **An admission letter is required**.',
-            'Upload a clear admission letter on that step, then continue.',
-            'Portal: https://portal.nelf.gov.ng/',
-            'Ticket if still blocked: https://nelfund.esupport.ng/create',
-          ].join('\n'),
+          '**Admission letter is required.** Upload a clear admission letter on that step. Portal: https://portal.nelf.gov.ng/',
         )
       }
       const uOcr = understandTurn(ocr, lastAsst, (opts.slots?.intent as IntentId) || null)
@@ -232,20 +207,14 @@ export async function processUserTurn(opts: {
         raw || '[Screenshot uploaded]',
         opts.slots,
         'current-information',
-        [
-          'I could read some text from your screenshot, but not a full standard layout.',
-          '',
-          'Reply with the **main title or red message** (e.g. No Result found, Cancel Loan Application, Pending Loans 2, admission letter is required).',
-          'Or re-upload a sharper crop of the banner/status only.',
-          'Portal: https://portal.nelf.gov.ng/',
-        ].join('\n'),
+        'I could read some text from your screenshot. Reply with the main title or red message (e.g. No Result found, Pending Loans 2). Portal: https://portal.nelf.gov.ng/',
       )
     } catch {
       return wrap(
         raw || '[Screenshot uploaded]',
         opts.slots,
         'current-information',
-        'I could not fully read that screenshot. Type the exact portal message you see (red banner or status), or open https://portal.nelf.gov.ng/ and try again.',
+        'I could not fully read that screenshot. Type the exact portal message, or open https://portal.nelf.gov.ng/',
       )
     }
   }
@@ -266,53 +235,34 @@ export async function processUserTurn(opts: {
         const hit = gate(u.normalized || raw, opts.slots, lastAsst, u.suggestedIntent)
         if (hit) return hit
       }
+      if (u.speechAct === 'expand' && u.suggestedIntent) {
+        const hit = gate(u.normalized || raw, opts.slots, lastAsst, u.suggestedIntent)
+        if (hit) return hit
+      }
     } catch {
       /* understanding must not break chat */
     }
   }
 
-  if (raw && /is\s+(the\s+)?(loan|application|nelfund|window).{0,40}open|application\s+open|nelfund\s+open|window\s+open|still\s*(dey\s*)?open|dem\s*don\s*close|when\s*(will|dem|they).{0,20}(open|close)|is\s*it\s*open/i.test(raw)) {
-    try {
-      const cur = answerCurrentInformation(raw, {
-        cycle: '2026/2027',
-        status: 'open',
-        status_label: '2026/2027 open · 23 Sep 2026 – 31 Dec 2026',
-        note: 'Re-enter BVN and bank when the portal asks. Institution session may still be closed at your school.',
-      })
-      if (cur?.answer) {
-        return wrap(raw, opts.slots, 'current-information', cur.answer)
-      }
-    } catch { /* fall through */ }
+  if (raw && /is\s+(the\s+)?(loan|application|nelfund|window).{0,40}open|application\s+open|nelfund\s+open|still\s*(dey\s*)?open|dem\s*don\s*close|is\s*it\s*open/i.test(raw)) {
     return wrap(
       raw,
       opts.slots,
       'current-information',
       [
         '**Yes — 2026/2027 is open on the official portal.**',
-        '',
         '• Window: **23 September 2026 – 31 December 2026**.',
-        '• Students re-enter **BVN and bank details** for this cycle when the portal asks.',
-        '• You can request **institutional fee** and/or **upkeep**.',
-        '• If Home says your institution has not opened a session, contact your campus NELFUND desk.',
-        '',
-        'Portal: https://portal.nelf.gov.ng/',
-        'Login: https://portal.nelf.gov.ng/auth/login',
-        'Official site: https://nelf.gov.ng/',
+        '• Re-enter BVN and bank when asked.',
+        '• If Home says institution has not opened a session, contact campus NELFUND desk.',
+        'Portal: https://portal.nelf.gov.ng/ · Login: https://portal.nelf.gov.ng/auth/login',
       ].join('\n'),
     )
   }
 
-  if (raw && /no\s*result\s*found|select\s*institution|verify\s*educational|school\s*(no|not|never)\s*(dey|show|list|found)|my\s*school\s*is\s*not\s*(showing|on\s*the\s*list)|cannot\s*find\s*(my\s*)?school|olabisi\s*onabanjo/i.test(raw)) {
+  if (raw && /no\s*result\s*found|select\s*institution|school\s*(no|not|never)\s*(dey|show|list|found)|my\s*school\s*is\s*not\s*(showing|on\s*the\s*list)/i.test(raw)) {
     const portalHit = matchPortalKnowledge(raw)
     if (portalHit) return wrap(raw, opts.slots, portalHit.intent as IntentId, portalHit.text)
     const hit = gate(raw, opts.slots, lastAsst, 'school-not-found')
-    if (hit) return hit
-  }
-
-  if (raw && /admission\s*letter\s*(is\s*)?required|please\s*upload\s*(an?\s*)?admission|upload\s*(an?\s*)?admission\s*letter/i.test(raw)) {
-    const portalHitAdm = matchPortalKnowledge(raw)
-    if (portalHitAdm) return wrap(raw, opts.slots, portalHitAdm.intent as IntentId, portalHitAdm.text)
-    const hit = gate(raw, opts.slots, lastAsst, 'documents-needed')
     if (hit) return hit
   }
 
@@ -330,28 +280,82 @@ export async function processUserTurn(opts: {
     return wrap(raw, opts.slots, portalHit.intent as IntentId, portalHit.text)
   }
 
+  if (raw && isMultiQuestion(raw)) {
+    const parts = splitMultiQuestions(raw)
+    const chunks: string[] = []
+    let primaryIntent: IntentId = (opts.slots?.intent as IntentId) || 'how-to-apply'
+    for (let i = 0; i < Math.min(parts.length, 3); i++) {
+      const part = parts[i]
+      const u = understandTurn(part, lastAsst, (opts.slots?.intent as IntentId) || null)
+      const intent = (u.suggestedIntent || classifyIntent(part).intent) as IntentId
+      if (i === 0) primaryIntent = intent
+      try {
+        const termHit = explainTerm(part, lastAsst)
+        if (termHit) {
+          chunks.push('**' + (i + 1) + '.** ' + termHit.text)
+          continue
+        }
+      } catch { /* */ }
+      const ph = matchPortalKnowledge(part)
+      if (ph) {
+        chunks.push('**' + (i + 1) + '.** ' + ph.text)
+        continue
+      }
+      try {
+        const pb = playbookAnswer(intent, { userText: part, lastAssistant: lastAsst })
+        if (pb) chunks.push('**' + (i + 1) + '.** ' + pb)
+        else chunks.push('**' + (i + 1) + '.** Open https://portal.nelf.gov.ng/ for: "' + part.slice(0, 80) + '"')
+      } catch {
+        chunks.push('**' + (i + 1) + '.** Check https://portal.nelf.gov.ng/ regarding: "' + part.slice(0, 80) + '"')
+      }
+    }
+    if (parts.length > 3) {
+      chunks.push('_(You asked ' + parts.length + ' things — I answered the first 3. Ask the rest one by one for more detail.)_')
+    }
+    if (chunks.length) {
+      return wrap(raw, opts.slots, primaryIntent, chunks.join('\n\n'))
+    }
+  }
+
+  if (
+    raw &&
+    /what\s*(should\s*i\s*do|next|first)|wetin\s*(next|i\s*go\s*do)|first\s*step|so\s*what(\s*now)?/i.test(raw)
+  ) {
+    const prior = (opts.slots?.intent as IntentId) || null
+    const intent = prior && prior !== 'unknown' ? prior : 'how-to-apply'
+    const hit = gate(raw, opts.slots, lastAsst, intent)
+    if (hit) return hit
+    return wrap(
+      raw,
+      opts.slots,
+      intent,
+      [
+        '**What to do next (typical order):**',
+        '',
+        '1. Log in: https://portal.nelf.gov.ng/auth/login',
+        '2. Finish **Profile** (NIN, JAMB, BVN, bank) if incomplete.',
+        '3. On **Home**, confirm your school session is open.',
+        '4. Apply: institutional fees and/or upkeep. Use **Raise a dispute** if the fee shown is wrong **before** Submit.',
+        '5. After submit: **☰ → Loans** — Pending is normal while processing.',
+        '',
+        'If blocked: campus NELFUND desk, then send a support message with a screenshot at https://nelfund.esupport.ng/create',
+      ].join('\n'),
+    )
+  }
+
   if (raw) {
     const journey: Array<[RegExp, IntentId]> = [
-      [/otp|one[- ]time|whatsapp\s*(man|agent|guy)|pay\s*(am\s*)?\d|never\s*share|scam/i, 'scam-safety'],
-      [/jamb|utme|invalid\s*number/i, 'jamb-verification'],
-      [/school\s*(no|not|never)\s*(dey|show|list)|not\s*listed|cannot\s*find\s*(my\s*)?school|no\s*result\s*found/i, 'school-not-found'],
-      [/wetin\s*(i|una)\s*(go|suppose|need)\s*(carry|upload|bring)|which\s*document|what\s*documents/i, 'documents-needed'],
-      [/pending|money\s*never|never\s*enter|wetin\s*dey\s*hold|how\s*far\s*(my\s*)?(loan|money)/i, 'pending-application'],
-      [/dem\s*don\s*close|still\s*(dey\s*)?open|application\s*(open|close)|when\s*(will|dem|they).*(open|close)/i, 'current-information'],
-      [/loan\s*(or|vs)\s*scholarship|na\s*(scholarship|grant)|free\s*money/i, 'loan-or-scholarship'],
-      [/interest[- ]?free|zero\s*interest|does\s*(am|it|e)\s*get\s*interest/i, 'loan-or-scholarship'],
-      [/how\s*i\s*go\s*(yarn|reach|contact)|official\s*(email|phone|number)|esupport|help\s*desk/i, 'contact-support'],
-      [/for\s+(my\s+)?(child|son|daughter|ward)|parent\s+|guardian\s+/i, 'how-to-apply'],
-      [/last\s*year\s*(email|account)|old\s*email|returning\s*student/i, 'reapplication'],
-      [/already\s*(finish|finished|done)\s*nysc|serving\s*nysc/i, 'repayment'],
-      [/school\s+uploaded|uploaded\s+my\s+data/i, 'institution-verification'],
-      [/polytechnic|\bpoly\b|monotechnic/i, 'eligibility'],
-      [/fresher|newly\s+admitted/i, 'eligibility'],
-      [/matric(ulation)?\s+number|no\s+matric/i, 'documents-needed'],
-      [/email\s*(already|has\s*already|is\s*already)\s*(in\s*use|used|taken)|mail\s*don\s*dey/i, 'email-already-used'],
-      [/loan\s+and\s+upkeep|i\s*meant.{0,30}(loan|upkeep)|apply.{0,20}(loan|upkeep)/i, 'how-to-apply'],
-      [/how\s*(do\s*i|to|i\s*go)\s*(log\s*in|login)|abeg.{0,12}(log\s*in|login)/i, 'portal-login'],
-      [/name\s*(no|not|never)\s*(match|the\s*same)|name\s*mismatch/i, 'bank-information'],
+      [/otp|whatsapp\s*(man|agent)|pay\s*(am\s*)?\d|scam/i, 'scam-safety'],
+      [/jamb|invalid\s*number/i, 'jamb-verification'],
+      [/school\s*(no|not|never)\s*(dey|show|list)|no\s*result\s*found/i, 'school-not-found'],
+      [/pending|money\s*never|disburse|disurment|how\s*far\s*(my\s*)?(loan|money)/i, 'pending-application'],
+      [/dem\s*don\s*close|still\s*(dey\s*)?open|application\s*(open|close)/i, 'current-information'],
+      [/upkeep|school\s*fees?|institutional/i, 'upkeep-vs-fees'],
+      [/how\s*(do\s*i|to|i\s*go)\s*(log\s*in|login)|forgot\s*password|email\s*already/i, 'portal-login'],
+      [/how\s*(do\s*i|to|i\s*go)\s*apply|where\s*(do\s*i\s*)?apply/i, 'how-to-apply'],
+      [/repay|after\s*nysc/i, 'repayment'],
+      [/eligib|who\s*can\s*apply/i, 'eligibility'],
+      [/cancel\s*(loan|application)/i, 'pending-application'],
     ]
     for (const [re, intent] of journey) {
       if (re.test(raw)) {
@@ -359,6 +363,16 @@ export async function processUserTurn(opts: {
         if (hit) return hit
       }
     }
+  }
+
+  if (raw && isDomainRelated(raw, lastAsst)) {
+    try {
+      const classified = classifyIntent(raw)
+      const hit = gate(raw, opts.slots, lastAsst, classified.intent)
+      if (hit) return hit
+      const pb = playbookAnswer(classified.intent, { userText: raw, lastAssistant: lastAsst })
+      if (pb) return wrap(raw, opts.slots, classified.intent, pb)
+    } catch { /* fall through */ }
   }
 
   try {
