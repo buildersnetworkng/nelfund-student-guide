@@ -78,38 +78,22 @@ export interface TroubleshootingItem {
   what_to_do: string[]
   avoid_this: string[]
   video_ids: string[]
-  source_id: string | null
+  source_id: string
   still_stuck: string
   verification_status: VerificationStatus
   scope: InformationScope
-  institution_id: string | null
   last_verified: string | null
+  institution_id: string | null
 }
-
-export type VideoSourceType = 'official' | 'university' | 'educational' | 'community' | 'third_party'
 
 export interface Video {
   id: string
   title: string
-  url: string
-  channel_url: string | null
-  thumbnail_url: string | null
-  category: string
-  related_problem: string | null
+  youtube_id: string
   description: string
-  channel: string
-  source_type: VideoSourceType
-  verification_status: VerificationStatus
-  scope: InformationScope
-  institution_id: string | null
-  quality_rating: number | null
-  recommended: boolean
-  freshness_note: string | null
-  warning: string | null
-  published_at: string | null
-  date_added: string
-  last_reviewed: string | null
-  related_knowledge_ids: string[]
+  duration_seconds: number | null
+  related_guide_ids: string[]
+  related_faq_ids: string[]
 }
 
 export type ApplicationCycleStatus =
@@ -118,6 +102,7 @@ export type ApplicationCycleStatus =
   | 'closed'
   | 'extended'
   | 'pending_verification'
+  | 'confirm_on_portal'
 
 export interface ApplicationStatus {
   cycle: string
@@ -125,6 +110,13 @@ export interface ApplicationStatus {
   status_label: string
   note: string
   last_checked: string
+  /** ISO date YYYY-MM-DD when a national window is reported to start */
+  window_start?: string
+  /** ISO date YYYY-MM-DD when a national window is reported to end */
+  window_end?: string
+  window_note?: string
+  source_of_truth?: string[]
+  rules?: string[]
 }
 
 export interface ReadinessQuestion {
@@ -145,52 +137,77 @@ export interface SearchableEntry {
   title: string
   snippet: string
   keywords: string[]
-  path: string
 }
 
-export interface SearchSuggestion {
-  label: string
-  query: string
+export type IntentId =
+  | 'what-is-nelfund'
+  | 'nelfund-purpose'
+  | 'nelfund-history'
+  | 'eligibility'
+  | 'how-to-apply'
+  | 'portal-login'
+  | 'password-reset'
+  | 'email-already-used'
+  | 'upkeep'
+  | 'upkeep-allowance'
+  | 'institutional-charges'
+  | 'upkeep-vs-fees'
+  | 'school-fees'
+  | 'institution-verification'
+  | 'missing-information'
+  | 'school-not-found'
+  | 'pending-application'
+  | 'jamb-verification'
+  | 'documents-needed'
+  | 'loan-or-scholarship'
+  | 'current-information'
+  | 'deadline'
+  | 'academic-session'
+  | 'repayment'
+  | 'gsi'
+  | 'scam-safety'
+  | 'contact-support'
+  | 'contact-lookup'
+  | 'nin-verification'
+  | 'bank-information'
+  | 'email-draft'
+  | 'rejected-application'
+  | 'reapplication'
+  | 'refund'
+  | 'guarantor'
+  | 'official-sources'
+  | 'unknown'
+
+export type ConversationPhase =
+  | 'greet'
+  | 'diagnose'
+  | 'resolve'
+  | 'escalate'
+  | 'closed'
+
+export interface EscalationContactView {
+  url?: string | null
+  email?: string | null
+  phone?: string | null
+  priority?: string | null
+  verification_status?: VerificationStatus | null
+  why?: string | null
 }
 
-export type ContactOffice =
-  | 'ict'
-  | 'student_records'
-  | 'registry'
-  | 'admissions'
-  | 'bursary'
-  | 'student_affairs'
-  | 'nelfund_desk'
-  | 'helpdesk'
-
-export interface InstitutionContact {
-  id: string
-  institution_id: string
-  office: ContactOffice
-  label: string
-  email: string | null
-  phone: string | null
-  url: string | null
-  purpose: string
-  handles: string[]
-  verification_status: VerificationStatus
-  source_url: string | null
-  source_type: string | null
-  last_verified: string | null
-  notes: string | null
-}
-
-export interface NationalSupportContact {
-  id: string
-  label: string
-  url: string | null
-  email: string | null
-  phone: string | null
-  purpose: string
-  handles: string[]
-  verification_status: VerificationStatus
-  source_url: string | null
-  source_type: string | null
-  last_verified: string | null
-  notes: string | null
+export interface GroundedAnswer {
+  hasEvidence: boolean
+  intent: IntentId | string
+  confidence: number
+  responseMode?: string
+  problem: string | null
+  whatThisMeans?: string | null
+  answer: string
+  nextActions: string[]
+  clarifyingQuestions: string[]
+  evidence: unknown[]
+  sources: { id: string; label: string; url: string; official: boolean }[]
+  video: unknown | null
+  insufficientReason: string | null
+  officialFallbackUrl: string | null
+  escalation: unknown | null
 }
