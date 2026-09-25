@@ -1,7 +1,21 @@
 {
   "cycle": "2026/2027",
-  "status": "open",
-  "status_label": "2026/2027 open · 23 Sep 2026 – 31 Dec 2026",
-  "note": "• Active session 2026/2027. Window 23 Sep 2026 – 31 Dec 2026.\n• Menu: Home · Loans · Disputes · Profile · Settings · Log out.\n• Before school opens session: Home may say institution has not opened a session; counts 0.\n• After apply: Total/Pending can show 2 (Institutional Fee + Upkeep both Pending); Approved 0 until processed.\n• Institutional tab: School Loan History — View / Cancel. Upkeep tab: Personal History — View.\n• Wallet Balance may show Institution Loan amount and status In Wallet (amounts are personal/school-specific).\n• Fee Disputes: raise when applying if fee shown is wrong; school confirms the amount used as loan.\n• Profile Account Details: BVN, bank name, account number; Reset Account Details has limited attempts per session.\n• Settings: Change Password. Upkeep stipend text on apply flow has shown ₦20,000/month (confirm live).\nConfirm only on portal.nelf.gov.ng.",
-  "last_checked": "2026-09-24"
+  "status": "confirm_on_portal",
+  "status_label": "Confirm live on the official portal only",
+  "window_start": "2026-09-23",
+  "window_end": "2026-12-31",
+  "window_note": "Dates sometimes appear in secondary reports. They are NOT a substitute for what the portal shows today.",
+  "source_of_truth": [
+    "https://portal.nelf.gov.ng/",
+    "https://portal.nelf.gov.ng/auth/login",
+    "https://nelf.gov.ng/"
+  ],
+  "rules": [
+    "Never invent open/closed from WhatsApp or blogs alone.",
+    "National window open does not mean every school session is open.",
+    "After a deadline passes, treat that cycle window as closed until a new official announcement and portal behaviour say otherwise.",
+    "Account creation can work while loan request is still closed."
+  ],
+  "note": "Status answers must always point students to portal.nelf.gov.ng to see whether Request Loan is available on their account. School-side session blocks can still show even when a national window is open.",
+  "last_checked": "2026-09-25"
 }
