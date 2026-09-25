@@ -50,6 +50,10 @@ const cases = [
   ['hourly172-status', 'How I go check my application status', /Login|Pending|Loans|portal/i],
   ['hourly172-docs-pidgin', 'Wetin I go carry go upload', /JAMB|NIN|BVN|portal/i],
   ['hourly172-interest-pidgin', 'Does e get interest', /interest-free|loan/i],
+  ['hourly179-loan-vs', 'Is NELFUND a loan or a scholarship?', /loan|scholarship|interest-free/i],
+  ['hourly179-school-pidgin', 'My school no dey the list', /shorter|public|portal\.nelf/i],
+  ['hourly179-bvn', 'My BVN no match the bank', /BVN|bank|portal/i],
+  ['hourly179-open-pidgin', 'Una still dey collect application?', /change by cycle|portal\.nelf|nelf\.gov/i],
 ]
 
 let fail = 0
