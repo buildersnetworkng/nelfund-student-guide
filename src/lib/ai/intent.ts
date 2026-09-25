@@ -1,6 +1,7 @@
 import type { IntentResult, ConversationTurn } from './types'
 import { classifyIntent as classifyIntentInner, isPurposeAsk } from './intentClassify'
 import { earlyIntent173 } from './intentHourly173'
+import { earlyIntent174 } from './intentHourly174'
 
 /** Purpose / what-is. Must beat live-status and catch-all "why" routes. */
 export const PURPOSE_RE =
@@ -21,6 +22,8 @@ export function lastUtterance(text: string): string {
 export { isPurposeAsk }
 
 export function classifyIntent(text: string, history?: ConversationTurn[]): IntentResult {
+  const early174 = earlyIntent174(text)
+  if (early174) return early174
   const early = earlyIntent173(text)
   if (early) return early
   return classifyIntentInner(text, history)
