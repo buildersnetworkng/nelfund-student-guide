@@ -3,95 +3,88 @@ const SITE = 'https://nelf.gov.ng/'
 const LOGIN = 'https://portal.nelf.gov.ng/auth/login'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
-/** Hourly 169: name mismatch, GSI, change of school, vocational/part-time, parent, photo, verify email. */
+/** Hourly 169: private-school eligibility, password Pidgin, missing-info, repayment, school-upload. */
 export function playbookHourly169(intent: string, userText: string): string | null {
   const t = userText || ''
 
   if (
-    /name\s*(no|not|never)\s*(match|the\s*same)|name\s*mismatch|different\s*name|spelling\s*(no|not)\s*(match|correct)|nin\s*(and|&)\s*bvn.{0,20}(name|match)/i.test(
-      t,
-    )
+    /private\s*(uni|university|school|poly)|na\s*private\s*(school|uni)|my\s*school\s*na\s*private/i.test(t)
   ) {
     return (
-      '**Name mismatch**\n\n' +
-      'The portal checks that JAMB, NIN, BVN, and bank names look like the same person.\n\n' +
-      '1. Compare the exact spelling on JAMB, NIN slip, BVN, and your bank account.\n' +
-      '2. Fix the record that is wrong at that office (JAMB, NIMC, or your bank) — this chat cannot change it.\n' +
-      `3. Retry ${PORTAL}. Still blocked: campus NELFUND desk, then ${ESUPPORT} with a screenshot.\n` +
-      'Do not open a second account to dodge a name mismatch.'
-    )
-  }
-
-  if (/\bgsi\b|global\s*standing|debit\s*my\s*account|standing\s*instruction/i.test(t) || intent === 'gsi') {
-    return (
-      '**GSI (Global Standing Instruction)**\n\n' +
-      'On the official form you accept a repayment recovery mandate that can link to your bank account after the grace period.\n\n' +
-      `Read the exact wording on ${PORTAL} before you tick it. Confirm mechanics on ${SITE}.\n` +
-      'I will not invent cut rates, start dates, or extra charges.'
+      '**Private schools**\n\n' +
+      'Official wording: NELFUND is for eligible students in **public** tertiary institutions.\n' +
+      'A **private** university, polytechnic, or college is generally **not** on this scheme.\n\n' +
+      `Confirm the live institution list only on ${PORTAL}.\n` +
+      `Do not pay anyone who claims they can \u201cadd\u201d a private school.\n` +
+      `Tickets: ${ESUPPORT}`
     )
   }
 
   if (
-    /change\s*(of\s*)?(school|institution|course)|I\s*(don|have)\s*transfer|new\s*school\s*after|switch(ed)?\s*(school|course)/i.test(
+    /forgot?\s*(my\s*)?(pass|password)|reset\s*(my\s*)?(pass|password)|i\s*no\s*(remember| sabi)\s*(my\s*)?(pass|password)|pass\s*no\s*dey\s*work|password\s*(no|not)\s*(dey\s*)?work/i.test(
       t,
-    )
+    ) ||
+    intent === 'password-reset'
   ) {
     return (
-      '**Change of school or course**\n\n' +
-      'Your portal record must match the institution that uploaded you for this cycle.\n\n' +
-      '1. Ask the **new** school NELFUND / ICT / Registry desk to upload your current record.\n' +
-      '2. If the old school is still listed, ask both desks which record is active.\n' +
-      `3. Retry ${PORTAL}. Do not create a second student account.\n` +
-      `4. Still stuck: ${ESUPPORT} with a screenshot of the school list.`
+      '**Password reset**\n\n' +
+      `1. Open ${LOGIN}.\n` +
+      `2. Use **Forgot / Reset password** for the **same email** you registered.\n` +
+      '3. Check inbox and spam for the official reset mail.\n' +
+      '4. Do not create a second email just to force a new form.\n' +
+      `5. Still blocked: ${ESUPPORT} with a screenshot.\n` +
+      `Portal: ${PORTAL}`
     )
   }
 
-  if (/vocational|skills?\s*school|monotechnic|part[\s-]*time|sandwich/i.test(t) && /eligib|can\s*i|who\s*can|apply|fit/i.test(t)) {
+  if (
+    /missing\s*information|information\s*(is\s*)?missing|red\s*banner|complete\s*(your\s*)?(profile|information)|upload\s*(no|not)\s*complete/i.test(
+      t,
+    ) ||
+    intent === 'missing-information'
+  ) {
     return (
-      '**Mode of study / institution type**\n\n' +
-      'Official coverage is for eligible students in **public** tertiary institutions that appear on the portal list.\n\n' +
-      'Part-time, sandwich, vocational, or monotechnic study must match what **your school record** and the official portal accept this cycle.\n' +
-      `Confirm on ${PORTAL} — I will not invent extra categories.\n` +
-      `School missing from the list: campus desk, then ${ESUPPORT}.`
+      '**Missing information**\n\n' +
+      'The portal is asking for a field your school or your profile has not completed.\n\n' +
+      '1. Read the **exact red banner** (admission letter, JAMB, NIN, BVN, bank, institution).\n' +
+      '2. Fix what you can on the profile at ' +
+      LOGIN +
+      '.\n' +
+      '3. If the school record is the gap, visit the campus NELFUND / ICT desk so they **upload** you.\n' +
+      '4. Do not open a second account.\n' +
+      `Ticket if still stuck: ${ESUPPORT}`
     )
   }
 
-  if (/for\s+(my\s+)?(child|son|daughter|ward)|parent\s+|guardian\s+/i.test(t)) {
+  if (
+    /when\s*(i|we)\s*(go|will)\s*pay\s*back|how\s*(to|i\s*go)\s*repay|repayment\s*start|after\s*nysc|2\s*years?\s*after/i.test(
+      t,
+    ) ||
+    intent === 'repayment'
+  ) {
     return (
-      '**Parent / guardian help**\n\n' +
-      'The student must apply in **their own** name with **their** JAMB, NIN, BVN, and bank account.\n\n' +
-      `1. Open ${PORTAL} together and create or sign in to the student’s account (${LOGIN}).\n` +
-      '2. Tick institutional charges (paid to the school) and optional upkeep (paid to the student).\n' +
-      '3. Never pay an agent or share the student’s OTP.\n' +
-      `Stuck: campus NELFUND desk, then ${ESUPPORT}.`
+      '**Repayment**\n\n' +
+      'Official FAQ: repayment is due **2 years after NYSC**.\n' +
+      'NELFUND is an **interest-free loan**, not a grant.\n\n' +
+      `Confirm current wording only on ${SITE} and ${PORTAL}.\n` +
+      'I will not invent rates, monthly amounts, or jail terms.\n' +
+      `Support tickets: ${ESUPPORT}`
     )
   }
 
-  if (/passport\s*(photo|photograph)|profile\s*picture|upload\s*photo/i.test(t)) {
+  if (
+    /school\s*(don|has|have)\s*(upload|uploaded)|how\s*(i|to)\s*know.{0,30}upload|uploaded\s*(my\s*)?(data|record|name)/i.test(
+      t,
+    ) ||
+    intent === 'institution-verification'
+  ) {
     return (
-      '**Photo / passport on the portal**\n\n' +
-      'If the form asks for a passport photograph or profile picture, upload a clear recent face shot in the format the portal lists (often JPEG or PDF).\n\n' +
-      `Upload only on ${PORTAL}. Do not send photos to WhatsApp agents.\n` +
-      `Upload error: retry a smaller file, then ${ESUPPORT} with a screenshot.`
-    )
-  }
-
-  if (/verif(y|ication)\s*(mail|email)|email\s*(no|not|never)\s*(dey|come)|confirm\s*email|link\s*(no|not)\s*(dey|come)/i.test(t)) {
-    return (
-      '**Email verification**\n\n' +
-      `1. Check inbox and spam for the link from the official portal (${PORTAL}).\n` +
-      '2. Wait a few minutes and request the mail again from the same page if the portal offers Resend.\n' +
-      `3. Still nothing: Forgot / Reset at ${LOGIN} only if an account already exists.\n` +
-      `4. Do not invent a second Gmail. Ticket: ${ESUPPORT}.`
-    )
-  }
-
-  if (/already\s*(finish|finished|done)\s*nysc|serving\s*nysc|after\s*nysc/i.test(t) && /repay|loan|apply|eligib/i.test(t)) {
-    return (
-      '**NYSC and repayment**\n\n' +
-      `Official FAQ: repayment is due **2 years after NYSC**. Confirm on ${SITE}.\n` +
-      'If you are still a student in a public tertiary institution this cycle, apply only while the official window is open.\n' +
-      `I will not invent your personal start date. Portal: ${PORTAL}.`
+      '**School upload**\n\n' +
+      `Sign in at ${LOGIN} and try **Verify educational information** / institution search.\n` +
+      '- If your name and programme appear, the school record is on the portal.\n' +
+      '- If you see **No Result found**, the campus desk still needs to upload you.\n' +
+      'This chat cannot push the school file for you.\n' +
+      `Stuck after the desk visit: ${ESUPPORT}`
     )
   }
 
