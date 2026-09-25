@@ -23,4 +23,13 @@ export function lastUtterance(text: string): string {
   return parts[parts.length - 1] || q
 }
 
-export { classifyIntent, isPurposeAsk } from './intentClassify'
+import { classifyIntent as classifyIntentInner, isPurposeAsk } from './intentClassify'
+import { earlyIntent173 } from './intentHourly173'
+
+export { isPurposeAsk }
+
+export function classifyIntent(text: string, history?: ConversationTurn[]): IntentResult {
+  const early = earlyIntent173(text)
+  if (early) return early
+  return classifyIntentInner(text, history)
+}
