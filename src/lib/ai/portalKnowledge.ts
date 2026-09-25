@@ -110,7 +110,7 @@ export const INSTITUTION_SESSION =
 
 export const OPEN_SESSION_NOTICE =
   '**Active session / application window**\n\n' +
-  'Loan and upkeep application is **not confirmed open** from this guide. Always confirm live dates on the official portal.\n' +
+  '2026/2027 window often shows **23 September 2026 – 31 December 2026** on Home. Still confirm live on the portal.\n' +
   'National window is not the same as your school session.\n' +
   `Login: ${LOGIN_URL}`
 
@@ -153,7 +153,7 @@ export function matchPortalKnowledge(text: string): { intent: string; text: stri
 
   // Left mid-form / exited before finish / how to get back and apply again
   if (
-    /unable\\s*to\\s*finish|couldn'?t\\s*finish|could\\s*not\\s*finish|didn'?t\\s*finish|before\\s*(i\\s*)?(exit|exiting|leave|left|close)|get\\s*back\\s*(to\\s*)?(apply|application)|continue\\s*(my\\s*)?(appl|form|details)|resume\\s*(my\\s*)?(appl|form)|apply\\s*(for\\s*)?again|start\\s*(over|again)\\s*(to\\s*)?apply|left\\s*(before|mid|half)|filling\\s*(my\\s*)?details.{0,40}(exit|left|close)|how\\s*(do\\s*i|to)\\s*(get\\s*back|continue|resume)/i.test(
+    /unable\s*to\s*finish|couldn'?t\s*finish|could\s*not\s*finish|didn'?t\s*finish|before\s*(i\s*)?(exit|exiting|leave|left|close)|get\s*back\s*(to\s*)?(apply|application)|continue\s*(my\s*)?(appl|form|details)|resume\s*(my\s*)?(appl|form)|apply\s*(for\s*)?again|start\s*(over|again)\s*(to\s*)?apply|left\s*(before|mid|half)|filling\s*(my\s*)?details.{0,40}(exit|left|close)|how\s*(do\s*i|to)\s*(get\s*back|continue|resume)/i.test(
       t,
     )
   ) {
@@ -161,61 +161,61 @@ export function matchPortalKnowledge(text: string): { intent: string; text: stri
   }
 
   if (
-    /no\\s*result\\s*found|select\\s*institution|verify\\s*educational|school\\s*(no|not|never)\\s*(dey|show|list|found)|not\\s*on\\s*(the\\s*)?list|cannot\\s*find\\s*(my\\s*)?school|olabisi\\s*onabanjo|\\boou\\b/i.test(
+    /no\s*result\s*found|select\s*institution|verify\s*educational|school\s*(no|not|never)\s*(dey|show|list|found)|not\s*on\s*(the\s*)?list|cannot\s*find\s*(my\s*)?school|olabisi\s*onabanjo|\boou\b/i.test(
       t,
     )
   ) {
     return { intent: 'school-not-found', text: SCHOOL_NOT_FOUND }
   }
-  if (/where\\s*(do\\s*i\\s*|to\\s*)?apply|which\\s*(site|website|link|portal)|where\\s*(is\\s*)?(the\\s*)?(loan\\s*)?application/i.test(t)) {
+  if (/where\s*(do\s*i\s*|to\s*)?apply|which\s*(site|website|link|portal)|where\s*(is\s*)?(the\s*)?(loan\s*)?application/i.test(t)) {
     return { intent: 'how-to-apply', text: WHERE_TO_APPLY }
   }
-  if (/how\\s*(do\\s*i\\s*|to\\s*)?cancel|cancel\\s*(my\\s*)?(loan|application)|should\\s*i\\s*cancel|can\\s*i\\s*cancel|re-?apply\\s*after\\s*cancel/i.test(t)) {
-    if (/re-?apply|apply\\s*again|after\\s*cancel/i.test(t)) {
-      return { intent: 'pending-application', text: CANCEL_LOAN + '\\n\\n' + REAPPLY_AFTER_CANCEL }
+  if (/how\s*(do\s*i\s*|to\s*)?cancel|cancel\s*(my\s*)?(loan|application)|should\s*i\s*cancel|can\s*i\s*cancel|re-?apply\s*after\s*cancel/i.test(t)) {
+    if (/re-?apply|apply\s*again|after\s*cancel/i.test(t)) {
+      return { intent: 'pending-application', text: CANCEL_LOAN + '\n\n' + REAPPLY_AFTER_CANCEL }
     }
-    if (/wrong\\s*(fee|amount)|didn'?t\\s*raise\\s*dispute/i.test(t)) {
-      return { intent: 'pending-application', text: FEE_WRONG_NO_DISPUTE + '\\n\\n' + CANCEL_LOAN }
+    if (/wrong\s*(fee|amount)|didn'?t\s*raise\s*dispute/i.test(t)) {
+      return { intent: 'pending-application', text: FEE_WRONG_NO_DISPUTE + '\n\n' + CANCEL_LOAN }
     }
     return { intent: 'pending-application', text: CANCEL_LOAN }
   }
-  if (/wrong\\s*(fee|amount)|raise\\s*(a\\s*)?dispute|fee\\s*dispute|not\\s*(my\\s*)?(exact|real)\\s*school\\s*fees?/i.test(t)) {
-    return { intent: 'pending-application', text: FEE_WRONG_NO_DISPUTE + '\\n\\n' + FEE_DISPUTES }
+  if (/wrong\s*(fee|amount)|raise\s*(a\s*)?dispute|fee\s*dispute|not\s*(my\s*)?(exact|real)\s*school\s*fees?/i.test(t)) {
+    return { intent: 'pending-application', text: FEE_WRONG_NO_DISPUTE + '\n\n' + FEE_DISPUTES }
   }
-  if (/only\\s*(applied\\s*)?(for\\s*)?(school\\s*)?fees?|reopen\\s*upkeep|add\\s*upkeep|upkeep\\s*(only|again|after)/i.test(t)) {
+  if (/only\s*(applied\s*)?(for\s*)?(school\s*)?fees?|reopen\s*upkeep|add\s*upkeep|upkeep\s*(only|again|after)/i.test(t)) {
     return { intent: 'upkeep', text: UPKEEP_AFTER_FEES_ONLY }
   }
-  if (/how\\s*(do\\s*i\\s*|to\\s*)?apply|steps?\\s*to\\s*apply|three\\s*line|hamburger|☰/i.test(t)) {
+  if (/how\s*(do\s*i\s*|to\s*)?apply|steps?\s*to\s*apply|three\s*line|hamburger|☰/i.test(t)) {
     return { intent: 'how-to-apply', text: APPLY_WALKTHROUGH }
   }
   if (/institution has not opened|has not opened a session|session for loan applications yet/i.test(t)) {
     return { intent: 'pending-application', text: INSTITUTION_SESSION }
   }
-  if (/active\\s*session|2026\\/2027\\s*session\\s*registration|23\\s*september|31\\s*december/i.test(t)) {
+  if (/active\s*session|2026\/2027\s*session\s*registration|23\s*september|31\s*december/i.test(t)) {
     return { intent: 'current-information', text: OPEN_SESSION_NOTICE }
   }
-  if (/fee\\s*dispute|raise\\s*a\\s*dispute/i.test(t)) {
+  if (/fee\s*dispute|raise\s*a\s*dispute/i.test(t)) {
     return { intent: 'pending-application', text: FEE_DISPUTES }
   }
-  if (/bvn|bank\\s*(detail|account)|reset\\s*account\\s*details|account\\s*details/i.test(t)) {
+  if (/bvn|bank\s*(detail|account)|reset\s*account\s*details|account\s*details/i.test(t)) {
     return { intent: 'bank-information', text: PROFILE_BVN_BANK }
   }
-  if (/change\\s*password|settings/i.test(t) && /portal|menu|logged\\s*in/i.test(t)) {
+  if (/change\s*password|settings/i.test(t) && /portal|menu|logged\s*in/i.test(t)) {
     return { intent: 'password-reset', text: CHANGE_PASSWORD }
   }
-  if (/portal\\s*menu|three\\s*line|hamburger|where\\s*is\\s*(disputes|settings|profile|loans)/i.test(t)) {
+  if (/portal\s*menu|three\s*line|hamburger|where\s*is\s*(disputes|settings|profile|loans)/i.test(t)) {
     return { intent: 'contact-support', text: PORTAL_MENU }
   }
-  if (/wallet|in\\s*wallet/i.test(t)) {
+  if (/wallet|in\s*wallet/i.test(t)) {
     return { intent: 'pending-application', text: WALLET }
   }
-  if (/pending|after\\s*(i\\s*)?apply|loan\\s*history|view\\s*or\\s*cancel/i.test(t)) {
+  if (/pending|after\s*(i\s*)?apply|loan\s*history|view\s*or\s*cancel/i.test(t)) {
     return { intent: 'pending-application', text: DASHBOARD_AFTER }
   }
-  if (/institutional\\s*loans\\s*tab|upkeep\\s*loans\\s*tab/i.test(t)) {
+  if (/institutional\s*loans\s*tab|upkeep\s*loans\s*tab/i.test(t)) {
     return { intent: 'pending-application', text: LOANS_TABS }
   }
-  if (/total\\s*loans|dashboard/i.test(t) && /empty|zero|0|before\\s*apply|no\\s*loan/i.test(t)) {
+  if (/total\s*loans|dashboard/i.test(t) && /empty|zero|0|before\s*apply|no\s*loan/i.test(t)) {
     return { intent: 'pending-application', text: DASHBOARD_BEFORE }
   }
   return null
