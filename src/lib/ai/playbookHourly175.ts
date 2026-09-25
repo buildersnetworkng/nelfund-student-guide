@@ -9,7 +9,7 @@ export function playbookHourly175(intent: string, userText: string): string | nu
   const t = userText || ''
 
   if (
-    /email\s*(don|already|has)\s*(use|used|exist|dey)|mail\s*(already|don)\s*(use|used|exist)|this\s*email\s*(is\s*)?(already|don)\s*(in\s*use|used)|account\s*(already|don)\s*(exist|dey)/i.test(
+    /email.{0,24}(don|already|has).{0,16}(use|used|exist|dey)|mail\s*(already|don)\s*(use|used|exist)|this\s*email\s*(is\s*)?(already|don)\s*(in\s*use|used)|account\s*(already|don)\s*(exist|dey)/i.test(
       t,
     )
   ) {

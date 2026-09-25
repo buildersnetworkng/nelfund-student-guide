@@ -16,7 +16,7 @@ export function earlyIntent175(text: string): IntentResult | null {
   const raw = (text || '').trim()
   if (!raw) return null
   if (
-    /email\s*(don|already|has)\s*(use|used|exist|dey)|mail\s*(already|don)\s*(use|used|exist)|this\s*email\s*(is\s*)?(already|don)\s*(in\s*use|used)/i.test(
+    /email.{0,24}(don|already|has).{0,16}(use|used|exist|dey)|mail\s*(already|don)\s*(use|used|exist)|this\s*email\s*(is\s*)?(already|don)\s*(in\s*use|used)/i.test(
       raw,
     )
   ) {

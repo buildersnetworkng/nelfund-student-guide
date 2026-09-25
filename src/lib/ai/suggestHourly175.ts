@@ -6,7 +6,7 @@ function two(a: string, b: string): [string, string] {
 export function suggestHourly175(userText?: string | null): [string, string] | null {
   const t = (userText || '').trim()
   if (!t) return null
-  if (/email\s*(don|already|has)\s*(use|used|exist|dey)|mail\s*(already|don)\s*(use|used)/i.test(t)) {
+  if (/email.{0,24}(don|already|has).{0,16}(use|used|exist|dey)|mail\s*(already|don)\s*(use|used)/i.test(t)) {
     return two('I forgot my password', 'How do I contact official support?')
   }
   if (/missing\s*(info|information|details)|incomplete\s*(profile|information)/i.test(t)) {
