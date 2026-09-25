@@ -66,3 +66,6 @@ export type {
   EscalationContactView,
   AgentCapability,
 } from './types'
+
+export { understandTurn, normalizeStudentText } from './understand'
+export type { UnderstoodTurn, SpeechAct } from './understand'
