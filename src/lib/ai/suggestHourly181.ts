@@ -6,30 +6,26 @@ function two(a: string, b: string): [string, string] {
 export function suggestHourly181(userText?: string | null): [string, string] | null {
   const t = (userText || '').trim()
   if (!t) return null
-  if (
-    /na\s*(scholarship|grant|free\s*money)|loan\s*(or|vs)\s*(scholarship|grant)|is\s*(it|nelfund|am)\s*(a\s*)?(scholarship|grant)/i.test(
-      t,
-    )
-  ) {
-    return two('When does repayment start?', 'Is the loan interest-free?')
+  if (/jamb\s*caps|caps\s*(no|not|never)\s*(show|dey)|jamb\s*(no|not)\s*verify/i.test(t)) {
+    return two('What documents do I need?', 'My school is not on the list')
   }
-  if (/interest\s*(dey|free|rate)|zero\s*interest|does\s*(e|it|am)\s*get\s*interest|any\s*interest/i.test(t)) {
-    return two('Is NELFUND a loan or a scholarship?', 'When does repayment start?')
+  if (/how\s*long.{0,24}(pending|approval)|e\s*still\s*dey\s*pending|pending\s*(since|for)/i.test(t)) {
+    return two('How do I check my application status?', 'How do I contact official support?')
   }
-  if (
-    /part[-\s]*time|sandwich|private\s*(uni|school)|100\s*l|nd1|hnd1|freshers?/i.test(t) &&
-    /eligib|apply|can\s*i|who\s*can/i.test(t)
-  ) {
-    return two('How do I apply step by step?', 'What documents do I need?')
+  if (/raise\s*a?\s*dispute|wrong\s*(fee|charge|amount)|fee\s*(no|not)\s*(correct|match)/i.test(t)) {
+    return two('What are institutional charges?', 'How do I apply for loan and upkeep?')
   }
-  if (/mail\s*don\s*(dey|exist)|email\s*already|account\s*already\s*(dey|exist)/i.test(t)) {
-    return two('I forgot my password', 'How do I log in?')
+  if (/which\s*(site|website|link)\s*(na|is)\s*(original|official|correct|real)|fake\s*(nelfund\s*)?(site|link)/i.test(t)) {
+    return two('How do I log in?', 'How do I contact official support?')
   }
-  if (/dem\s*don\s*close|still\s*(dey\s*)?open|window\s*(open|close)|fit\s*i\s*still\s*apply/i.test(t)) {
-    return two('How do I apply step by step?', 'Who can apply (eligibility)?')
+  if (/passport\s*(photograph|photo)|nin\s*slip\s*(and|&)\s*(bvn|jamb)/i.test(t)) {
+    return two('How do I apply step by step?', 'How do I log in?')
   }
-  if (/how\s*i\s*go\s*apply.{0,30}(loan|upkeep)|loan\s+and\s+upkeep|i\s*meant.{0,20}upkeep/i.test(t)) {
-    return two('How do I log in?', 'What is upkeep vs school fees?')
+  if (/una\s*go\s*add\s*interest|hidden\s*interest|dem\s*go\s*add\s*interest/i.test(t)) {
+    return two('Is NELFUND a loan or a scholarship?', 'When do I repay?')
+  }
+  if (/na\s*(gift|free\s*money|grant)\??|scholarship\s*abi\s*loan/i.test(t)) {
+    return two('What is upkeep?', 'When do I repay?')
   }
   return null
 }
