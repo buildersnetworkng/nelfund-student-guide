@@ -61,6 +61,7 @@ export default function Ask() {
   const [preview, setPreview] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<Record<string, 'up' | 'down'>>({})
   const [ocrBusy, setOcrBusy] = useState(false)
+  const [showAllSuggestions, setShowAllSuggestions] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const ocrRef = useRef<string | null>(null)
@@ -246,19 +247,29 @@ export default function Ask() {
     if (vote === 'up') markShareValue()
   }
 
+  const visibleSuggestions = showAllSuggestions ? SUGGESTIONS : SUGGESTIONS.slice(0, 5)
   const suggestionList = (
-    <div className="flex flex-col gap-2">
-      {SUGGESTIONS.map((s) => (
+    <div className="flex flex-col gap-1">
+      {visibleSuggestions.map((s) => (
         <button
           key={s}
           type="button"
           disabled={busy}
           onClick={() => void sendQuestion(s)}
-          className="rounded-full border border-ink/10 bg-white px-3 py-2 text-left text-sm text-ink/80 hover:border-brand/40"
+          className="rounded-full border border-ink/10 bg-white/80 px-2.5 py-1 text-left text-[12px] leading-snug text-ink/70 hover:border-brand/40"
         >
           {s}
         </button>
       ))}
+      {!showAllSuggestions && SUGGESTIONS.length > 5 && (
+        <button
+          type="button"
+          onClick={() => setShowAllSuggestions(true)}
+          className="px-1 py-0.5 text-left text-[11px] font-medium text-brand"
+        >
+          More questions…
+        </button>
+      )}
     </div>
   )
 
@@ -311,8 +322,10 @@ export default function Ask() {
 
       <div className="flex-1 space-y-3 overflow-y-auto pb-4">
         {messages.length === 0 && (
-          <div className="rounded-2xl border border-ink/10 bg-white p-4">
-            <p className="mb-2 text-sm font-medium text-ink">Ask about NELFUND</p>
+          <div className="rounded-xl border border-ink/10 bg-white/90 px-3 py-2.5">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink/45">
+              Ask about NELFUND
+            </p>
             {suggestionList}
           </div>
         )}
