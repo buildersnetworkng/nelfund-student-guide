@@ -263,7 +263,7 @@ export default function Ask() {
   )
 
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-lg flex-col px-3 pb-3 pt-2">
+    <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-lg flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
       <div className="mb-2 flex items-center gap-2">
         <Link to="/" className="shrink-0" aria-label="Home">
           <img
@@ -364,16 +364,16 @@ export default function Ask() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="sticky bottom-0 border-t border-ink/5 bg-[#f7f8f5] pt-2">
+      <div className="sticky bottom-0 z-20 border-t border-ink/10 bg-[#f7f8f5] px-0 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {preview && (
-          <div className="mb-2 flex items-center gap-2">
+          <div className="mb-2 flex items-center gap-2 px-1">
             <img src={preview} alt="preview" className="h-12 w-12 rounded object-cover" />
             <button type="button" className="text-xs text-red-600" onClick={clearFile}>
               Remove
             </button>
           </div>
         )}
-        <form onSubmit={onSubmit} className="flex items-end gap-2">
+        <form onSubmit={onSubmit} className="flex w-full items-center gap-2">
           <input
             ref={fileRef}
             type="file"
@@ -384,7 +384,7 @@ export default function Ask() {
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white text-lg"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white text-xl text-ink"
             aria-label="Attach image"
             disabled={busy || ocrBusy}
           >
@@ -394,18 +394,18 @@ export default function Ask() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask anything about NELFUND"
-            className="min-h-10 flex-1 rounded-full border border-ink/10 bg-white px-4 py-2 text-sm"
+            className="min-h-11 min-w-0 flex-1 rounded-full border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink"
           />
           <button
             type="submit"
             disabled={busy || ocrBusy || (!input.trim() && !ocrText && !preview)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1B5E3B] text-lg font-bold text-white shadow-sm disabled:opacity-40"
             aria-label="Send"
           >
             →
           </button>
         </form>
-        <p className="pb-2 text-center text-[10px] text-ink/40">
+        <p className="pt-1.5 text-center text-[10px] text-ink/40">
           Independent student guide · Verify critical details on the official portal
         </p>
       </div>
