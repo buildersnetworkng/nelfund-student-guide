@@ -1,4 +1,5 @@
 import type { IntentResult } from './types'
+import { earlyIntent182 } from './intentHourly182'
 
 function hit(intent: IntentResult['intent'], label: string): IntentResult {
   return { intent, confidence: 0.92, label, slots: {} }
@@ -6,6 +7,8 @@ function hit(intent: IntentResult['intent'], label: string): IntentResult {
 
 /** Hourly 181 early routes. */
 export function earlyIntent181(text: string): IntentResult | null {
+  const from182 = earlyIntent182(text)
+  if (from182) return from182
   const raw = text || ''
   if (/jamb\s*caps|caps\s*(no|not|never)\s*(show|dey)|jamb\s*(no|not)\s*verify/i.test(raw)) {
     return hit('jamb-verification', 'JAMB CAPS')
