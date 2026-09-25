@@ -88,11 +88,25 @@ export function playbookHourly176(intent: string, userText: string): string | nu
     return (
       '**Still pending**\n\n' +
       'Pending means submitted and **still processing**, not declined.\n\n' +
-      `1. ${LOGIN} → **☰ → Loans** — read the exact line.\n` +
+      `1. ${LOGIN} → **☰ → Loans** — read the exact line.\n' +
       '2. Institutional charges go to the **school** after approval; upkeep (if selected) to **your** account.\n' +
       '3. Official FAQ often mentions about **30 days after approval** for disbursement — that is not a personal promise.\n' +
       `4. Long wait with no change: campus desk, then ${ESUPPORT} + screenshot.\n` +
       `Portal: ${PORTAL}`
+    )
+  }
+
+  if (
+    /matric(ulation)?\s*(number|no\\.?)?.{0,24}(yet|no|not|never)|no\s*(get|have)\s*matric|i\s*do\s*not\s*have\s*matric/i.test(
+      t,
+    )
+  ) {
+    return (
+      '**No matric number yet**\n\n' +
+      'You can still open a portal account with JAMB / admission details.\n' +
+      'When the school issues matric, ask campus NELFUND / ICT / Registry to **upload** the record, then add it on Profile.\n' +
+      'Do not invent a matric number.\n' +
+      `Login: ${LOGIN}\nSupport: ${ESUPPORT}`
     )
   }
 

@@ -6,6 +6,9 @@ function two(a: string, b: string): [string, string] {
 export function suggestHourly176(userText?: string | null): [string, string] | null {
   const t = (userText || '').trim()
   if (!t) return null
+  if (/matric(ulation)?\s*(number|no\\.?)?.{0,24}(yet|no|not|never)|no\s*(get|have)\s*matric|i\s*do\s*not\s*have\s*matric/i.test(t)) {
+    return two('What documents do I need?', 'How do I apply step by step?')
+  }
   if (/jamb.{0,20}(invalid|no\s*dey|never\s*work|fail|wrong)|invalid\s*(jamb|utme)/i.test(t)) {
     return two('Portal shows missing information', 'How do I log in?')
   }
