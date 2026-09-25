@@ -16,6 +16,18 @@ function byText(userText?: string | null): string[] | null {
   if (/otp|one[- ]time|pin|password|scam|agent|pay\s*\d|whatsapp\s*(man|agent|guy)|never\s*share/i.test(t)) {
     return two('How do I apply only on the official portal?', 'How do I contact official support?')
   }
+  if (/already\s*(apply|applied|submit)|duplicate\s*(loan|application)|apply\s*two\s*times/i.test(t)) {
+    return two('How do I check status on the portal?', 'How do I contact official support?')
+  }
+  if (/private\s*(uni|university|poly|school|institution)|can\s*private/i.test(t)) {
+    return two('Who can apply (eligibility)?', 'My school is not on the list')
+  }
+  if (/institution.{0,40}session|session\s*(not\s*)?(open|opened)|school\s*(never|no|not)\s*(open|start).{0,20}session/i.test(t)) {
+    return two('How do I know if my school uploaded my data?', 'How do I contact official support?')
+  }
+  if (/how\s*(do\s*i|to|i\s*go|i\s*take)\s*(check|see|view)\s*(my\s*)?(status|application)|check\s*(loan\s*)?status/i.test(t)) {
+    return two('When does official disbursement happen after approval?', 'How do I contact official support?')
+  }
   if (/for\s+(my\s+)?(child|son|daughter|ward)|parent\s+|guardian\s+/i.test(t)) {
     return two('How do I apply step by step?', 'What documents do I need?')
   }
