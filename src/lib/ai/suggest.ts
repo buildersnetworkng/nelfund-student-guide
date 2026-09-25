@@ -7,12 +7,15 @@ import { suggestHourly176 } from './suggestHourly176'
 import { suggestHourly177 } from './suggestHourly177'
 import { suggestHourly178 } from './suggestHourly178'
 import { suggestHourly179 } from './suggestHourly179'
+import { suggestHourly180 } from './suggestHourly180'
 
 /** Max 2 next-question chips per reply so students can tap through NELFUND. */
 export function suggest(
   intent: IntentId | string | null | undefined,
   userText?: string | null,
 ): [string, string] {
+  const extra180 = suggestHourly180(userText)
+  if (extra180) return extra180
   const extra179 = suggestHourly179(userText)
   if (extra179) return extra179
   const extra178 = suggestHourly178(userText)
