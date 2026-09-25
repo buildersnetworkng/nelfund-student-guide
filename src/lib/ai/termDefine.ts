@@ -38,8 +38,8 @@ const TERM_DEFS: TermRow[] = [
     intent: 'pending-application',
     answer:
       '**Disbursement** means NELFUND **paying** an approved loan.\n\n' +
-      '• Institutional charges → paid to the **school**\n' +
-      '• Upkeep (if selected) → paid to **you**\n' +
+      '\u2022 Institutional charges \u2192 paid to the **school**\n' +
+      '\u2022 Upkeep (if selected) \u2192 paid to **you**\n' +
       'Official FAQ: often within **30 days of approval** of a successful application — confirm live status on the portal. I will not invent your personal pay date.\n\n' +
       `Login: ${LOGIN}`,
   },
@@ -48,7 +48,7 @@ const TERM_DEFS: TermRow[] = [
     intent: 'pending-application',
     answer:
       '**Pending** on the portal means the application is **submitted and still processing** — not declined.\n\n' +
-      `Sign in at ${LOGIN} → **☰ → Loans** and read the exact status. I cannot move the queue from this chat.`,
+      `Sign in at ${LOGIN} \u2192 **\u2630 \u2192 Loans** and read the exact status. I cannot move the queue from this chat.`,
   },
   {
     re: /\bgsi\b|global\s*standing\s*instruction/i,
@@ -63,7 +63,7 @@ const TERM_DEFS: TermRow[] = [
     answer:
       '**Raise a dispute / Fee Disputes** is used when the **school fee amount shown** on the portal does **not** match what your bursary confirms.\n\n' +
       'Best done **before Submit**. Your school then confirms the figure; whatever they confirm becomes the institutional loan amount.\n' +
-      `Login: ${LOGIN} → **☰ → Disputes**`,
+      `Login: ${LOGIN} \u2192 **\u2630 \u2192 Disputes**`,
   },
   {
     re: /\bbvn\b|bank\s*verification/i,
@@ -90,12 +90,12 @@ const TERM_DEFS: TermRow[] = [
     re: /session|institution has not opened/i,
     intent: 'pending-application',
     answer:
-      'A **session** is your school’s open period for loan applications on the portal.\n\n' +
-      'National NELFUND may be open while **your school** has not opened its session yet — then Home can say “institution has not opened a session.” Contact campus NELFUND desk; try login → **☰ → Loans** → refresh.',
+      'A **session** is your school\u2019s open period for loan applications on the portal.\n\n' +
+      'National NELFUND may be open while **your school** has not opened its session yet \u2014 then Home can say \u201cinstitution has not opened a session.\u201d Contact campus NELFUND desk; try login \u2192 **\u2630 \u2192 Loans** \u2192 refresh.',
   },
 ]
 
-/** "What do you mean by…?", "What\'s X?", "Wetin be X?", "what\'s disurment" */
+/** "What do you mean by\u2026?", "What\'s X?", "Wetin be X?", "what\'s disurment" */
 export function isMeaningAsk(text: string): boolean {
   const t = (text || '').trim()
   if (!t || t.length > 180) return false
@@ -106,7 +106,11 @@ export function isMeaningAsk(text: string): boolean {
   if (/what\'?s?\s+(an?\s+)?/i.test(t) && t.length < 120) return true
   if (/what\s+(is|are|be|does|mean|means)\b/i.test(t) && t.length < 120) return true
   if (/meaning\s+of\b|define\b/i.test(t) && t.length < 120) return true
-  if (/^[a-zA-Z\s?]{3,40}\??$/.test(t) && /disburse|disurment|upkeep|pending|gsi|bvn|nin|portal|dispute/i.test(t))
+  if (
+    /^[a-zA-Z\s?]{3,40}\??$/.test(t) &&
+    /disburse|disurment|upkeep|pending|gsi|bvn|nin|portal|dispute/i.test(t) &&
+    !/how\s*(i|to|do)|apply|login|log\s*in|wetin\s*i\s*go/i.test(t)
+  )
     return true
   return false
 }
