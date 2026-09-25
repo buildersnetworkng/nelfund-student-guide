@@ -1,3 +1,5 @@
+import { playbookHourly172 } from './playbookHourly172'
+
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const LOGIN = 'https://portal.nelf.gov.ng/auth/login'
@@ -5,6 +7,8 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hourly 171: vocational/part-time, GSI, change-of-school, verify-email, parent apply, passport, OTP. */
 export function playbookHourly171(intent: string, userText: string): string | null {
+  const chained = playbookHourly172(intent, userText)
+  if (chained) return chained
   const t = userText || ''
 
   if (/vocational|skills?\s*school|monotechnic|part[\s-]*time|sandwich/i.test(t)) {
