@@ -7,6 +7,7 @@ import { playbookHourly177 } from './playbookHourly177'
 import { playbookHourly178 } from './playbookHourly178'
 import { playbookHourly179 } from './playbookHourly179'
 import { playbookHourly180 } from './playbookHourly180'
+import { playbookHourly181 } from './playbookHourly181'
 
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
@@ -15,6 +16,8 @@ const ESUPPORT = 'https://nelfund.esupport.ng/create'
 
 /** Hourly 170: email already used, apply for loan+upkeep, login Pidgin, name mismatch. */
 export function playbookHourly170(intent: string, userText: string): string | null {
+  const h181 = playbookHourly181(intent, userText)
+  if (h181) return h181
   const h180 = playbookHourly180(intent, userText)
   if (h180) return h180
   const h179 = playbookHourly179(intent, userText)
@@ -45,7 +48,7 @@ export function playbookHourly170(intent: string, userText: string): string | nu
       '**Email already used**\n\n' +
       'That message means an account may already exist for that address.\n\n' +
       `1. Sign in at ${LOGIN} with the same email.\n` +
-      '2. If you forgot the password, use **Forgot / Reset password** for that same email.\n' +
+      '2. If you forgot the password, use **Forgot / Reset password** for that same email.\n` +
       '3. Do not open a second email just to force a new form.\n' +
       `4. Still blocked: ${ESUPPORT} with a screenshot.\n` +
       `Portal: ${PORTAL}`
