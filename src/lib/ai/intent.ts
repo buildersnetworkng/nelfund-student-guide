@@ -7,6 +7,7 @@ import { earlyIntent177 } from './intentHourly177'
 import { earlyIntent178 } from './intentHourly178'
 import { earlyIntent179 } from './intentHourly179'
 import { earlyIntent180 } from './intentHourly180'
+import { earlyIntent181 } from './intentHourly181'
 
 /** Purpose / what-is. Must beat live-status and catch-all "why" routes. */
 export const PURPOSE_RE =
@@ -38,6 +39,8 @@ export function classifyIntent(text: string, history?: ConversationTurn[]): Inte
       isTroubleshooting: false,
     }
   }
+  const early181 = earlyIntent181(text)
+  if (early181) return early181
   const early180 = earlyIntent180(text)
   if (early180) return early180
   const early179 = earlyIntent179(text)
