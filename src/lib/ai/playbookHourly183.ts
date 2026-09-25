@@ -4,101 +4,79 @@ const LOGIN = 'https://portal.nelf.gov.ng/auth/login'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 const FAQ = 'https://nelf.gov.ng/faq'
 
-/** Hourly 183: email used, password, loan vs scholarship, interest, school list, missing info, part-time, apply+upkeep. */
+/** Hourly 183: DE/JAMB, forgot email, photo upload, transfer, NYSC apply, ticket, loan vs grant, interest. */
 export function playbookHourly183(intent: string, userText: string): string | null {
   const t = userText || ''
 
-  if (/email\s*(already|don|has)\s*(been\s*)?(use[d]?|taken|exist)|dis\s*email\s*(don|already)\s*(dey|exist)|account\s*(already|don)\s*(dey|exist)/i.test(t)) {
+  if (/direct\s*entry|ijmb|jupeb|no\s*utme|i\s*(no|never|don.?t)\s*write\s*jamb|jamb\s*(number|reg).{0,20}(lost|forget|no\s*dey)/i.test(t)) {
     return (
-      '**Email already used**\n\n' +
-      `That address already has a portal account.\n` +
-      `1. Sign in at ${LOGIN} with the same email.\n` +
-      `2. Forgot the password? Use Forgot / Reset password on ${PORTAL} for that email.\n` +
-      `3. Still blocked: ${ESUPPORT} with a screenshot.\n\n` +
-      'Do not open a second account unless official support tells you to.'
+      '**Direct Entry / JAMB number**\n\n' +
+      'Use the JAMB registration number that matches your admission letter (including Direct Entry / IJMB / JUPEB routes when JAMB issued a number).\n' +
+      'If you lost the number, recover it from JAMB first, then retry the portal. This chat cannot change JAMB CAPS.\n\n' +
+      `Portal: ${PORTAL}\nStuck after a correct number: campus desk + ${ESUPPORT}`
     )
   }
 
-  if (/forget\s*(my\s*)?(pass|password)|forgot\s*(my\s*)?(pass|password)|reset\s*(my\s*)?(pass|password)|password\s*(no|not|never)\s*(dey|work|correct)|i\s*no\s*remember\s*(my\s*)?password/i.test(t)) {
+  if (/forgot\s*(the\s*)?(email|gmail)|which\s*email\s*(i\s*)?(use|used)|email\s*(i\s*)?(use|used)\s*(don\s*)?(forget|lost)/i.test(t)) {
     return (
-      '**Reset password**\n\n' +
-      `1. Open ${LOGIN} → Forgot / Reset password.\n` +
-      '2. Enter the email on the account.\n' +
-      '3. Check inbox and spam, then set a new password and sign in.\n' +
-      `4. No mail arrives: ${ESUPPORT}.\n\n` +
-      'Never send the password to an agent or WhatsApp number.'
+      '**Forgot the email used to register**\n\n' +
+      `1. Try emails you used for JAMB / school mail at ${LOGIN}.\n` +
+      '2. If one of them hits **email already used**, that is the account — use Forgot password on that same email.\n' +
+      `3. Do not open a second account. Ticket with a screenshot: ${ESUPPORT}`
     )
   }
 
-  if (/\b(na|is)\s*(dis|this|am)\s*(scholarship|grant|free\s*money)|loan\s*(or|vs|abi)\s*scholarship|scholarship\s*(or|vs|abi)\s*loan|dem\s*(go|will)\s*collect\s*(am\s*)?back|na\s*free\s*money/i.test(t)) {
+  if (/passport\s*(photo|photograph)|upload\s*(my\s*)?(picture|photo|id\s*card)|student\s*id\s*(card)?\s*(upload|needed|compulsory)/i.test(t)) {
     return (
-      '**Loan, not scholarship**\n\n' +
-      'NELFUND is an **interest-free loan**. It is not a grant, scholarship, or free money.\n' +
-      `Official FAQ: repayment is due **2 years after NYSC**. Confirm live wording on ${FAQ} and ${SITE}.\n` +
-      'I will not invent rates or a personal repayment calendar.'
+      '**Photo / student ID upload**\n\n' +
+      'Admission letter is the usual required upload. Passport photograph and student ID are extra if the form asks.\n' +
+      'Clear JPEG or PDF, your name readable. Upload only on the official portal.\n\n' +
+      `Start: ${PORTAL}`
     )
   }
 
-  if (/interest\s*(rate|free|zero)|zero\s*interest|dem\s*(go|will)\s*add\s*interest|how\s*much\s*interest|e\s*get\s*interest/i.test(t)) {
+  if (/change\s*of\s*institution|i\s*change\s*(school|uni)|transfer\s*(student|to\s*another)|i\s*leave\s*(the\s*)?(old\s*)?school/i.test(t)) {
+    return (
+      '**Change of institution / transfer**\n\n' +
+      'The portal follows the school record that was uploaded for this cycle. If you moved schools, the new campus NELFUND / ICT desk must have your current record.\n' +
+      'Do not open a second NELFUND account for the new school.\n\n' +
+      `Retry the institution search on ${PORTAL}. Ticket: ${ESUPPORT}`
+    )
+  }
+
+  if (/i\s*dey\s*(do|serve)\s*nysc|serving\s*(corps|nysc)|after\s*graduation\s*(fit|can)\s*i\s*still\s*apply/i.test(t)) {
+    return (
+      '**NYSC / after graduation**\n\n' +
+      'The student loan is for eligible students in public tertiary institutions with an uploaded school record.\n' +
+      'If you have already left school / are serving NYSC, confirm on the official site whether a new application is still offered for your case — I will not invent an extra category.\n' +
+      'Repayment is described as starting after the study / NYSC window.\n\n' +
+      `Eligibility on ${PORTAL} · FAQ: ${FAQ}`
+    )
+  }
+
+  if (/how\s*(i\s*go|to|do\s*i)\s*(open|raise|create)\s*(esupport|e-?support|ticket)|ticket\s*(no|not|never)\s*(reply|answer)/i.test(t)) {
+    return (
+      '**Official support ticket**\n\n' +
+      `Open a ticket at ${ESUPPORT} with the exact portal wording and a screenshot.\n` +
+      'School-record problems still start at the campus NELFUND desk.\n' +
+      `Login: ${LOGIN} · Site: ${SITE}`
+    )
+  }
+
+  if (/na\s*(loan|scholarship|grant)\s*(or|abi)\s*(loan|scholarship|grant)|dem\s*go\s*collect\s*(am\s*)?back|free\s*money\s*abi\s*loan/i.test(t)) {
+    return (
+      '**Loan, not a grant**\n\n' +
+      'NELFUND is an **interest-free loan**, not a scholarship and not free money.\n' +
+      `Repayment follows official study / NYSC rules — confirm on ${SITE}. I will not invent rates.`
+    )
+  }
+
+  if (/interest\s*(rate|free)|does\s*(e|it)\s*get\s*interest|dem\s*go\s*add\s*interest|zero\s*interest/i.test(t) || intent === 'repayment' && /interest/i.test(t)) {
     return (
       '**Interest**\n\n' +
-      'The official portal describes the student loan as **interest-free** (no hidden charges).\n' +
-      `Confirm the live wording on ${SITE} and ${PORTAL}. I will not invent a percentage.`
-    )
-  }
-
-  if (/school\s*(no|not|never)\s*(dey|show|appear)\s*(for|on)?\s*(the\s*)?list|my\s*school\s*(no|not)\s*(dey|on)\s*(the\s*)?list|una\s*no\s*put\s*my\s*school/i.test(t)) {
-    return (
-      '**School not on the list**\n\n' +
-      'Usually the typed name does not match the official list, or the school has not opened this session.\n\n' +
-      '1. Search a shorter official name (not the nickname).\n' +
-      '2. Confirm it is a **public** tertiary institution on this cycle.\n' +
-      '3. Ask the campus NELFUND / ICT desk to upload / open the session.\n' +
-      `4. Retry ${PORTAL}. Still missing: ${ESUPPORT} with a screenshot.`
-    )
-  }
-
-  if (/missing\s*(info|information|details)|profile\s*(no|not)\s*complete|e\s*say\s*missing|portal\s*say\s*missing/i.test(t)) {
-    return (
-      '**Missing information**\n\n' +
-      'The portal still needs a field from you or from the school file.\n\n' +
-      '1. Finish Profile: NIN, JAMB, BVN, bank in **your** name.\n' +
-      '2. If school / matric is the gap, campus NELFUND desk first.\n' +
-      `3. Retry ${PORTAL}. Same error: ${ESUPPORT} with a screenshot.\n` +
-      `Login: ${LOGIN}`
-    )
-  }
-
-  if (/part[\s-]*time|sandwich|post\s*graduate|postgraduate|masters?\b|phd\b|i\s*dey\s*part\s*time/i.test(t)) {
-    return (
-      '**Mode of study**\n\n' +
-      'Official coverage is for eligible students in **public** tertiary institutions. Part-time, sandwich, and postgraduate lines must match what the live portal accepts for your school record.\n' +
-      `I will not invent extra categories. Confirm on ${PORTAL} and ${FAQ}.`
-    )
-  }
-
-  if (/how\s*(to|i\s*go|do\s*i)\s*apply\s*(then\s*)?(i\s*meant\s*)?(for\s*)?(the\s*)?(loan|upkeep)|apply.{0,24}(loan|upkeep).{0,16}(and|&|plus).{0,16}(loan|upkeep)/i.test(t)) {
-    return (
-      '**Apply for institutional charges and upkeep**\n\n' +
-      `1. Open ${PORTAL} and sign in (${LOGIN}).\n` +
-      '2. Finish Profile (JAMB, NIN, BVN, bank in your name).\n' +
-      '3. On **Request for Student Loan** choose institutional charges and, if offered this cycle, tick **upkeep** in the same session.\n' +
-      '4. Confirm the live figures on the form. Accept Terms and the GSI mandate, then Submit.\n\n' +
-      'Fees go to the school. Upkeep (if selected and approved) goes to your BVN account.'
-    )
-  }
-
-  if (intent === 'password-reset') {
-    return (
-      '**Forgot password**\n\n' +
-      `Use Forgot / Reset password on ${LOGIN} with the account email. Check spam. Ticket: ${ESUPPORT}.`
-    )
-  }
-
-  if (intent === 'email-already-used') {
-    return (
-      '**Email already used**\n\n' +
-      `Sign in at ${LOGIN} or reset that same email on ${PORTAL}. Do not open a second account. Ticket: ${ESUPPORT}.`
+      'Official descriptions treat the student loan as **interest-free**.\n' +
+      `Confirm live wording on ${SITE} and ${PORTAL}. I will not invent a rate.\n` +
+      `FAQ: ${FAQ}`
     )
   }
 
