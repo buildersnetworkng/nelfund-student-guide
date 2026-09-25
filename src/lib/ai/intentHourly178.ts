@@ -43,6 +43,7 @@ export function earlyIntent178(text: string): IntentResult | null {
     return hit('contact-support', 'Official support')
   }
   if (
+    !/draft\s*(an?\s*)?email|write\s*(an?\s*)?email|compose\s*(an?\s*)?email/i.test(raw) &&
     /missing\s*information|incomplete\s*(record|data|info)|school\s*(never|no|not)\s*upload/i.test(
       raw,
     )

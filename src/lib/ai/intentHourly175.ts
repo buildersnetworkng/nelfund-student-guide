@@ -23,6 +23,7 @@ export function earlyIntent175(text: string): IntentResult | null {
     return hit('email-already-used', 'Email already used')
   }
   if (
+    !/draft\s*(an?\s*)?email|write\s*(an?\s*)?email|compose\s*(an?\s*)?email/i.test(raw) &&
     /missing\s*(info|information|details)|information\s*(no|not|never)\s*(complete|dey|show)|incomplete\s*(profile|information)/i.test(
       raw,
     )
