@@ -26,6 +26,7 @@ import { explainTerm } from './termDefine'
 import { playbookAnswer } from './playbook'
 import { classifyIntent } from './intentClassify'
 import { matchPortalKnowledge } from './portalKnowledge'
+import { answerCurrentInformation } from './current'
 import { understandPortalText } from './screenshotUnderstand'
 import { suggest } from './suggest'
 import type { IntentId } from './types'
@@ -110,6 +111,7 @@ export async function processUserTurn(opts: {
   const lastAsst =
     [...(opts.history || [])].reverse().find((h) => h.role === 'assistant')?.text || null
 
+  // Screenshot upload: always answer from OCR — never fall through (prevents device crash)
   if (ocr.length >= 8) {
     try {
       const screen = understandPortalText(ocr)
@@ -193,6 +195,38 @@ export async function processUserTurn(opts: {
         'I could not fully read that screenshot. Type the exact portal message you see (red banner or status), or open https://portal.nelf.gov.ng/ and try again.',
       )
     }
+  }
+
+  // Application open / window — use grounded 2026/2027 status (not weak playbook)
+  if (raw && /is\s+(the\s+)?(loan|application|nelfund|window).{0,40}open|application\s+open|nelfund\s+open|window\s+open|still\s*(dey\s*)?open|dem\s*don\s*close|when\s*(will|dem|they).{0,20}(open|close)|is\s*it\s*open/i.test(raw)) {
+    try {
+      const cur = answerCurrentInformation(raw, {
+        cycle: '2026/2027',
+        status: 'open',
+        status_label: '2026/2027 open · 23 Sep 2026 – 31 Dec 2026',
+        note: 'Re-enter BVN and bank when the portal asks. Institution session may still be closed at your school.',
+      })
+      if (cur?.answer) {
+        return wrap(raw, opts.slots, 'current-information', cur.answer)
+      }
+    } catch { /* fall through */ }
+    return wrap(
+      raw,
+      opts.slots,
+      'current-information',
+      [
+        '**Yes — 2026/2027 is open on the official portal.**',
+        '',
+        '• Window: **23 September 2026 – 31 December 2026**.',
+        '• Re-enter **BVN and bank details** for this cycle if the portal asks.',
+        '• Apply for **institutional fee** and/or **upkeep** while the window is open.',
+        '• If your school has not opened a session yet, contact the campus NELFUND desk.',
+        '',
+        'Portal: https://portal.nelf.gov.ng/',
+        'Login: https://portal.nelf.gov.ng/auth/login',
+        'Official site: https://nelf.gov.ng/',
+      ].join('\n'),
+    )
   }
 
   if (raw && /admission\s*letter\s*(is\s*)?required|please\s*upload\s*(an?\s*)?admission|upload\s*(an?\s*)?admission\s*letter/i.test(raw)) {
