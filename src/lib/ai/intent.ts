@@ -6,6 +6,7 @@ import { earlyIntent175 } from './intentHourly175'
 import { earlyIntent177 } from './intentHourly177'
 import { earlyIntent178 } from './intentHourly178'
 import { earlyIntent179 } from './intentHourly179'
+import { earlyIntent180 } from './intentHourly180'
 
 /** Purpose / what-is. Must beat live-status and catch-all "why" routes. */
 export const PURPOSE_RE =
@@ -26,6 +27,19 @@ export function lastUtterance(text: string): string {
 export { isPurposeAsk }
 
 export function classifyIntent(text: string, history?: ConversationTurn[]): IntentResult {
+  if (/draft\s+(an?\s+)?email|write\s+(an?\s+)?email|compose\s+(an?\s+)?email/i.test(text || '')) {
+    return {
+      intent: 'email-draft',
+      confidence: 0.94,
+      topics: ['email-draft'],
+      problem: 'Draft support email',
+      stage: 'applying',
+      entities: [],
+      isTroubleshooting: false,
+    }
+  }
+  const early180 = earlyIntent180(text)
+  if (early180) return early180
   const early179 = earlyIntent179(text)
   if (early179) return early179
   const early178 = earlyIntent178(text)
