@@ -1,3 +1,5 @@
+import { playbookHourly173 } from './playbookHourly173'
+
 const PORTAL = 'https://portal.nelf.gov.ng/'
 const SITE = 'https://nelf.gov.ng/'
 const LOGIN = 'https://portal.nelf.gov.ng/auth/login'
@@ -6,6 +8,8 @@ const FAQ = 'https://nelf.gov.ng/faq'
 
 /** Hourly 172: private school, level, upkeep amount, Pidgin closed window, ticket, forget password. */
 export function playbookHourly172(intent: string, userText: string): string | null {
+  const chained173 = playbookHourly173(intent, userText)
+  if (chained173) return chained173
   const t = userText || ''
 
   if (/private\s*(uni|university|school|poly)|fit\s*apply.{0,20}private/i.test(t)) {
@@ -22,7 +26,9 @@ export function playbookHourly172(intent: string, userText: string): string | nu
   if (/\b(100|200|300|400|500)\s*(l|level)\b|which\s*level\s*(fit|can)\s*apply|fresher|newly\s*admitted/i.test(t)) {
     return (
       '**Which level can apply**\n\n' +
+      '100-level, 200-level and later years can apply if official eligibility is met.\n' +
       'Eligibility is about a **public** institution, admission, and a school session that is open on the portal — not a WhatsApp “only 100L / only 200L” rumour.\n\n' +
+      'Have Matriculation number (when issued), JAMB, NIN, BVN and bank in your name ready.\n' +
       `1. Confirm your school and session on ${PORTAL}.\n` +
       '2. Freshers still need JAMB / admission evidence the form asks for.\n' +
       `3. Confirm live rules on ${SITE} and ${FAQ}. I will not invent a cut-off level.`
