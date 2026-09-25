@@ -40,6 +40,10 @@ const cases = [
   ['crit-gothrough', 'Ok give me a go through of the whole nelfund stuff', /institutional charges|upkeep|portal\.nelf\.gov\.ng/i],
   ['crit-chargers', 'What do u mean by institutional chargers', /school fees|paid \*\*to the school\*\*/i],
   ['crit-login', 'How do I log in?', /portal\.nelf\.gov\.ng/i],
+  ['hourly171-vocational', 'Can part-time sandwich students apply?', /portal|public|vocational|part-time/i],
+  ['hourly171-gsi', 'What is GSI will they debit my account now', /GSI|repay|portal/i],
+  ['hourly171-parent', 'Can I apply for my child', /student|NIN|portal/i],
+  ['hourly171-otp', 'Abeg send the OTP to the agent', /Never share OTP|OTP|WhatsApp|portal\.nelf/i],
 ]
 
 let fail = 0
