@@ -115,7 +115,6 @@ export async function processUserTurn(opts: {
   const lastAsst =
     [...(opts.history || [])].reverse().find((h) => h.role === 'assistant')?.text || null
 
-  // Screenshot upload: always answer from OCR — never fall through (prevents device crash)
   if (ocr.length >= 8) {
     try {
       const screen = understandPortalText(ocr)
@@ -177,7 +176,6 @@ export async function processUserTurn(opts: {
               ].join('\n'),
         )
       }
-      // Cancel loan confirmation dialog
       if (/cancel\s*(loan|application)|are\s*you\s*sure\s*you\s*want\s*to\s*cancel|yes,\s*cancel\s*loan|don'?t\s*cancel/i.test(ocr)) {
         return wrap(
           raw || '[Screenshot uploaded]',
@@ -243,7 +241,6 @@ export async function processUserTurn(opts: {
     }
   }
 
-  // Application open / window — use grounded 2026/2027 status (not weak playbook)
   if (raw && /is\s+(the\s+)?(loan|application|nelfund|window).{0,40}open|application\s+open|nelfund\s+open|window\s+open|still\s*(dey\s*)?open|dem\s*don\s*close|when\s*(will|dem|they).{0,20}(open|close)|is\s*it\s*open/i.test(raw)) {
     try {
       const cur = answerCurrentInformation(raw, {
@@ -314,6 +311,10 @@ export async function processUserTurn(opts: {
       [/polytechnic|\bpoly\b|monotechnic/i, 'eligibility'],
       [/fresher|newly\s+admitted/i, 'eligibility'],
       [/matric(ulation)?\s+number|no\s+matric/i, 'documents-needed'],
+      [/email\s*(already|has\s*already|is\s*already)\s*(in\s*use|used|taken)|mail\s*don\s*dey/i, 'email-already-used'],
+      [/loan\s+and\s+upkeep|i\s*meant.{0,30}(loan|upkeep)|apply.{0,20}(loan|upkeep)/i, 'how-to-apply'],
+      [/how\s*(do\s*i|to|i\s*go)\s*(log\s*in|login)|abeg.{0,12}(log\s*in|login)/i, 'portal-login'],
+      [/name\s*(no|not|never)\s*(match|the\s*same)|name\s*mismatch/i, 'bank-information'],
     ]
     for (const [re, intent] of journey) {
       if (re.test(raw)) {
