@@ -92,7 +92,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     )
   }
 
-  if (/email.{0,24}(already|don|has).{0,16}(used|exist|dey|register)|email\s+don\s+already|used\s+by\s+another\s+student/i.test(q)) {
+  if (/email.{0,24}(already|don|has).{0,16}(used|exist|dey|register)|email\s+don\s+already|used\s+by\s+another\s+student|mail\s+don\s+dey|already\s+used/i.test(q)) {
     return ok(
       res,
       `**Email already used**\n\n1. Sign in at ${LOGIN} with that email.\n2. If you forgot the password, reset on the same email.\n3. Still blocked: ${ESUPPORT} with a screenshot.\n\nDo not open a second account.`,
@@ -132,7 +132,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     )
   }
 
-  if (/how\s+(do\s*i|to|i\s*go)\s+(log\s*in|login|sign\s*in)|^(log\s*in|login|sign\s*in)\??$/i.test(q) && !/how\s*(do\s*i|to)\s*apply/i.test(q)) {
+  if (/how\s+(do\s*i|to|i\s*go|i\s*take)\s+(log\s*in|login|sign\s*in)|abeg.{0,20}(log\s*in|login)|i\s*no\s*fit\s*(log\s*in|login)|^(log\s*in|login|sign\s*in)\??$/i.test(q) && !/how\s*(do\s*i|to)\s*apply/i.test(q)) {
     return ok(
       res,
       `**How to log in to NELFUND**\n\n1. Open ${PORTAL} and use **Sign in** with the email you registered.\n2. You can also sign in from ${SITE}. Login page: ${LOGIN}.\n3. If that email was used before (including last year), do **not** create a new account — sign in or reset password on the same email.\n4. First time only: create account at ${PORTAL}.\n5. Forgot password: use reset on ${PORTAL} or ${SITE}. Tickets: ${ESUPPORT}.`,
