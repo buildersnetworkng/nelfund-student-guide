@@ -29,13 +29,17 @@ function ContactCard({
     >
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="text-sm font-semibold text-ink">{title}</span>
-        <span className="rounded-full bg-forest-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-forest-700">
-          {contact.priority}
-        </span>
-        <TrustBadge status={statusLabel(contact.verification_status)} />
+        {contact.priority && (
+          <span className="rounded-full bg-forest-50 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-forest-700">
+            {contact.priority}
+          </span>
+        )}
+        {contact.verification_status && (
+          <TrustBadge status={statusLabel(contact.verification_status)} />
+        )}
       </div>
       {subtitle && <p className="mt-0.5 text-xs font-medium text-ink/70">{subtitle}</p>}
-      <p className="mt-1 text-xs text-ink/55">{contact.why}</p>
+      {contact.why && <p className="mt-1 text-xs text-ink/55">{contact.why}</p>}
 
       <div className="mt-2 flex flex-col gap-1.5">
         {isTicket && contact.url && (
@@ -71,15 +75,10 @@ function ContactCard({
             href={contact.url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-forest-700"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-forest-800 underline underline-offset-2"
           >
-            {kind === 'nelfund' ? 'Open official page →' : 'Open institution page →'}
+            Open link →
           </a>
-        )}
-        {!contact.email && !contact.phone && contact.url && !isTicket && (
-          <p className="text-[11px] text-ink/45">
-            No unit email is stored here. Use the official page to confirm the correct contact before writing.
-          </p>
         )}
       </div>
       {contact.notes && <p className="mt-1.5 text-[11px] text-ink/45">{contact.notes}</p>}
@@ -90,13 +89,47 @@ function ContactCard({
 export function AnswerCards({
   answer,
   onAsk,
+  onSuggestion,
+  feedback,
+  onFeedback,
 }: {
   answer: GroundedAnswer
   /** One-tap suggested next question */
   onAsk?: (question: string) => void
+  onSuggestion?: (question: string) => void
+  feedback?: 'up' | 'down'
+  onFeedback?: (vote: 'up' | 'down') => void
 }) {
+  const ask = onAsk || onSuggestion
+
   return (
     <div className="mt-3 space-y-3 border-t border-forest-700/10 pt-3">
+      {answer.answer && (
+        <div className="text-sm leading-relaxed text-ink whitespace-pre-wrap">
+          <LinkifiedText text={answer.answer} />
+        </div>
+      )}
+
+      {(answer.clarifyingQuestions?.length ?? 0) > 0 && ask && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">
+            Suggested next — tap to ask
+          </p>
+          <div className="mt-1.5 flex flex-col gap-1.5">
+            {answer.clarifyingQuestions.slice(0, 2).map((q) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => ask?.(q)}
+                className="rounded-full border border-brand/25 bg-white px-3 py-1.5 text-left text-xs text-ink/80 hover:border-brand/50"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {answer.draft && (
         <div className="rounded-xl border border-forest-700/15 bg-white p-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-forest-700">
@@ -107,7 +140,8 @@ export function AnswerCards({
             {answer.draft.body}
           </pre>
           <p className="mt-2 text-[11px] text-ink/45">
-            Confirm the recipient on your school website. Never include passwords, OTP, or PIN. This app does not send email for you.
+            Confirm the recipient on your school website. Never include passwords, OTP, or PIN. This app does not send
+            email for you.
           </p>
         </div>
       )}
@@ -122,7 +156,9 @@ export function AnswerCards({
       {answer.escalation && (
         <div className="rounded-xl border border-forest-700/15 bg-forest-50/40 p-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-forest-800">Support path</p>
-          <p className="mt-1 text-sm text-ink/80">{answer.escalation.understanding}</p>
+          {answer.escalation.understanding && (
+            <p className="mt-1 text-sm text-ink/80">{answer.escalation.understanding}</p>
+          )}
 
           {(answer.escalation.diagnosis?.length ?? 0) > 0 && (
             <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-ink/70">
@@ -132,32 +168,16 @@ export function AnswerCards({
             </ul>
           )}
 
-          {answer.escalation.needsInstitution && (
-            <p className="mt-2 rounded-lg bg-gold-100 px-2 py-1.5 text-xs text-ink/80">
-              Which institution/school are you attending? Reply with the name so I can show the right offices.
-            </p>
-          )}
-
-          {answer.escalation.institutionName && (
-            <p className="mt-2 text-xs text-ink/65">
-              Institution: <span className="font-semibold text-ink">{answer.escalation.institutionName}</span>
-            </p>
-          )}
-
-          {answer.escalation.contactOrderExplanation && (
-            <p className="mt-1 text-xs text-ink/60">{answer.escalation.contactOrderExplanation}</p>
-          )}
-
-          {answer.escalation.nelfundContacts.length > 0 && (
+          {(answer.escalation.nelfundContacts?.length ?? 0) > 0 && (
             <div className="mt-3 space-y-2">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">NELFUND support</p>
               {answer.escalation.nelfundContacts.map((c) => (
-                <ContactCard key={c.id} title={c.label} contact={c} kind="nelfund" />
+                <ContactCard key={c.id || c.label} title={c.label} contact={c} kind="nelfund" />
               ))}
             </div>
           )}
 
-          {answer.escalation.institutionContacts.length > 0 && (
+          {(answer.escalation.institutionContacts?.length ?? 0) > 0 && (
             <div className="mt-3 space-y-2">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">
                 Your institution
@@ -165,7 +185,7 @@ export function AnswerCards({
               </p>
               {answer.escalation.institutionContacts.map((c) => (
                 <ContactCard
-                  key={c.id}
+                  key={c.id || c.label}
                   title={c.label}
                   subtitle={c.office}
                   contact={c}
@@ -175,28 +195,17 @@ export function AnswerCards({
             </div>
           )}
 
-          <div className="mt-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">What to send</p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-ink/70">
-              {(answer.escalation.evidenceChecklist ?? []).slice(0, 6).map((item: string) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            <p className="mt-1.5 text-[11px] text-ink/50">{answer.escalation.screenshotAdvice}</p>
-          </div>
-
-          {answer.escalation.supportMessage && !answer.draft && (
-            <div className="mt-3 rounded-lg border border-forest-700/15 bg-white px-2.5 py-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-forest-700">
-                Ready-to-copy message (review before sending)
-              </p>
-              <p className="mt-1 text-xs font-semibold text-ink">
-                Subject: {answer.escalation.supportMessage.subject}
-              </p>
-              <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap text-[11px] leading-relaxed text-ink/75">
-                {answer.escalation.supportMessage.body}
-              </pre>
-              <p className="mt-1 text-[10px] text-ink/45">This app never sends email for you.</p>
+          {(answer.escalation.evidenceChecklist?.length ?? 0) > 0 && (
+            <div className="mt-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">What to send</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-ink/70">
+                {(answer.escalation.evidenceChecklist ?? []).slice(0, 6).map((item: string) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              {answer.escalation.screenshotAdvice && (
+                <p className="mt-1.5 text-[11px] text-ink/50">{answer.escalation.screenshotAdvice}</p>
+              )}
             </div>
           )}
 
@@ -221,11 +230,10 @@ export function AnswerCards({
             {answer.video.channel}
             {answer.video.warning ? ` · ${answer.video.warning}` : ''}
           </p>
-          <TrustBadge status={statusLabel(answer.video.verification_status)} />
         </div>
       )}
 
-      {answer.sources.length > 0 && (
+      {(answer.sources?.length ?? 0) > 0 && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/45">Sources</p>
           <ul className="mt-1 space-y-1">
@@ -250,6 +258,30 @@ export function AnswerCards({
       )}
 
       {answer.insufficientReason && <p className="text-xs text-amber-800">{answer.insufficientReason}</p>}
+
+      {onFeedback && (
+        <div className="flex items-center gap-2 pt-1 text-xs text-ink/50">
+          <span>Was this helpful?</span>
+          <button
+            type="button"
+            onClick={() => onFeedback('up')}
+            className={`rounded-full border px-2 py-0.5 ${
+              feedback === 'up' ? 'border-brand bg-brand/10 text-brand' : 'border-ink/15'
+            }`}
+          >
+            Yes
+          </button>
+          <button
+            type="button"
+            onClick={() => onFeedback('down')}
+            className={`rounded-full border px-2 py-0.5 ${
+              feedback === 'down' ? 'border-brand bg-brand/10 text-brand' : 'border-ink/15'
+            }`}
+          >
+            No
+          </button>
+        </div>
+      )}
     </div>
   )
 }
