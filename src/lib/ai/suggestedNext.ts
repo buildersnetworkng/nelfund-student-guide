@@ -16,6 +16,12 @@ function byText(userText?: string | null): string[] | null {
   if (/otp|one[- ]time|pin|password|scam|agent|pay\s*\d|whatsapp\s*(man|agent|guy)|never\s*share/i.test(t)) {
     return two('How do I apply only on the official portal?', 'How do I contact official support?')
   }
+  if (/for\s+(my\s+)?(child|son|daughter|ward)|parent\s+|guardian\s+/i.test(t)) {
+    return two('How do I apply step by step?', 'What documents do I need?')
+  }
+  if (/last\s*year\s*(email|account)|old\s*email|returning\s*student/i.test(t)) {
+    return two('I forgot my password', 'How do I apply step by step?')
+  }
   if (/wetin\s*(i|una)\s*(go|suppose|need)\s*(carry|upload|bring)|which\s*document/i.test(t)) {
     return two('How do I apply step by step?', 'How do I log in?')
   }
