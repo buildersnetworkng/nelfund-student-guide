@@ -71,12 +71,6 @@ const NORMALIZE_MAP: Array<[RegExp, string]> = [
   [/\bdem don close\b/gi, 'they have closed'],
   [/\bdem never pay\b/gi, 'they have not paid'],
   [/\bmoney never enter\b/gi, 'money has not entered'],
-  [/\bmates don collect\b/gi, 'mates have received payment'],
-  [/\bi wan apply\b/gi, 'I want to apply'],
-  [/\bi wan login\b/gi, 'I want to log in'],
-  [/\bhow i go apply\b/gi, 'how do I apply'],
-  [/\bhow i go login\b/gi, 'how do I log in'],
-  [/\bhow i go reset\b/gi, 'how do I reset'],
   [/\bmy school no dey\b/gi, 'my school is not showing'],
   [/\bschool no show\b/gi, 'school is not showing'],
   [/\bemail don use\b/gi, 'email already used'],
@@ -93,6 +87,26 @@ const NORMALIZE_MAP: Array<[RegExp, string]> = [
   [/\bpendding\b/gi, 'pending'],
   [/\binvalid jamb\b/gi, 'invalid JAMB'],
   [/\bjamb number\b/gi, 'JAMB number'],
+  [/\bdisurment\b/gi, 'disbursement'],
+  [/\bdisbursment\b/gi, 'disbursement'],
+  [/\bdisburstment\b/gi, 'disbursement'],
+  [/\bdisburst\b/gi, 'disburse'],
+  [/\bdisburse?ment\b/gi, 'disbursement'],
+  [/\bwhen money go enter\b/gi, 'when will disbursement happen'],
+  [/\bmoney never enter\b/gi, 'money has not been disbursed'],
+  [/\bwhat next\b/gi, 'what should I do next'],
+  [/\bwetin next\b/gi, 'what should I do next'],
+  [/\bwetin i go do\b/gi, 'what should I do'],
+  [/\bwhat should i do first\b/gi, 'what should I do first'],
+  [/\bfirst step\b/gi, 'what should I do first'],
+  [/\braise dispute\b/gi, 'raise a dispute'],
+  [/\bfee dispute\b/gi, 'fee dispute'],
+  [/\bno result found\b/gi, 'no result found'],
+  [/\bschool not showing\b/gi, 'school is not showing'],
+  [/\bhow i go apply\b/gi, 'how do I apply'],
+  [/\bhow to apply\b/gi, 'how do I apply'],
+  [/\bis it open\b/gi, 'is the application open'],
+  [/\bstill open\b/gi, 'is the application still open'],
 ]
 
 const TERM_BANK: Array<{ keys: RegExp; label: string; intent: IntentId }> = [
@@ -131,6 +145,26 @@ const TERM_BANK: Array<{ keys: RegExp; label: string; intent: IntentId }> = [
     label: 'NIN',
     intent: 'nin-verification',
   },
+  {
+    keys: /disburse|disbursement|disurment|disbursment|payout/i,
+    label: 'disbursement',
+    intent: 'pending-application',
+  },
+  {
+    keys: /fee\s*dispute|raise\s*(a\s*)?dispute/i,
+    label: 'fee dispute',
+    intent: 'pending-application',
+  },
+  {
+    keys: /\bpending\b/i,
+    label: 'pending',
+    intent: 'pending-application',
+  },
+  {
+    keys: /repayment|when\s*(do\s*i\s*)?repay/i,
+    label: 'repayment',
+    intent: 'repayment',
+  },
 ]
 
 function normalizeText(text: string): string {
@@ -150,25 +184,47 @@ function isAck(text: string): boolean {
 }
 
 function isExpand(text: string): boolean {
-  return /tell\s*me\s*more|elaborate|expanciate|expand|explain\s*more|more\s*details?|go\s*deeper|break\s*(it\s*)?down|what\s*next|wetin\s*next|continue|go on/i.test(
+  return /tell\s*me\s*more|elaborate|expanciate|expand|explain\s*more|more\s*details?|go\s*deeper|break\s*(it\s*)?down|what\s*next|wetin\s*next|continue|go on|what\s*should\s*i\s*do(\s*(next|first|now))?|first\s*step|wetin\s*i\s*go\s*do|so\s*what(\s*now)?/i.test(
     text,
   )
+}
+
+/** Split one message that packs 2–5 questions into ordered parts. */
+export function splitMultiQuestions(text: string): string[] {
+  const raw = (text || '').trim()
+  if (!raw || raw.length < 25) return [raw]
+  let parts = raw
+    .split(/(?<=[?])\s+|\n+|\d+[.)]\s+|\band\s+also\b|\balso[,:]?\s+(?=[A-Z])/i)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 8)
+  if (parts.length < 2) {
+    const alt = raw.split(/\?(?=\s)/).map((p) => p.trim()).filter((p) => p.length > 8)
+    if (alt.length >= 2) parts = alt.map((p) => (p.endsWith('?') ? p : p + '?'))
+  }
+  return parts.slice(0, 5).length >= 2 ? parts.slice(0, 5) : [raw]
+}
+
+export function isMultiQuestion(text: string): boolean {
+  const parts = splitMultiQuestions(text)
+  return parts.length >= 2
 }
 
 function isClarify(text: string): boolean {
   const t = text.trim()
   if (/^(i\s*)?(meant|mean|was\s*asking|am\s*asking)\b/i.test(t)) return true
-  if (/\b(loan\s+and\s+upkeep|upkeep\s+and\s+(the\s+)?loan|fees?\s+and\s+upkeep)\b/i.test(t)) return true
-  if (/^(actually|rather|instead)\b/i.test(t) && t.length < 90) return true
+  if (/\b(loan\s+and\s+upkeep|upkeep\s+and\s+(the\s+)?loan|fees?\s+and\s+upkeep)\b/i.test(t))
+    return true
   return false
 }
 
 function isDefineAsk(text: string): boolean {
   const t = text.trim()
-  if (/what'?s?\s+(an?\s+)?/i.test(t) && t.length < 100) return true
-  if (/what\s+(is|are|be|does|mean|means)\b/i.test(t) && t.length < 100) return true
-  if (/wetin\s+(be|mean)\b/i.test(t) && t.length < 100) return true
-  if (/meaning\s+of\b|define\b|explain\s+(this|that|it)\b/i.test(t) && t.length < 100) return true
+  if (t.length > 160) return false
+  if (/what\s+do\s+(you|u)\s+mean/i.test(t)) return true
+  if (/wetin\s+(be|mean)/i.test(t)) return true
+  if (/what\s+(is|are|does|mean)/i.test(t) && t.length < 120) return true
+  if (/what'?s\s+/i.test(t) && t.length < 80) return true
+  if (/meaning\s+of|define\b/i.test(t)) return true
   return false
 }
 
@@ -180,27 +236,44 @@ function findTermIn(text: string): { label: string; intent: IntentId } | null {
 }
 
 const MEANING_INTENTS: Array<{ re: RegExp; intent: IntentId; conf: number; reason: string }> = [
-  { re: /is\s+(the\s+)?(loan|application|nelfund|window).{0,40}open|application\s+open|still\s+open|have\s+they\s+closed|when\s+(will|does|do).{0,20}(open|close)/i, intent: 'current-information', conf: 0.92, reason: 'open_window' },
-  { re: /how\s+(do\s+i\s+|to\s+)?(log\s*in|sign\s*in)|want\s+to\s+(log|sign)\s*in|login\s*link|sign\s*in\s*link/i, intent: 'portal-login', conf: 0.92, reason: 'login' },
-  { re: /forgot?\s*(my\s*)?password|reset\s*(my\s*)?password|password\s*(does\s*)?not\s*work|cannot\s*login|can'?t\s*log\s*in/i, intent: 'password-reset', conf: 0.93, reason: 'password' },
-  { re: /email\s*(already\s*)?(used|taken|exist)|registered\s*last\s*year|old\s*email|returning\s*student/i, intent: 'email-already-used', conf: 0.92, reason: 'email_used' },
-  { re: /how\s+(do\s+i\s+|to\s+)?apply|want\s+to\s+apply|apply\s+for\s+(the\s+)?(loan|nelfund)|steps?\s+to\s+apply/i, intent: 'how-to-apply', conf: 0.9, reason: 'apply' },
-  { re: /eligib|can\s+i\s+apply|who\s+can\s+apply|qualify|am\s+i\s+qualified/i, intent: 'eligibility', conf: 0.9, reason: 'eligibility' },
-  { re: /pending|under\s*review|how\s+far\s*(is\s*)?(my\s*)?(loan|application|money)|money\s+has\s+not\s+entered|mates\s+have\s+received/i, intent: 'pending-application', conf: 0.9, reason: 'pending' },
-  { re: /invalid\s*jamb|jamb\s*(number\s*)?(invalid|wrong|not\s*working)|utme/i, intent: 'jamb-verification', conf: 0.91, reason: 'jamb' },
-  { re: /school\s*(is\s*)?not\s*(showing|on\s*the\s*list|listed)|cannot\s*find\s*(my\s*)?school|no\s*result\s*found/i, intent: 'school-not-found', conf: 0.91, reason: 'school_list' },
-  { re: /missing\s*information|incomplete\s*profile|profile\s*not\s*complete/i, intent: 'missing-information', conf: 0.9, reason: 'missing_info' },
-  { re: /difference\s*(between\s*)?(school\s*)?fees?\s*(and|vs|versus)\s*upkeep|upkeep\s*(and|vs|versus)\s*(school\s*)?fees?|fees?\s*vs\s*upkeep/i, intent: 'upkeep-vs-fees', conf: 0.94, reason: 'fees_vs_upkeep' },
-  { re: /\bupkeep\b.*(what|mean|explain)|what\s+is\s+upkeep|upkeep\s+allowance/i, intent: 'upkeep', conf: 0.88, reason: 'upkeep' },
-  { re: /institutional\s*charges?|what\s+is\s+institutional/i, intent: 'institutional-charges', conf: 0.9, reason: 'inst_charges' },
-  { re: /when\s+(do\s+i\s+|to\s+)?(start\s+)?repay|repayment|after\s+nysc|gsi/i, intent: 'repayment', conf: 0.88, reason: 'repay' },
-  { re: /scam|otp|whatsapp\s*(agent|man)|pay\s*(before|to\s+apply)|never\s*share\s*(pin|otp)/i, intent: 'scam-safety', conf: 0.95, reason: 'scam' },
-  { re: /contact\s*(support|nelfund)|esupport|help\s*desk|open\s*ticket/i, intent: 'contact-support', conf: 0.9, reason: 'support' },
-  { re: /what\s+is\s+nelfund|tell\s+me\s+about\s+nelfund|how\s+nelfund\s+works|i\s+do\s+not\s+know/i, intent: 'what-is-nelfund', conf: 0.88, reason: 'overview' },
-  { re: /documents?\s*(needed|required)|what\s+(do\s+i\s+)?need\s+to\s+(upload|carry)|admission\s*letter/i, intent: 'documents-needed', conf: 0.88, reason: 'documents' },
-  { re: /cancel\s*(loan|application)|don'?t\s*cancel|yes,?\s*cancel/i, intent: 'pending-application', conf: 0.9, reason: 'cancel' },
-  { re: /loan\s*(or|vs)\s*scholarship|is\s*(it\s*)?(a\s*)?scholarship|free\s*money/i, intent: 'loan-or-scholarship', conf: 0.9, reason: 'loan_vs_scholarship' },
+  { re: /how\s*(do\s*i|to|i\s*go)\s*apply|steps?\s*to\s*apply|where\s*(do\s*i\s*)?apply/i, intent: 'how-to-apply', conf: 0.92, reason: 'apply' },
+  { re: /is\s*(the\s*)?(loan|application|window|it)\s*open|still\s*open|dem\s*don\s*close/i, intent: 'current-information', conf: 0.92, reason: 'open' },
+  { re: /pending|how\s*far\s*(my\s*)?(loan|money|application)|money\s*never|disburse|disurment/i, intent: 'pending-application', conf: 0.9, reason: 'pending' },
+  { re: /cancel\s*(loan|application)|should\s*i\s*cancel|can\s*i\s*cancel/i, intent: 'pending-application', conf: 0.91, reason: 'cancel' },
+  { re: /school\s*(no|not)\s*(show|on\s*list|found)|no\s*result\s*found|select\s*institution/i, intent: 'school-not-found', conf: 0.93, reason: 'school' },
+  { re: /invalid\s*jamb|jamb\s*(number|verification)/i, intent: 'jamb-verification', conf: 0.9, reason: 'jamb' },
+  { re: /email\s*already|registered\s*last\s*year|forgot\s*password|how\s*(do\s*i|to)\s*log\s*in/i, intent: 'portal-login', conf: 0.88, reason: 'login' },
+  { re: /upkeep|school\s*fees?\s*vs|institutional\s*charges|difference\s*between/i, intent: 'upkeep-vs-fees', conf: 0.9, reason: 'fees_upkeep' },
+  { re: /repay|when\s*(do\s*i\s*)?start\s*repay|after\s*nysc/i, intent: 'repayment', conf: 0.9, reason: 'repay' },
+  { re: /eligib|who\s*can\s*apply|can\s*i\s*apply/i, intent: 'eligibility', conf: 0.88, reason: 'elig' },
+  { re: /raise\s*(a\s*)?dispute|fee\s*dispute|wrong\s*(fee|amount)/i, intent: 'pending-application', conf: 0.9, reason: 'dispute' },
+  { re: /what\s*(should\s*i\s*do|next|first)|wetin\s*(next|i\s*go\s*do)|first\s*step/i, intent: 'how-to-apply', conf: 0.85, reason: 'next_step' },
 ]
+
+/**
+ * True if the text is about student-loan / portal topics even without the word "NELFUND".
+ */
+export function isDomainRelated(text: string, lastAssistant?: string | null): boolean {
+  const t = (text || '').toLowerCase()
+  if (!t) return false
+  if (
+    /nelfund|student\s*loan|portal\.nelf|nelf\.gov|jamb|bvn|nin|upkeep|institutional|school\s*fees?|disburse|disurment|pending|repay|gsi|matric|eligibility|admission\s*letter|fee\s*dispute|raise\s*a\s*dispute|no\s*result\s*found|school\s*(not|no)\s*(on|show)|forgot\s*password|email\s*already|how\s*(do\s*i|to)\s*apply|is\s*(it|application)\s*open|login|sign\s*in|cancel\s*(loan|application)/i.test(
+      t,
+    )
+  )
+    return true
+  if (lastAssistant && lastAssistant.length > 40) {
+    if (/nelfund|portal|loan|upkeep|pending|apply|login|school|jamb|disburse/i.test(lastAssistant)) {
+      if (
+        /what\s*(next|should)|wetin|how|why|when|where|can\s*i|should\s*i|and\s+(then|also)|about\s+that|the\s*(loan|fee|status|portal)/i.test(
+          t,
+        )
+      )
+        return true
+    }
+  }
+  return false
+}
 
 export function understandTurn(
   userText: string,
@@ -217,7 +290,7 @@ export function understandTurn(
       speechAct: 'unknown',
       suggestedIntent: null,
       focusTerm: null,
-      confidence: 0.2,
+      confidence: 0,
       reason: 'empty',
     }
   }
@@ -234,24 +307,12 @@ export function understandTurn(
     }
   }
 
-  if (isClarify(normalized)) {
-    return {
-      normalized,
-      raw,
-      speechAct: 'clarify',
-      suggestedIntent: priorIntent || null,
-      focusTerm: null,
-      confidence: 0.75,
-      reason: 'clarify',
-    }
-  }
-
   if (isExpand(normalized)) {
     return {
       normalized,
       raw,
       speechAct: 'expand',
-      suggestedIntent: priorIntent || null,
+      suggestedIntent: priorIntent || 'how-to-apply',
       focusTerm: null,
       confidence: 0.85,
       reason: 'expand',
@@ -304,8 +365,9 @@ export function understandTurn(
     priorIntent &&
     priorIntent !== 'unknown' &&
     priorIntent !== 'official-sources' &&
-    normalized.length < 40 &&
-    /^(and|but|so|what about|about|for)\b/i.test(normalized)
+    normalized.length < 80 &&
+    (/^(and|but|so|what about|about|for|also|then)\b/i.test(normalized) ||
+      /what\s*(should\s*i\s*do|next)|wetin\s*(next|i\s*go\s*do)|first\s*step|and\s+then/i.test(normalized))
   ) {
     return {
       normalized,
@@ -313,8 +375,26 @@ export function understandTurn(
       speechAct: 'clarify',
       suggestedIntent: priorIntent,
       focusTerm: null,
-      confidence: 0.7,
-      reason: 'short_followup',
+      confidence: 0.82,
+      reason: 'short_followup_or_next',
+    }
+  }
+
+  if (isMultiQuestion(normalized)) {
+    const parts = splitMultiQuestions(normalized)
+    const first = parts[0]
+    for (const row of MEANING_INTENTS) {
+      if (row.re.test(first)) {
+        return {
+          normalized: first,
+          raw,
+          speechAct: 'new_question',
+          suggestedIntent: row.intent,
+          focusTerm: null,
+          confidence: row.conf * 0.95,
+          reason: 'multi_q_first:' + parts.length,
+        }
+      }
     }
   }
 
