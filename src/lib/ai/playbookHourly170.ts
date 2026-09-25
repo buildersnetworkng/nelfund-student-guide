@@ -56,7 +56,7 @@ export function playbookHourly170(intent: string, userText: string): string | nu
       `1. Open ${PORTAL} and sign in at ${LOGIN}.\n` +
       '2. Complete profile (JAMB, NIN, BVN, bank in your name).\n' +
       '3. Request the student loan when the official window is open.\n' +
-      '4. In the same session tick **institutional charges** (school fees → paid to the school) and **upkeep** (optional living support → paid to you) if you want both.\n' +
+      '4. In the same session tick **institutional charges** (school fees \u2192 paid to the school) and **upkeep** (optional living support \u2192 paid to you) if you want both.\n' +
       '5. Submit and track status on the same portal.\n' +
       `I will not invent amounts. Official site: ${SITE}. Tickets: ${ESUPPORT}.`
     )
@@ -70,7 +70,7 @@ export function playbookHourly170(intent: string, userText: string): string | nu
   ) {
     return (
       '**How to log in**\n\n' +
-      `1. Open ${LOGIN} only — not a copycat site.\n` +
+      `1. Open ${LOGIN} only \u2014 not a copycat site.\n` +
       '2. Enter the email and password you used to register.\n' +
       '3. Read the exact error if it fails (wrong password vs email already used vs verify email).\n' +
       `4. New account: ${PORTAL}.\n` +

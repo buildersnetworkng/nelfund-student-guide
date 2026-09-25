@@ -15,11 +15,11 @@ export function playbookHourly177(intent: string, userText: string): string | nu
     /eligib|fit\s*(i|i\s*)?apply|can\s*i\s*apply|who\s*can|dey\s*cover|cover\s*(us|me|poly)/i.test(t)
   ) {
     return (
-      '**Eligibility — polytechnic / COE / ND / HND / NCE**\n\n' +
+      '**Eligibility \u2014 polytechnic / COE / ND / HND / NCE**\n\n' +
       'Official coverage is for eligible students in **public** tertiary institutions (universities, polytechnics, colleges of education and similar public institutions on the portal list).\n\n' +
-      '• You still need admission + school record uploaded.\n' +
-      '• Private institutions are not treated as the default public-school path — confirm only on the portal.\n' +
-      '• Mode of study (full-time vs others) must match what the portal accepts for your record.\n\n' +
+      '\u2022 You still need admission + school record uploaded.\n' +
+      '\u2022 Private institutions are not treated as the default public-school path \u2014 confirm only on the portal.\n' +
+      '\u2022 Mode of study (full-time vs others) must match what the portal accepts for your record.\n\n' +
       `Confirm your school name on ${PORTAL}. I will not invent extra categories.\n` +
       `Login: ${LOGIN}`
     )
@@ -33,13 +33,13 @@ export function playbookHourly177(intent: string, userText: string): string | nu
   ) {
     return (
       '**Documents the portal typically asks for**\n\n' +
-      '• JAMB registration number and **admission letter** (often compulsory)\n' +
-      '• NIN and BVN\n' +
-      '• Bank account in **your** name\n' +
-      '• Matriculation number when the school has issued it\n' +
-      '• School ID / institution invoice if the form shows those fields (often optional)\n\n' +
+      '\u2022 JAMB registration number and **admission letter** (often compulsory)\n' +
+      '\u2022 NIN and BVN\n' +
+      '\u2022 Bank account in **your** name\n' +
+      '\u2022 Matriculation number when the school has issued it\n' +
+      '\u2022 School ID / institution invoice if the form shows those fields (often optional)\n\n' +
       `Upload only on ${PORTAL}. Never send files to a WhatsApp agent.\n` +
-      `Login: ${LOGIN} · Support: ${ESUPPORT}`
+      `Login: ${LOGIN} \u00b7 Support: ${ESUPPORT}`
     )
   }
 
@@ -69,7 +69,7 @@ export function playbookHourly177(intent: string, userText: string): string | nu
       '**Loan, not scholarship**\n\n' +
       'NELFUND is an **interest-free student loan**. It is not a scholarship, grant, or free money.\n' +
       'Institutional charges go to the school; optional upkeep goes to you if selected.\n' +
-      `You repay later under official rules — see ${FAQ}. Apply only on ${PORTAL}.`
+      `You repay later under official rules \u2014 see ${FAQ}. Apply only on ${PORTAL}.`
     )
   }
 
@@ -81,23 +81,12 @@ export function playbookHourly177(intent: string, userText: string): string | nu
   ) {
     return (
       '**Forgot password**\n\n' +
-      `1. Open ${LOGIN} → Forgot / Reset password.\n` +
+      `1. Open ${LOGIN} \u2192 Forgot / Reset password.\n` +
       '2. Use the **same email** you registered with.\n' +
       '3. Check inbox and spam for the reset mail.\n' +
       '4. Set a new password and sign in.\n' +
       '5. Do not create a second account unless official support says so.\n' +
       `No mail: ${ESUPPORT} with a screenshot.`
-    )
-  }
-
-  if (intent === 'eligibility') {
-    return (
-      '**Eligibility (short)**\n\n' +
-      '• Nigerian citizen\n' +
-      '• Full-time student in a **public** tertiary institution on the portal list\n' +
-      '• Valid admission; school must upload your record\n' +
-      '• JAMB, NIN, BVN, bank in your name ready\n\n' +
-      `Confirm live on ${PORTAL}. I will not invent extra categories.`
     )
   }
 
