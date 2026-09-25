@@ -4,124 +4,114 @@ const LOGIN = 'https://portal.nelf.gov.ng/auth/login'
 const ESUPPORT = 'https://nelfund.esupport.ng/create'
 const FAQ = 'https://nelf.gov.ng/faq'
 
-/** Hourly 182: password/email, repay/GSI, fees vs upkeep paid, bank change, apply loan+upkeep. */
+/** Hourly 182: docs checklist, NYSC/repay, college/poly, WhatsApp NIN, ticket vs campus, apply+upkeep Pidgin, GSI now. */
 export function playbookHourly182(intent: string, userText: string): string | null {
   const t = userText || ''
 
   if (
-    /how\s*to\s*apply\s*then\s*i\s*meant|meant\s*(for\s*)?(the\s*)?(loan|upkeep)|apply.{0,40}(loan|upkeep).{0,24}(and|&).{0,24}(loan|upkeep)|loan\s+and\s+upkeep|upkeep\s+and\s+(the\s+)?loan/i.test(
+    /wetin\s*(i|dem)\s*(go\s*)?(need|carry|gather)\s*(before|to)\s*(i\s*)?(apply|start)|documents?\s*(checklist|list)|what\s*(papers|docs)\s*(do\s*i|i\s*need)/i.test(
       t,
     )
   ) {
     return (
-      '**Apply for the loan and upkeep**\n\n' +
-      `1. Log in only at ${LOGIN}.\n` +
-      '2. Finish Profile (NIN, JAMB number, BVN, bank in your name).\n' +
-      '3. When the official window is open, request the student loan.\n' +
-      '4. Choose **institutional charges** (school fees paid **to the school**) and **upkeep** (optional living support paid **to your account**) if you want both.\n' +
-      '5. If the fee figure is wrong, **Raise a dispute** before Submit.\n' +
-      '6. After submit: \u2630 \u2192 **Loans**. Pending is processing, not declined.\n\n' +
-      `I will not invent amounts. Portal: ${PORTAL}\nFAQ: ${FAQ}`
+      '**Documents to gather before you start**\n\n' +
+      'Have these ready so a timeout does not force you to restart uploads:\n' +
+      '\u2022 JAMB registration number (fresh) or matric number (returning)\n' +
+      '\u2022 NIN and BVN in your own name\n' +
+      '\u2022 Bank account that matches that BVN\n' +
+      '\u2022 Admission letter (clear JPEG/PDF)\n' +
+      '\u2022 Optional: student ID, fee invoice, passport photograph\n\n' +
+      `Upload only on ${PORTAL}. Do not send these files on WhatsApp.`
     )
   }
 
   if (
-    /forgot\s*(my\s*)?(login\s*)?email|i\s*(no|not|never)\s*(remember|sabi|know)\s*(the\s*)?(email|mail)|which\s*email\s*(i\s*)?(use|used)|i\s*lose\s*(the\s*)?email/i.test(
+    /i\s*(no|never|don.?t)\s*(do|finish|don)\s*nysc|before\s*nysc|repay.{0,20}nysc|when\s*(i\s*)?(go|will)\s*pay\s*back/i.test(
       t,
     )
   ) {
     return (
-      '**Forgot the email used to register**\n\n' +
-      'The portal account is tied to one email.\n' +
-      '1. Try the inbox you used for JAMB / school mail first.\n' +
-      `2. On ${LOGIN}, use **Forgot password** with that same address — if an account exists, reset mail can arrive there.\n` +
-      '3. Do not open a second email to force a new application.\n' +
-      `4. Still locked out: ${ESUPPORT} with NIN / JAMB number and a screenshot.\n` +
-      `Portal: ${PORTAL}`
-    )
-  }
-
-  if (
-    /reset\s*(my\s*)?password|forgot\s*(my\s*)?password|change\s*(my\s*)?password|password\s*(no|not)\s*(dey|work|correct)|i\s*no\s*sabi\s*(my\s*)?password/i.test(
-      t,
-    ) ||
-    (intent === 'portal-login' && /password/i.test(t))
-  ) {
-    return (
-      '**Reset password**\n\n' +
-      `1. Open ${LOGIN} only.\n` +
-      '2. Use **Forgot / Reset password** with the same email you registered.\n' +
-      '3. Check inbox and spam for the official reset mail.\n' +
-      '4. After reset, log in on that same page — not a WhatsApp link.\n' +
-      `5. Still failing: ${ESUPPORT} + screenshot. Do not create a second account.\n` +
-      `Portal: ${PORTAL}`
-    )
-  }
-
-  if (/what\s*(is|be)\s*(the\s*)?gsi|gsi\s*mandate|wetin\s*(be|mean)\s*gsi|they\s*go\s*debit\s*(me|my\s*account)\s*now/i.test(t)) {
-    return (
-      '**GSI mandate**\n\n' +
-      'GSI is a repayment instruction you accept on the official portal so repayment can later be collected from the linked account when repayment is due.\n' +
-      'It is **not** a fee you pay an agent today. Read the live **Terms & GSI Mandate** text on the portal before you tick Accept.\n' +
-      'This chat does not invent debit dates or amounts.\n\n' +
-      `Portal: ${PORTAL}\nFAQ: ${FAQ}`
-    )
-  }
-
-  if (
-    /after\s*nysc|when\s*(do|go|will)\s*i\s*(start\s*)?repay|repay(ment)?\s*(start|begin|begin)|how\s*(i\s*)?(go|to)\s*pay\s*(back|am)|when\s*(dem|they)\s*(go|will)\s*collect/i.test(
-      t,
-    ) ||
-    intent === 'repayment'
-  ) {
-    return (
-      '**Repayment**\n\n' +
-      'NELFUND is an **interest-free loan**, not a scholarship.\n' +
-      'Official materials commonly describe repayment after the grace period (often after NYSC for eligible graduates). Confirm the live rule on the FAQ and the Terms you accepted.\n' +
-      'This chat will not invent a monthly schedule or a percentage.\n\n' +
+      '**Repayment timing**\n\n' +
+      'Official FAQ describes repayment after the study + NYSC grace window (commonly **2 years after NYSC** \u2014 confirm the live FAQ wording).\n' +
+      'If you have not done NYSC yet, you are not in the repayment window now.\n' +
+      'GSI is a mandate the portal asks you to accept at submit. It is not a same-day debit for students still in school.\n\n' +
       `FAQ: ${FAQ}\nPortal: ${PORTAL}`
     )
   }
 
   if (
-    /school\s*fees?\s*(don|has|have)\s*(enter|pay|paid)|upkeep\s*(never|no|not)\s*(enter|show|drop)|institutional\s*(don|has)\s*(pay|paid)|fees?\s*don\s*enter\s*but\s*upkeep|money\s*enter\s*school\s*but/i.test(
+    /college\s*of\s*education|coe\b|polytechnic\s*(student|i\s*dey)|i\s*dey\s*(poly|coe|college)/i.test(
       t,
     )
   ) {
     return (
-      '**Institutional vs upkeep after apply**\n\n' +
-      'They are two lines, not one lump.\n' +
-      '\u2022 **Institutional charges** go to the school.\n' +
-      '\u2022 **Upkeep** (if you selected it) is meant for your own account when that line is processed.\n' +
-      'One can show paid / approved while the other is still **Pending**.\n' +
-      '1. Log in \u2192 \u2630 \u2192 **Loans** and open both tabs.\n' +
-      '2. Confirm the bank on Profile matches your BVN name.\n' +
-      `3. Long wait on one line only: campus desk, then ${ESUPPORT} + screenshot.\n` +
-      `Login: ${LOGIN}`
-    )
-  }
-
-  if (/change\s*(my\s*)?(bank|account)|wrong\s*account\s*number|update\s*(my\s*)?bvn|bank\s*(no|not)\s*correct/i.test(t)) {
-    return (
-      '**Bank / BVN on the portal**\n\n' +
-      'The account used for upkeep must match the **BVN name** on Profile.\n' +
-      `1. Log in at ${LOGIN} and open Profile.\n` +
-      '2. Correct only what the portal still allows (often before disbursement).\n' +
-      '3. If the field is locked, do not open a second account — use campus NELFUND desk, then official support.\n' +
-      `4. Ticket: ${ESUPPORT} with a screenshot.\n` +
-      `Never send BVN or OTP to a WhatsApp agent. Site: ${SITE}`
+      '**Polytechnic / college of education**\n\n' +
+      'Public polytechnics and colleges of education that are on this cycle\u2019s list can be eligible the same way as public universities.\n' +
+      'Private campuses are outside the current student-loan scope.\n' +
+      'Your school must appear when you search and must have opened the session line.\n\n' +
+      `Try a shorter official name on ${PORTAL}. Campus NELFUND / ICT desk if it should be listed.`
     )
   }
 
   if (
-    /email\s*(already|has\s*already|is\s*already)\s*(in\s*use|used|taken)|this\s*mail\s*(don|already)\s*(dey|exist|used)/i.test(
+    /(send|give|share).{0,18}(nin|bvn|account).{0,18}(whatsapp|agent|them)|whatsapp.{0,18}(nin|bvn)|make\s*i\s*send\s*(my\s*)?(nin|bvn)/i.test(
       t,
     )
   ) {
     return (
-      '**Email already used**\n\n' +
-      `That address already has a portal account. Log in at ${LOGIN}. Use **Forgot password** if needed. Do not register a second email.\n` +
-      `Still blocked: ${ESUPPORT} + screenshot.`
+      '**Do not send NIN or BVN on WhatsApp**\n\n' +
+      'Nobody processing NELFUND needs those numbers in chat. Type them only inside the official portal.\n' +
+      'Never share OTP, password, or PIN either.\n\n' +
+      `Apply / login: ${PORTAL}\nLogin: ${LOGIN}\nIf someone already collected them: change portal password, alert your bank if BVN/account was shared, then ${ESUPPORT}.`
+    )
+  }
+
+  if (
+    /ticket\s*(or|vs|abi)\s*(school|campus)|campus\s*desk\s*(or|abi)\s*(esupport|ticket)|who\s*(i\s*)?go\s*ask\s*first/i.test(
+      t,
+    )
+  ) {
+    return (
+      '**Campus desk vs official ticket**\n\n' +
+      '\u2022 School data (session not opened, school missing, matric / name on the school file) \u2192 campus NELFUND / ICT / admissions desk first.\n' +
+      `\u2022 Portal account, login, upload error after the school line is open \u2192 screenshot + ${ESUPPORT}.\n` +
+      `Login: ${LOGIN} \u00b7 Site: ${SITE}`
+    )
+  }
+
+  if (
+    /how\s*(i\s*go|to|do\s*i)\s*apply\s*(for\s*)?(loan\s*)?(and|&|plus)\s*upkeep|upkeep\s*(and|&|plus)\s*(school\s*fees|institutional)|select\s*both\s*(loan|upkeep)/i.test(
+      t,
+    )
+  ) {
+    return (
+      '**Institutional charges + upkeep**\n\n' +
+      'On **Request for Student Loan** you choose:\n' +
+      '\u2022 Institutional charges only (fees paid to the school), or\n' +
+      '\u2022 Institutional charges plus upkeep (stipend to your BVN account if that option is offered this cycle).\n\n' +
+      'Confirm the live stipend figure on the form. Accept Terms and the GSI mandate before Submit.\n' +
+      `Start: ${PORTAL}`
+    )
+  }
+
+  if (
+    /gsi.{0,24}(now|today|debit|remove\s*money)|will\s*(dem|they)\s*(debit|remove\s*money)\s*now|mandate\s*(mean|be)\s*wetin/i.test(
+      t,
+    )
+  ) {
+    return (
+      '**GSI mandate**\n\n' +
+      'GSI is the repayment instruction you accept when you submit. It is how recovery can happen later if the loan is not repaid after the grace window.\n' +
+      'It is not a same-day school-fee debit. Tuition goes to the institution when that part is approved.\n\n' +
+      `Read the mandate text on the form at ${PORTAL}. FAQ: ${FAQ}`
+    )
+  }
+
+  if (intent === 'documents-needed' && /document|upload|letter|nin|bvn|jamb/i.test(t)) {
+    return (
+      '**What the form asks for**\n\n' +
+      'Typical fields: JAMB or matric number, NIN, BVN, bank that matches BVN, admission letter upload.\n' +
+      `Use ${PORTAL} only. Clear JPEG/PDF. Campus desk if the school record is the blocker.`
     )
   }
 
