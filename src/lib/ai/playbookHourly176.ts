@@ -88,7 +88,7 @@ export function playbookHourly176(intent: string, userText: string): string | nu
     return (
       '**Still pending**\n\n' +
       'Pending means submitted and **still processing**, not declined.\n\n' +
-      `1. ${LOGIN} → **☰ → Loans** — read the exact line.\n' +
+      `1. ${LOGIN} → **☰ → Loans** — read the exact line.\n` +
       '2. Institutional charges go to the **school** after approval; upkeep (if selected) to **your** account.\n' +
       '3. Official FAQ often mentions about **30 days after approval** for disbursement — that is not a personal promise.\n' +
       `4. Long wait with no change: campus desk, then ${ESUPPORT} + screenshot.\n` +
