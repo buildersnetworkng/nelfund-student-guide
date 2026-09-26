@@ -59,20 +59,15 @@ export function getGroupSearchPaste(groupName = '') {
 }
 
 export function buildShareText(url: string, groupName = '') {
-  const searchLine = groupName
-    ? `Search this exact group in WhatsApp: ${groupName}`
-    : 'In WhatsApp, tap Search at the top. Type your class or department group. Do not tap one classmate.'
-  return stripLongDashes(
-    'PIN THIS IN YOUR CLASS WHATSAPP GROUP\n' +
-      'Before you apply or wait on the portal, open this first.\n' +
-      'Clear steps for application, pending status, and common portal issues.\n' +
-      `${searchLine}\n` +
-      'Send in the group, then pin so new classmates see it.\n' +
-      'If this landed in a private chat, post it in YOUR class group next.\n' +
-      'Also post in department, faculty, or SUG so more students see it.\n' +
-      'If you are class rep, pin it after you send.\n' +
-      `Link ${url}`,
-  )
+  const body =
+    '*📌 NELFUND GUIDE*\n\n' +
+    'Students are advised to go through the NELFUND Guide before taking any further steps regarding NELFUND.\n\n' +
+    '> Whether you’re yet to apply or have already applied, it provides the key information and guidance you need at every stage.\n\n' +
+    `🔗 ${url}`
+  if (groupName.trim()) {
+    return stripLongDashes(body + `\n\nPost in: ${groupName.trim()}`)
+  }
+  return stripLongDashes(body)
 }
 
 export async function copySharePayload(value: string) {
