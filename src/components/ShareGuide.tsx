@@ -11,13 +11,12 @@ function getSiteUrl() {
   return `${origin}/?from=class-wa`
 }
 
-function buildShareText(url: string, audience = 'class or department WhatsApp group') {
+function buildShareText(url: string, _audience = 'class or department WhatsApp group') {
   return (
-    'NELFUND Student Guide\n' +
-    'Before you apply or wait on the portal, open this first.\n' +
-    'Clear steps for application, pending status, and common portal issues.\n' +
-    `Send this to your ${audience} so more students are not guessing alone.\n` +
-    `Link ${url}`
+    '*📌 NELFUND GUIDE*\n\n' +
+    'Students are advised to go through the NELFUND Guide before taking any further steps regarding NELFUND.\n\n' +
+    '> Whether you’re yet to apply or have already applied, it provides the key information and guidance you need at every stage.\n\n' +
+    `🔗 ${url}`
   )
 }
 
