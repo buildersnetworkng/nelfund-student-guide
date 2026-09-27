@@ -162,6 +162,16 @@ export const ADMISSION_LETTER_UPLOAD =
   '4. Still stuck: send a support message with a screenshot at https://nelfund.esupport.ng/create\n\n' +
   'Do not send the letter to any agent on WhatsApp. Upload only on the official portal.'
 
+export const ACCOUNT_ALREADY_EXISTS =
+  '**Account already exists / email already used**\n\n' +
+  'That message means the email (or phone) you entered **already has a NELFUND account** — often from last year or an earlier attempt.\n\n' +
+  '**What to do:**\n' +
+  '1. **Do not** create a second account with a different email.\n' +
+  '2. **Sign in** with the same email at https://portal.nelf.gov.ng/auth/login\n' +
+  '3. If you forgot the password: use **Forgot password** on that same login page (reset for the **same** email).\n' +
+  '4. After login: complete Profile if needed, then **☰ → Loans → Request Loan** when your school session is open.\n' +
+  '5. Still cannot sign in or reset: send a support message with a screenshot at https://nelfund.esupport.ng/create\n\n' +
+  'Registering again with a new email usually makes things worse — use the existing account.'
 
 export function matchPortalKnowledge(text: string): { intent: string; text: string } | null {
   const t = (text || '').trim()
@@ -183,6 +193,15 @@ export function matchPortalKnowledge(text: string): { intent: string; text: stri
     )
   ) {
     return { intent: 'documents-needed', text: ADMISSION_LETTER_UPLOAD }
+  }
+
+  // Account already exists / email already used (returning student)
+  if (
+    /account\s*(already\s*)?(exist|exists|existed)|already\s*(exist|exists|existed).{0,25}(account|email)|email\s*(already\s*)?(used|exist|exists|registered|taken)|already\s*(used|registered).{0,20}(email|account)|registered\s*(last\s*year|before|already)|cannot\s*(create|register|sign\s*up).{0,30}(already|exist)|telling\s*me\s*(account|email).{0,20}(exist|used)|account\s*don\s*(dey|exist)|email\s*don\s*(use|exist)/i.test(
+      t,
+    )
+  ) {
+    return { intent: 'email-already-used', text: ACCOUNT_ALREADY_EXISTS }
   }
 
   if (
