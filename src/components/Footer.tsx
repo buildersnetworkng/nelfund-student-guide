@@ -70,11 +70,25 @@ export default function Footer() {
             )}
           </div>
         </div>
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-paper/10 pt-6 text-xs text-paper/50">
-          <span>Not affiliated with NELFUND or any institution.</span>
-          <Link to="/sources" className="underline underline-offset-2 hover:text-paper">
-            All official links
-          </Link>
+        <div className="mt-8 border-t border-paper/10 pt-6 text-xs text-paper/50">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span>Not affiliated with NELFUND or any institution.</span>
+            <Link to="/sources" className="underline underline-offset-2 hover:text-paper">
+              All official links
+            </Link>
+          </div>
+          <p className="mt-3 max-w-xl leading-relaxed text-paper/40">
+            If you are interested in AI, education, technology and African innovation, follow and subscribe to{' '}
+            <a
+              href="https://www.youtube.com/@BENINAI_Official"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-paper/30 underline-offset-2 hover:text-paper/70 hover:decoration-paper/50"
+            >
+              BENIN.AI Official
+            </a>
+            . 🇧🇯🌍🤝🏽
+          </p>
         </div>
       </div>
     </footer>
