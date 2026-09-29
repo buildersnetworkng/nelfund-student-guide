@@ -1,0 +1,173 @@
+{
+  "pack_id": "migrated_v1",
+  "pack_version": "1.1.1",
+  "content_hash_note": "built from portalKnowledge + application-status.json at freeze commit",
+  "frozen_commit": "e58fd5267e7e524abf107559a6e245086ed90826",
+  "published_at": "2026-09-29T01:37:52.903331+00:00",
+  "areas": [
+    "portal_login",
+    "account_already_exists",
+    "how_to_apply",
+    "pending_status",
+    "disbursement_timing",
+    "institution_followup",
+    "application_window"
+  ],
+  "procedures": [
+    {
+      "id": "PORTAL_LOGIN",
+      "area": "portal_login",
+      "title": "Portal login",
+      "intent_hints": ["portal-login", "password-reset", "official-sources"],
+      "evidence_ids": ["ev-portal_login"],
+      "time_sensitive": false,
+      "require_portal_confirm": false
+    },
+    {
+      "id": "ACCOUNT_ALREADY_EXISTS",
+      "area": "account_already_exists",
+      "title": "Account already exists",
+      "intent_hints": ["email-already-used"],
+      "evidence_ids": ["ev-account_already_exists"],
+      "time_sensitive": false,
+      "require_portal_confirm": false
+    },
+    {
+      "id": "APPLY_WALKTHROUGH",
+      "area": "how_to_apply",
+      "title": "How to apply",
+      "intent_hints": ["how-to-apply"],
+      "evidence_ids": ["ev-apply_walkthrough"],
+      "time_sensitive": false,
+      "require_portal_confirm": false
+    },
+    {
+      "id": "PENDING_STATUS",
+      "area": "pending_status",
+      "title": "Pending / application status",
+      "intent_hints": ["pending-application"],
+      "evidence_ids": ["ev-pending_status"],
+      "time_sensitive": true,
+      "require_portal_confirm": true
+    },
+    {
+      "id": "DISBURSEMENT_TIMING",
+      "area": "disbursement_timing",
+      "title": "Disbursement / approval timing",
+      "intent_hints": ["pending-application", "current-information"],
+      "evidence_ids": ["ev-disbursement_timing"],
+      "time_sensitive": true,
+      "require_portal_confirm": true
+    },
+    {
+      "id": "MISSING_INFORMATION",
+      "area": "institution_followup",
+      "title": "Missing information",
+      "intent_hints": ["missing-information"],
+      "evidence_ids": ["ev-missing_information"],
+      "time_sensitive": false,
+      "require_portal_confirm": false
+    },
+    {
+      "id": "APPLICATION_WINDOW",
+      "area": "application_window",
+      "title": "Is application open",
+      "intent_hints": ["current-information"],
+      "evidence_ids": ["ev-application_window"],
+      "time_sensitive": true,
+      "require_portal_confirm": true
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-portal_login",
+      "procedure_id": "PORTAL_LOGIN",
+      "title": "Portal login",
+      "body": "**Portal login**\n1. Open https://portal.nelf.gov.ng/auth/login\n2. Sign in with the email/phone already registered for NELFUND.\n3. If you forgot the password, use **Forgot password** on that same login page.\n4. Official site: https://nelf.gov.ng/\nDo not send passwords or OTP to anyone in chat or WhatsApp.",
+      "authority": "curated",
+      "source_ids": ["portal", "site"],
+      "last_verified_at": "2026-09-28",
+      "freshness": "static",
+      "may_change": false
+    },
+    {
+      "id": "ev-account_already_exists",
+      "procedure_id": "ACCOUNT_ALREADY_EXISTS",
+      "title": "Account already exists",
+      "body": "**Account already exists / email already used**\nThat message means the email (or phone) already has a NELFUND account — often from an earlier cycle.\n**Sign in** at https://portal.nelf.gov.ng/auth/login — do **not** create a second account.\nUse Forgot password on the same email if needed.\nSupport: https://nelfund.esupport.ng/create\nPortal: https://portal.nelf.gov.ng/",
+      "authority": "curated",
+      "source_ids": ["portal", "site"],
+      "last_verified_at": "2026-09-28",
+      "freshness": "static",
+      "may_change": false
+    },
+    {
+      "id": "ev-apply_walkthrough",
+      "procedure_id": "APPLY_WALKTHROUGH",
+      "title": "How to apply",
+      "body": "**How to apply**\n1. Open https://portal.nelf.gov.ng/ — create account or sign in.\n2. Complete Profile (JAMB, NIN, BVN, bank) as the form requires.\n3. Use the portal menu: ☰ → Loans → Request Loan (wording can vary slightly by release).\n4. Choose institutional charges and/or upkeep if offered on your session.\n5. Upload required documents (including admission letter when asked), accept Terms & GSI when shown, then Submit.\nConfirm live steps only on the portal.\n\n**Upkeep** (if offered on your session) is optional living support paid to your bank account when selected and approved; institutional charges go to the school. Confirm amounts only on the portal.\nPortal: https://portal.nelf.gov.ng/",
+      "authority": "curated",
+      "source_ids": ["portal", "site"],
+      "last_verified_at": "2026-09-28",
+      "freshness": "static",
+      "may_change": false
+    },
+    {
+      "id": "ev-pending_status",
+      "procedure_id": "PENDING_STATUS",
+      "title": "Pending / application status",
+      "body": "**Pending application / what next**\nPending means a request was submitted and is still processing — it is not the same as declined.\n**What to do next:**\n1. Login https://portal.nelf.gov.ng/auth/login\n2. Open ☰ → Loans and check your exact status tabs (Pending vs Approved vs Declined).\n3. If the portal shows missing information, ask your school to finish uploading your record.\n4. Confirm live notices on https://portal.nelf.gov.ng/\nThis guide cannot see your personal account or jump the queue.\nTickets: https://nelfund.esupport.ng/create\nPortal: https://portal.nelf.gov.ng/",
+      "authority": "curated",
+      "source_ids": ["portal", "site"],
+      "last_verified_at": "2026-09-28",
+      "freshness": "pack_dated",
+      "may_change": true
+    },
+    {
+      "id": "ev-disbursement_timing",
+      "procedure_id": "DISBURSEMENT_TIMING",
+      "title": "Disbursement / approval timing",
+      "body": "**Approval / disbursement timing**\nThis guide cannot give a personal approval clock or a guaranteed payout date.\nTiming depends on school uploads, verification, and cycle rules shown on the portal.\n1. Login https://portal.nelf.gov.ng/auth/login → ☰ → Loans for live status.\n2. Confirm notices on https://portal.nelf.gov.ng/ and https://nelf.gov.ng/\n3. Do not pay agents who promise faster disbursement.\n4. Official tickets: https://nelfund.esupport.ng/create",
+      "authority": "curated",
+      "source_ids": ["portal", "site"],
+      "last_verified_at": "2026-09-28",
+      "freshness": "pack_dated",
+      "may_change": true
+    },
+    {
+      "id": "ev-missing_information",
+      "procedure_id": "MISSING_INFORMATION",
+      "title": "Missing information",
+      "body": "**Missing information**\nThat portal state usually means the school has not finished uploading your student record or fee data.\nYou cannot invent the fields from this chat.\n1. Visit campus NELFUND / ICT / Registry desk with admission + JAMB + matric if issued.\n2. Ask them to complete the upload required by NELFUND.\n3. Re-check the portal after they confirm.\n4. Ticket with screenshot: https://nelfund.esupport.ng/create\nPortal: https://portal.nelf.gov.ng/\n\nIf you see **No Result found** when selecting institution, try shorter school names and confirm the school is on the portal list; campus desk can help if your school is missing.\nPortal: https://portal.nelf.gov.ng/",
+      "authority": "curated",
+      "source_ids": ["portal", "site"],
+      "last_verified_at": "2026-09-28",
+      "freshness": "static",
+      "may_change": false
+    },
+    {
+      "id": "ev-application_window",
+      "procedure_id": "APPLICATION_WINDOW",
+      "title": "Is application open",
+      "body": "**Application window / open status**\nCycle label in guide pack: 2026/2027.\nStatus rule: Confirm live on the official portal only.\nDates sometimes appear in secondary reports. They are NOT a substitute for what the portal shows today.\nAlways confirm on https://portal.nelf.gov.ng/ whether Request Loan is available on your account.\nNational window text is not a substitute for what the portal shows for your school session.\nSources: https://portal.nelf.gov.ng/, https://portal.nelf.gov.ng/auth/login, https://nelf.gov.ng/",
+      "authority": "curated",
+      "source_ids": ["portal", "site"],
+      "last_verified_at": "2026-09-28",
+      "freshness": "pack_dated",
+      "may_change": true
+    }
+  ],
+  "sources": {
+    "portal": {"label": "NELFUND portal", "url": "https://portal.nelf.gov.ng/", "authority": "official"},
+    "login": {"label": "NELFUND login", "url": "https://portal.nelf.gov.ng/auth/login", "authority": "official"},
+    "site": {"label": "NELFUND website", "url": "https://nelf.gov.ng/", "authority": "official"},
+    "esupport": {"label": "NELFUND eSupport", "url": "https://nelfund.esupport.ng/create", "authority": "official"}
+  },
+  "rules": {
+    "no_invented_sla": true,
+    "no_invented_fees": true,
+    "no_invented_institution_emails": true,
+    "time_sensitive_must_portal_confirm": true
+  },
+  "changelog": ["G2.1: multi-area composition, OCR→pack mapping, dialog follow-up state"]
+}
