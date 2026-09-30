@@ -20,6 +20,51 @@ export type AnalyticsEventName =
   | 'feature_use'
   | 'institution_set'
 
+/** G3 path attribution — allowlisted only */
+export type AiPathValue = 'migrated' | 'legacy'
+
+export type AiAreaValue =
+  | 'portal_login'
+  | 'account_already_exists'
+  | 'how_to_apply'
+  | 'pending_status'
+  | 'disbursement_timing'
+  | 'institution_followup'
+  | 'application_window'
+
+export type AiFallbackReasonValue =
+  | 'flag_production_off'
+  | 'not_in_cohort'
+  | 'area_not_migrated'
+  | 'area_disabled'
+  | 'procedure_missing'
+  | 'bridge_error'
+  | 'legacy_required'
+  | 'none'
+
+export const AI_PATH_ALLOWLIST: readonly AiPathValue[] = ['migrated', 'legacy'] as const
+
+export const AI_AREA_ALLOWLIST: readonly AiAreaValue[] = [
+  'portal_login',
+  'account_already_exists',
+  'how_to_apply',
+  'pending_status',
+  'disbursement_timing',
+  'institution_followup',
+  'application_window',
+] as const
+
+export const AI_FALLBACK_REASON_ALLOWLIST: readonly AiFallbackReasonValue[] = [
+  'flag_production_off',
+  'not_in_cohort',
+  'area_not_migrated',
+  'area_disabled',
+  'procedure_missing',
+  'bridge_error',
+  'legacy_required',
+  'none',
+] as const
+
 export interface AnalyticsEventPayload {
   name: AnalyticsEventName
   /** ISO timestamp from client */
@@ -37,6 +82,18 @@ export interface AnalyticsEventPayload {
   hasImage?: boolean
   /** Coarse unknown-topic bucket only, never free-text questions */
   topic?: string
+  /** G3: migrated | legacy — allowlisted only */
+  ai_path?: AiPathValue
+  /** G3: seven-area id or omitted */
+  ai_area?: AiAreaValue
+  /** G3: true when fallback/legacy-required path */
+  ai_fallback?: boolean
+  /** G3: coarse fallback reason enum */
+  ai_fallback_reason?: AiFallbackReasonValue
+  /** G3: true when turn handler caught an error */
+  ai_error?: boolean
+  /** G3: client turn latency ms, clamped 0..60000 */
+  ai_latency_ms?: number
   meta?: Record<string, string | number | boolean | null>
 }
 
