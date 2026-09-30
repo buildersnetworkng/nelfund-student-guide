@@ -11,6 +11,68 @@ type EventPayload = {
   unresolved?: boolean
   hasImage?: boolean
   topic?: string
+  /** G3 path attribution — allowlisted only */
+  ai_path?: string
+  ai_area?: string
+  ai_fallback?: boolean
+  ai_fallback_reason?: string
+  ai_error?: boolean
+  ai_latency_ms?: number
+}
+
+const AI_PATH_ALLOW = new Set(['migrated', 'legacy'])
+const AI_AREA_ALLOW = new Set([
+  'portal_login',
+  'account_already_exists',
+  'how_to_apply',
+  'pending_status',
+  'disbursement_timing',
+  'institution_followup',
+  'application_window',
+])
+const AI_FALLBACK_ALLOW = new Set([
+  'flag_production_off',
+  'not_in_cohort',
+  'area_not_migrated',
+  'area_disabled',
+  'procedure_missing',
+  'bridge_error',
+  'legacy_required',
+  'none',
+])
+
+function sanitizeAiPath(v: unknown): string | null {
+  if (typeof v !== 'string') return null
+  const t = v.trim()
+  return AI_PATH_ALLOW.has(t) ? t : null
+}
+
+function sanitizeAiArea(v: unknown): string | null {
+  if (typeof v !== 'string') return null
+  const t = v.trim()
+  return AI_AREA_ALLOW.has(t) ? t : null
+}
+
+function sanitizeAiFallbackReason(v: unknown): string | null {
+  if (typeof v !== 'string') return null
+  const t = v.trim()
+  return AI_FALLBACK_ALLOW.has(t) ? t : null
+}
+
+function clampLatency(v: unknown): number | null {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return null
+  const n = Math.round(v)
+  if (n < 0) return 0
+  if (n > 60000) return 60000
+  return n
+}
+
+function latencyBucket(ms: number): string {
+  if (ms < 50) return '0_50'
+  if (ms < 100) return '50_100'
+  if (ms < 250) return '100_250'
+  if (ms < 500) return '250_500'
+  return '500_plus'
 }
 
 type TrackBody = {
@@ -189,6 +251,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (useRedis) commands.push(['ZINCRBY', 'nsg:z:unknown_topics', 1, topic])
         else memIncr(`unknown_topic:${topic}`)
       }
+    }
+    // G3 path attribution — allowlisted enums only; never free-text / PII
+    const aiPath = sanitizeAiPath((ev as EventPayload).ai_path)
+    if (aiPath) {
+      if (useRedis) commands.push(['ZINCRBY', 'nsg:z:ai_path', 1, aiPath])
+      else memIncr(`ai_path:${aiPath}`)
+    }
+    const aiArea = sanitizeAiArea((ev as EventPayload).ai_area)
+    if (aiArea) {
+      if (useRedis) commands.push(['ZINCRBY', 'nsg:z:ai_area', 1, aiArea])
+      else memIncr(`ai_area:${aiArea}`)
+    }
+    if ((ev as EventPayload).ai_fallback === true) {
+      if (useRedis) commands.push(['INCR', 'nsg:counters:ai_fallback'])
+      else memIncr('ai_fallback')
+    }
+    const fbReason = sanitizeAiFallbackReason((ev as EventPayload).ai_fallback_reason)
+    if (fbReason) {
+      if (useRedis) commands.push(['ZINCRBY', 'nsg:z:ai_fallback_reason', 1, fbReason])
+      else memIncr(`ai_fallback_reason:${fbReason}`)
+    }
+    if ((ev as EventPayload).ai_error === true) {
+      if (useRedis) commands.push(['INCR', 'nsg:counters:ai_path_error'])
+      else memIncr('ai_path_error')
+    }
+    const lat = clampLatency((ev as EventPayload).ai_latency_ms)
+    if (lat !== null) {
+      const bucket = latencyBucket(lat)
+      if (useRedis) commands.push(['ZINCRBY', 'nsg:z:ai_latency_bucket', 1, bucket])
+      else memIncr(`ai_latency_bucket:${bucket}`)
     }
     // Unknown session tracking only. Counter for ai_unknown is already incremented above
     // when name === 'ai_unknown' (client sends a dedicated event). Do not double-count.
