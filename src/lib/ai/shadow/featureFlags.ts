@@ -6,6 +6,12 @@
 export type AiFeatureFlags = {
   enableMigratedAreasProduction: boolean
   enableShadowMigratedAreas: boolean
+  /**
+   * Emit path-attribution fields on ai_question analytics.
+   * Observational only — does not change answers/routing.
+   * Safe default OFF when missing/malformed.
+   */
+  enablePathAttributionAnalytics: boolean
   /** Optional percent cohort 0–100; 100 = all users when production enabled */
   rolloutPercent: number
   areas: {
@@ -26,6 +32,8 @@ export type AiFeatureFlags = {
 export const DEFAULT_AI_FEATURE_FLAGS: AiFeatureFlags = {
   enableMigratedAreasProduction: true,
   enableShadowMigratedAreas: true,
+  /** Kill switch: path analytics off until explicitly enabled */
+  enablePathAttributionAnalytics: false,
   rolloutPercent: 100,
   areas: {
     portal_login: true,
@@ -52,12 +60,15 @@ export function loadAiFeatureFlags(): AiFeatureFlags {
       ...w,
       areas: { ...DEFAULT_AI_FEATURE_FLAGS.areas, ...(w.areas || {}) },
       enableMigratedAreasProduction: w.enableMigratedAreasProduction === true,
+      // Safe/off unless explicitly true (missing/malformed → false)
+      enablePathAttributionAnalytics: w.enablePathAttributionAnalytics === true,
       rolloutPercent: typeof w.rolloutPercent === 'number' ? Math.max(0, Math.min(100, w.rolloutPercent)) : DEFAULT_AI_FEATURE_FLAGS.rolloutPercent,
     }
   } catch {
     return {
       ...DEFAULT_AI_FEATURE_FLAGS,
       enableMigratedAreasProduction: false,
+      enablePathAttributionAnalytics: false,
     }
   }
 }
