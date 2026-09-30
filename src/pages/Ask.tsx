@@ -142,6 +142,7 @@ export default function Ask() {
       const userTextForEngine =
         text || (ocrSafe ? '' : hasImage ? 'Please read this portal screenshot' : '')
 
+      const turnStarted = Date.now()
       const result = await processUserTurn({
         userText: userTextForEngine,
         ocrText: ocrSafe || (hasImage ? 'portal screenshot uploaded' : null),
@@ -153,6 +154,7 @@ export default function Ask() {
         },
         history,
       })
+      const turnLatencyMs = Date.now() - turnStarted
 
       if (!result || !Array.isArray(result.messages)) {
         throw new Error('empty turn result')
@@ -165,6 +167,12 @@ export default function Ask() {
       }
       const intent = asst?.answer?.intent || nextSlots.intent || 'unknown'
       try {
+        // Observational path attribution from existing pathSelection only (no answer impact)
+        const pathSel = (result as { pathSelection?: {
+          selected_path?: string
+          area?: string | null
+          fallback_reason?: string | null
+        } }).pathSelection
         trackAiQuestion({
           intent,
           institutionId: nextSlots.institutionId || institutionId,
@@ -174,6 +182,14 @@ export default function Ask() {
           resolutionClosed: !!asst?.answer?.hasEvidence && !asst?.answer?.insufficientReason,
           escalationFired: !!asst?.answer?.escalation,
           userText: text || (ocrSafe ? ocrSafe.slice(0, 200) : null),
+          ai_path: pathSel?.selected_path ?? 'legacy',
+          ai_area: pathSel?.area ?? null,
+          ai_fallback:
+            pathSel?.selected_path === 'legacy' ||
+            !!(pathSel?.fallback_reason && pathSel.fallback_reason !== 'none'),
+          ai_fallback_reason: pathSel?.fallback_reason ?? (pathSel?.selected_path === 'legacy' ? 'legacy_required' : null),
+          ai_error: false,
+          ai_latency_ms: turnLatencyMs,
         })
       } catch {
         /* analytics must not break chat */
@@ -184,6 +200,21 @@ export default function Ask() {
       if (asstMsgs.length > 0) markShareValue()
       clearFile()
     } catch {
+      try {
+        trackAiQuestion({
+          intent: 'unknown',
+          institutionId: institutionId || undefined,
+          hasImage: !!ocrNow || hasImage,
+          unresolved: true,
+          isNewConversation: messages.length === 0,
+          ai_path: 'legacy',
+          ai_fallback: true,
+          ai_fallback_reason: 'bridge_error',
+          ai_error: true,
+        })
+      } catch {
+        /* analytics must not break chat */
+      }
       const fallback =
         hasImage || ocrNow
           ? 'I could not finish reading that screenshot. Type the exact portal words you see (e.g. Pending Loans 2, No Result found, admission letter is required), or open https://portal.nelf.gov.ng/.'
