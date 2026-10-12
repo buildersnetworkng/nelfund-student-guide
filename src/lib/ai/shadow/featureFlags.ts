@@ -32,8 +32,8 @@ export type AiFeatureFlags = {
 export const DEFAULT_AI_FEATURE_FLAGS: AiFeatureFlags = {
   enableMigratedAreasProduction: true,
   enableShadowMigratedAreas: true,
-  /** Kill switch: path analytics off until explicitly enabled */
-  enablePathAttributionAnalytics: false,
+  /** Path-attribution analytics ON for G3 observation (kill switch: set false) */
+  enablePathAttributionAnalytics: true,
   rolloutPercent: 100,
   areas: {
     portal_login: true,
@@ -47,7 +47,7 @@ export const DEFAULT_AI_FEATURE_FLAGS: AiFeatureFlags = {
   packId: 'migrated_v1',
   packVersion: '1.1.1',
   rollbackNote:
-    'Set enableMigratedAreasProduction=false to force 100% legacy processUserTurn for all areas.',
+    'Set enableMigratedAreasProduction=false to force 100% legacy processUserTurn for all areas. Set enablePathAttributionAnalytics=false to stop path fields on ai_question.',
 }
 
 export function loadAiFeatureFlags(): AiFeatureFlags {
