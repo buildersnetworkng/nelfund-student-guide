@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import ShareGuide, { SHARE_TEXT } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
+import { setShareSoftOpen } from '../lib/promoGate'
 
 /** Bumped key so older dismiss flags no longer hide the card */
 const STORAGE_KEY = 'nelfund-share-soft-v2'
@@ -52,9 +53,14 @@ export default function ShareSoftPrompt() {
     if (typeof window === 'undefined') return
     if (SKIP_PROMPT_PATHS.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`))) {
       setVisible(false)
+      setShareSoftOpen(false)
       return
     }
-    if (alreadyDismissed()) return
+    if (alreadyDismissed()) {
+      setVisible(false)
+      setShareSoftOpen(false)
+      return
+    }
 
     let shown = false
     let timer: number | undefined
@@ -63,31 +69,43 @@ export default function ShareSoftPrompt() {
       if (shown || alreadyDismissed()) return
       shown = true
       setVisible(true)
-      trackFeature('share_prompt_shown', { variant: 'soft-prompt' })
+      setShareSoftOpen(true)
+      try {
+        trackFeature('share_prompt_shown')
+      } catch {
+        /* ignore */
+      }
     }
 
+    // Home and other non-skipped pages: short delay so content paints first
     timer = window.setTimeout(reveal, 1500)
 
     return () => {
       if (timer) window.clearTimeout(timer)
+      setShareSoftOpen(false)
     }
   }, [location.pathname])
 
   function dismiss() {
     setVisible(false)
+    setShareSoftOpen(false)
     try {
       window.localStorage.setItem(STORAGE_KEY, String(Date.now()))
     } catch {
       /* ignore */
     }
-    trackFeature('share_prompt_dismissed', { variant: 'soft-prompt' })
+    try {
+      trackFeature('share_prompt_dismissed')
+    } catch {
+      /* ignore */
+    }
   }
 
   if (!visible) return null
 
   return (
     <div
-      className="fixed bottom-24 left-3 right-3 z-[60] mx-auto max-w-md sm:bottom-5 sm:left-auto sm:right-5 sm:w-[22rem]"
+      className="fixed bottom-24 left-3 right-3 z-[65] mx-auto max-w-md sm:bottom-5 sm:left-auto sm:right-5 sm:w-[22rem]"
       style={{ animation: 'soft-rise 0.4s ease-out' }}
       role="status"
       aria-live="polite"
@@ -117,7 +135,13 @@ export default function ShareSoftPrompt() {
             href={WHATSAPP_HREF}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => trackFeature('share_channel', { channel: 'whatsapp', source: 'soft-prompt' })}
+            onClick={() => {
+              try {
+                trackFeature('share_channel')
+              } catch {
+                /* ignore */
+              }
+            }}
             className="inline-flex min-h-[40px] flex-1 items-center justify-center rounded-full bg-[#25D366] px-3 text-xs font-semibold text-white"
           >
             Send to class group
