@@ -3,6 +3,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import MobileNav from './components/MobileNav'
 import AnalyticsProvider from './components/AnalyticsProvider'
+import BeninAiPopup from './components/BeninAiPopup'
 import Home from './pages/Home'
 import Readiness from './pages/Readiness'
 import Apply from './pages/Apply'
@@ -38,6 +39,7 @@ export default function App() {
     return (
       <>
         <AnalyticsProvider />
+        <BeninAiPopup askMode />
         <Routes>
           <Route path="/ask" element={<Ask />} />
         </Routes>
@@ -48,6 +50,7 @@ export default function App() {
   return (
     <div className="flex min-h-screen flex-col">
       <AnalyticsProvider />
+      <BeninAiPopup />
       <Header />
       <main className="flex-1 pb-24 md:pb-0">
         <Routes>
