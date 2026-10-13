@@ -5,6 +5,7 @@
  */
 
 import { trackFeature } from './analytics'
+import { isShareSoftOpen } from './promoGate'
 
 /** Official channel (verified). Campaign params for outbound measurement only — not subscription proof. */
 export const BENIN_AI_URL =
@@ -16,7 +17,11 @@ export const BENIN_AI_AVATAR_URL =
 
 export const BENIN_POPUP_STORAGE_KEY = 'nsg_benin_popup_v1'
 export const BENIN_SESSION_SHOWN_KEY = 'nsg_benin_popup_shown_v1'
-export const COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
+
+/** ~24h after X dismiss — temporary, not permanent. */
+export const DISMISS_COOLDOWN_MS = 24 * 60 * 60 * 1000
+/** Longer quiet period after CTA click (engaged with channel). */
+export const CLICK_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
 
 export const FEATURE_IMPRESSION = 'benin_ai_popup_impression'
 export const FEATURE_CLICK = 'benin_ai_popup_click'
@@ -65,12 +70,12 @@ export function markShownThisSession() {
   }
 }
 
-/** True if cooldown after dismiss or click is still active. */
+/** True if dismiss (24h) or click (7d) cooldown is still active. Survives navigation. */
 export function isInCooldown(now = Date.now()): boolean {
   const s = readState()
-  const t = Math.max(s.dismissedAt || 0, s.clickedAt || 0)
-  if (!t) return false
-  return now - t < COOLDOWN_MS
+  if (s.clickedAt && now - s.clickedAt < CLICK_COOLDOWN_MS) return true
+  if (s.dismissedAt && now - s.dismissedAt < DISMISS_COOLDOWN_MS) return true
+  return false
 }
 
 export function canShowPopup(pathname: string): boolean {
@@ -78,6 +83,8 @@ export function canShowPopup(pathname: string): boolean {
   if (pathname.startsWith('/admin')) return false
   if (wasShownThisSession()) return false
   if (isInCooldown()) return false
+  // Do not stack on top of the Share the Guide soft prompt
+  if (isShareSoftOpen()) return false
   return true
 }
 
@@ -101,6 +108,7 @@ export function recordClick() {
   }
 }
 
+/** Impression only when the panel is actually shown. */
 export function recordImpression() {
   markShownThisSession()
   try {
