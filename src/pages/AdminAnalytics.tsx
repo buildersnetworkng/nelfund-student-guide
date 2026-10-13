@@ -207,6 +207,50 @@ export default function AdminAnalytics() {
               <RankList title="Features used" items={stats.topFeatures} />
             </section>
 
+            <section>
+              <h2 className="text-sm font-semibold text-ink">BENIN.AI pilot (popup)</h2>
+              <p className="mt-1 text-xs text-ink/45">
+                Event totals from feature_use only. Unique viewers/clickers are not separately stored; use raw
+                counts. YouTube subscriptions are not measurable from this site.
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <StatCard
+                  label="Popup impressions"
+                  value={
+                    (stats.topFeatures || []).find((f) => f.key === 'benin_ai_popup_impression')?.count ?? 0
+                  }
+                />
+                <StatCard
+                  label="CTA clicks"
+                  value={(stats.topFeatures || []).find((f) => f.key === 'benin_ai_popup_click')?.count ?? 0}
+                />
+                <StatCard
+                  label="Dismissals"
+                  value={(stats.topFeatures || []).find((f) => f.key === 'benin_ai_popup_dismiss')?.count ?? 0}
+                />
+                <StatCard
+                  label="Click-through rate"
+                  value={(() => {
+                    const imp =
+                      (stats.topFeatures || []).find((f) => f.key === 'benin_ai_popup_impression')?.count ?? 0
+                    const clk =
+                      (stats.topFeatures || []).find((f) => f.key === 'benin_ai_popup_click')?.count ?? 0
+                    if (!imp) return '—'
+                    return `${((100 * clk) / imp).toFixed(1)}%`
+                  })()}
+                  hint="Clicks ÷ impressions (recorded events)"
+                />
+              </div>
+              <div className="mt-3">
+                <RankList
+                  title="BENIN.AI popup events"
+                  items={(stats.topFeatures || []).filter((f) =>
+                    f.key.startsWith('benin_ai_popup_') || f.key.startsWith('benin_ai_card_'),
+                  )}
+                />
+              </div>
+            </section>
+
             <p className="text-xs leading-relaxed text-ink/45">
               Metrics use anonymous device IDs and session IDs only. Free-text questions are never stored. Resolution
               closed, escalation fired, and thumbs are exact event counters for Pilot #2 reporting.
