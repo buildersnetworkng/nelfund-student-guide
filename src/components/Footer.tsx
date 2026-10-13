@@ -77,18 +77,6 @@ export default function Footer() {
               All official links
             </Link>
           </div>
-          <p className="mt-3 max-w-xl leading-relaxed text-paper/40">
-            If you are interested in AI, education, technology and African innovation, follow and subscribe to{' '}
-            <a
-              href="https://www.youtube.com/@BENINAI_Official"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline decoration-paper/30 underline-offset-2 hover:text-paper/70 hover:decoration-paper/50"
-            >
-              BENIN.AI Official
-            </a>
-            . 🇧🇯🌍🤝🏽
-          </p>
         </div>
       </div>
     </footer>
