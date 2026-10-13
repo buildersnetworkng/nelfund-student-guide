@@ -5,7 +5,7 @@ import { trackFeature } from '../lib/analytics'
 import { setShareSoftOpen } from '../lib/promoGate'
 
 /** Bumped key so older dismiss flags no longer hide the card */
-const STORAGE_KEY = 'nelfund-share-soft-v2'
+const STORAGE_KEY = 'nelfund-share-soft-v3'
 const VALUE_KEY = 'nelfund-share-value-seen'
 const DISMISS_MS = 1000 * 60 * 60 * 6
 const SKIP_PROMPT_PATHS = [
