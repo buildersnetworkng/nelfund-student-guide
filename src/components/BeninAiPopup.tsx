@@ -15,7 +15,8 @@ import {
   recordImpression,
 } from '../lib/beninPopup'
 
-const OTHER_PAGE_DELAY_MS = 12000
+/** Delay on non-Ask pages so Share soft prompt (1.5s) can claim the slot first on home. */
+const OTHER_PAGE_DELAY_MS = 14000
 
 type Props = {
   /** When true, only show after AI_ANSWER_READY_EVENT (Ask workspace). */
@@ -51,9 +52,20 @@ export default function BeninAiPopup({ askMode = false }: Props) {
       return () => window.removeEventListener(AI_ANSWER_READY_EVENT, onReady)
     }
 
-    // Other public pages: modest delay after engagement time
+    // Other public pages: delay after engagement; re-check if Share soft closes
     const t = window.setTimeout(() => tryOpen(), OTHER_PAGE_DELAY_MS)
-    return () => window.clearTimeout(t)
+    const onShareVis = (e: Event) => {
+      const detail = (e as CustomEvent<{ open?: boolean }>).detail
+      if (detail && detail.open === false) {
+        // Share dismissed — allow Benin if still eligible and not yet shown
+        window.setTimeout(() => tryOpen(), 800)
+      }
+    }
+    window.addEventListener('nsg:share-soft-visibility', onShareVis)
+    return () => {
+      window.clearTimeout(t)
+      window.removeEventListener('nsg:share-soft-visibility', onShareVis)
+    }
   }, [pathname, askMode, tryOpen])
 
   useEffect(() => {
@@ -88,7 +100,7 @@ export default function BeninAiPopup({ askMode = false }: Props) {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-center p-3 sm:bottom-4 sm:justify-end sm:p-4 md:bottom-6 md:right-6 md:left-auto md:justify-end"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] flex justify-center p-3 sm:bottom-4 sm:justify-end sm:p-4 md:bottom-6 md:right-6 md:left-auto md:justify-end"
       role="presentation"
     >
       <aside
