@@ -7,14 +7,16 @@
 let shareSoftOpen = false
 
 export function setShareSoftOpen(open: boolean) {
-  shareSoftOpen = open
+  shareSoftOpen = !!open
   try {
-    window.dispatchEvent(new CustomEvent('nsg:share-soft-visibility', { detail: { open } }))
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('nsg:share-soft-visibility', { detail: { open: shareSoftOpen } }))
+    }
   } catch {
     /* ignore */
   }
 }
 
 export function isShareSoftOpen(): boolean {
-  return shareSoftOpen
+  return shareSoftOpen === true
 }

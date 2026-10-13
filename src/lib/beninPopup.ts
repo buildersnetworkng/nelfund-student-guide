@@ -15,8 +15,9 @@ export const BENIN_AI_URL =
 export const BENIN_AI_AVATAR_URL =
   'https://yt3.googleusercontent.com/GBWDGz2opD7383toi-lvxOyY-sxz52AxbrhBclG_ulblrP0cO9vSiYj_1W8PkBx48pihE_TUE54=s176-c-k-c0x00ffffff-no-rj'
 
-export const BENIN_POPUP_STORAGE_KEY = 'nsg_benin_popup_v1'
-export const BENIN_SESSION_SHOWN_KEY = 'nsg_benin_popup_shown_v1'
+/** v2 key: prior v1 dismissals during pilot rollout no longer hide the panel. */
+export const BENIN_POPUP_STORAGE_KEY = 'nsg_benin_popup_v2'
+export const BENIN_SESSION_SHOWN_KEY = 'nsg_benin_popup_shown_v2'
 
 /** ~24h after X dismiss — temporary, not permanent. */
 export const DISMISS_COOLDOWN_MS = 24 * 60 * 60 * 1000
@@ -30,24 +31,24 @@ export const FEATURE_DISMISS = 'benin_ai_popup_dismiss'
 export type BeninPopupState = {
   dismissedAt?: number
   clickedAt?: number
-  version: 1
+  version: 2
 }
 
 function readState(): BeninPopupState {
   try {
     const raw = localStorage.getItem(BENIN_POPUP_STORAGE_KEY)
-    if (!raw) return { version: 1 }
+    if (!raw) return { version: 2 }
     const parsed = JSON.parse(raw) as BeninPopupState
-    if (!parsed || parsed.version !== 1) return { version: 1 }
+    if (!parsed || parsed.version !== 2) return { version: 2 }
     return parsed
   } catch {
-    return { version: 1 }
+    return { version: 2 }
   }
 }
 
 function writeState(partial: Partial<BeninPopupState>) {
   try {
-    const next: BeninPopupState = { ...readState(), ...partial, version: 1 }
+    const next: BeninPopupState = { ...readState(), ...partial, version: 2 }
     localStorage.setItem(BENIN_POPUP_STORAGE_KEY, JSON.stringify(next))
   } catch {
     /* private mode / quota — still allow one-shot session suppression */
@@ -83,7 +84,6 @@ export function canShowPopup(pathname: string): boolean {
   if (pathname.startsWith('/admin')) return false
   if (wasShownThisSession()) return false
   if (isInCooldown()) return false
-  // Do not stack on top of the Share the Guide soft prompt
   if (isShareSoftOpen()) return false
   return true
 }
