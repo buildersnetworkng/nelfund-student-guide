@@ -1,9 +1,9 @@
 {
   "pack_id": "migrated_v1",
-  "pack_version": "1.1.1",
-  "content_hash_note": "built from portalKnowledge + application-status.json at freeze commit",
+  "pack_version": "1.1.2",
+  "content_hash_note": "v4-plus lean apply; portal confirm for window",
   "frozen_commit": "e58fd5267e7e524abf107559a6e245086ed90826",
-  "published_at": "2026-09-29T01:37:52.903331+00:00",
+  "published_at": "2026-10-14T20:00:00+00:00",
   "areas": [
     "portal_login",
     "account_already_exists",
@@ -105,10 +105,10 @@
       "id": "ev-apply_walkthrough",
       "procedure_id": "APPLY_WALKTHROUGH",
       "title": "How to apply",
-      "body": "**How to apply**\n1. Open https://portal.nelf.gov.ng/ — create account or sign in.\n2. Complete Profile (JAMB, NIN, BVN, bank) as the form requires.\n3. Use the portal menu: ☰ → Loans → Request Loan (wording can vary slightly by release).\n4. Choose institutional charges and/or upkeep if offered on your session.\n5. Upload required documents (including admission letter when asked), accept Terms & GSI when shown, then Submit.\nConfirm live steps only on the portal.\n\n**Upkeep** (if offered on your session) is optional living support paid to your bank account when selected and approved; institutional charges go to the school. Confirm amounts only on the portal.\nPortal: https://portal.nelf.gov.ng/",
+      "body": "**How to apply**\n1. Open https://portal.nelf.gov.ng/ and create an account or sign in.\n2. Complete profile (NIN, BVN, bank) as the portal asks.\n3. Request institutional charges for your school session.\n4. Submit only after amounts look correct (use Raise a dispute if the fee is wrong).\nPortal: https://portal.nelf.gov.ng/\nAsk separately about eligibility, upkeep, or status if you need those topics.",
       "authority": "curated",
       "source_ids": ["portal", "site"],
-      "last_verified_at": "2026-09-28",
+      "last_verified_at": "2026-10-14",
       "freshness": "static",
       "may_change": false
     },
@@ -152,7 +152,7 @@
       "body": "**Application window / open status**\nCycle label in guide pack: 2026/2027.\nStatus rule: Confirm live on the official portal only.\nDates sometimes appear in secondary reports. They are NOT a substitute for what the portal shows today.\nAlways confirm on https://portal.nelf.gov.ng/ whether Request Loan is available on your account.\nNational window text is not a substitute for what the portal shows for your school session.\nSources: https://portal.nelf.gov.ng/, https://portal.nelf.gov.ng/auth/login, https://nelf.gov.ng/",
       "authority": "curated",
       "source_ids": ["portal", "site"],
-      "last_verified_at": "2026-09-28",
+      "last_verified_at": "2026-10-14",
       "freshness": "pack_dated",
       "may_change": true
     }
@@ -169,5 +169,5 @@
     "no_invented_institution_emails": true,
     "time_sensitive_must_portal_confirm": true
   },
-  "changelog": ["G2.1: multi-area composition, OCR→pack mapping, dialog follow-up state"]
+  "changelog": ["G2.1 multi-area", "v4-plus lean apply"]
 }
