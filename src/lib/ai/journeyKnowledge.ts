@@ -2,15 +2,8 @@
  * Offline candidate v5 — post-application journey knowledge
  * Institutional amount vs school fees, Verified status, Pay School, upkeep linkage.
  *
- * Evidence classes:
- * - OFFICIAL: nelf.gov.ng FAQ / terms (loan amount = institutional charge logged on portal;
- *   institutional remitted to school; upkeep to student; apply both for upkeep eligibility)
- * - SCREENSHOT: student portal UI (Action Required + Pay School; Verified on Institutional
- *   and Upkeep; linked upkeep not processed if Pay School not used)
- * - CONDITIONAL: guidance when fees unknown / higher than portal amount — verify with
- *   institution + portal; not a universal guarantee
- *
- * Do not invent deadlines, fixed national fee amounts, or post-Pay-School steps not observed.
+ * Use the portal and institution for account-specific steps. Do not infer hidden
+ * processing rules from a status label or an isolated screenshot phrase.
  */
 
 export const PORTAL = 'https://portal.nelf.gov.ng/'
@@ -39,18 +32,11 @@ export const AMOUNT_VS_FEES =
 /** Verified + Pay School (screenshot-backed portal behaviour) */
 export const PAY_SCHOOL_VERIFIED =
   '**Status: Verified — what it means**\n\n' +
-  '**Verified** on an institutional (school) loan means NELFUND has verified that loan request. It does **not** by itself mean the school has already received the money or that upkeep has been paid to you.\n\n' +
-  '**Action Required / Pay School**\n' +
-  'When the portal shows a banner like: *Your school loan has been verified. Click "Pay School" to send it to your institution* — you still need to use **Pay School** on the **Institutional Loans** row so the institutional fee can be sent to the school.\n\n' +
-  'The same banner may warn: if you do not, **neither** this institutional loan **nor** your linked upkeep loan will be processed.\n\n' +
-  '**What to do**\n' +
+  'A **Verified** label is a portal status; it does **not** by itself confirm that money has reached your school or your account.\n\n' +
+  'If the Institutional Loans row also shows **Action Required** or **Pay School**, read the exact portal prompt and follow only the steps shown there. The text in a screenshot does not establish what happens next or whether a transfer completed.\n\n' +
   `1. Log in: ${LOGIN_URL}\n` +
-  '2. Open **☰ → Loans → Institutional Loans**.\n' +
-  '3. Find the **Verified** institutional fee row for the correct session.\n' +
-  '4. Tap **Pay School** and complete only the steps the official portal shows.\n' +
-  '5. Recheck **Institutional** and **Upkeep** status after.\n\n' +
-  '**Upkeep also shows Verified**\n' +
-  'Verification of upkeep does not prove money is already in your account. Upkeep is linked to institutional processing in the portal warning above. Check status on the portal; do not invent pay dates.\n\n' +
+  '2. Open **☰ → Loans** and check the relevant Institutional and Upkeep rows.\n' +
+  '3. If the next step is unclear, do not submit a duplicate request. Ask campus bursary whether the school received funds, or contact official support with the exact wording and a screenshot.\n\n' +
   `Only use ${PORTAL}. Do not use unofficial “pay on my behalf” links.\n` +
   `Stuck after following the portal: ${ESUPPORT}`
 
@@ -67,11 +53,11 @@ export const VERIFIED_NO_MONEY =
   '**Loan shows Verified but I have not received money**\n\n' +
   '**Verified ≠ disbursed to you.**\n\n' +
   '• **Institutional loan** goes to the **school**, not your personal account. After verification you may still need **Pay School** so the school can receive it.\n' +
-  '• **Upkeep** goes to the bank account on your profile, but only after the portal’s processing rules are met (including any link to institutional Pay School).\n' +
+  '• Check the Upkeep row separately; this guide cannot confirm its processing sequence or payment date.\n' +
   '• Email “Loan Verified” confirms verification of that request, not that cash has already landed.\n\n' +
   '**Check next**\n' +
   `1. ${LOGIN_URL} → ☰ → Loans → Institutional and Upkeep tabs.\n` +
-  '2. Look for **Action Required** / **Pay School** on institutional.\n' +
+  '2. If **Action Required** / **Pay School** appears, read the exact portal instruction; do not assume it proves a transfer.\n' +
   '3. Confirm bank details under Profile → Account Details if upkeep is expected.\n' +
   '4. Ask campus bursary whether institutional funds have been received for your session.\n\n' +
   `No progress after portal steps: ${ESUPPORT} (attach screenshots). I will not invent processing days.`
@@ -81,7 +67,7 @@ export const BOTH_VERIFIED =
   'Both requests are verified on the portal. That still does **not** mean:\n' +
   '• the school has already received institutional funds, or\n' +
   '• upkeep has already been paid into your account.\n\n' +
-  'If **Pay School** / **Action Required** appears on Institutional Loans, complete that step first. The portal may block processing of linked upkeep until institutional is sent to the school.\n\n' +
+  'If either row shows **Action Required**, read that row’s exact portal instruction. This guide cannot confirm whether one loan’s processing depends on the other.\n\n' +
   `Then recheck both tabs on ${PORTAL}. Support: ${ESUPPORT}`
 
 export const WAIT_OR_PROCEED_FEES =
@@ -110,6 +96,33 @@ export const CONFLICTING_INFO =
   'Do not assume one screen overrides the other without checking both. Share your tracking ID / session with campus staff when asking if institutional funds arrived.\n\n' +
   `Portal only: ${PORTAL}\nNELFUND help form: ${ESUPPORT}`
 
+export const PAY_SCHOOL_REAPPLICATION =
+  '**Pay School during reapplication**\n\n' +
+  'I cannot verify the exact effect of **Pay School** during reapplication from the public NELFUND information available to this guide. A click or status label alone does not confirm that your school has been credited.\n\n' +
+  'Read the portal confirmation carefully, then check **☰ → Loans** for the resulting status. Ask your school bursary whether funds were received. If the portal does not explain the result, contact official support with a screenshot. Do not submit a duplicate request just to check.\n\n' +
+  `Portal: ${PORTAL}\nLogin: ${LOGIN_URL}`
+
+export const UPKEEP_TIMING =
+  '**Upkeep timing**\n\n' +
+  'I cannot verify a fixed start month or whether upkeep disbursement must follow tuition / institutional-fee payment progress. Applying or seeing a status label does not confirm a bank-credit date.\n\n' +
+  'Check the Upkeep row in **☰ → Loans** and follow any instructions shown there. If the status is unclear or unchanged, ask your campus NELFUND desk or contact official support with a screenshot.\n\n' +
+  `Login: ${LOGIN_URL}\nPortal: ${PORTAL}`
+
+export const JAMB_WAIT_FOR_MATRIC =
+  '**JAMB registration number vs Matriculation Number**\n\n' +
+  'I cannot verify that applying with a JAMB registration number before a matriculation upload causes faculty or department errors. Use the identifiers and fields the official portal requests; do not guess or enter a different number.\n\n' +
+  'If your school record is missing or the portal reports a problem, ask your campus NELFUND, registry, or ICT desk to check the record for your session. If they confirm it is uploaded but the portal still cannot verify it, contact official support with the exact error and a screenshot.\n\n' +
+  `Portal: ${PORTAL}\nLogin: ${LOGIN_URL}\nSupport: ${ESUPPORT}`
+
+export const MISSING_INFO_SCHOOL_UPLOAD =
+  '**Missing information**\n\n' +
+  'This message alone does not establish the cause. It can be related to a student record that is missing or not matched, but it can also require checking the portal details and session.\n\n' +
+  '1. Check the exact field or instruction shown, and confirm your institution, programme, and session details.\n' +
+  '2. Ask your campus NELFUND, registry, or ICT desk to confirm your record for the session.\n' +
+  '3. If the school says it has uploaded the record, refresh or sign in again and retry verification. If it remains missing, contact official support with the exact wording and screenshot.\n' +
+  'Do not pay agents or use unofficial “fix” sites.\n\n' +
+  `Portal: ${PORTAL}\nLogin: ${LOGIN_URL}\nSupport: ${ESUPPORT}`
+
 /**
  * Match post-application / amount / Pay School questions.
  * Returns null if no high-confidence match (caller falls through).
@@ -117,6 +130,35 @@ export const CONFLICTING_INFO =
 export function matchJourneyKnowledge(text: string): { intent: string; text: string; evidence: string } | null {
   const t = (text || '').trim()
   if (!t) return null
+
+  if (
+    /pay\s*school/i.test(t) &&
+    /re-?apply|reapplication|new\s*(academic\s*)?session|another\s*session|next\s*session|instant|immediately|credit\s*(my\s*)?school/i.test(
+      t,
+    )
+  ) {
+    return { intent: 'reapplication', text: PAY_SCHOOL_REAPPLICATION, evidence: 'conditional+screenshot' }
+  }
+
+  if (
+    /upkeep/i.test(t) &&
+    /(october|november|start\s*(dropping|paying|coming)|when\s*(will|does)\s*upkeep|upkeep\s*(timing|begin|start|disburs)|after\s*(tuition|school\s*fees?|institutional)\s*(is\s*)?paid)/i.test(
+      t,
+    )
+  ) {
+    return { intent: 'upkeep', text: UPKEEP_TIMING, evidence: 'conditional' }
+  }
+
+  if (
+    /jamb\s*(reg|registration|number)|apply.{0,40}jamb|jamb.{0,40}apply/i.test(t) &&
+    /(matric|wait|upload|avoid|rush|department|faculty|school\s*(has\s*)?not\s*(yet\s*)?uploaded)/i.test(t)
+  ) {
+    return { intent: 'how-to-apply', text: JAMB_WAIT_FOR_MATRIC, evidence: 'conditional' }
+  }
+
+  if (/missing\s*information/i.test(t)) {
+    return { intent: 'missing-information', text: MISSING_INFO_SCHOOL_UPLOAD, evidence: 'conditional' }
+  }
 
   // Pay School / Action Required / verified institutional payment step
   if (

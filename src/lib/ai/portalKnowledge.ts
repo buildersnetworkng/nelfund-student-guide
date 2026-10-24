@@ -110,8 +110,7 @@ export const INSTITUTION_SESSION =
 
 export const OPEN_SESSION_NOTICE =
   '**Active session / application window**\n\n' +
-  '2026/2027 window often shows **23 September 2026 – 31 December 2026** on Home. Still confirm live on the portal.\n' +
-  'National window is not the same as your school session.\n' +
+  'This guide cannot verify the current national application window. Check the live portal for your account and your school’s session notice; a cycle label or date in a guide is not proof of current availability.\n' +
   `Login: ${LOGIN_URL}`
 
 export const FEE_DISPUTES =
@@ -214,7 +213,11 @@ export function matchPortalKnowledge(text: string): { intent: string; text: stri
   if (/where\s*(do\s*i\s*|to\s*)?apply|which\s*(site|website|link|portal)|where\s*(is\s*)?(the\s*)?(loan\s*)?application/i.test(t)) {
     return { intent: 'how-to-apply', text: WHERE_TO_APPLY }
   }
-  if (/how\s*(do\s*i\s*|to\s*)?cancel|cancel\s*(my\s*)?(loan|application)|should\s*i\s*cancel|can\s*i\s*cancel|re-?apply\s*after\s*cancel/i.test(t)) {
+  if (
+    /how\s*(do\s*i\s*|to\s*)?cancel|cancel\s*(my\s*)?(loan|application)|should\s*i\s*cancel|can\s*i\s*cancel|re-?apply\s*after\s*cancel|\bcancel\b.{0,35}\bpay\s*school\b/i.test(
+      t,
+    )
+  ) {
     if (/re-?apply|apply\s*again|after\s*cancel/i.test(t)) {
       return { intent: 'pending-application', text: CANCEL_LOAN + '\n\n' + REAPPLY_AFTER_CANCEL }
     }

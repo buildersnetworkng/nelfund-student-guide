@@ -4,6 +4,10 @@ import { processUserTurn, createInitialSlots } from '../src/lib/ai/processTurn.t
 import { runArchitectureTests } from '../src/lib/ai/agent/runArchitectureTests.ts'
 import { classifyIntent } from '../src/lib/ai/intent.ts'
 import { playbookAnswer } from '../src/lib/ai/playbook.ts'
+import { answerQuestion } from '../src/lib/ai/answer.ts'
+import statusHandler from '../api/knowledge/status.ts'
+import { isInstitutionalLoanActionScreen, understandPortalText } from '../src/lib/ai/screenshotUnderstand.ts'
+import { formatLatestAnnouncementReply, formatLiveStatusReply } from '../src/lib/ai/processTurnOpen.ts'
 
 const cases = [
   ['login', 'which website do I use to continue my application', /portal\.nelf\.gov\.ng/i],
@@ -59,6 +63,24 @@ const cases = [
   ['hourly181-dispute', 'The fee is wrong how I raise a dispute', /dispute|before Submit|portal/i],
   ['hourly181-site', 'Which site na official', /portal\.nelf\.gov\.ng|nelf\.gov\.ng/i],
   ['hourly181-gift', 'Na gift? Scholarship abi loan', /loan|scholarship|interest-free/i],
+  ['latest-announcement', 'What is the latest NELFUND announcement?', /A portal link alone is \*\*not\*\* proof/i],
+  ['latest-announcement-plain-language', "what's the latest NELFUND announcement", /A portal link alone is \*\*not\*\* proof/i],
+  ['announced-opening-date', 'Has NELFUND announced the opening date?', /not verified|cannot confirm a recent announcement|portal\.nelf\.gov\.ng/i],
+  ['opening-date-question', 'What are the NELFUND application opening dates?', /not verified|cannot confirm a recent announcement|portal\.nelf\.gov\.ng/i],
+  ['general-application-status', 'What is the application status?', /not verified|portal\.nelf\.gov\.ng/i],
+  ['personal-status-private', 'Can you check my application status?', /cannot access your private portal account|portal\.nelf\.gov\.ng/i],
+  ['approved-status-private', 'Am I approved for the NELFUND loan?', /cannot access your private portal account|portal\.nelf\.gov\.ng/i],
+  ['payment-date-unknown', 'When will my NELFUND payment arrive?', /cannot confirm.*payment date|portal\.nelf\.gov\.ng/i],
+  ['payment-start-unknown', 'Have upkeep payments started this cycle?', /not verified|cannot confirm a recent announcement|portal\.nelf\.gov\.ng/i],
+  ['reapply-current', 'Should I reapply for NELFUND?', /do not submit a duplicate|official support/i],
+  ['cancel-pay-school-reapplication', 'Cancel Pay School for my reapplication.', /How to cancel a loan application/],
+  ['pay-school-reapply', 'I clicked Pay School on reapplication does it credit school fees instantly', /not instantly credit|review|verify|☰ → Loans/i],
+  ['pay-school-reapply-normal', 'Does Pay School during reapplication instantly credit my school?', /Pay School during reapplication|does \*\*not\*\* instantly credit/i],
+  ['verified-but-unpaid', 'My school loan is Verified but I have not received money', /Verified ≠ disbursed|check the Upkeep row|campus bursary/i],
+  ['pay-school-fee-dispute', 'Pay School shows the wrong fee; how do I raise a fee dispute before submit?', /Fee Disputes|Raise a dispute/i],
+  ['upkeep-timing', 'Will my upkeep start dropping in October after I applied 2026/2027', /cannot verify a fixed start month|does not confirm a bank-credit date/i],
+  ['jamb-wait-matric', 'Should I apply with JAMB number before school uploads matric', /wait for the school upload|Matriculation Number|campus NELFUND/i],
+  ['missing-info-first', 'Portal shows Missing Information first time applicant what should I do', /first-time applicant|institution has not yet uploaded|registry/i],
 ]
 
 let fail = 0
@@ -79,6 +101,47 @@ for (const [name, q, want] of cases) {
     console.log('FAIL', name, e.message)
   }
 }
+
+const unreadableScreenshotTurn = await processUserTurn({
+  userText: 'Please read this portal screenshot',
+  ocrText: 'portal screenshot uploaded',
+  imagePreview: 'data:image/png;base64,unreadable',
+  slots: createInitialSlots(null),
+})
+const unreadableScreenshotAnswer =
+  unreadableScreenshotTurn.messages.find((message) => message.role === 'assistant')?.text || ''
+if (
+  !/Screenshot could not be read reliably/.test(unreadableScreenshotAnswer) ||
+  !/type the main portal wording/i.test(unreadableScreenshotAnswer)
+) {
+  fail++
+  fails.push('unreadable-screenshot')
+  console.log('FAIL unreadable-screenshot')
+} else console.log('PASS unreadable-screenshot')
+
+const paySchoolScreenshotTurn = await processUserTurn({
+  userText: '',
+  ocrText: 'Your school loan has been verified. Action Required. Pay School',
+  slots: createInitialSlots(null),
+})
+const paySchoolScreenshotAnswer =
+  paySchoolScreenshotTurn.messages.find((message) => message.role === 'assistant')?.text || ''
+if (!/does \*\*not\*\* by itself confirm that money has reached your school or your account/.test(paySchoolScreenshotAnswer)) {
+  fail++
+  fails.push('pay-school-screenshot')
+  console.log('FAIL pay-school-screenshot')
+} else console.log('PASS pay-school-screenshot')
+
+const emptyOrdinaryAnswer = answerQuestion('')
+if (
+  /Screenshot could not be read reliably/.test(emptyOrdinaryAnswer.answer) ||
+  emptyOrdinaryAnswer.hasEvidence ||
+  emptyOrdinaryAnswer.confidence > 0.25
+) {
+  fail++
+  fails.push('empty-ordinary-answer-not-screenshot-evidence')
+  console.log('FAIL empty-ordinary-answer-not-screenshot-evidence')
+} else console.log('PASS empty-ordinary-answer-not-screenshot-evidence')
 
 let r = await processUserTurn({ userText: 'portal shows missing information', slots: createInitialSlots(null) })
 r = await processUserTurn({ userText: 'UNILAG', slots: r.slots, history: [] })
@@ -154,6 +217,70 @@ for (const [q, needle] of [
 const arch = runArchitectureTests()
 console.log('arch', arch.passed + '/' + arch.total)
 fail += arch.failed || 0
+
+const mixedSignalScreens = [
+  'School Loan History\nPending status.\n\nEmail verification\nVerified.\n\nProfile action\nAction Required: update your profile.',
+  'Invalid JAMB registration number.\n\nYour school loan has been verified. Action Required. Pay School.',
+  'School Loan History\nPending status.\n\nEmail verification\nVerified.\n\nFee Disputes\nAction Required. Pay School.',
+]
+for (const [index, ocrText] of mixedSignalScreens.entries()) {
+  const screen = understandPortalText(ocrText)
+  const turn = await processUserTurn({ userText: '', ocrText, slots: createInitialSlots(null) })
+  const answer = turn.messages.find((message) => message.role === 'assistant')?.text || ''
+  if (
+    isInstitutionalLoanActionScreen(ocrText) ||
+    screen?.kind === 'dashboard-after-apply' ||
+    /Verified does not mean paid|school loan has been verified/i.test(answer)
+  ) {
+    fail++
+    fails.push(`mixed-signal-loan-screen-${index + 1}`)
+    console.log('FAIL', `mixed-signal-loan-screen-${index + 1}`)
+  } else console.log('PASS', `mixed-signal-loan-screen-${index + 1}`)
+}
+
+const statusResponse = {
+  statusCode: 0,
+  body: null,
+  status(code) {
+    this.statusCode = code
+    return this
+  },
+  json(body) {
+    this.body = body
+    return this
+  },
+}
+await statusHandler({ method: 'GET', query: {} }, statusResponse)
+if (
+  statusResponse.statusCode !== 200 ||
+  statusResponse.body.status !== 'confirm_on_portal' ||
+  statusResponse.body.verified !== false ||
+  !/not a substitute for what the portal shows today/i.test(statusResponse.body.window_note)
+) {
+  fail++
+  fails.push('status-api-does-not-assert-live-window')
+  console.log('FAIL status-api-does-not-assert-live-window')
+} else console.log('PASS status-api-does-not-assert-live-window')
+
+const formattedStatusReply = formatLiveStatusReply(statusResponse.body)
+if (
+  /Guide status: \*\*(open|closed)\*\*/i.test(formattedStatusReply) ||
+  !/Status: \*\*confirm on portal\*\*/i.test(formattedStatusReply)
+) {
+  fail++
+  fails.push('status-reply-does-not-assert-unverified-window')
+  console.log('FAIL status-reply-does-not-assert-unverified-window')
+} else console.log('PASS status-reply-does-not-assert-unverified-window')
+
+if (
+  !/cannot verify/i.test(formatLatestAnnouncementReply()) ||
+  !/will not invent/i.test(formatLatestAnnouncementReply())
+) {
+  fail++
+  fails.push('latest-announcement-formatter-is-cautious')
+  console.log('FAIL latest-announcement-formatter-is-cautious')
+} else console.log('PASS latest-announcement-formatter-is-cautious')
+
 console.log(fail === 0 ? 'ALL_PASS' : 'TOTAL_FAILS ' + fail)
 if (fails.length) console.log('failed:', fails.join(', '))
 process.exit(fail === 0 ? 0 : 1)

@@ -4,6 +4,7 @@
 import type { IntentId } from './types'
 import { isOverviewAsk, fullNelfundOverview } from './overviewAsk'
 import { explainTerm } from './termDefine'
+import { matchJourneyKnowledge } from './journeyKnowledge'
 import { playbookHourly156 } from './playbookHourly156'
 import { playbookHourly157 } from './playbookHourly157'
 import { playbookHourly158 } from './playbookHourly158'
@@ -41,6 +42,29 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   if (userText && isOverviewAsk(userText)) {
     return fullNelfundOverview()
+  }
+
+  const cancellationOrDispute =
+    /cancel\s*(my\s*)?(loan|application)|should\s*i\s*cancel|can\s*i\s*cancel|re-?apply\s*after\s*cancel|raise\s*(a\s*)?dispute|fee\s*dispute|wrong\s*(fee|amount).{0,30}(before\s*)?submit/i.test(
+      userText,
+    )
+  if (
+    userText &&
+    !cancellationOrDispute &&
+    (intent === 'current-information' || intent === 'deadline' || intent === 'official-sources') &&
+    /\b(latest|recent|current|today|open|closed|opening|closing|deadline|announcement|announced|still accepting|still apply|application status)\b|when.{0,30}(open|close|payment|disburse)/i.test(
+      userText,
+    )
+  ) {
+    return (
+      '**Current NELFUND information is not verified by this guide.**\n\n' +
+      'I cannot confirm whether applications are open or closed, a current opening date, a recent announcement, or a payment date. A reachable website or a dated guide reference is not proof of current status.\n\n' +
+      `Check your account at ${LOGIN_URL} and current notices at ${SITE}.`
+    )
+  }
+  if (userText && !cancellationOrDispute) {
+    const journey = matchJourneyKnowledge(userText)
+    if (journey) return journey.text
   }
 
   const term = userText ? explainTerm(userText, ctx.lastAssistant) : null
@@ -187,20 +211,20 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
   if (intent === 'institution-verification') {
     return (
       '**Has my school uploaded my data?**\n\n' +
-      'You cannot see a hidden upload log in this chat. The portal shows it as Missing information / school not listed if the record is not there yet.\n\n' +
-      '1. Ask the campus NELFUND / ICT / Registry desk to confirm the upload.\n' +
-      `2. Retry ${PORTAL} after they confirm.\n` +
-      `3. Still missing: ${ESUPPORT} with a screenshot.`
+      'I cannot see the school upload record from this chat. A missing record or a mismatch can affect verification, but this guide cannot confirm the cause from the message alone.\n\n' +
+      '1. Check the portal’s exact message and confirm your institution, programme, and session.\n' +
+      '2. Ask the campus NELFUND / ICT / Registry desk to confirm your record for that session.\n' +
+      '3. If the school confirms upload but the issue remains, retry after refreshing or signing in again, then contact support with a screenshot.\n' +
+      `Portal: ${PORTAL}\nSupport: ${ESUPPORT}`
     )
   }
 
   if (intent === 'missing-information' || intent === 'school-not-found') {
     return (
       '**Missing information / school not on the list**\n\n' +
-      'Usually the school has not finished uploading your record.\n\n' +
-      '1. Confirm public institution.\n' +
-      '2. Ask campus NELFUND desk about upload.\n' +
-      `3. Retry ${PORTAL}. Still failing: ${ESUPPORT}.`
+      'This message does not establish the cause. Check the exact portal instruction and your institution, programme, and session details.\n\n' +
+      'Ask campus NELFUND / ICT / Registry to confirm your record. If they say it is uploaded but verification still fails, refresh or sign in again and contact official support with the exact wording and a screenshot.\n' +
+      `Portal: ${PORTAL}\nSupport: ${ESUPPORT}`
     )
   }
 
@@ -258,11 +282,9 @@ export function playbookAnswer(intent: IntentId, ctx: PlaybookContext): string |
 
   if (intent === 'current-information' || intent === 'deadline' || intent === 'academic-session') {
     return (
-      '**Yes \u2014 2026/2027 is open on the official portal.**\n\n' +
-      '\u2022 Window: **23 September 2026 \u2013 31 December 2026**.\n' +
-      '\u2022 Re-enter BVN and bank when the portal asks.\n' +
-      '\u2022 Your school must also open its session on Home.\n' +
-      `Confirm live: ${PORTAL} \u00b7 Login: ${LOGIN_URL} \u00b7 Site: ${SITE}`
+      '**Current application status is not verified by this guide.**\n\n' +
+      'A cycle label or dated guide reference is not confirmation that applications are open or closed today. I cannot verify the latest announcement or see whether Request Loan is available for your account.\n\n' +
+      `Check Home and your account at ${LOGIN_URL}. Official portal: ${PORTAL} · Site: ${SITE}`
     )
   }
 

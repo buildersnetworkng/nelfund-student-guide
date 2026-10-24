@@ -31,8 +31,9 @@ import { matchPortalKnowledge } from './portalKnowledge'
 import { understandPortalText } from './screenshotUnderstand'
 import { understandTurn, normalizeStudentText, splitMultiQuestions, isMultiQuestion, isDomainRelated } from './understand'
 import { suggest } from './suggest'
-import { openWindowReply } from './processTurnOpen'
-import type { IntentId } from './types'
+import { formatLatestAnnouncementReply, openWindowReply } from './processTurnOpen'
+import { tryJourneyOrCancelGate, tryOcrJourneyGate } from './journeyGate'
+import type { GroundedAnswer, IntentId } from './types'
 import { tryMigratedPath } from './shadow/processTurnBridge'
 
 function uid(prefix: string): string {
@@ -44,6 +45,7 @@ function wrap(
   slots: ConversationSlots,
   intent: IntentId,
   text: string,
+  trust?: Pick<GroundedAnswer, 'hasEvidence' | 'confidence' | 'insufficientReason'>,
 ): AgentTurnResult {
   let chips: string[] = ['How do I apply for NELFUND?', 'Is the application open?']
   try {
@@ -66,9 +68,9 @@ function wrap(
         text,
         timestamp: Date.now(),
         answer: {
-          hasEvidence: true,
+          hasEvidence: trust?.hasEvidence ?? true,
           intent,
-          confidence: 0.9,
+          confidence: trust?.confidence ?? 0.9,
           problem: null,
           answer: text,
           nextActions: [],
@@ -78,7 +80,7 @@ function wrap(
             { id: 'portal', label: 'NELFUND portal', url: 'https://portal.nelf.gov.ng/', official: true },
           ],
           video: null,
-          insufficientReason: null,
+          insufficientReason: trust?.insufficientReason ?? null,
           officialFallbackUrl: 'https://portal.nelf.gov.ng/',
           escalation: null,
           responseMode: 'conversation',
@@ -193,6 +195,65 @@ export async function processUserTurn(opts: {
         'Log in and check **☰ → Loans** on https://portal.nelf.gov.ng/auth/login',
         'Portal: https://portal.nelf.gov.ng/',
       ].join('\n'),
+      {
+        hasEvidence: false,
+        confidence: 0.2,
+        insufficientReason: 'The guide cannot access a student’s private portal account.',
+      },
+    )
+  }
+
+  const unreadableScreenshotUpload =
+    Boolean(opts.imagePreview) &&
+    (!ocr || /^portal\s*screenshot\s*uploaded$/i.test(ocr.trim()))
+  const screenshotPlaceholder = /^portal\s*screenshot\s*uploaded$/i.test(ocr.trim())
+  if (unreadableScreenshotUpload || screenshotPlaceholder) {
+    const screen = understandPortalText('portal screenshot uploaded')
+    if (screen) {
+      return wrap(raw || rawIn || '[screenshot]', opts.slots, 'current-information', screen.explanation, {
+        hasEvidence: false,
+        confidence: 0.1,
+        insufficientReason: 'The screenshot upload contained no readable portal text.',
+      })
+    }
+  }
+
+  if (raw) {
+    const journeyHit = tryJourneyOrCancelGate(raw, '', rawIn, opts.slots, wrap)
+    if (journeyHit) return journeyHit
+  }
+  if (ocr) {
+    const journeyHit = tryOcrJourneyGate(raw, ocr, opts.slots, wrap)
+    if (journeyHit) return journeyHit
+  }
+
+  const latestAnnouncementAsk =
+    /\b(latest|recent|new)\b.{0,45}\b(announcements?|updates?|news)\b|\b(announcements?|updates?|news)\b.{0,35}\b(latest|recent|today|this week)\b|\b(announced|announcement)\b.{0,40}\b(open|opening|close|closing|deadline|date)\b/i.test(
+      raw,
+    )
+  const currentEvidenceAsk =
+    /\b(latest|recent|new)\b.{0,45}\b(announcements?|updates?|news|deadlines?|opening|payments?|status)\b|\b(announcements?|updates?|news)\b.{0,35}\b(latest|recent|today|this week)\b|\b(announced|announcement)\b.{0,40}\b(open|opening|close|closing|deadline|date)\b/i.test(raw) ||
+    /\b(is\s+(the\s+)?(loan|application|nelfund|window).{0,40}open|application\s+open|nelfund\s+open|still\s*(dey\s*)?open|dem\s*don\s*close|when\s+(will|does|is).{0,20}(open|close))\b|\b(when|what date|date for)\b.{0,55}\b(pay(?:ment)?|disburse(?:ment)?|money enter|opening|closing|deadline|application open|re-?apply|reapplication)\b|\b(payment|upkeep|disburse(?:ment)?)\b.{0,30}\b(started|arrived|paid|released|status|today|this cycle|amount|date)\b|\b(application|loan)\s+status\b|\b(opening|closing)\s+dates?\b|\b(re-?apply|reapplication)\b|\b(am i|did i get|was i)\s+(approved|rejected|declined)\b|\b(has|was|is)\s+my\s+(application|loan)\b.{0,25}\b(approved|rejected|declined|paid)\b/i.test(
+      raw,
+    )
+  if (raw && currentEvidenceAsk) {
+    return wrap(
+      raw,
+      { ...opts.slots, intent: 'current-information', phase: 'resolve' },
+      'current-information',
+      latestAnnouncementAsk
+        ? formatLatestAnnouncementReply()
+        : [
+            '**Current NELFUND information is not verified by this guide.**',
+            'Application dates and payment timing change by cycle. I cannot confirm a recent announcement, your payment date, or whether your application is approved, and I cannot access your private portal account.',
+            'Check your own account and current notices at https://portal.nelf.gov.ng/ or https://portal.nelf.gov.ng/auth/login. Official website: https://nelf.gov.ng/',
+            'For reapplication, do not submit a duplicate unless the portal or official support instructs you to. Check your Loans page and contact official support if the portal does not explain what to do.',
+          ].join('\n\n'),
+      {
+        hasEvidence: false,
+        confidence: 0.25,
+        insufficientReason: 'No current authoritative evidence confirms the requested status, date, or payment timing.',
+      },
     )
   }
 
@@ -307,6 +368,11 @@ export async function processUserTurn(opts: {
         '• Site: https://nelf.gov.ng/',
         'School session can still be closed even when the national window is open.',
       ].join('\n'),
+      {
+        hasEvidence: false,
+        confidence: 0.25,
+        insufficientReason: 'No current authoritative evidence confirms the national application window.',
+      },
     )
   }
 
@@ -488,6 +554,11 @@ export async function processUserTurn(opts: {
       opts.slots,
       'current-information',
       openWindowReply(),
+      {
+        hasEvidence: false,
+        confidence: 0.25,
+        insufficientReason: 'No current authoritative evidence confirms whether applications are open or closed.',
+      },
     )
   }
 

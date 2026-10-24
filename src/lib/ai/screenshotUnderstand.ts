@@ -89,16 +89,71 @@ export function dashboardFollowUpExplanation(applied: boolean | null): string {
   return 'Open Home and read Total / Pending numbers, or re-upload a clearer screenshot.'
 }
 
+export function isInstitutionalLoanActionScreen(text: string): boolean {
+  const raw = text || ''
+  const conflictingContext =
+    /\bjamb\b|\bstudent\s+status\b|verify\s+educational|verify\s+your\s+student/i.test(raw)
+
+  if (conflictingContext) return false
+
+  return raw.split(/\n\s*\n/).some((section) =>
+    /\b(?:institutional|school)\s+loans?\b[^.!?]{0,45}\bverified\b[\s.!?]*(?:click\s+)?(?:action\s+required|pay\s*school)\b/i.test(
+      section,
+    ),
+  )
+}
+
+function unclearLoanActionScreen(): ScreenUnderstanding {
+  return {
+    kind: 'unknown',
+    hasApplied: null,
+    exactError: null,
+    explanation: [
+      '**I could not identify this portal screen from the text alone.**',
+      'A phrase such as “Pay School” or “Action Required” is not enough to confirm a loan status.',
+      'Please include the page title and the Institutional Loans row/status, or upload a clearer screenshot.',
+      `Login: ${LOGIN}`,
+      `Support: ${ESUPPORT}`,
+    ].join('\n'),
+    nextActions: ['Share the page title and exact row/status wording (no BVN, NIN, or OTP)', `Login: ${LOGIN}`],
+  }
+}
+
 export function understandPortalText(text: string): ScreenUnderstanding | null {
   const raw = (text || '').trim()
-  if (raw.length < 12) return null
+  if (!raw) return null
+  if (/^portal\s*screenshot\s*uploaded$/i.test(raw)) {
+    return {
+      kind: 'unknown',
+      hasApplied: null,
+      exactError: null,
+      explanation: [
+        '**Screenshot could not be read reliably**',
+        'The image text was empty or too weak for OCR. Type the main portal wording you see, or upload a clearer crop.',
+        `Portal: ${PORTAL}`,
+        `Login: ${LOGIN}`,
+      ].join('\n\n'),
+      nextActions: ['Type the exact portal message (do not include BVN, NIN, or OTP)', `Login: ${LOGIN}`],
+    }
+  }
+  if (raw.length < 12) {
+    return /pay\s*school|action\s*required|school\s*loan\s*(has\s*been\s*)?verified/i.test(raw)
+      ? unclearLoanActionScreen()
+      : null
+  }
   const t = raw.toLowerCase()
+  const institutionalLoanAction = isInstitutionalLoanActionScreen(raw)
 
   const looksPortal =
     /student\s*loan\s*portal|total\s*loans|pending\s*loans|approved\s*loans|session\s*registration|welcome\s*to\s*student|nelf\.gov|portal\.nelf|sign\s*in|log\s*in|create\s*account|invalid\s*jamb|missing\s*information|under\s*review|institutional\s*loans|upkeep\s*loans|school\s*loan\s*history|personal\s*history|fee\s*disputes|wallet\s*balance|in\s*wallet|reset\s*account\s*details|profile\s*completed|bank\s*verification\s*number|click\s*to\s*change\s*password|institution has not opened|cancel\s*loan|admission\s*letter\s*required|ask about nelfund|nelfund student guide/i.test(
       t,
     )
-  if (!looksPortal && raw.length < 80) return null
+  if (!looksPortal && raw.length < 80 && !institutionalLoanAction) {
+    if (/pay\s*school|action\s*required|school\s*loan\s*(has\s*been\s*)?verified/i.test(raw)) {
+      return unclearLoanActionScreen()
+    }
+    return null
+  }
 
   const counts = extractCounts(raw)
   const applied = appliedFromCounts(counts)
@@ -200,6 +255,23 @@ export function understandPortalText(text: string): ScreenUnderstanding | null {
         `Send a support message with your screenshot (if you have one): ${ESUPPORT}`,
       ].join('\n'),
       nextActions: ['Upload admission letter on the portal', `Send a support message with screenshot: ${ESUPPORT}`],
+    }
+  }
+
+  if (institutionalLoanAction) {
+    return {
+      kind: 'dashboard-after-apply',
+      hasApplied: true,
+      exactError: null,
+      explanation: [
+        '**Institutional loan row:** the screenshot shows **Verified** with **Action Required / Pay School**.',
+        '**Verified does not mean paid or disbursed.** This screenshot alone does not confirm that funds reached your school or your account.',
+        'Check the exact prompt on the official portal and follow only the steps shown there.',
+        'Then recheck the Institutional and Upkeep rows. Ask your school bursary whether institutional funds were received.',
+        `Login: ${LOGIN}`,
+        `If the portal remains unclear: ${ESUPPORT}`,
+      ].join('\n'),
+      nextActions: ['Recheck the Institutional and Upkeep rows on the portal', 'Confirm school receipt with bursary'],
     }
   }
 

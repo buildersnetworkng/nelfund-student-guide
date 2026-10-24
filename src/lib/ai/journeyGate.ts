@@ -4,6 +4,7 @@
  */
 import { matchPortalKnowledge } from './portalKnowledge'
 import { matchJourneyKnowledge } from './journeyKnowledge'
+import { isInstitutionalLoanActionScreen } from './screenshotUnderstand'
 import type { IntentId } from './types'
 import type { ConversationSlots, AgentTurnResult } from './conversation'
 
@@ -25,9 +26,7 @@ export function tryJourneyOrCancelGate(
   // Cancel / pre-submit fee-dispute keep portal precedence over journey amount answers
   if (
     raw &&
-    (/how\s*(do\s*i\s*|to\s*)?cancel|cancel\s*(my\s*)?(loan|application)|should\s*i\s*cancel|can\s*i\s*cancel|re-?apply\s*after\s*cancel/i.test(
-      raw,
-    ) ||
+    (/how\s*(do\s*i\s*|to\s*)?cancel|cancel\s*(my\s*)?(loan|application)|should\s*i\s*cancel|can\s*i\s*cancel|re-?apply\s*after\s*cancel|\bcancel\b.{0,35}\bpay\s*school\b/i.test(raw) ||
       /raise\s*(a\s*)?dispute|fee\s*dispute|wrong\s*(fee|amount).{0,30}(before\s*)?submit/i.test(raw))
   ) {
     const portalHit = matchPortalKnowledge(raw)
@@ -60,30 +59,15 @@ export function tryOcrJourneyGate(
   wrap: WrapFn,
 ): AgentTurnResult | null {
   if (ocr.length < 8) return null
-  const ocrJourney = matchJourneyKnowledge(`${raw || ''} ${ocr}`)
-  const looksLikeLoanVerifiedUi =
-    /pay\s*school|action\s*required|school\s*loan\s*has\s*been\s*verified|linked\s*upkeep/i.test(ocr) ||
-    (/status\s*[:\s]*verified/i.test(ocr) &&
-      /institutional|upkeep|loan\s*type|pay\s*school/i.test(ocr) &&
-      !/jamb|student\s*status|verify\s*educational|verify\s*your\s*student/i.test(ocr))
-  if (ocrJourney && looksLikeLoanVerifiedUi) {
+  const screenshotText = `${raw || ''} ${ocr}`.trim()
+  const ocrJourney = matchJourneyKnowledge(screenshotText)
+  if (ocrJourney && isInstitutionalLoanActionScreen(screenshotText)) {
     return wrap(
       raw || '[Screenshot uploaded]',
       { ...slots, intent: ocrJourney.intent as IntentId },
       ocrJourney.intent as IntentId,
       ocrJourney.text,
     )
-  }
-  if (looksLikeLoanVerifiedUi) {
-    const fallback = matchJourneyKnowledge('Pay School Action Required school loan has been verified')
-    if (fallback) {
-      return wrap(
-        raw || '[Screenshot uploaded]',
-        { ...slots, intent: fallback.intent as IntentId },
-        fallback.intent as IntentId,
-        fallback.text,
-      )
-    }
   }
   return null
 }
