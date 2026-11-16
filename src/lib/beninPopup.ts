@@ -19,8 +19,8 @@ export const BENIN_AI_AVATAR_URL =
 export const BENIN_POPUP_STORAGE_KEY = 'nsg_benin_popup_v2'
 export const BENIN_SESSION_SHOWN_KEY = 'nsg_benin_popup_shown_v2'
 
-/** ~24h after X dismiss — temporary, not permanent. */
-export const DISMISS_COOLDOWN_MS = 24 * 60 * 60 * 1000
+/** 48h after X dismiss — temporary, not permanent. Survives reload. */
+export const DISMISS_COOLDOWN_MS = 48 * 60 * 60 * 1000
 /** Longer quiet period after CTA click (engaged with channel). */
 export const CLICK_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -71,7 +71,7 @@ export function markShownThisSession() {
   }
 }
 
-/** True if dismiss (24h) or click (7d) cooldown is still active. Survives navigation. */
+/** True if dismiss (48h) or click (7d) cooldown is still active. Survives navigation. */
 export function isInCooldown(now = Date.now()): boolean {
   const s = readState()
   if (s.clickedAt && now - s.clickedAt < CLICK_COOLDOWN_MS) return true
