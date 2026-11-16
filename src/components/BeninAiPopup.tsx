@@ -16,7 +16,7 @@ import {
 } from '../lib/beninPopup'
 
 /** Delay on non-Ask pages so Share soft prompt (1.5s) can claim the slot first on home. */
-const OTHER_PAGE_DELAY_MS = 14000
+const OTHER_PAGE_DELAY_MS = 8000
 
 type Props = {
   /** When true, only show after AI_ANSWER_READY_EVENT (Ask workspace). */
@@ -108,7 +108,7 @@ export default function BeninAiPopup({ askMode = false }: Props) {
         aria-modal="false"
         aria-labelledby={titleId}
         aria-describedby={descId}
-        className="pointer-events-auto w-full max-w-sm animate-in fade-in slide-in-from-bottom-4 rounded-2xl border border-ink/10 bg-white p-3.5 shadow-lg shadow-ink/10 motion-reduce:animate-none sm:p-4"
+        className="pointer-events-auto soft-rise w-full max-w-sm rounded-2xl border border-ink/10 bg-white p-3.5 shadow-lg shadow-ink/10 sm:p-4"
       >
         <div className="flex items-start gap-3">
           <div className="shrink-0">
