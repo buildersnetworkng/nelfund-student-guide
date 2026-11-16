@@ -4,10 +4,12 @@ import ShareGuide, { SHARE_TEXT } from './ShareGuide'
 import { trackFeature } from '../lib/analytics'
 import { setShareSoftOpen } from '../lib/promoGate'
 
-/** Bumped key so older dismiss flags no longer hide the card */
-const STORAGE_KEY = 'nelfund-share-soft-v3'
+/** Bumped key so older permanent dismiss flags no longer hide the card */
+const STORAGE_KEY = 'nelfund-share-soft-v4'
+const SESSION_SHOWN_KEY = 'nelfund-share-soft-shown-v4'
 const VALUE_KEY = 'nelfund-share-value-seen'
-const DISMISS_MS = 1000 * 60 * 60 * 6
+/** 24h after dismiss — temporary, survives reload, not permanent. */
+const DISMISS_MS = 24 * 60 * 60 * 1000
 const SKIP_PROMPT_PATHS = [
   '/ask',
   '/apply',
@@ -33,16 +35,38 @@ export function markShareValue() {
   window.dispatchEvent(new Event('nelfund-share-value'))
 }
 
-function alreadyDismissed() {
+function inDismissCooldown(now = Date.now()) {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (!raw) return false
     const at = Number(raw)
-    if (!Number.isFinite(at)) return false
-    return Date.now() - at < DISMISS_MS
+    if (!Number.isFinite(at) || at <= 0) return false
+    return now - at < DISMISS_MS
   } catch {
     return false
   }
+}
+
+function wasShownThisSession() {
+  try {
+    return window.sessionStorage.getItem(SESSION_SHOWN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function markShownThisSession() {
+  try {
+    window.sessionStorage.setItem(SESSION_SHOWN_KEY, '1')
+  } catch {
+    /* ignore */
+  }
+}
+
+function canShowSharePrompt() {
+  if (wasShownThisSession()) return false
+  if (inDismissCooldown()) return false
+  return true
 }
 
 export default function ShareSoftPrompt() {
@@ -56,7 +80,7 @@ export default function ShareSoftPrompt() {
       setShareSoftOpen(false)
       return
     }
-    if (alreadyDismissed()) {
+    if (!canShowSharePrompt()) {
       setVisible(false)
       setShareSoftOpen(false)
       return
@@ -66,8 +90,9 @@ export default function ShareSoftPrompt() {
     let timer: number | undefined
 
     function reveal() {
-      if (shown || alreadyDismissed()) return
+      if (shown || !canShowSharePrompt()) return
       shown = true
+      markShownThisSession()
       setVisible(true)
       setShareSoftOpen(true)
       try {
@@ -89,7 +114,9 @@ export default function ShareSoftPrompt() {
   function dismiss() {
     setVisible(false)
     setShareSoftOpen(false)
+    markShownThisSession()
     try {
+      // Timestamp only — popup becomes eligible again after DISMISS_MS (24h)
       window.localStorage.setItem(STORAGE_KEY, String(Date.now()))
     } catch {
       /* ignore */
